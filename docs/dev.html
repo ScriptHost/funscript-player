@@ -105,6 +105,7 @@
       <tr><td><code>enhance.js</code> · <code>hq.js</code></td><td>Bildverbesserung per WebGL · HQ-Stream vom Server (Spulen = Neustart der Umwandlung).</td></tr>
       <tr><td><code>finale.js</code> · <code>tools.js</code></td><td>Finale (lösen / sanfter) · Script-Automatik: Analyse, Presets, pro Szene (<code>processScript</code>), Offset einmessen.</td></tr>
       <tr><td><code>stroker.js</code></td><td>Bewegungsgeräte über Intiface (z. B. Handy per Bluetooth).</td></tr>
+      <tr><td><code>selfctl.js</code></td><td>„Selbst steuern“ für Videos ohne Funscript: Handy per HAMP (Besitzer <code>'self'</code>) bzw. <code>hampLevel()</code> für Bluetooth, Satisfyer über <code>selfVibeLevel()</code>.</td></tr>
       <tr><td><code>settings.js</code></td><td>Einstellungsseite: Bild/HQ-Modus, Anzeige im Player, System, Zurücksetzen.</td></tr>
       <tr><td><code>remote.js</code></td><td>Fernbedienung: Bildschirm-Seite (Zustand melden, Befehle ausführen) und Fernbedienungs-Seite.</td></tr>
     </table>
@@ -124,7 +125,7 @@
       </div>
       <div class="card">
         <h3>Wer steuert die Handy?</h3>
-        <p><code>handy.owner</code> ist <code>'video'</code>, <code>'manual'</code>, <code>'pattern'</code>, <code>'sequence'</code>
+        <p><code>handy.owner</code> ist <code>'video'</code>, <code>'manual'</code>, <code>'self'</code>, <code>'pattern'</code>, <code>'sequence'</code>
           oder <code>'finale'</code>. <code>claimHandy(owner)</code> wechselt und sendet das Event <code>handy-owner</code> –
           die anderen Bereiche setzen sich darauf zurück (z. B. pausiert das Video).</p>
       </div>

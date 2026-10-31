@@ -155,7 +155,29 @@
             <button id="oUndo" class="small secondary" title="Letztes O zurücknehmen">−</button>
             <button id="markBtn" class="small secondary" title="Marker an dieser Stelle in Stash setzen (Taste P)">📍 Marker setzen</button>
           </div>
-          <p class="meta sync-only"><span id="scriptName">Kein Script</span></p>
+          <p id="scriptLine" class="meta sync-only"><span id="scriptName">Kein Script</span></p>
+          <!-- Videos ohne Funscript: Geräte von Hand mitlaufen lassen -->
+          <div id="selfRow" class="self-row sync-only" hidden>
+            <div class="self-head">
+              <span>Kein Funscript</span>
+              <span id="selfSeg" class="seg self-seg"><button data-self="off">Aus</button><button data-self="self">Selbst steuern</button></span>
+            </div>
+            <div id="selfCtl" class="self-ctl" hidden>
+              <div class="self-dev">
+                <div class="self-top"><button id="selfHandy" class="small">▶ Handy</button>
+                  <label>Geschwindigkeit <output id="selfSpeedVal"></output></label></div>
+                <input id="selfSpeed" type="range" min="0" max="100" step="5" value="40" aria-label="Handy-Geschwindigkeit">
+                <div id="selfChips" class="chips"><button data-v="15">15</button><button data-v="30">30</button><button data-v="45">45</button><button data-v="60">60</button><button data-v="75">75</button><button data-v="90">90</button></div>
+              </div>
+              <div class="self-dev">
+                <label>〰 Satisfyer-Stärke <output id="selfVibeVal"></output>
+                  <input id="selfVibe" type="range" min="0" max="100" step="5" value="0">
+                </label>
+                <div id="selfVibeChips" class="chips"><button data-v="0">Aus</button><button data-v="20">20</button><button data-v="40">40</button><button data-v="60">60</button><button data-v="80">80</button></div>
+              </div>
+              <p class="hint-text">Läuft nur, solange das Video läuft – Pause hält Handy und Satisfyer an. STOPP wie immer.</p>
+            </div>
+          </div>
           <div id="presetRow" class="preset-row sync-only" hidden>
             <label>🛠️ Anpassung
               <select id="scenePreset" title="Gilt für diese Szene – Standard unter ⚙️ → Script">
@@ -193,6 +215,7 @@
         </nav>
 
         <div id="setDevices" class="card">
+          <label class="check sync-setting"><input class="sync-toggle" type="checkbox"> 🔄 <b>Geräte folgen dem Video</b> (Sync) – aus = nur schauen</label>
           <h2>↕ The Handy</h2>
           <label>Connection Key
             <input id="key" type="password" autocomplete="off" spellcheck="false">
@@ -417,6 +440,7 @@
           <div id="hudOptions" class="hud-options">
             <label class="check"><input type="checkbox" data-hud="devices"> Geräte-Steuerung am Video (Verbinden, Offset, Hub, Stärke – am PC rechts daneben)</label>
             <label class="check"><input type="checkbox" data-hud="meta"> Datum, Länge, Aufrufe</label>
+            <label class="check"><input type="checkbox" data-hud="script"> Zeile „⚡ Scriptname (Punkte)“</label>
             <label class="check"><input type="checkbox" data-hud="actions"> Bewertung, Favorit, O-Zähler, Marker setzen</label>
             <label class="check"><input type="checkbox" data-hud="baractions"> ★ / 💦 / 📍 in der Player-Leiste (auch im Vollbild)</label>
             <label class="check"><input type="checkbox" data-hud="people"> Studio und Darsteller</label>
@@ -445,6 +469,7 @@
 
         <div id="setSystem" class="card">
           <h2>ℹ️ System</h2>
+          <p class="hint-text">Funscript Player</p>
           <dl id="sysInfo" class="sysinfo"></dl>
           <button id="resetLocal" class="small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
         </div>
@@ -542,7 +567,7 @@
     <aside id="devices" class="sheet" aria-label="Geräte">
       <div class="card">
         <div class="sheet-head">
-          <label class="check"><input class="sync-toggle" type="checkbox"> 🔄 Geräte folgen dem Video</label>
+          <span></span>
           <button id="sheetClose" class="sheet-close" aria-label="Schließen">✕</button>
         </div>
         <nav class="subtabs" data-group="dev">
@@ -610,6 +635,7 @@
   <script src="finale.js"></script>
   <script src="tools.js"></script>
   <script src="stroker.js"></script>
+  <script src="selfctl.js"></script>
   <script src="settings.js"></script>
   <script src="remote.js"></script>
 </body>

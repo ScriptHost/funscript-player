@@ -2,7 +2,8 @@
 
 // ===========================================================================
 // Sync-Animation für die Doku: Video, Funscript, The Handy und Satisfyer im Takt.
-// Ein 24-s-Beispielscript läuft in Schleife: langsam, schnell, Pause, mittel.
+// Ein 24-s-Beispielscript läuft in Schleife; „Original / Automatisch“ zeigt die Script-Automatik.
+// Handy und Satisfyer nutzen dasselbe Funscript – ein eigenes Vibrations-Script braucht es nicht.
 // Die Satisfyer-Stärke ist dieselbe Rechnung wie im Player (vibe.js):
 //   Rhythmus:    max(0,12; Tiefe) · (0,35 + 0,65 · Tempo)  – pulsiert mit jedem Stoß
 //   Gleichmäßig: nur das Tempo, über ~0,8 s geglättet
@@ -17,25 +18,39 @@
   const LOOP = 24000;
   const WINDOW = 4000; // sichtbarer Ausschnitt der Kurve (ms)
 
-  // Beispielscript: [Start, Ende, Periode, unten, oben]
-  const actions = [];
-  for (const [from, to, period, lo, hi] of [[0, 8000, 1200, 10, 90], [8000, 16000, 400, 20, 80], [19000, 24000, 700, 0, 100]]) {
-    for (let t = from, up = false; t <= to; t += period / 2, up = !up) actions.push({ at: t, pos: up ? hi : lo });
+  // Beispielscript mit typischen Schwächen – und wie die Script-Automatik es anpasst:
+  //   0–8 s   langsam, mit Zittern     -> Zittern entfernt
+  //   8–16 s  schnell, zu schnell      -> mittig gekürzt (16–84 %)
+  //   16–19 s Pause
+  //   19–24 s flach (35–65 %)          -> auf 0–100 % gestreckt
+  function build(auto) {
+    const a = [];
+    const strokes = (from, to, period, lo, hi, jitter) => {
+      for (let t = from, up = false; t <= to; t += period / 2, up = !up) {
+        a.push({ at: t, pos: up ? hi : lo });
+        if (jitter && t + 200 < to) a.push({ at: t + 120, pos: (up ? hi : lo) + (up ? -2 : 2) }, { at: t + 200, pos: up ? hi : lo });
+      }
+    };
+    strokes(0, 8000, 1200, 10, 90, !auto);
+    strokes(8000, 16000, 300, auto ? 16 : 0, auto ? 84 : 100);
+    a.push({ at: 16000, pos: 50 }, { at: 19000, pos: 50 });
+    strokes(19000, 24000, 700, auto ? 0 : 35, auto ? 100 : 65);
+    return a.sort((x, y) => x.at - y.at);
   }
-  actions.push({ at: 16000, pos: 50 }, { at: 19000, pos: 50 }); // Pause
-  actions.sort((a, b) => a.at - b.at);
+  const SCRIPTS = { original: build(false), auto: build(true) };
+  let actions = SCRIPTS.original;
 
-  function segment(ms) {
-    let i = actions.findIndex((a) => a.at > ms);
+  function segment(ms, list = actions) {
+    let i = list.findIndex((a) => a.at > ms);
     if (i <= 0) i = 1;
-    return [actions[i - 1], actions[i]];
+    return [list[i - 1], list[i]];
   }
-  function posAt(ms) {
-    const [a, b] = segment(ms);
+  function posAt(ms, list = actions) {
+    const [a, b] = segment(ms, list);
     return a.pos + ((b.pos - a.pos) * Math.min(1, Math.max(0, (ms - a.at) / (b.at - a.at))));
   }
-  function speedAt(ms) {
-    const [a, b] = segment(ms);
+  function speedAt(ms, list = actions) {
+    const [a, b] = segment(ms, list);
     return (Math.abs(b.pos - a.pos) / Math.max(1, b.at - a.at)) * 1000;
   }
 
@@ -92,6 +107,20 @@
       ctx.beginPath(); ctx.moveTo(x(t), y(posAt(t0))); ctx.lineTo(x(t + 40), y(posAt(t1))); ctx.stroke();
     }
     ctx.globalAlpha = 1;
+    // Bei „Automatisch“ das Original als dünne Linie zum Vergleich
+    if (actions !== SCRIPTS.original) {
+      ctx.strokeStyle = colors.muted;
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.setLineDash([4 * dpr, 4 * dpr]);
+      ctx.beginPath();
+      for (let t = ms - WINDOW / 2; t <= ms + WINDOW / 2; t += 20) {
+        const tt = ((t % LOOP) + LOOP) % LOOP;
+        const p = y(posAt(tt, SCRIPTS.original));
+        if (t === ms - WINDOW / 2 || tt < 20) ctx.moveTo(x(t), p); else ctx.lineTo(x(t), p);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
     // Abspielposition
     ctx.fillStyle = colors.text;
     ctx.fillRect(w / 2 - dpr, 0, 2 * dpr, h);
@@ -99,14 +128,18 @@
   }
 
   const fmt = (ms) => `0:${String(Math.floor(ms / 1000)).padStart(2, '0')}`;
-  const SECTIONS = [[8000, 'langsam'], [16000, 'schnell'], [19000, 'Pause'], [24000, 'mittel']];
+  const SECTIONS = {
+    original: [[8000, 'langsam, mit Zittern'], [16000, 'zu schnell für die Handy'], [19000, 'Pause'], [24000, 'flach (35–65 %)']],
+    auto: [[8000, 'langsam – Zittern entfernt'], [16000, 'schnell – mittig gekürzt'], [19000, 'Pause'], [24000, 'flach – gestreckt']],
+  };
+  let scriptMode = 'original';
   function render(ms, dt) {
     const pos = posAt(ms);
     const lvl = vibeLevel(ms, dt);
     drawGraph(ms);
     $('.sdv-dot').style.top = `${12 + (1 - pos / 100) * 76}%`;
     $('.sdv-bar i').style.width = `${(ms / LOOP) * 100}%`;
-    $('.sdv-time').textContent = `${fmt(ms)} / 0:24 · ${SECTIONS.find(([end]) => ms < end)[1]}`;
+    $('.sdv-time').textContent = `${fmt(ms)} / 0:24 · ${SECTIONS[scriptMode].find(([end]) => ms < end)[1]}`;
     $('.sd-carriage').style.bottom = `calc(${pos}% * 0.82 + 4%)`;
     $('.sd-pos').textContent = `${Math.round(pos)} %`;
     $('.sd-orb').style.setProperty('--lvl', lvl.toFixed(3));
@@ -137,6 +170,16 @@
     mode = b.dataset.vmode;
     even = 0;
     root.querySelectorAll('[data-vmode]').forEach((x) => x.classList.toggle('on', x === b));
+    kick();
+  }));
+  root.querySelectorAll('[data-smode]').forEach((b) => b.addEventListener('click', () => {
+    scriptMode = b.dataset.smode;
+    actions = SCRIPTS[scriptMode];
+    root.querySelectorAll('[data-smode]').forEach((x) => x.classList.toggle('on', x === b));
+    $('.sd-auto-info').textContent = scriptMode === 'auto'
+      ? 'Automatisch: Zittern entfernt · zu schnelle Stellen mittig gekürzt · flacher Hub gestreckt – gestrichelt das Original'
+      : 'Original: genau wie die Datei';
+    render(ms, 0);
     kick();
   }));
   render(ms, 16);

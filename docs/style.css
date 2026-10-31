@@ -192,3 +192,5 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line);
   .sd-graph canvas { min-height: 140px; }
   .sd-rail { min-height: 120px; }
 }
+.sd-auto-info { margin-top: 2px; font-size: 12px; }
+.sd-ctrl .sd-seg + .sd-seg { margin-left: 6px; }

@@ -1,5 +1,17 @@
 # Änderungen
 
+## 1.14.0 – 31.10.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.14.0.md](RELEASE-NOTES-1.14.0.md)
+
+- Neu: **Selbst steuern** für Videos ohne Funscript – unter dem Video „Aus · Selbst steuern“,
+  dann Handy-Geschwindigkeit (Start/Stopp, Schnellwahl) und Satisfyer-Stärke, solange das Video läuft.
+  Pause hält an, STOPP wie immer, Wahl wird gemerkt
+- Zeile „⚡ Scriptname (N Punkte)“ unter ⚙️ → Anzeige schaltbar, Standard aus
+- „🔄 Geräte folgen dem Video“ in ⚙️ → Geräte ganz oben (und im Menü), nicht mehr am Video
+- Doku-Webseite: „ein Funscript für beide Geräte“, Sync-Animation mit Original / Automatisch,
+  „“
+
 ## 1.13.0 – 31.10.2026
 
 - **Geräte-Steuerung wieder am Video:** im Player stehen Verbinden, Neu synchronisieren, Offset, Hub,

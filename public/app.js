@@ -195,7 +195,7 @@ document.querySelectorAll('nav.subtabs').forEach((nav) => {
 
 // Ein anderer Bereich steuert jetzt die Handy -> Video anhalten
 document.addEventListener('handy-owner', (e) => {
-  if (e.detail !== 'video' && e.detail !== 'finale' && !video.paused && syncActive()) video.pause();
+  if (e.detail !== 'video' && e.detail !== 'finale' && e.detail !== 'self' && !video.paused && syncActive()) video.pause();
 });
 
 // ---------------------------------------------------------------------------

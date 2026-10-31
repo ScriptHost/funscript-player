@@ -607,7 +607,8 @@ function controlScriptSource() {
 }
 
 function hampLevel() {
-  return hampOn ? Number($('speed').value) / 100 : null;
+  if (hampOn) return Number($('speed').value) / 100;
+  return typeof selfHampLevel === 'function' ? selfHampLevel() : null; // „Selbst steuern“ am Video
 }
 
 // ---------------------------------------------------------------------------

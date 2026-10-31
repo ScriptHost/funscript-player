@@ -488,6 +488,9 @@ function scriptIntensity(actions, ms) {
 function targetLevel() {
   if (vibePaused) return 0;
   if (typeof finDetached === 'function' && finDetached()) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
+  // „Selbst steuern“ am Video (ohne Funscript): eigene Stärke, „Maximum“ gilt auch hier
+  const own = typeof selfVibeLevel === 'function' ? selfVibeLevel() : null;
+  if (own !== null) return Math.min(own * 100, Number($('vibeMax').value)) / 100;
   // „Maximum“ ist auch die Sicherheitsgrenze für die manuelle Stärke
   if ($('vibeSource').value === 'manual') return Math.min(Number($('vibeLevel').value), Number($('vibeMax').value)) / 100;
 

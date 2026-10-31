@@ -34,10 +34,11 @@
       <span class="kicker">Selbst gehostet · im Browser</span>
       <h1>Videos, Scripts und Geräte – im Takt.</h1>
       <p class="lead">Der Funscript Player spielt deine Videos mit Funscripts ab und steuert dabei <b>The Handy</b> und den
-        <b>Satisfyer</b>. Die Bibliothek kommt aus <b>Stash</b> oder deinen Ordnern – am PC, Smartphone, TV oder in der VR-Brille.</p>
+        <b>Satisfyer</b> – beide aus demselben Funscript. Die Bibliothek kommt aus <b>Stash</b> oder deinen Ordnern – am PC, Smartphone, TV oder in der VR-Brille.</p>
       <div class="chips">
         <span class="chip">↕ The Handy (WLAN &amp; Bluetooth)</span>
         <span class="chip">〰 Satisfyer per Bluetooth</span>
+        <span class="chip">⚡ Ein Script für beide Geräte</span>
         <span class="chip">📚 Stash</span>
         <span class="chip">📱 Fernbedienung</span>
         <span class="chip">🥽 HereSphere</span>
@@ -149,7 +150,8 @@
     <span class="kicker">Geräte</span>
     <h2>The Handy und Satisfyer</h2>
     <p class="sub">So sieht Sync aus: Das Funscript läuft im Takt des Videos, die Handy fährt die Position,
-      der Satisfyer macht daraus Vibration. Schalte unten zwischen den Übersetzungen um.</p>
+      der Satisfyer macht aus <b>demselben Script</b> Vibration – ein eigenes Vibrations-Script brauchst du nicht.
+      Unten schaltest du zwischen Original und Script-Automatik und zwischen den Satisfyer-Übersetzungen um.</p>
 
     <div id="syncDemo" class="sync-demo" aria-label="Animation: Video, Funscript, The Handy und Satisfyer im Takt">
       <div class="sdv">
@@ -160,7 +162,8 @@
       </div>
       <div class="sd-graph">
         <canvas></canvas>
-        <div class="sd-cap">⚡ Funscript – Farbe = Tempo, Linie = jetzt</div>
+        <div class="sd-cap">⚡ Ein Funscript für beide Geräte – Farbe = Tempo, Linie = jetzt</div>
+        <div class="sd-cap sd-auto-info">Original: genau wie die Datei</div>
       </div>
       <div class="sd-devs">
         <div class="sd-handy">
@@ -174,7 +177,8 @@
       </div>
       <div class="sd-ctrl">
         <button class="sd-play">❚❚ Pause</button>
-        <span class="sd-seg"><button data-vmode="rhythm" class="on">Rhythmus</button><button data-vmode="even">Gleichmäßig</button></span>
+        <span class="sd-seg" title="Script"><button data-smode="original" class="on">Original</button><button data-smode="auto">Automatisch</button></span>
+        <span class="sd-seg" title="Satisfyer-Übersetzung"><button data-vmode="rhythm" class="on">〰 Rhythmus</button><button data-vmode="even">〰 Gleichmäßig</button></span>
       </div>
     </div>
 
@@ -216,7 +220,9 @@
 
     <div class="split rev" style="margin-top:36px">
       <div>
-        <h3>〰 Satisfyer – Script wird zu Vibration</h3>
+        <h3>〰 Satisfyer – dasselbe Script wird zu Vibration</h3>
+        <p class="note">Kein eigenes Vibrations-Script nötig: Der Satisfyer nutzt dasselbe Funscript wie die Handy.
+          Der Player rechnet daraus die Stärke – im Takt, mit Vorlauf für Bluetooth.</p>
         <p class="muted">Verbunden direkt per Bluetooth aus dem Browser (Chrome, auf dem iPhone „Bluefy“) oder über Intiface.
           Der Player rechnet ~16× pro Sekunde aus dem Script eine Stärke aus. Wie, stellst du ein:</p>
         <ul class="muted">
@@ -244,6 +250,7 @@
     <div class="grid" style="margin-top:28px">
       <div class="card"><div class="icon">🎯</div><h3>Offset einmessen</h3><p>Script leicht versetzt? Im Takt der Stöße tippen (Taste T) – der Player berechnet den Versatz und merkt ihn sich pro Szene.</p></div>
       <div class="card"><div class="icon">🛠️</div><h3>Script-Automatik</h3><p>Prüft jedes Script und korrigiert nur, was nötig ist: Zittern weg, flachen Hub strecken, Unmögliches kürzen. Presets Sanft und Intensiv, pro Szene wählbar – deine Dateien bleiben unverändert.</p></div>
+      <div class="card"><div class="icon">🎚️</div><h3>Selbst steuern</h3><p>Video ohne Funscript? Unter dem Video „Selbst steuern“ wählen: Handy-Geschwindigkeit und Satisfyer-Stärke regeln, während das Video läuft. Pause hält an.</p></div>
       <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script komplett lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt. Auf Wunsch automatisch zurück.</p></div>
     </div>
   </section>
@@ -364,6 +371,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="grid">
+      <div class="card"><h3>1.14 · Selbst steuern</h3><p>Videos ohne Funscript mit eigener Handy-Geschwindigkeit und Satisfyer-Stärke. Sync-Schalter in den Einstellungen, Script-Zeile abschaltbar.</p></div>
       <div class="card"><h3>1.13 · Regler am Video</h3><p>Geräte-Steuerung wieder unter dem Video, HereSphere abschaltbar, Titel führt zur Bibliothek, Standbild statt Schwarz.</p></div>
       <div class="card"><h3>1.12 · Ruhiger</h3><p>Oben nur Status und Menü, Geräte-Fenster statt Spalte, „Mehr zur Szene“ einklappbar, Meldungen als Einblendung. HereSphere zeigt nur VR-Videos.</p></div>
       <div class="card"><h3>1.11 · Script-Automatik</h3><p>Presets Original, Automatisch, Sanft, Intensiv – pro Szene wählbar.</p></div>
@@ -386,7 +394,7 @@
         <li>Bauen und starten – fertig unter <code>https://player.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.13.0.zip
+<pre><code>unzip handy-player-linux-v1.14.0.zip
 cd handy-player
 docker compose up -d --build</code></pre>
         <p class="note">Bluetooth (Satisfyer) und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat,
@@ -409,7 +417,7 @@ docker compose up -d --build</code></pre>
   </section>
 
   <footer>
-    <span>Funscript Player · privates Projekt</span>
+    <span>Funscript Player</span>
     <span><a href="dev.html">Entwickler-Doku →</a></span>
   </footer>
 </main>

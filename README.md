@@ -21,7 +21,10 @@ Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰:
 
 - **Status antippen** (`Handy: verbunden`, am Smartphone `↕ verbunden`) öffnet das Geräte-Fenster: Verbinden,
   Neu synchronisieren, Offset, Hub, Satisfyer verbinden, Stärke, Pause, Finale, Alles stoppen.
-- **🔄 Geräte folgen dem Video** (im Geräte-Fenster und im Menü): an = Sync, aus = nur schauen (Streamen).
+- **🔄 Geräte folgen dem Video** (⚙️ → Geräte ganz oben und im Menü): an = Sync, aus = nur schauen (Streamen).
+- **Videos ohne Funscript:** unter dem Video „Selbst steuern“ – Handy-Geschwindigkeit und Satisfyer-Stärke
+  von Hand, solange das Video läuft. Pause hält an, STOPP wie immer.
+- Der Satisfyer braucht **kein eigenes Vibrations-Script** – er nutzt dasselbe Funscript wie die Handy.
 - **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
 - **Im Player** stehen die Regler fürs Schauen fest am Video (am Smartphone darunter, am PC rechts daneben);
   abschaltbar unter ⚙️ → Anzeige. Der Titel „Funscript Player“ führt zur Bibliothek bzw. zurück zum laufenden Video.

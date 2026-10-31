@@ -232,7 +232,7 @@ document.addEventListener('keydown', (e) => {
 // Läuft gerade etwas, das ein Gerät bewegt?
 function anyRunning() {
   const devices = handy.connected || allVibes().length > 0;
-  return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active));
+  return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active) || (typeof selfRunning === 'function' && selfRunning()));
 }
 
 // Abschaltbar (Geräte → Sicherheit); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
