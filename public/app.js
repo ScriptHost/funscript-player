@@ -50,6 +50,7 @@ let appMode = store.get('mode', 'sync');
 const syncActive = () => appMode === 'sync';
 
 function showView(view) {
+  closeDevices();
   document.body.dataset.view = view;
   ['library', 'player', 'control', 'settings'].forEach((v) => { $('view-' + v).hidden = v !== view; });
   $('navSettings').classList.toggle('active', view === 'settings');
@@ -130,14 +131,26 @@ function toggleMenu(open = $('menu').hidden) {
 $('menuBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
 document.addEventListener('click', (e) => { if (!$('menu').hidden && !e.target.closest('#menu, #menuBtn')) toggleMenu(false); });
 $('menu').addEventListener('click', (e) => { if (e.target.closest('button')) toggleMenu(false); });
-$('menuLibrary').addEventListener('click', () => {
+function goLibrary() {
   if (appMode === 'control') setMode(store.get('lastWatchMode', 'sync'));
   showView('library');
-});
+}
+$('menuLibrary').addEventListener('click', goLibrary);
+// Titel „Funscript Player“: zur Bibliothek – steht man schon dort und läuft ein Video, zurück zum Video
+function goHome() {
+  const loaded = remote.on ? !!remote.state?.src : !!video.currentSrc && !!nowPlaying;
+  if (document.body.dataset.view === 'library' && loaded) openPlayer();
+  else goLibrary();
+}
+$('homeBtn').addEventListener('click', goHome);
+$('homeBtn').addEventListener('keydown', (e) => { if (e.key === 'Enter') goHome(); });
 
-// Geräte-Fenster: oben rechts (PC) bzw. von unten (Smartphone)
+// Geräte-Fenster: oben rechts (PC) bzw. von unten (Smartphone).
+// Im Player steht die Geräte-Steuerung fest am Video (⚙️ → Anzeige) – dann nur dorthin springen.
+const devInline = () => document.body.dataset.view === 'player' && !document.body.classList.contains('hud-off-devices');
 function openDevices(sub) {
   if (sub) document.querySelector(`nav[data-group="dev"] [data-sub="${sub}"]`)?.click();
+  if (devInline()) { $('devices').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   document.body.classList.add('dev-open');
   $('sheetBackdrop').hidden = false;
 }
@@ -196,8 +209,9 @@ function loadVideo(src, name, hqSrc = '') {
   nowPlaying = { kind: 'file', title: name };
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   objectUrl = src.startsWith('blob:') ? src : null;
-  // Altes Bild nicht kurz zeigen: Video leeren und bis zum ersten neuen Bild ausblenden
+  // Altes Bild nicht kurz zeigen: Video leeren (Stash-Szenen bekommen ihr Standbild als Poster)
   video.pause();
+  video.removeAttribute('poster');
   video.removeAttribute('src');
   video.load();
   $('drop').classList.add('loading');

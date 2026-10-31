@@ -395,6 +395,7 @@ async function openStashScene(s) {
   if (remote.on) return remoteOpen({ kind: 'stash', id: s.id, title: s.title, interactive: s.interactive });
   openPlayer();
   loadVideo(`/stash/scene/${s.id}/stream`, s.title, 'stash:' + s.id);
+  video.poster = `/stash/scene/${s.id}/screenshot`; // Standbild statt Schwarz, bis Play gedrückt wird
   nowPlaying = { kind: 'stash', id: s.id, title: s.title, interactive: s.interactive };
   const session = { id: s.id, markers: [], resume: 0, played: 0, lastSave: Date.now(), counted: false };
   stashSession = session;

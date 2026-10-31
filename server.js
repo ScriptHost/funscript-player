@@ -103,6 +103,21 @@ async function scanLibrary(dir, rel = '') {
 }
 
 // Patterns und Sequenzen aus dem Steuerungs-Reiter (eine JSON-Datei)
+// Server-Einstellungen aus der Oberfläche (data/settings.json). HERESPHERE=off in der
+// Umgebung schaltet HereSphere fest ab – dann lässt es sich in der Oberfläche nicht einschalten.
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const HS_LOCKED_OFF = /^(0|off|false|nein)$/i.test(process.env.HERESPHERE || '');
+let serverSettings = { heresphere: true };
+try { Object.assign(serverSettings, JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'))); } catch { /* Standard */ }
+const heresphereOn = () => !HS_LOCKED_OFF && serverSettings.heresphere !== false;
+
+async function writeSettings(req) {
+  const body = JSON.parse(await readBody(req, 10000) || '{}');
+  if (typeof body.heresphere === 'boolean') serverSettings.heresphere = body.heresphere;
+  await fsp.mkdir(DATA_DIR, { recursive: true });
+  await fsp.writeFile(SETTINGS_FILE, JSON.stringify(serverSettings));
+}
+
 async function readStore() {
   try {
     return JSON.parse(await fsp.readFile(STORE_FILE, 'utf8'));
@@ -952,6 +967,16 @@ const handler = async (req, res) => {
 
     // HereSphere fragt per GET oder POST an. Bei Stash-Szenen enthält der POST ggf. eine
     // neue Bewertung (0–5) oder den Favoriten-Status – das wird nach Stash geschrieben.
+    if (pathname === '/api/settings') {
+      if (req.method === 'PUT') await writeSettings(req);
+      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify({ heresphere: heresphereOn(), heresphereLocked: HS_LOCKED_OFF }));
+    }
+
+    // Abgeschaltet: keine Antwort unter /heresphere – die Ausnahme in der Proxy-Anmeldung kann dann weg
+    if ((pathname === '/heresphere' || pathname.startsWith('/heresphere/')) && !heresphereOn()) {
+      throw Object.assign(new Error('HereSphere ist abgeschaltet'), { status: 404 });
+    }
     if (pathname === '/heresphere' || pathname.startsWith('/heresphere/')) {
       let body = {};
       try { body = JSON.parse((await readBody(req, 100000)) || '{}'); } catch { body = {}; }

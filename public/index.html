@@ -17,7 +17,7 @@
 </head>
 <body data-mode="sync" data-view="library">
   <header>
-    <h1>Funscript Player <small id="appVersion" class="version"></small></h1>
+    <h1 id="homeBtn" role="button" tabindex="0" title="Bibliothek – oder zurück zum laufenden Video">Funscript Player <small id="appVersion" class="version"></small></h1>
     <!-- Status antippen = Geräte-Fenster (Verbinden, Offset, Hub, Stärke …) -->
     <div class="pills">
       <button id="status" class="pill off" data-dev="handy" title="The Handy – antippen für Verbinden, Offset, Hub"><span class="ic">↕ </span><span class="lbl">Handy: </span>getrennt</button>
@@ -381,6 +381,9 @@
 
         <div class="card">
           <h2>🥽 VR-Brille (HereSphere)</h2>
+          <label class="check"><input id="hsOn" type="checkbox" checked> HereSphere-Schnittstelle aktiv</label>
+          <p id="hsOffHint" class="hint-text" hidden>Aus: Der Server antwortet unter <code>/heresphere</code> nicht mehr – die Ausnahme in deiner Proxy-Anmeldung kann weg. Gilt für alle Geräte.</p>
+          <div id="hsBox">
           <p>In HereSphere im Browser diese Adresse öffnen und als Lesezeichen speichern:</p>
           <div class="copyrow">
             <input id="hsUrl" type="text" readonly>
@@ -388,11 +391,12 @@
           </div>
           <ol class="steps-list">
             <li>HereSphere starten → Web-Browser öffnen → Adresse oben eingeben.</li>
-            <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner.</li>
+            <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner – nur VR-Videos.</li>
             <li>The Handy: in HereSphere unter <i>Einstellungen → Haptik</i> deinen Connection Key eintragen. HereSphere lädt das Funscript automatisch mit.</li>
             <li>Das VR-Format (180°/360°, SBS/TB, Fisheye/MKX) erkennt der Player an Dateinamen und VR-Tags.</li>
           </ol>
           <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen.</p>
+          </div>
         </div>
 
         <div id="setRemote" class="card">
@@ -411,6 +415,7 @@
           <h2>🖥️ Anzeige im Player</h2>
           <p class="hint-text">Was unter dem Video stehen soll – Nicht-Benötigtes einfach ausblenden.</p>
           <div id="hudOptions" class="hud-options">
+            <label class="check"><input type="checkbox" data-hud="devices"> Geräte-Steuerung am Video (Verbinden, Offset, Hub, Stärke – am PC rechts daneben)</label>
             <label class="check"><input type="checkbox" data-hud="meta"> Datum, Länge, Aufrufe</label>
             <label class="check"><input type="checkbox" data-hud="actions"> Bewertung, Favorit, O-Zähler, Marker setzen</label>
             <label class="check"><input type="checkbox" data-hud="baractions"> ★ / 💦 / 📍 in der Player-Leiste (auch im Vollbild)</label>

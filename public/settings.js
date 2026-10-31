@@ -31,7 +31,7 @@ document.addEventListener('hq-ready', renderQualityMode);
 
 // --- Anzeige im Player -----------------------------------------------------------
 // Standard: was man beim normalen Schauen braucht; Tags, Studio/Darsteller, Beschreibung aus.
-const HUD_DEFAULT = { meta: true, actions: true, baractions: true, people: false, tags: false, markers: true, details: false, quality: false };
+const HUD_DEFAULT = { devices: true, meta: true, actions: true, baractions: true, people: false, tags: false, markers: true, details: false, quality: true };
 const hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
 function applyHud() {
   for (const [k, on] of Object.entries(hud)) document.body.classList.toggle('hud-off-' + k, !on);
@@ -44,6 +44,23 @@ applyHud();
 
 // --- HereSphere --------------------------------------------------------------
 $('hsUrl').value = `${location.origin}/heresphere`;
+
+// HereSphere an/aus – gilt auf dem Server für alle Geräte (HERESPHERE=off in Docker sperrt es fest)
+function showHereSphere(s) {
+  $('hsOn').checked = s.heresphere;
+  $('hsOn').disabled = !!s.heresphereLocked;
+  $('hsBox').hidden = !s.heresphere;
+  $('hsOffHint').hidden = s.heresphere;
+  if (s.heresphereLocked) $('hsOffHint').textContent = 'Abgeschaltet über HERESPHERE=off in der docker-compose.yml.';
+}
+fetch('/api/settings').then((r) => r.json()).then(showHereSphere).catch(() => {});
+$('hsOn').addEventListener('change', async () => {
+  try {
+    const res = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ heresphere: $('hsOn').checked }) });
+    showHereSphere(await res.json());
+    log($('hsOn').checked ? 'HereSphere eingeschaltet.' : 'HereSphere abgeschaltet.');
+  } catch (e) { log('Einstellung nicht gespeichert: ' + e.message, true); }
+});
 $('hsCopy').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText($('hsUrl').value);

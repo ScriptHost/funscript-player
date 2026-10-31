@@ -555,10 +555,11 @@ body.remote-on .drop video { opacity: 1 !important; object-fit: contain; }
   background: var(--card); color: var(--text); font-size: 13px; text-decoration: none; white-space: nowrap;
 }
 #view-settings .card { scroll-margin-top: calc(var(--hdr-h, 0px) + 56px); }
-.more-settings { display: block; margin-top: 10px; color: var(--muted); font-size: 13px; }
+.more-settings { display: block; margin: 10px 0 16px; color: var(--muted); font-size: 13px; }
 
 /* Neues Video: altes Bild nicht kurz zeigen */
-.drop.loading video, .drop.loading .enh { visibility: hidden; }
+.drop.loading .enh { visibility: hidden; }
+.drop.loading.enhanced video { opacity: 1; } /* Standbild sichtbar, bis das erste Bild da ist */
 
 /* „Läuft gerade“ unten in Bibliothek / Einstellungen */
 .now-bar {
@@ -739,3 +740,14 @@ header .pill .ic { display: none; }
   header .pill .lbl { display: none; }
 }
 @media (max-width: 420px) { header h1 { display: none; } }
+
+/* 1.13: Geräte-Steuerung am Video (Player-Seite, abschaltbar unter ⚙️ → Anzeige) */
+body[data-view=player]:not(.hud-off-devices) #devices.sheet {
+  display: block; position: static; width: auto; max-height: none; overflow: visible; box-shadow: none; border-radius: 0; padding: 0;
+}
+body[data-view=player]:not(.hud-off-devices) #devices.sheet > .card { border-radius: 12px; }
+body[data-view=player]:not(.hud-off-devices) .sheet-close { display: none; }
+@media (min-width: 901px) {
+  body[data-view=player]:not(.hud-off-devices) main { grid-template-columns: minmax(0, 1fr) 340px; max-width: 1600px; }
+}
+#homeBtn { cursor: pointer; }
