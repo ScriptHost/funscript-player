@@ -531,6 +531,22 @@ aside { min-width: 0; }
 .ov-row .ov-pop .stars button.on, .ov-pop .stars:hover button { color: #ffc400; }
 .ov-row .ov-pop .stars button:hover ~ button { color: rgba(255,255,255,.35); }
 .ov-row #ovFav.active { background: #c2185b; }
+/* 1.8: Fernbedienung */
+.castbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.castbar label { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; white-space: nowrap; }
+.castbar select { width: auto; margin: 0; }
+.castbar .cast-now { flex: 1; min-width: 0; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.castbar button { width: auto; margin: 0; }
+body.remote-on .castbar { border-color: var(--accent); }
+.remote-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--accent); border-radius: 10px; font-size: 14px; }
+.remote-banner[hidden] { display: none; }
+.remote-banner button { width: auto; margin: 0; }
+#remoteState.warn { color: #ffb74d; }
+/* Fernbedienung hat kein eigenes Video: Standbild statt Bild, Bild-/Ton-Knöpfe aus */
+body.remote-on #ovEnh, body.remote-on #ovFit, body.remote-on #ovMute,
+body.remote-on #openImageSettings, body.remote-on .enh { display: none !important; }
+body.remote-on .drop video { opacity: 1 !important; object-fit: contain; }
+
 /* Wenig Platz: Leiste bricht in eine zweite Zeile um, statt Knöpfe zusammenzuquetschen */
 .ov-row { flex-wrap: wrap; row-gap: 6px; }
 .ov-row button { white-space: nowrap; flex-shrink: 0; }

@@ -22,7 +22,7 @@ const isFs = () => stage.classList.contains('fs');
 
 // Bedienung erst zeigen, wenn ein Video geladen ist
 video.addEventListener('loadedmetadata', () => { stage.classList.add('ready'); showOverlay(); drawOvBar(); });
-video.addEventListener('emptied', () => stage.classList.remove('ready'));
+video.addEventListener('emptied', () => { if (!remote.on) stage.classList.remove('ready'); });
 
 // ---------------------------------------------------------------------------
 // Vollbild an/aus
@@ -59,7 +59,8 @@ function exitFullscreen() {
   realFullscreen = false;
   window.dispatchEvent(new Event('resize'));
 }
-const toggleFullscreen = () => (isFs() ? exitFullscreen() : enterFullscreen());
+// Als Fernbedienung schaltet ⛶ das Vollbild am Bildschirm
+const toggleFullscreen = () => (remote.on ? remoteCmd('fs') : isFs() ? exitFullscreen() : enterFullscreen());
 
 // Zurück-Geste / Esc beendet das echte Fullscreen -> auch unseren Modus
 ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
@@ -93,7 +94,8 @@ function hideOverlay() {
 }
 
 function togglePlay() {
-  if (video.paused) video.play().catch(() => {}); else video.pause();
+  if (remote.on) remoteCmd('toggle');
+  else if (video.paused) video.play().catch(() => {}); else video.pause();
 }
 function seekBy(s) {
   seekTo(mediaTime() + s);
@@ -230,7 +232,7 @@ document.addEventListener('keydown', (e) => {
 // Läuft gerade etwas, das ein Gerät bewegt?
 function anyRunning() {
   const devices = handy.connected || allVibes().length > 0;
-  return devices && ((!video.paused && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active));
+  return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active));
 }
 
 // Abschaltbar (Geräte → Sicherheit); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
@@ -261,7 +263,7 @@ document.addEventListener('visibilitychange', () => {
 let wakeLock = null;
 async function updateWakeLock() {
   if (!('wakeLock' in navigator)) return;
-  const want = document.visibilityState === 'visible' && (anyRunning() || !video.paused);
+  const want = document.visibilityState === 'visible' && (anyRunning() || videoPlaying());
   if (want && !wakeLock) {
     try {
       wakeLock = await navigator.wakeLock.request('screen');

@@ -650,6 +650,7 @@ $('invert').addEventListener('change', () => {
 // Alles stoppen: egal, wer gerade steuert (pausiert auch das Video)
 // Not-Aus: Video, Patterns, Direktsteuerung, Handy und Vibratoren sofort anhalten
 async function emergencyStop(reason = 'Not-Aus') {
+  if (remote.on) remoteCmd('stop'); // Fernbedienung: Bildschirm (Video + dortige Geräte) mit anhalten
   claimHandy('none');
   if (!video.paused) video.pause();
   active = null;

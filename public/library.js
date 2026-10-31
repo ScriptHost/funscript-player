@@ -354,8 +354,10 @@ function renderFolder() {
 }
 
 async function openFolderItem(it) {
+  if (remote.on) return remoteOpen({ kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder });
   openPlayer();
   loadVideo(mediaUrl(it.video), it.name, 'media:' + it.video);
+  nowPlaying = { kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder };
   $('sceneMeta').textContent = it.folder ? `Ordner: ${it.folder}` : 'Bibliotheksordner';
   if (!it.script) return clearScript();
   try {
@@ -371,8 +373,10 @@ async function openFolderItem(it) {
 // Stash-Szene öffnen + Infos im Player
 // ---------------------------------------------------------------------------
 async function openStashScene(s) {
+  if (remote.on) return remoteOpen({ kind: 'stash', id: s.id, title: s.title, interactive: s.interactive });
   openPlayer();
   loadVideo(`/stash/scene/${s.id}/stream`, s.title, 'stash:' + s.id);
+  nowPlaying = { kind: 'stash', id: s.id, title: s.title, interactive: s.interactive };
   const session = { id: s.id, markers: [], resume: 0, played: 0, lastSave: Date.now(), counted: false };
   stashSession = session;
 
@@ -408,6 +412,7 @@ async function stashAction(action, body) {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
     });
     if (!res.ok) throw new Error(await res.text());
+    if (remote.on) remoteCmd('refresh'); // Bildschirm zeigt die Änderung gleich mit
     return await res.json();
   } catch (e) {
     log('Stash: ' + (e.message || e), true);
@@ -428,6 +433,7 @@ function showActions(d) {
   $('ovRate').textContent = (stars ? `★ ${stars}` : '☆') + (d.favorite ? ' ♥' : '');
   $('ovRate').classList.toggle('on', stars > 0);
   stashSession.info = d;
+  if (typeof sendState === 'function') sendState(); // Fernbedienung sieht Bewertung/O mit
 }
 
 async function rateScene(stars) {
@@ -589,7 +595,7 @@ window.addEventListener('pagehide', () => saveStashActivity(true));
 
 function saveStashActivity(beacon = false) {
   const s = stashSession;
-  if (!s || !mediaTime()) return;
+  if (!s || remote.on || !mediaTime()) return; // als Fernbedienung meldet der Bildschirm
   const body = JSON.stringify({ resume: mediaTime(), played: s.played });
   s.played = 0;
   s.lastSave = Date.now();

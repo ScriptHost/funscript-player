@@ -89,6 +89,13 @@ Containername, z. B. `http://Stash:9999`).
 - Grenzen: max. Geschwindigkeit der Direktsteuerung (Handy-Karte → Sicherheit), „Maximum“ beim Vibrator gilt
   auch für die manuelle Stärke.
 
+## Fernbedienung
+
+Video am TV/PC, Bedienung und Satisfyer am Smartphone: Player auf beiden Geräten öffnen, am Smartphone in
+der Bibliothek oben **„📺 Abspielen auf“** den Bildschirm wählen und eine Szene antippen. Das Smartphone zeigt
+die Player-Leiste (Play, Spulen, Heatmap, ★/💦/📍, STOPP) und lässt den Satisfyer im Takt des Bildschirms
+laufen. Die Handy steuert der Bildschirm, wenn sie dort verbunden ist. Details: `RELEASE-NOTES-1.8.0.md`.
+
 ## Stash
 
 Mit `StashUrl` (Windows, `config.ps1`) bzw. `STASH_URL` (Docker) erscheint in der Bibliothek der Umschalter

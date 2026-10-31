@@ -35,6 +35,12 @@
 
       <!-- ================= Bibliothek ================= -->
       <section id="view-library" class="view">
+        <!-- Fernbedienung: erscheint, sobald ein anderes Gerät als Bildschirm bereitsteht -->
+        <div id="castBar" class="castbar" hidden>
+          <label>📺 Abspielen auf <select id="castTarget" aria-label="Abspielen auf"></select></label>
+          <span id="castNow" class="cast-now"></span>
+          <button id="castOpen" class="small" hidden>📱 Fernbedienung öffnen</button>
+        </div>
         <div class="libbar">
           <div id="libSource" class="seg" hidden></div>
           <input id="search" type="search" placeholder="Szenen, Titel, Dateien suchen …">
@@ -77,6 +83,10 @@
       <!-- ================= Player ================= -->
       <section id="view-player" class="view" hidden>
         <button id="backToLib" class="back">← Bibliothek</button>
+        <div id="remoteBanner" class="remote-banner" hidden>
+          <span>📱 Fernbedienung für <b id="remoteName"></b> · <span id="remoteState">verbunden</span></span>
+          <button id="remoteLeave" class="small secondary">Trennen</button>
+        </div>
         <div id="drop" class="drop" data-fit="cover">
           <video id="video" playsinline preload="metadata"></video>
           <canvas id="enh" class="enh"></canvas>
@@ -272,6 +282,18 @@
         </div>
 
         <div class="card">
+          <h2>📱 Fernbedienung</h2>
+          <p class="hint-text">Video am TV/PC, Bedienung und Satisfyer am Smartphone: Auf beiden Geräten den Player öffnen,
+            dann am Smartphone in der Bibliothek oben bei „📺 Abspielen auf“ den Bildschirm wählen und eine Szene antippen.</p>
+          <label class="check"><input id="rcScreen" type="checkbox" checked> Dieses Gerät als Bildschirm anbieten (lässt sich fernsteuern)</label>
+          <label>Name dieses Geräts <input id="rcName" type="text" maxlength="40" placeholder="z. B. Wohnzimmer-TV"></label>
+          <p class="hint-text">Die Handy steuert der Bildschirm, wenn sie dort verbunden ist (am genauesten) – sonst die Fernbedienung.
+            Den Satisfyer am Smartphone verbinden. Startet das Video am Bildschirm nicht, dort einmal tippen oder klicken –
+            Browser spielen erst nach einer Berührung ab. Ist „Alles stoppen bei Bildschirmsperre“ an, hält das Sperren
+            des Smartphones auch den Bildschirm an.</p>
+        </div>
+
+        <div class="card">
           <h2>🖥️ Anzeige im Player</h2>
           <p class="hint-text">Was unter dem Video stehen soll – Nicht-Benötigtes einfach ausblenden.</p>
           <div id="hudOptions" class="hud-options">
@@ -460,6 +482,7 @@
                 <option value="posInv">Nach Position (oben = stark)</option>
               </select>
             </label>
+  <script src="remote.js"></script>
             <label>Minimum <output id="vibeMinVal"></output>
               <input id="vibeMin" type="range" min="0" max="100" value="10">
             </label>

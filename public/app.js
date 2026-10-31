@@ -25,13 +25,22 @@ let stashSession = null; // aktuelle Stash-Szene: { id, markers, resume, played,
 // Zeitachse des Films. Beim HQ-Stream (hq.js) startet das <video> nach jedem Spulen
 // wieder bei 0 – die echte Position ist dann hq.offset + video.currentTime.
 const hq = { active: false, offset: 0, duration: 0, src: '', url: '' };
+// Fernbedienung (remote.js): ist sie an, kommen Zeit, Dauer und „läuft“ vom Bildschirm
+const remote = { on: false, target: '', state: null, stateAt: 0, srcKey: '' };
+let nowPlaying = null; // was hier läuft (für die Fernbedienung): { kind: 'stash'|'media'|'file', … }
 function mediaTime() {
+  if (remote.on) return remoteTime();
   return (hq.active ? hq.offset : 0) + (video.currentTime || 0);
 }
 function seekTo(sec) {
   const max = duration() / 1000;
   sec = Math.max(0, max ? Math.min(sec, max - 0.5) : sec);
-  if (hq.active) hqRestart(sec); else video.currentTime = sec;
+  if (remote.on) remoteCmd('seek', sec);
+  else if (hq.active) hqRestart(sec); else video.currentTime = sec;
+}
+// Läuft das Video gerade – hier oder (als Fernbedienung) auf dem Bildschirm?
+function videoPlaying() {
+  return remote.on ? remotePlaying() : !video.paused && !video.ended;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,7 +74,7 @@ function setMode(mode) {
   if (mode === 'control') {
     showView('control');
   } else {
-    showView(location.hash === '#player' && video.src ? 'player' : 'library');
+    showView(location.hash === '#player' && (video.src || remote.on) ? 'player' : 'library');
     // Streamen: Geräte folgen dem Video nicht mehr
     if (mode === 'stream' && handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
     resync();
@@ -89,7 +98,7 @@ window.addEventListener('popstate', () => {
   if (location.hash !== '#player' && document.body.dataset.view === 'player') {
     video.pause();
     showView('library');
-  } else if (location.hash === '#player' && video.src && appMode !== 'control') {
+  } else if (location.hash === '#player' && (video.src || remote.on) && appMode !== 'control') {
     showView('player');
   }
 });
@@ -121,14 +130,21 @@ document.addEventListener('handy-owner', (e) => {
 // ---------------------------------------------------------------------------
 // hqSrc: Quelle für den HQ-Stream des Servers ("stash:<id>" / "media:<pfad>"), sonst leer
 function loadVideo(src, name, hqSrc = '') {
+  if (remote.on) remoteLeave(false); // hier abspielen = Fernbedienung beenden
   if (typeof saveStashActivity === 'function') saveStashActivity();
   stashSession = null;
+  nowPlaying = { kind: 'file', title: name };
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   objectUrl = src.startsWith('blob:') ? src : null;
   Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
   // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
   if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
   loadOffsetForVideo();
+  resetSceneInfo(name);
+}
+
+// Titel setzen, Szenen-Infos leeren (auch für die Fernbedienung, die kein eigenes Video hat)
+function resetSceneInfo(name) {
   $('videoName').textContent = name;
   $('ovTitle').textContent = name;
   $('dropHint').classList.add('hidden');
@@ -199,12 +215,13 @@ function resync() {
 async function doSync() {
   if (!handy.connected || !script || (typeof finDetached === 'function' && finDetached())) return;
   try {
-    const playing = syncActive() && !video.paused && !video.ended && video.readyState >= 3;
+    // Fernbedienung: die Handy steuert der Bildschirm, wenn sie dort verbunden ist (genauer)
+    const playing = syncActive() && videoPlaying() && (remote.on ? !remote.state?.handy : video.readyState >= 3);
     if (!playing) {
       if (handy.owner === 'video') await handy.stop();
       return;
     }
-    if (video.playbackRate !== 1) {
+    if (!remote.on && video.playbackRate !== 1) {
       if (handy.owner === 'video') await handy.stop();
       log('Handy pausiert: Wiedergabegeschwindigkeit muss 1× sein.');
       return;
@@ -212,7 +229,7 @@ async function doSync() {
     claimHandy('video');
     if (handy.hsspUrl === null || handy.mode !== 1) setStatus('busy', 'Script wird übertragen …');
     await handy.prepare(toCsv(sendActions()));
-    if (video.paused || handy.owner !== 'video') return;
+    if (!videoPlaying() || handy.owner !== 'video') return;
     await handy.play(mediaTime() * 1000 + Number($('offset').value));
     setStatus('on', 'Video läuft');
   } catch (e) {
@@ -235,7 +252,7 @@ function sendActions() {
 
 // Für den Vibrator: laufendes Video-Script und aktuelle Stelle (nur im Modus „Sync“)
 function videoScriptSource() {
-  if (!syncActive() || !script || video.paused || video.ended) return null;
+  if (!syncActive() || !script || !videoPlaying()) return null;
   return { actions: sendActions(), ms: mediaTime() * 1000 };
 }
 
@@ -265,6 +282,7 @@ function heatColor(speed) {
 }
 
 function duration() {
+  if (remote.on && remote.state?.duration) return remote.state.duration * 1000;
   if (hq.active && hq.duration) return hq.duration * 1000;
   if (Number.isFinite(video.duration) && video.duration > 0) return video.duration * 1000;
   return script ? script.actions[script.actions.length - 1].at : 0;
@@ -398,7 +416,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 's' && document.body
 
 // Alle 30 s die Position neu senden (ersetzt die Laufzeit der Handy durch die echte Videoposition)
 setInterval(() => {
-  if ($('autoSync').checked && handy.connected && handy.owner === 'video' && !video.paused && syncActive()) doSync();
+  if ($('autoSync').checked && handy.connected && handy.owner === 'video' && videoPlaying() && syncActive()) doSync();
 }, 30000);
 // Alle 5 min die Uhr mit dem Handy-Server neu abgleichen (Uhren driften auseinander)
 setInterval(() => {

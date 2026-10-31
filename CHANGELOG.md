@@ -1,5 +1,14 @@
 # Änderungen
 
+## 1.8.0 – 31.10.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.8.0.md](RELEASE-NOTES-1.8.0.md)
+
+- Neu: **Fernbedienung** – Video am TV/PC, Bedienung und Satisfyer am Smartphone.
+  In der Bibliothek „📺 Abspielen auf“ den Bildschirm wählen; Abgleich über den Server
+- Satisfyer (und Handy, falls dort verbunden) folgen am Smartphone dem Script im Takt des Bildschirms
+- ⚙️ → Fernbedienung: Gerät als Bildschirm anbieten, Gerätename
+
 ## 1.7.0 – 31.10.2026
 
 - Neu: **★ / 💦 / 📍 direkt in der Player-Leiste**, auch im Vollbild (nur bei Stash-Szenen).
