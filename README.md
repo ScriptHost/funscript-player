@@ -20,7 +20,7 @@ Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per
 Oben drei Modi:
 
 - **📺 Streamen** – Bibliothek und Player, ohne Geräte. Handy und Vibrator folgen dem Video nicht.
-- **🔄 Sync** – wie Streamen, im Player rechts die Geräte mit Unterreitern *The Handy*, *Vibrator*, *Sicherheit*.
+- **🔄 Sync** – wie Streamen, im Player rechts die Geräte mit Unterreitern *The Handy*, *Satisfyer*, *Sicherheit*.
 - **🎮 Steuern** – ohne Video: *Direkt*, *Patterns*, *Script-Baukasten*, rechts die Geräte.
 
 Die **Bibliothek** zeigt Stash-Szenen als Kacheln (Vorschauvideo beim Drüberfahren, endloses Scrollen).
@@ -85,6 +85,7 @@ Containername, z. B. `http://Stash:9999`).
 - Der Bildschirm bleibt an, solange etwas läuft.
 - **Not-Aus**: roter STOPP-Knopf (schwebend bzw. im Vollbild oben rechts), Esc-Taste oder „Alles stoppen“.
   Stoppt Video, Handy, Patterns und Vibratoren sofort. Optional automatisch bei Bildschirmsperre/App-Wechsel.
+  Der rote STOPP-Knopf über dem Video lässt sich unter Geräte → Sicherheit ausblenden.
 - Grenzen: max. Geschwindigkeit der Direktsteuerung (Handy-Karte → Sicherheit), „Maximum“ beim Vibrator gilt
   auch für die manuelle Stärke.
 
@@ -97,6 +98,7 @@ Mit `StashUrl` (Windows, `config.ps1`) bzw. `STASH_URL` (Docker) erscheint in de
 - Suche, Sortierung (Neueste, Datum, Titel, Zufall), „Nur mit Funscript“ = Stash-Filter *interaktiv*
 - Filter nach Tag, Darsteller, Studio; „🎲 Zufällige Szene abspielen“ mit den aktuellen Filtern
 - Stash-Marker als gelbe Striche in der Zeitleiste und als Sprungliste
+- Bewerten (★), Favorit, O-Zähler (💦) und Marker setzen (📍) direkt in der Player-Leiste – auch im Vollbild
 - Weiterschauen: startet an der in Stash gespeicherten Position; Position, Spieldauer und Play-Count
   werden an Stash zurückgemeldet
 - Kann der Browser das Originalformat nicht (MKV, HEVC …), schaltet der Player automatisch auf Stashs

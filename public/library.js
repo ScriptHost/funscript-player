@@ -415,43 +415,70 @@ async function stashAction(action, body) {
   }
 }
 
+// Zeigt den Stand unter dem Video und in der Player-Leiste (auch im Vollbild)
 function showActions(d) {
-  $('sceneActions').hidden = false;
+  $('sceneActions').hidden = $('ovStash').hidden = false;
   const stars = Math.round((d.rating100 || 0) / 20);
-  document.querySelectorAll('#stars button').forEach((b) => b.classList.toggle('on', Number(b.dataset.star) <= stars));
+  document.querySelectorAll('#stars button, #ovRatePop .stars button').forEach((b) => b.classList.toggle('on', Number(b.dataset.star) <= stars));
   $('favBtn').classList.toggle('active', !!d.favorite);
   $('favBtn').textContent = d.favorite ? '♥ Favorit' : '♡ Favorit';
-  $('oCount').textContent = d.oCounter || 0;
+  $('ovFav').classList.toggle('active', !!d.favorite);
+  $('ovFav').textContent = d.favorite ? '♥' : '♡';
+  $('oCount').textContent = $('ovOCount').textContent = d.oCounter || 0;
+  $('ovRate').textContent = (stars ? `★ ${stars}` : '☆') + (d.favorite ? ' ♥' : '');
+  $('ovRate').classList.toggle('on', stars > 0);
   stashSession.info = d;
 }
 
-document.querySelectorAll('#stars button').forEach((b) => b.addEventListener('click', async () => {
+async function rateScene(stars) {
   const info = stashSession?.info;
   if (!info) return;
-  const stars = Number(b.dataset.star);
   // Gleichen Stern nochmal = Bewertung entfernen
   const rating100 = Math.round((info.rating100 || 0) / 20) === stars ? 0 : stars * 20;
   const r = await stashAction('rating', { rating100 });
   if (r) { showActions({ ...info, rating100: r.rating100 }); log(rating100 ? `Bewertung: ${stars} ★` : 'Bewertung entfernt.'); }
-}));
-$('favBtn').addEventListener('click', async () => {
+}
+async function toggleFavorite() {
   const info = stashSession?.info;
   if (!info) return;
   const r = await stashAction('favorite', { favorite: !info.favorite });
   if (r) { showActions({ ...info, favorite: r.favorite }); log(r.favorite ? 'Als Favorit markiert.' : 'Favorit entfernt.'); }
-});
-$('oBtn').addEventListener('click', async () => {
+}
+async function addO() {
   const info = stashSession?.info;
   if (!info) return;
   const r = await stashAction('o');
   if (r) { showActions({ ...info, oCounter: r.oCounter }); log(`O-Zähler: ${r.oCounter}`); }
-});
-$('oUndo').addEventListener('click', async () => {
+}
+async function undoO() {
   const info = stashSession?.info;
   if (!info || !info.oCounter) return;
   const r = await stashAction('o-undo');
   if (r) { showActions({ ...info, oCounter: r.oCounter }); log(`O-Zähler: ${r.oCounter}`); }
-});
+}
+
+document.querySelectorAll('#stars button').forEach((b) => b.addEventListener('click', () => rateScene(Number(b.dataset.star))));
+$('favBtn').addEventListener('click', toggleFavorite);
+$('oBtn').addEventListener('click', addO);
+$('oUndo').addEventListener('click', undoO);
+
+// Player-Leiste: ★ öffnet ein kleines Feld mit Sternen, Favorit und O zurücknehmen.
+// Jeder Tipp hält die Bedienung sichtbar, damit sie nicht mitten im Bewerten ausblendet.
+function toggleRatePop(open = $('ovRatePop').hidden) {
+  $('ovRatePop').hidden = !open;
+  $('ovRate').classList.toggle('active', open);
+}
+$('ovRate').addEventListener('click', () => { toggleRatePop(); showOverlay(); });
+document.querySelectorAll('#ovRatePop .stars button').forEach((b) => b.addEventListener('click', () => {
+  rateScene(Number(b.dataset.star));
+  showOverlay();
+}));
+$('ovFav').addEventListener('click', () => { toggleFavorite(); showOverlay(); });
+$('ovOUndo').addEventListener('click', () => { undoO(); showOverlay(); });
+$('ovO').addEventListener('click', () => { addO(); showOverlay(); });
+$('ovMark').addEventListener('click', () => { setMarkerHere(); showOverlay(); });
+// Tippen aufs Bild oder Ausblenden der Bedienung schließt das Feld
+$('ovHit').addEventListener('click', () => toggleRatePop(false));
 
 // Marker an der aktuellen Stelle (Taste P); erscheint sofort in Zeitleiste und Liste
 async function setMarkerHere() {

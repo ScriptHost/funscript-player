@@ -133,7 +133,7 @@ function loadVideo(src, name, hqSrc = '') {
   $('ovTitle').textContent = name;
   $('dropHint').classList.add('hidden');
   ['sceneMeta', 'sceneDetails'].forEach((id) => { $(id).textContent = ''; });
-  $('sceneActions').hidden = true; // nur bei Stash-Szenen
+  $('sceneActions').hidden = $('ovStash').hidden = $('ovRatePop').hidden = true; // nur bei Stash-Szenen
   ['scenePeople', 'sceneTags', 'sceneMarkers'].forEach((id) => $(id).replaceChildren());
 }
 

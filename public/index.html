@@ -26,7 +26,7 @@
     </nav>
     <div class="pills">
       <span id="status" class="pill off">Handy: getrennt</span>
-      <span id="vibeStatus" class="pill off">Vibrator: getrennt</span>
+      <span id="vibeStatus" class="pill off">Satisfyer: getrennt</span>
     </div>
   </header>
 
@@ -101,6 +101,19 @@
                 <button id="ovFwd">+10</button>
                 <span id="ovTime" class="ov-time">0:00 / 0:00</span>
                 <span class="grow"></span>
+                <!-- Stash-Aktionen direkt in der Leiste (nur bei Stash-Szenen) -->
+                <span id="ovStash" class="ov-stash" hidden>
+                  <button id="ovRate" title="Bewertung und Favorit">☆</button>
+                  <button id="ovO" title="O-Zähler in Stash +1">💦 <b id="ovOCount">0</b></button>
+                  <button id="ovMark" title="Marker an dieser Stelle setzen (Taste P)">📍</button>
+                  <span id="ovRatePop" class="ov-pop" hidden>
+                    <span class="stars" title="Bewertung in Stash">
+                      <button data-star="1">★</button><button data-star="2">★</button><button data-star="3">★</button><button data-star="4">★</button><button data-star="5">★</button>
+                    </span>
+                    <button id="ovFav" title="Als Favorit markieren (Tag „Favorit“ in Stash)">♡</button>
+                    <button id="ovOUndo" title="Letztes O zurücknehmen">💦 −1</button>
+                  </span>
+                </span>
                 <button id="ovMute" title="Ton an/aus (M)">🔊</button>
                 <button id="ovSync" class="sync-only" title="Handy neu synchronisieren (S)">⟳</button>
                 <button id="ovFinale" class="sync-only finale-btn" title="Finale: ruhiger – Modus in den Einstellungen (O)">🔥</button>
@@ -264,6 +277,7 @@
           <div id="hudOptions" class="hud-options">
             <label class="check"><input type="checkbox" data-hud="meta"> Datum, Länge, Aufrufe</label>
             <label class="check"><input type="checkbox" data-hud="actions"> Bewertung, Favorit, O-Zähler, Marker setzen</label>
+            <label class="check"><input type="checkbox" data-hud="baractions"> ★ / 💦 / 📍 in der Player-Leiste (auch im Vollbild)</label>
             <label class="check"><input type="checkbox" data-hud="people"> Studio und Darsteller</label>
             <label class="check"><input type="checkbox" data-hud="tags"> Tags</label>
             <label class="check"><input type="checkbox" data-hud="markers"> Marker-Liste</label>
@@ -289,7 +303,7 @@
           <h2>ℹ️ System</h2>
           <dl id="sysInfo" class="sysinfo"></dl>
           <button id="resetLocal" class="small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
-          <p class="hint-text">Geräte (Handy, Vibrator, Sicherheit) stellst du rechts in der Geräte-Spalte ein.</p>
+          <p class="hint-text">Geräte (Handy, Satisfyer, Sicherheit) stellst du rechts in der Geräte-Spalte ein.</p>
         </div>
       </section>
 
@@ -386,7 +400,7 @@
       <div class="card">
         <nav class="subtabs" data-group="dev">
           <button data-sub="handy" class="active">The Handy</button>
-          <button data-sub="vibe">Vibrator</button>
+          <button data-sub="vibe">Satisfyer</button>
           <button data-sub="safety">Sicherheit</button>
         </nav>
 
@@ -411,7 +425,7 @@
           <label class="check"><input id="invert" type="checkbox"> Script umkehren</label>
           <details>
             <summary>Ohne Internet: Handy per Bluetooth</summary>
-            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann im Reiter „Vibrator“ → „Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
+            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann im Reiter „Satisfyer“ → „Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
             <label>Bluetooth-Vorlauf <output id="btLeadVal"></output>
               <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
             </label>
@@ -474,7 +488,8 @@
             <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
           </label>
           <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
-          <p class="hint-text">Not-Aus: Esc-Taste oder der rote STOPP-Knopf. Die Vibration begrenzt „Maximum“ beim Vibrator.</p>
+          <label class="check"><input id="stopButton" type="checkbox" checked> Roten STOPP-Knopf über dem Video zeigen (schwebend und im Vollbild)</label>
+          <p class="hint-text">Not-Aus: Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ hier in der Geräte-Spalte (bleibt immer da). Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
         </div>
 
         <button id="finaleBtn" class="finale-btn wide">🔥 Finale</button>

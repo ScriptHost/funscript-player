@@ -233,7 +233,12 @@ function anyRunning() {
   return devices && ((!video.paused && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active));
 }
 
-setInterval(() => { $('fabStop').hidden = !anyRunning(); }, 300);
+// Abschaltbar (Geräte → Sicherheit); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
+$('stopButton').checked = store.get('stopButton', true);
+const applyStopButton = () => document.body.classList.toggle('no-stop-btn', !$('stopButton').checked);
+$('stopButton').addEventListener('change', () => { store.set('stopButton', $('stopButton').checked); applyStopButton(); });
+applyStopButton();
+setInterval(() => { $('fabStop').hidden = !anyRunning() || !$('stopButton').checked; }, 300);
 $('fabStop').addEventListener('click', () => emergencyStop());
 
 document.addEventListener('keydown', (e) => {
