@@ -1,5 +1,12 @@
 # Änderungen
 
+## 1.5.1 – 01.11.2026
+
+- Streamen: „⚡ nur mit Funscript“ ausgeblendet, es werden immer alle Videos gezeigt
+  (Warum: beim reinen Schauen spielt das Script keine Rolle; im Sync-Modus bleibt der Filter)
+- Separate Heatmap unter dem Video entfernt – die Player-Leiste zeigt Heatmap, Marker und Vorschau
+  bereits (Warum: war doppelt)
+
 ## 1.5.0 – 01.11.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.5.0.md](RELEASE-NOTES-1.5.0.md)

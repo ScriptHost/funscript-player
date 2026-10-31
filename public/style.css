@@ -515,6 +515,9 @@ aside { min-width: 0; }
 #favBtn.active { background: #c2185b; color: #fff; }
 .tools-calib { font-variant-numeric: tabular-nums; }
 
+/* Heatmap nur noch in der Player-Leiste (die separate Leiste darunter war doppelt) */
+#heatmap { display: none !important; }
+
 /* Einstellungen */
 #imageSettings .seg { flex-wrap: wrap; margin-bottom: 12px; }
 #imageSettings .seg button { flex: 1 1 auto; width: auto; padding: 7px 10px; }

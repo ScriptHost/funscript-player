@@ -30,6 +30,8 @@ const el = (tag, props = {}, ...children) => {
   node.append(...children.filter((c) => c !== null && c !== undefined && c !== ''));
   return node;
 };
+// „nur mit Funscript“ gilt nur im Sync-Modus – beim Streamen werden immer alle Videos gezeigt
+const onlyScripts = () => appMode !== 'stream' && $('onlyScripts').checked;
 const KIND_LABEL = { tags: 'Tag', performers: 'Darsteller', studios: 'Studio' };
 const KIND_PATH = { tags: 'tag', performers: 'performer', studios: 'studio' };
 
@@ -127,7 +129,7 @@ function stashParams(extra = {}) {
     q: lib.browse === 'scenes' ? $('search').value.trim() : '',
     sort: $('stashSort').value,
     seed: lib.seed,
-    interactive: $('onlyScripts').checked ? '1' : '0',
+    interactive: onlyScripts() ? '1' : '0',
     tag: lib.filters.tags.map((x) => x.id).join(','),
     performer: lib.filters.performers.map((x) => x.id).join(','),
     studio: lib.filters.studios.map((x) => x.id).join(','),
@@ -333,7 +335,7 @@ function renderFolder() {
   const root = lib.source.startsWith('folder:') ? lib.source.slice(7) : '';
   const q = $('search').value.trim().toLowerCase();
   const items = lib.folder
-    .filter((it) => it.root === root && (!$('onlyScripts').checked || it.script) && (!q || it.video.toLowerCase().includes(q)))
+    .filter((it) => it.root === root && (!onlyScripts() || it.script) && (!q || it.video.toLowerCase().includes(q)))
     .sort((a, b) => b.mtime - a.mtime); // neueste zuerst
   const total = lib.folder.filter((it) => it.root === root).length;
   $('libInfo').textContent = total

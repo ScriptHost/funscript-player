@@ -69,6 +69,8 @@ function setMode(mode) {
     // Streamen: Geräte folgen dem Video nicht mehr
     if (mode === 'stream' && handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
     resync();
+    // „nur mit Funscript“ gilt nur bei Sync -> Bibliothek passend neu laden
+    if (typeof refresh === 'function' && typeof lib !== 'undefined' && document.body.dataset.view === 'library') refresh();
   }
 }
 document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
