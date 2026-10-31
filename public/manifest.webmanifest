@@ -1,6 +1,6 @@
 {
-  "name": "Handy Player",
-  "short_name": "Handy Player",
+  "name": "Funscript Player",
+  "short_name": "Funscript Player",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",

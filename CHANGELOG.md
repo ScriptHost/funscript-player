@@ -1,5 +1,14 @@
 # Änderungen
 
+## 1.10.0 – 31.10.2026
+
+- Neuer Name: **Funscript Player** (statt „Handy Player“) – in Kopfzeile, Browser-Tab, App-Name beim
+  Installieren, Intiface, Anmeldefenster und Doku
+  (Warum: der Player spielt Funscripts und steuert mehr als nur die Handy)
+- Technische Namen bleiben gleich (Container `Handy-Player`, Traefik-Router, Ordner, ZIP-Dateinamen),
+  damit ein Update nichts an der bestehenden Installation ändert
+- Doku-Webseite: Abbildungen, ausführlichere Funktionen, Entwickler-Doku (`docs/dev.html`)
+
 ## 1.9.0 – 31.10.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.9.0.md](RELEASE-NOTES-1.9.0.md)

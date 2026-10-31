@@ -1,4 +1,4 @@
-# Handy Player
+# Funscript Player
 
 Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per Funscript steuert.
 

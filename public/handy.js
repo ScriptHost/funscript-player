@@ -143,7 +143,7 @@ function requireHandy() {
 
 function toCsv(actions) {
   const invert = $('invert').checked;
-  return '#Handy Player\n' + actions.map((a) => `${a.at},${invert ? 100 - a.pos : a.pos}`).join('\r\n') + '\r\n';
+  return '#Funscript Player\n' + actions.map((a) => `${a.at},${invert ? 100 - a.pos : a.pos}`).join('\r\n') + '\r\n';
 }
 
 function downloadFunscript(actions, name) {

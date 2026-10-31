@@ -211,7 +211,7 @@ class Buttplug {
       ws.onopen = async () => {
         clearTimeout(timer);
         try {
-          const info = await this.send('RequestServerInfo', { ClientName: 'Handy Player', MessageVersion: 3 });
+          const info = await this.send('RequestServerInfo', { ClientName: 'Funscript Player', MessageVersion: 3 });
           if (info.MaxPingTime > 0) this.pingTimer = setInterval(() => this.send('Ping', {}).catch(() => {}), info.MaxPingTime / 2);
           const list = await this.send('RequestDeviceList', {});
           (list.Devices || []).forEach((d) => this.addDevice(d));

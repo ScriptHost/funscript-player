@@ -1,4 +1,4 @@
-// Handy Player – kleiner Webserver ohne externe Abhängigkeiten.
+// Funscript Player – kleiner Webserver ohne externe Abhängigkeiten.
 // Liefert die Weboberfläche aus, listet die Bibliothek und streamt Videos (mit Range-Support).
 
 const http = require('http');
@@ -60,7 +60,7 @@ function authOk(req) {
 
 function checkAuth(req, res) {
   if (authOk(req)) return true;
-  res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Handy Player", charset="UTF-8"' });
+  res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Funscript Player", charset="UTF-8"' });
   res.end('Anmeldung erforderlich');
   return false;
 }
@@ -1079,7 +1079,7 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Handy Player ${VERSION} läuft auf ${tls ? 'https' : 'http'}://${HOST}:${PORT}, Bibliothek: ${MEDIA_DIR}`);
+  console.log(`Funscript Player ${VERSION} läuft auf ${tls ? 'https' : 'http'}://${HOST}:${PORT}, Bibliothek: ${MEDIA_DIR}`);
   if (STASH_URL) console.log(`Stash: ${STASH_URL}${STASH_API_KEY ? ' (mit API-Key)' : ''}`);
   if (!AUTH_USER) console.warn('WARNUNG: Keine Anmeldung gesetzt (AUTH_USER/AUTH_PASS). Nur hinter einem geschützten Proxy betreiben!');
 });
