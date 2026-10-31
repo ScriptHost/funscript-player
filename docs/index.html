@@ -34,8 +34,12 @@
       <h1>Ein Funscript.<br>Alle Geräte.<br>Im Takt.</h1>
       <p class="lead">Der Funscript Player spielt deine Videos ab und steuert dabei <b>The Handy</b> und den
         <b>Satisfyer</b> – beide aus demselben Script, ohne eigenes Vibrations-Script. Deine Bibliothek kommt aus
-        <b>Stash</b> oder deinen Ordnern; schauen kannst du am PC, Smartphone, TV oder in der VR-Brille.</p>
+        <b>Stash</b> oder deinen Ordnern; schauen kannst du am PC, Smartphone, TV oder in der VR-Brille. Scripts werden
+        automatisch verbessert, der Satisfyer läuft auch mit reinen Handy-Scripts – und Videos werden auf Wunsch schärfer hochgerechnet.</p>
       <div class="chips">
+        <span class="chip hl">⚡ Script-Automatik</span>
+        <span class="chip hl">〰 Satisfyer mit jedem Script</span>
+        <span class="chip hl">✨ Upscaling</span>
         <span class="chip">↕ The Handy · API v3 · 0,5×–2×</span>
         <span class="chip">〰 Satisfyer per Bluetooth</span>
         <span class="chip">📚 Stash &amp; Ordner</span>
@@ -70,6 +74,42 @@
       </div>
     </div>
   </div>
+
+  <!-- ============ Highlights ============ -->
+  <section id="highlights" class="highlights">
+    <div class="hl-card">
+      <div class="hl-vis">
+        <svg viewBox="0 0 220 70" role="img" aria-label="Script vorher und nachher">
+          <path d="M5 44 L15 26 L25 44 L35 26 L45 44 L55 26 L65 44 L75 26 L85 44 L95 26" fill="none" stroke="#7d8591" stroke-width="2.4"/>
+          <path d="M100 35 H118" stroke="#9098a3" stroke-width="2"/><path d="M114 30 L120 35 L114 40" fill="none" stroke="#9098a3" stroke-width="2"/>
+          <path d="M125 62 L135 8 L145 62 L155 8 L165 62 L175 8 L185 62 L195 8 L205 62 L215 8" fill="none" stroke="#ff5c93" stroke-width="2.8"/>
+        </svg>
+      </div>
+      <h3>⚡ Scripts automatisch besser</h3>
+      <p>Jedes Funscript wird beim Laden geprüft: Zittern weg, flacher Hub gestreckt, was die Handy nicht schafft
+        gekürzt – und der Satisfyer bekommt seine eigene, ungekürzte Fassung. Ohne einen Klick, Dateien bleiben unverändert.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-vis">
+        <svg viewBox="0 0 220 70" role="img" aria-label="Hub-Script wird zu Vibration">
+          <path d="M5 60 L17 10 L29 60 L37 22 L45 60 L50 30 L55 60 L59 30 L63 60 L67 30 L71 60 L83 15 L95 60" fill="none" stroke="#7d8591" stroke-width="2.4"/>
+          <path d="M100 35 H118" stroke="#9098a3" stroke-width="2"/><path d="M114 30 L120 35 L114 40" fill="none" stroke="#9098a3" stroke-width="2"/>
+          <g fill="#a07bff"><rect x="126" y="44" width="7" height="18" rx="2"/><rect x="136" y="34" width="7" height="28" rx="2"/><rect x="146" y="20" width="7" height="42" rx="2"/><rect x="156" y="12" width="7" height="50" rx="2"/><rect x="166" y="8" width="7" height="54" rx="2"/><rect x="176" y="18" width="7" height="44" rx="2"/><rect x="186" y="32" width="7" height="30" rx="2"/><rect x="196" y="40" width="7" height="22" rx="2"/><rect x="206" y="46" width="7" height="16" rx="2"/></g>
+        </svg>
+      </div>
+      <h3>〰 Satisfyer mit jedem Script</h3>
+      <p>Fast alle Funscripts sind für Stroker wie die Handy gemacht – Vibrations-Scripts gibt es kaum. Der Player rechnet
+        das Hub-Script <b>live beim Abspielen</b> in Vibration um: im Rhythmus der Stöße, nach Tempo oder Position.
+        Kein eigenes Script, nichts vorher konvertieren.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-vis hl-upscale"><i class="b"></i><i class="a"></i><span class="up-line"></span><span class="l">720p</span><span class="r">✨ 1440p</span></div>
+      <h3>✨ Schärferes Bild durch Upscaling</h3>
+      <p>Ist das Video kleiner als dein Bildschirm, rechnet der Server es hoch, entrauscht und schärft es – in Hardware über
+        Intel Quick Sync. Dazu schärft der Browser nach und glättet Farbstufen. „Automatisch“ wählt pro Video das beste Bild
+        und schaltet zurück, wenn es ruckelt.</p>
+    </div>
+  </section>
 
   <!-- ============ In drei Schritten ============ -->
   <section id="start">
@@ -303,8 +343,28 @@
       </div>
     </div>
 
+    <!-- Bild & Wiedergabe -->
+    <div class="feature">
+      <div>
+        <h3 class="f-title">🎞️ Bild &amp; Wiedergabe – auf jedem Gerät</h3>
+        <ul class="ticks">
+          <li><b>Automatisch umwandeln:</b> Stash-Szenen in Formaten, die der Browser nicht kann (z. B. MKV, HEVC), werden
+            beim Abspielen live umgewandelt – du musst nichts vorbereiten. Ordner-Videos wandelt der HQ-Stream mit um.</li>
+          <li><b>Upscaling auf dem Server:</b> kleiner als der Bildschirm? Dann hochrechnen (bis 1440p), entrauschen und
+            Details verstärken – in Hardware über Intel Quick Sync (VAAPI). 4K und VR bleiben im Original.</li>
+          <li><b>Bildverbesserung im Browser:</b> Schärfen (AMD CAS) und Anti-Banding gegen Farbtreppen, auf der Grafik
+            deines Geräts. Vorher/Nachher-Vergleich zum Einschalten.</li>
+          <li><b>Selbstregelnd:</b> Stockt der Stream, schaltet der Player eine Stufe zurück – 1440p → 1080p → 720p → Original.</li>
+        </ul>
+      </div>
+      <div class="cmp" aria-label="Vorher/Nachher (Abbildung)">
+        <div class="cmp-img"><div class="cmp-l"></div><div class="cmp-r"></div><span class="cmp-line"></span>
+          <span class="cmp-tag l">Original 720p</span><span class="cmp-tag r">✨ 1440p, geschärft</span></div>
+        <div class="cmp-steps"><span>Video</span><b>→</b><span>umwandeln</span><b>→</b><span>hochrechnen</span><b>→</b><span>schärfen</span><b>→</b><span class="on">dein Bildschirm</span></div>
+      </div>
+    </div>
+
     <div class="grid">
-      <div class="card"><div class="icon">✨</div><h3>Bild &amp; Qualität</h3><p>Schärfen und Anti-Banding im Browser; HQ-Stream vom Server mit Intel Quick Sync, wenn das Video kleiner ist als dein Bildschirm.</p></div>
       <div class="card"><div class="icon">🥽</div><h3>VR mit HereSphere</h3><p>Nur VR-Videos als Mediathek, Formaterkennung, Bewertung aus der Brille zurück nach Stash. Abschaltbar – dann bleibt <code>/heresphere</code> zu.</p></div>
       <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, „Geräte pausieren“, Stopp bei Bildschirmsperre, Grenzen für Tempo und Vibration.</p></div>
       <div class="card"><div class="icon">🔄</div><h3>Überall gleich</h3><p>Key, Offsets, Satisfyer-Übersetzung, Sicherheit und Presets liegen auf dem Server – auf jedem Gerät dieselben. Bild und Kopfzeile pro Gerät.</p></div>

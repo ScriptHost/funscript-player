@@ -289,3 +289,39 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line);
 .tr-row .btn { border: 1px solid var(--line); cursor: pointer; font: inherit; }
 .tr-key { flex: 1; min-width: 180px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
 @media (max-width: 760px) { .tr-stage { grid-template-columns: 1fr; } }
+
+/* Highlights: Script-Automatik, Auto-Umwandeln, Upscaling */
+.chip.hl { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+.highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 40px; }
+.hl-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; position: relative; overflow: hidden; }
+.hl-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, #ff5c93, #a07bff); }
+.hl-card h3 { font-size: 19px; margin: 12px 0 6px; }
+.hl-card p { color: var(--muted); font-size: 15px; margin: 0; }
+.hl-vis { height: 90px; border-radius: 12px; background: #101218; display: grid; place-items: center; padding: 8px 12px; }
+.hl-vis svg { width: 100%; height: 70px; }
+.hl-formats { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.hl-formats span { padding: 4px 9px; border-radius: 7px; background: #22262e; color: #c7ccd3; font: 600 12px ui-monospace, Consolas, monospace; }
+.hl-formats b { color: #9098a3; font-size: 18px; margin: 0 4px; }
+.hl-formats em { font-style: normal; padding: 6px 12px; border-radius: 999px; background: linear-gradient(135deg, #ff5c93, #a07bff); color: #fff; font-weight: 700; font-size: 13px; }
+.hl-upscale { position: relative; padding: 0; overflow: hidden; display: block; }
+.hl-upscale i { position: absolute; top: 0; bottom: 0; width: 50%; background: radial-gradient(70% 90% at 50% 45%, #f08aac 0, #b04a78 22%, #3c4a8a 52%, #0d0f16 88%); background-size: 200% 100%; }
+.hl-upscale i.b { left: 0; background-position: 0 0; filter: blur(3.5px) saturate(.7) contrast(.85); }
+.hl-upscale i.a { right: 0; background-position: 100% 0; filter: saturate(1.2) contrast(1.15); }
+.hl-upscale i.a::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(60deg, rgba(255,255,255,.07) 0 1px, transparent 1px 5px); }
+.hl-upscale .up-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,.6); }
+.hl-upscale .l, .hl-upscale .r { position: absolute; bottom: 8px; padding: 2px 8px; border-radius: 6px; background: rgba(0,0,0,.65); color: #fff; font: 700 12px ui-monospace, Consolas, monospace; }
+.hl-upscale .l { left: 8px; } .hl-upscale .r { right: 8px; }
+/* Vorher/Nachher im Funktions-Block */
+.cmp { width: min(440px, 100%); margin: 0 auto; }
+.cmp-img { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.cmp-l, .cmp-r { position: absolute; top: 0; bottom: 0; width: 50%; background: radial-gradient(70% 80% at 50% 45%, #e07a9a 0, #9b3f6a 25%, #33407a 55%, #0d0f16 90%); background-size: 200% 100%; }
+.cmp-l { left: 0; background-position: 0 0; filter: blur(3px) saturate(.75) contrast(.9); }
+.cmp-r { right: 0; background-position: 100% 0; filter: saturate(1.15) contrast(1.1); }
+.cmp-r::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(60deg, rgba(255,255,255,.06) 0 1px, transparent 1px 5px); }
+.cmp-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,.5); }
+.cmp-tag { position: absolute; bottom: 10px; padding: 3px 9px; border-radius: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; }
+.cmp-tag.l { left: 10px; } .cmp-tag.r { right: 10px; }
+.cmp-steps { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.cmp-steps span { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); }
+.cmp-steps .on { border-color: var(--accent); color: var(--text); }
+@media (max-width: 860px) { .highlights { grid-template-columns: 1fr; } }
