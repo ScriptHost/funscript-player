@@ -107,7 +107,7 @@
     $('.sdv-dot').style.top = `${12 + (1 - pos / 100) * 76}%`;
     $('.sdv-bar i').style.width = `${(ms / LOOP) * 100}%`;
     $('.sdv-time').textContent = `${fmt(ms)} / 0:24 · ${SECTIONS.find(([end]) => ms < end)[1]}`;
-    $('.sd-slider').style.bottom = `calc(${pos}% * 0.82 + 4%)`;
+    $('.sd-carriage').style.bottom = `calc(${pos}% * 0.82 + 4%)`;
     $('.sd-pos').textContent = `${Math.round(pos)} %`;
     $('.sd-orb').style.setProperty('--lvl', lvl.toFixed(3));
     $('.sd-lvl').textContent = `${Math.round(lvl * 100)} %`;
