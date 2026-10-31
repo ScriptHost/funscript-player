@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Entwickler-Doku</title>
+  <meta name="description" content="Aufbau, Dateien, HTTP-API und Abläufe des Handy Players.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="index.html">Handy <span>Player</span></a>
+    <nav>
+      <a href="#aufbau">Aufbau</a>
+      <a href="#dateien">Dateien</a>
+      <a href="#konzepte">Konzepte</a>
+      <a href="#api">HTTP-API</a>
+      <a href="#fernbedienung">Fernbedienung</a>
+      <a href="#konfig">Konfiguration</a>
+      <a href="#arbeiten">Arbeiten am Code</a>
+      <a href="index.html">← Funktionen</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section style="padding-top:44px">
+    <span class="kicker">Entwickler-Doku</span>
+    <h1>Wie der Handy Player gebaut ist</h1>
+    <p class="lead">Ein Node.js-Server ohne Abhängigkeiten und eine statische Oberfläche aus einfachen Skripten –
+      kein Build-Schritt, kein Framework. Alles, was die Geräte steuert, läuft im Browser.</p>
+  </section>
+
+  <!-- ============ Aufbau ============ -->
+  <section id="aufbau">
+    <h2>Aufbau</h2>
+    <p class="sub">Der Server liefert die Oberfläche aus, streamt Videos, reicht Stash durch und vermittelt die
+      Fernbedienung. Handy (Cloud) und Satisfyer (Bluetooth) spricht der Browser direkt an.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 900 360" role="img" aria-label="Architektur">
+        <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
+        <rect class="d-acc" x="20" y="110" width="250" height="140" rx="12"/>
+        <text class="d-t" x="145" y="140" text-anchor="middle">Browser</text>
+        <text class="d-s" x="145" y="164" text-anchor="middle">public/*.js – Player, Sync,</text>
+        <text class="d-s" x="145" y="182" text-anchor="middle">Bibliothek, Geräte, Fernbedienung</text>
+        <text class="d-s" x="145" y="214" text-anchor="middle">localStorage: Einstellungen</text>
+        <text class="d-s" x="145" y="232" text-anchor="middle">pro Gerät (Präfix „hp.“)</text>
+
+        <rect class="d-acc" x="360" y="110" width="200" height="140" rx="12"/>
+        <text class="d-t" x="460" y="140" text-anchor="middle">server.js</text>
+        <text class="d-s" x="460" y="164" text-anchor="middle">HTTP(S), Range-Streaming</text>
+        <text class="d-s" x="460" y="182" text-anchor="middle">Stash-Proxy, HereSphere</text>
+        <text class="d-s" x="460" y="200" text-anchor="middle">HQ (ffmpeg), SSE-Relais</text>
+        <text class="d-s" x="460" y="218" text-anchor="middle">data/store.json</text>
+
+        <rect class="d-box" x="660" y="20" width="220" height="56" rx="10"/>
+        <text class="d-t" x="770" y="45" text-anchor="middle">Stash</text>
+        <text class="d-s" x="770" y="63" text-anchor="middle">GraphQL + Dateien</text>
+        <rect class="d-box" x="660" y="96" width="220" height="56" rx="10"/>
+        <text class="d-t" x="770" y="121" text-anchor="middle">/media</text>
+        <text class="d-s" x="770" y="139" text-anchor="middle">Videos + .funscript</text>
+        <rect class="d-box" x="660" y="172" width="220" height="56" rx="10"/>
+        <text class="d-t" x="770" y="197" text-anchor="middle">ffmpeg / VAAPI</text>
+        <text class="d-s" x="770" y="215" text-anchor="middle">HQ-Stream, Intel-Grafik</text>
+        <rect class="d-box" x="660" y="248" width="220" height="56" rx="10"/>
+        <text class="d-t" x="770" y="273" text-anchor="middle">Intiface Central</text>
+        <text class="d-s" x="770" y="291" text-anchor="middle">ws:// im LAN (Weiterleitung)</text>
+
+        <rect class="d-box" x="20" y="10" width="250" height="56" rx="10"/>
+        <text class="d-t" x="145" y="35" text-anchor="middle">Handy-Cloud (API v2)</text>
+        <text class="d-s" x="145" y="53" text-anchor="middle">HSSP, Uhr, Script-Upload</text>
+        <rect class="d-box" x="20" y="294" width="250" height="56" rx="10"/>
+        <text class="d-t" x="145" y="319" text-anchor="middle">Satisfyer</text>
+        <text class="d-s" x="145" y="337" text-anchor="middle">Web Bluetooth (GATT)</text>
+
+        <path class="d-line" d="M270 180 H356" marker-end="url(#a)"/>
+        <path class="d-line" d="M145 110 V70" marker-end="url(#a)"/>
+        <path class="d-line" d="M145 250 V290" marker-end="url(#a)"/>
+        <path class="d-line" d="M560 140 L656 50" marker-end="url(#a)"/>
+        <path class="d-line" d="M560 160 L656 124" marker-end="url(#a)"/>
+        <path class="d-line" d="M560 190 L656 200" marker-end="url(#a)"/>
+        <path class="d-line" d="M560 220 L656 276" marker-end="url(#a)"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ Dateien ============ -->
+  <section id="dateien">
+    <h2>Dateien</h2>
+    <p class="sub">Die Skripte in <code>public/</code> sind klassische <code>&lt;script&gt;</code>-Dateien ohne Module.
+      Sie teilen sich globale Funktionen und werden in dieser Reihenfolge geladen – spätere dürfen frühere benutzen,
+      umgekehrt nur zur Laufzeit (mit <code>typeof x === 'function'</code> absichern).</p>
+    <div class="tbl-wrap">
+    <table class="tbl">
+      <tr><th>Datei</th><th>Aufgabe</th></tr>
+      <tr><td><code>server.js</code></td><td>Alles auf der Server-Seite: statische Dateien, Range-Streaming, Bibliothek-Scan, Stash-GraphQL und -Proxy, Zurückschreiben, HereSphere-API, HQ-Stream über ffmpeg, Intiface-WebSocket-Weiterleitung, Fernbedienungs-Relais.</td></tr>
+      <tr><td><code>handy.js</code></td><td>Klasse <code>Handy</code> (API v2: HAMP, HSSP, Uhrabgleich, Upload-Cache), <code>claimHandy()</code>, Helfer <code>$</code>, <code>store</code>, <code>log</code>, <code>positionAt</code>.</td></tr>
+      <tr><td><code>app.js</code></td><td>Modi und Seiten, Video + Script laden, Sync Video → Handy (<code>doSync</code>), Heatmap, Handy-Einstellungen, „Läuft gerade“.</td></tr>
+      <tr><td><code>library.js</code></td><td>Bibliothek (Ordner + Stash), Filter je Modus, Szene öffnen, Stash-Aktionen (★, Favorit, O, Marker), Weiterschauen, Sprites.</td></tr>
+      <tr><td><code>control.js</code></td><td>Modus Steuern: Direktsteuerung, Pattern-Editor, Script-Baukasten, <code>emergencyStop()</code>.</td></tr>
+      <tr><td><code>vibe.js</code></td><td>Satisfyer per Web Bluetooth und Intiface, Script → Vibration (<code>targetLevel</code>, 60-ms-Schleife, Gleichmäßigkeit).</td></tr>
+      <tr><td><code>fullscreen.js</code></td><td>Eigene Player-Leiste, Vollbild, Gesten, Tastatur, STOPP-Knopf, Wake-Lock.</td></tr>
+      <tr><td><code>enhance.js</code> · <code>hq.js</code></td><td>Bildverbesserung per WebGL · HQ-Stream vom Server (Spulen = Neustart der Umwandlung).</td></tr>
+      <tr><td><code>finale.js</code> · <code>tools.js</code></td><td>Finale (lösen / sanfter) · Script-Werkzeuge und Offset einmessen.</td></tr>
+      <tr><td><code>stroker.js</code></td><td>Bewegungsgeräte über Intiface (z. B. Handy per Bluetooth).</td></tr>
+      <tr><td><code>settings.js</code></td><td>Einstellungsseite: Bild/HQ-Modus, Anzeige im Player, System, Zurücksetzen.</td></tr>
+      <tr><td><code>remote.js</code></td><td>Fernbedienung: Bildschirm-Seite (Zustand melden, Befehle ausführen) und Fernbedienungs-Seite.</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ============ Konzepte ============ -->
+  <section id="konzepte">
+    <h2>Kernkonzepte</h2>
+    <div class="grid two">
+      <div class="card">
+        <h3>Zeitachse</h3>
+        <p><code>mediaTime()</code>, <code>seekTo()</code>, <code>duration()</code> und <code>videoPlaying()</code> sind die
+          einzige Wahrheit über das Video. Sie berücksichtigen den HQ-Stream (startet nach jedem Spulen bei 0 →
+          <code>hq.offset</code>) und die Fernbedienung (Zeit kommt vom Bildschirm). Nie direkt
+          <code>video.currentTime</code> oder <code>video.paused</code> für Gerätelogik verwenden.</p>
+      </div>
+      <div class="card">
+        <h3>Wer steuert die Handy?</h3>
+        <p><code>handy.owner</code> ist <code>'video'</code>, <code>'manual'</code>, <code>'pattern'</code>, <code>'sequence'</code>
+          oder <code>'finale'</code>. <code>claimHandy(owner)</code> wechselt und sendet das Event <code>handy-owner</code> –
+          die anderen Bereiche setzen sich darauf zurück (z. B. pausiert das Video).</p>
+      </div>
+      <div class="card">
+        <h3>Script-Kette</h3>
+        <p><code>script.actions</code> → <code>toolActions()</code> (Script-Werkzeuge) → <code>sendActions()</code>
+          (Finale „halbes Tempo“) → Handy (CSV per HSSP) bzw. Satisfyer. Die Heatmap zeigt <code>toolActions()</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Vibration</h3>
+        <p><code>scriptSource()</code> liefert <code>{ actions, ms }</code> aus Steuern oder Video.
+          <code>targetLevel()</code> rechnet je nach Übersetzung eine Stärke 0–1, eine 60-ms-Schleife glättet und sendet
+          nur bei Änderung. Not-Aus und Pause setzen sofort 0.</p>
+      </div>
+      <div class="card">
+        <h3>Handy-Sync</h3>
+        <p><code>doSync()</code> lädt das Script vor (<code>handy.prepare</code>, Upload wird gecacht) und startet mit
+          <code>handy.play(mediaTime()·1000 + Offset)</code>. Ereignisse am Video lösen <code>resync()</code> aus;
+          alle 30 s wird still nachkorrigiert, alle 5 min die Uhr neu abgeglichen.</p>
+      </div>
+      <div class="card">
+        <h3>Einstellungen speichern</h3>
+        <p>Pro Gerät in <code>localStorage</code> über <code>store.get/set</code> (Präfix <code>hp.</code>).
+          Nur Patterns und Script-Baukasten liegen auf dem Server (<code>/api/store</code> → <code>data/store.json</code>).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ API ============ -->
+  <section id="api">
+    <h2>HTTP-API</h2>
+    <p class="sub">Alle Antworten JSON, außer Datei-Streams. Mit <code>AUTH_USER</code>/<code>AUTH_PASS</code> gilt Basic-Auth für alles
+      außer <code>/healthz</code> und <code>/api/version</code>.</p>
+    <div class="tbl-wrap">
+    <table class="tbl">
+      <tr><th>Methode</th><th>Pfad</th><th>Zweck</th></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/healthz</code> · <code>/api/version</code></td><td>Docker-Healthcheck · Versionsnummer</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/library</code></td><td>Videos unter <code>/media</code> mit zugehörigem Funscript</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/media/&lt;pfad&gt;</code></td><td>Datei aus <code>/media</code> mit Range-Support</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/store</code></td><td>Patterns und Script-Baukasten (<code>{ patterns, sequences }</code>)</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/stash/status</code> · <code>/api/stash/saved-filters</code> · <code>/api/stash/filters</code></td><td>Stash erreichbar? · gespeicherte Filter · Tags/Darsteller/Studios</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/stash/scenes?…</code></td><td>Szenenliste (Suche, Sortierung, Filter, Seiten, <code>continue=1</code>)</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/stash/scene/&lt;id&gt;</code></td><td>Szenen-Details inkl. Marker, Bewertung, O, Position</td></tr>
+      <tr><td><span class="m post">POST</span></td><td><code>/api/stash/scene/&lt;id&gt;/rating</code> · <code>favorite</code> · <code>o</code> · <code>o-undo</code> · <code>marker</code> · <code>activity</code> · <code>play</code></td><td>Zurückschreiben, z. B. <code>{ rating100 }</code>, <code>{ favorite }</code>, <code>{ seconds, title }</code>, <code>{ resume, played }</code></td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/stash/scene/&lt;id&gt;/stream|funscript|screenshot|preview|webp|vtt/thumbs|vtt/sprite</code></td><td>Durchgereichte Stash-Dateien (nur diese)</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/hq/stream?src=…&amp;t=…&amp;preset=…&amp;h=…</code></td><td>HQ-Stream ab Zeitpunkt t (ffmpeg, VAAPI oder CPU)</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/hq/status</code> · <code>probe</code> · <code>bench</code></td><td>HQ verfügbar? · Auflösung/Format · Leistungstest</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m post">POST</span></td><td><code>/heresphere</code> · <code>/heresphere/stash/&lt;id&gt;</code> · <code>/heresphere/media/…</code></td><td>HereSphere-API (Bewertung/Favorit im POST)</td></tr>
+      <tr><td><span class="m ws">WS</span></td><td><code>/intiface?target=IP:PORT</code></td><td>WebSocket-Weiterleitung zu Intiface, nur private IPv4</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/remote/time</code> · <code>/api/remote/events</code></td><td>Serveruhr · SSE-Verbindung der Fernbedienung</td></tr>
+      <tr><td><span class="m post">POST</span></td><td><code>/api/remote/state</code> · <code>/api/remote/cmd</code></td><td>Zustand eines Bildschirms · Befehl an einen Bildschirm</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ============ Fernbedienung ============ -->
+  <section id="fernbedienung">
+    <h2>Protokoll der Fernbedienung</h2>
+    <p class="sub">Jede offene Seite verbindet sich mit <code>GET /api/remote/events?id=…&amp;name=…&amp;screen=1</code>
+      (Server-Sent Events). Die ID ist pro Tab fest (<code>sessionStorage</code>), damit ein Neuladen die Verbindung nicht verliert.
+      Der Server speichert nichts, er reicht nur weiter.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>Ereignisse vom Server</h3>
+        <ul>
+          <li><code>screens</code> – <code>{ list: [{ id, name, state }], peers }</code></li>
+          <li><code>state</code> – <code>{ id, state }</code> eines Bildschirms</li>
+          <li><code>cmd</code> – <code>{ from, cmd, arg }</code> an diesen Bildschirm</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Befehle (<code>POST /api/remote/cmd</code>)</h3>
+        <p><code>open</code> (Szene), <code>play</code>, <code>pause</code>, <code>toggle</code>, <code>seek</code> (Sekunden),
+          <code>stop</code> (Not-Aus), <code>fs</code> (Vollbild), <code>refresh</code> (Stash-Infos neu), <code>hello</code> (Zustand jetzt senden).</p>
+      </div>
+    </div>
+<pre><code>// Zustand eines Bildschirms (POST /api/remote/state, alle 3 s und bei jeder Änderung)
+{
+  "src": { "kind": "stash", "id": "123", "title": "…", "interactive": true },
+  "t": 760.4,            // Position in Sekunden …
+  "at": 1793448541635,   // … gemessen zu dieser Serverzeit (ms)
+  "playing": true, "paused": false, "duration": 1865,
+  "handy": true,         // Bildschirm steuert die Handy selbst
+  "info": { "rating100": 80, "favorite": true, "oCounter": 2 },
+  "markers": [{ "seconds": 312, "title": "Lieblingsstelle 5:12" }],
+  "error": ""            // "autoplay" = Browser wartet auf eine Berührung
+}</code></pre>
+    <p class="muted">Die Fernbedienung rechnet <code>t + (Serverzeit jetzt − at) / 1000</code>. Die Abweichung zur Serveruhr
+      misst jede Seite mit fünf Anfragen an <code>/api/remote/time</code> (die schnellste zählt) und wiederholt das jede Minute.
+      Kommt 8 s kein Zustand, gilt der Bildschirm als angehalten.</p>
+  </section>
+
+  <!-- ============ Konfiguration ============ -->
+  <section id="konfig">
+    <h2>Konfiguration (Umgebungsvariablen)</h2>
+    <div class="tbl-wrap">
+    <table class="tbl">
+      <tr><th>Variable</th><th>Standard</th><th>Bedeutung</th></tr>
+      <tr><td><code>PORT</code> · <code>HOST</code></td><td>8080 · 0.0.0.0</td><td>Wo der Server lauscht</td></tr>
+      <tr><td><code>MEDIA_DIR</code></td><td>/media</td><td>Videoordner; jeder Unterordner = eigene Quelle</td></tr>
+      <tr><td><code>DATA_DIR</code></td><td>./data</td><td>Ablage für <code>store.json</code> (Patterns, Scripts)</td></tr>
+      <tr><td><code>STASH_URL</code> · <code>STASH_API_KEY</code></td><td>–</td><td>Stash-Adresse, API-Key nur bei Login in Stash</td></tr>
+      <tr><td><code>STASH_INSECURE</code></td><td>–</td><td><code>1</code> = selbstsigniertes Zertifikat akzeptieren</td></tr>
+      <tr><td><code>STASH_FAVORITE_TAG</code> · <code>STASH_MARKER_TAG</code></td><td>Favorit · Lieblingsstelle</td><td>Tag für Favoriten bzw. gesetzte Marker</td></tr>
+      <tr><td><code>HQ_ACCEL</code> · <code>HQ_DEVICE</code></td><td>auto · /dev/dri/renderD128</td><td><code>vaapi</code> oder <code>cpu</code>; Grafikgerät</td></tr>
+      <tr><td><code>HQ_MAX</code></td><td>3</td><td>Gleichzeitige HQ-Umwandlungen</td></tr>
+      <tr><td><code>FFMPEG</code> · <code>FFPROBE</code></td><td>ffmpeg · ffprobe</td><td>Pfade zu den Programmen</td></tr>
+      <tr><td><code>AUTH_USER</code> · <code>AUTH_PASS</code></td><td>–</td><td>Optionale Basic-Auth (sonst über den Reverse Proxy absichern)</td></tr>
+      <tr><td><code>TLS_PFX</code> (+<code>_PASS</code>) / <code>TLS_CERT</code> + <code>TLS_KEY</code></td><td>–</td><td>Direkt HTTPS ohne Reverse Proxy</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- ============ Arbeiten ============ -->
+  <section id="arbeiten">
+    <h2>Arbeiten am Code</h2>
+    <div class="split">
+      <div>
+        <h3>Lokal starten</h3>
+<pre><code>MEDIA_DIR=./testmedia DATA_DIR=./data \
+STASH_URL=http://stash:9999 \
+node server.js
+# → http://localhost:8080</code></pre>
+        <p class="muted">Ohne Stash läuft alles mit den Ordnern. Web Bluetooth geht auf <code>localhost</code> auch ohne HTTPS.</p>
+      </div>
+      <div>
+        <h3>Ablauf einer Version</h3>
+        <ol class="steps">
+          <li>Ändern, dann <code>node --check</code> für alle JS-Dateien.</li>
+          <li>Im Browser testen (Testvideo + Funscript, Stash ggf. nachbauen).</li>
+          <li><code>VERSION</code>, <code>CHANGELOG.md</code>, bei größeren Versionen <code>RELEASE-NOTES-x.y.z.md</code> – jeweils „was &amp; warum“.</li>
+          <li>Commit, Tag <code>vX.Y.Z</code>, ZIP für Docker per <code>git archive</code>.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:20px">
+      <div class="card"><h3>Sprache</h3><p>Oberfläche, Kommentare und Doku auf Deutsch; Kommentare erklären das Warum.</p></div>
+      <div class="card"><h3>Keine Abhängigkeiten</h3><p>Nur Node-Standardbibliothek und Browser-APIs. Kein Build, kein Bundler.</p></div>
+      <div class="card"><h3>Sicherheit zuerst</h3><p>Alles, was Geräte bewegt, muss über <code>emergencyStop()</code> stoppbar sein und bei fehlender Verbindung anhalten.</p></div>
+      <div class="card"><h3>Feature-Seite pflegen</h3><p>Neue Funktionen in <code>docs/index.html</code> ergänzen, technische Details hier.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Handy Player · Entwickler-Doku</span>
+    <span><a href="index.html">← zurück zu den Funktionen</a></span>
+  </footer>
+</main>
+</body>
+</html>
