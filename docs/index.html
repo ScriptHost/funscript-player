@@ -111,6 +111,30 @@
     </div>
   </section>
 
+  <!-- ============ Für wen ============ -->
+  <section id="fuerwen">
+    <span class="kicker">Für wen?</span>
+    <h2>Egal, was du hast</h2>
+    <div class="grid three-steps">
+      <div class="card"><div class="icon">↕</div><h3>Nur eine Handy</h3><p>Sauberer Sync über die Handy-Cloud, Scripts automatisch korrigiert, Tempo 0,5×–2× ohne Versatz – und die Bibliothek zeigt dir vorher, wie intensiv eine Szene ist.</p></div>
+      <div class="card"><div class="icon">〰</div><h3>Nur einen Satisfyer</h3><p>Du brauchst keine Vibrations-Scripts: Jedes Handy-Script wird live zu Vibration. Verbindung per Bluetooth direkt im Browser, ohne App.</p></div>
+      <div class="card"><div class="icon">📚</div><h3>Eine Stash-Bibliothek</h3><p>Szenen mit Funscript, Heatmap und Intensität auf einen Blick. Am TV schauen, am Smartphone steuern – oder in der VR-Brille über HereSphere.</p></div>
+    </div>
+    <div class="vs">
+      <table class="tbl vs-tbl">
+        <thead><tr><th></th><th>Üblicher Weg</th><th>Funscript Player</th></tr></thead>
+        <tbody>
+          <tr><td>Satisfyer mit normalen Funscripts</td><td class="no">✗ eigenes Vibrations-Script nötig</td><td class="yes">✓ live umgerechnet</td></tr>
+          <tr><td>Handy und Satisfyer gleichzeitig</td><td class="no">✗ zwei Programme</td><td class="yes">✓ ein Script, beide im Takt</td></tr>
+          <tr><td>Schwache Scripts</td><td class="no">✗ von Hand nachbearbeiten</td><td class="yes">✓ automatisch verbessert</td></tr>
+          <tr><td>Videos in niedriger Auflösung</td><td class="no">✗ unscharf auf großem Bild</td><td class="yes">✓ hochgerechnet &amp; geschärft</td></tr>
+          <tr><td>Format, das der Browser nicht kann</td><td class="no">✗ vorher konvertieren</td><td class="yes">✓ live umgewandelt</td></tr>
+          <tr><td>Steuern vom Sofa</td><td class="no">✗ zurück an den PC</td><td class="yes">✓ Smartphone als Fernbedienung</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- ============ In drei Schritten ============ -->
   <section id="start">
     <span class="kicker">In drei Schritten</span>
@@ -163,8 +187,8 @@
     <span class="kicker">Selbst ausprobieren</span>
     <h2>Mini-Player – direkt hier</h2>
     <p class="sub">Eine stark vereinfachte Fassung zum Reinschnuppern: Wähle ein Video und das passende
-      <code>.funscript</code> von deinem Gerät – oder spiel das Beispiel-Script ohne Video ab. Handy und Satisfyer
-      laufen als Anzeige mit; echte Geräte kannst du optional verbinden. Nichts wird hochgeladen, alles bleibt bei dir.</p>
+      <code>.funscript</code> von deinem Gerät – oder spiel das Beispiel-Script ohne Video ab. Schalte zwischen Original und ⚡ Automatik
+      um und sieh, was die Script-Automatik ändert. Handy und Satisfyer laufen als Anzeige mit; echte Geräte kannst du optional verbinden. Nichts wird hochgeladen, alles bleibt bei dir.</p>
     <div id="tryDemo" class="try">
       <div class="tr-pick">
         <label class="btn tr-filebtn">📂 Video + Funscript wählen<input class="tr-files" type="file" multiple accept="video/*,.funscript,application/json" hidden></label>
@@ -177,6 +201,11 @@
           <div class="tr-name muted"></div>
           <canvas class="tr-bar" title="Antippen zum Springen"></canvas>
           <div class="tr-ctl"><button class="tr-play">▶</button><span class="tr-time">0:00 / 0:00</span></div>
+          <div class="tr-sw sd-ctrl">
+            <span class="sd-seg" title="Script-Automatik"><button data-auto="0">Original</button><button data-auto="1" class="on">⚡ Automatik</button></span>
+            <span class="sd-seg" title="Satisfyer-Übersetzung"><button data-tmode="rhythm" class="on">〰 Rhythmus</button><button data-tmode="speed">Tempo</button><button data-tmode="pos">Position</button></span>
+          </div>
+          <div class="tr-note"></div>
         </div>
         <div class="tr-devs">
           <div class="tr-dev"><div class="sd-rail"><div class="sd-carriage tr-carriage"></div></div><div class="sd-cap">↕ The Handy <b class="tr-hpos">–</b></div></div>
@@ -411,6 +440,32 @@
       <div class="tl"><b>1.8–1.10</b><p>Fernbedienung, aufgeräumte Einstellungen, neuer Name „Funscript Player“.</p></div>
     </div>
     <p class="muted">Alle Details im <code>CHANGELOG.md</code> und in den <code>RELEASE-NOTES-*.md</code> im Projekt.</p>
+  </section>
+
+  <!-- ============ Voraussetzungen ============ -->
+  <section id="brauche">
+    <span class="kicker">Voraussetzungen</span>
+    <h2>Was brauche ich?</h2>
+    <div class="grid two">
+      <div class="card need">
+        <h3>Nötig</h3>
+        <ul class="ticks">
+          <li><b>Einen Rechner, der dauerhaft läuft</b> – Heimserver, NAS oder PC mit Docker. Dort liegen Videos und Scripts.</li>
+          <li><b>Mindestens ein Gerät:</b> The Handy (WLAN, Connection Key) und/oder einen Satisfyer mit Bluetooth.</li>
+          <li><b>Einen Browser:</b> Chrome oder Edge am PC oder Android. Für Bluetooth über HTTPS (z. B. per Traefik).</li>
+          <li><b>Videos mit Funscript</b> – im Ordner daneben oder in Stash.</li>
+        </ul>
+      </div>
+      <div class="card need opt">
+        <h3>Optional</h3>
+        <ul class="ticks">
+          <li><b>Stash</b> für eine Bibliothek mit Vorschau, Suche und Heatmaps.</li>
+          <li><b>Intel-Grafik mit Quick Sync</b> (z. B. N100/N305) für Upscaling und das Umwandeln von Formaten.</li>
+          <li><b>Handy Application ID</b> (API v3) für Sync auch bei 0,5×–2× Tempo.</li>
+          <li><b>VR-Brille mit HereSphere</b> für VR-Szenen.</li>
+        </ul>
+      </div>
+    </div>
   </section>
 
   <!-- ============ Installation ============ -->
