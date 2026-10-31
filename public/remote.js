@@ -249,6 +249,7 @@ async function remoteLoad(src) {
   clearScript();
   resetSceneInfo(src.title || src.name || 'Video');
   video.removeAttribute('poster');
+  $('drop').classList.remove('loading');
   $('drop').classList.add('ready');
   showOverlay();
 

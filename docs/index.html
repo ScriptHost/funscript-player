@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Handy Player</title>
+  <style>
+    :root { --bg: #111317; --card: #1a1d23; --line: #2a2f38; --text: #e8eaed; --muted: #9aa1ab; --accent: #e0457b; }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) { --bg: #f6f7f9; --card: #fff; --line: #dfe3e8; --text: #1b1e23; --muted: #5d6570; --accent: #c2185b; }
+    }
+    :root[data-theme="light"] { --bg: #f6f7f9; --card: #fff; --line: #dfe3e8; --text: #1b1e23; --muted: #5d6570; --accent: #c2185b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 960px; margin: 0 auto; padding: 40px 16px 64px; }
+    h1 { font-size: clamp(28px, 6vw, 42px); margin: 0 0 8px; }
+    h2 { font-size: 22px; margin: 48px 0 16px; }
+    h3 { font-size: 16px; margin: 0 0 6px; }
+    p { margin: 0 0 12px; }
+    .lead { color: var(--muted); font-size: 18px; max-width: 680px; }
+    .tag { display: inline-block; margin: 16px 8px 0 0; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    .card p { color: var(--muted); font-size: 15px; margin: 0; }
+    .icon { font-size: 24px; display: block; margin-bottom: 8px; }
+    pre { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; font-size: 14px; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    ol { padding-left: 20px; } li { margin-bottom: 6px; }
+    .note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--muted); }
+    footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Handy Player</h1>
+  <p class="lead">Selbst gehosteter Web-Player für Videos mit Funscripts. Steuert The Handy und den Satisfyer im Takt
+    des Videos – mit deiner Stash-Bibliothek, am PC, Smartphone, TV oder in der VR-Brille.</p>
+  <span class="tag">Node.js ohne Abhängigkeiten</span><span class="tag">Docker</span><span class="tag">Läuft im Browser</span>
+
+  <h2>Funktionen</h2>
+  <div class="grid">
+    <div class="card"><span class="icon">↕</span><h3>The Handy</h3><p>Video-Sync über die Handy-Cloud (HSSP) mit Uhrabgleich und stiller Nachkorrektur. Offset pro Szene, Hub-Bereich, Script umkehren. Ohne Internet per Bluetooth über Intiface.</p></div>
+    <div class="card"><span class="icon">〰</span><h3>Satisfyer</h3><p>Direkt per Web Bluetooth oder über Intiface. Übersetzt das Script in Vibration: im Rhythmus der Stöße, nach Tempo oder Position – mit einstellbarer Gleichmäßigkeit.</p></div>
+    <div class="card"><span class="icon">📚</span><h3>Stash-Bibliothek</h3><p>Szenen, gespeicherte Filter, Tags, Darsteller, Studios, Marker. Jeder Modus merkt sich seinen Filter. Bewertung, Favorit, O-Zähler und Marker werden nach Stash zurückgeschrieben.</p></div>
+    <div class="card"><span class="icon">📱</span><h3>Fernbedienung</h3><p>Video am TV/PC, Bedienung und Satisfyer am Smartphone. Abgleich über den Server mit gemeinsamer Uhr – beide Seiten bleiben im Takt.</p></div>
+    <div class="card"><span class="icon">⛶</span><h3>Player fürs Smartphone</h3><p>Eigene Bedienung mit Heatmap-Zeitleiste, Vorschaubildern, ★/💦/📍 direkt in der Leiste, echtes Vollbild, als App installierbar.</p></div>
+    <div class="card"><span class="icon">✨</span><h3>Bildqualität</h3><p>Bildverbesserung im Browser (Schärfe, Anti-Banding) und HQ-Stream vom Server mit Intel Quick Sync / VAAPI.</p></div>
+    <div class="card"><span class="icon">🔥</span><h3>Finale</h3><p>Ein Knopf schaltet auf ruhiger: Script komplett lösen oder sanfter weiter im Takt – automatisch zurück zum Sync nach einstellbarer Zeit.</p></div>
+    <div class="card"><span class="icon">🎮</span><h3>Steuern ohne Video</h3><p>Direktsteuerung, Pattern-Editor und Script-Baukasten – abspielen oder als .funscript exportieren.</p></div>
+    <div class="card"><span class="icon">🥽</span><h3>VR mit HereSphere</h3><p>Bibliothek als HereSphere-API: Kategorien, VR-Format-Erkennung, Bewertung und Favorit aus der Brille zurück nach Stash.</p></div>
+    <div class="card"><span class="icon">🛡️</span><h3>Sicherheit</h3><p>Not-Aus per Knopf oder Esc, Stopp bei Bildschirmsperre, Grenzen für Geschwindigkeit und Vibrationsstärke.</p></div>
+  </div>
+
+  <h2>Installation mit Docker</h2>
+  <ol>
+    <li>ZIP <code>handy-player-linux-vX.Y.Z.zip</code> auf den Server kopieren und entpacken.</li>
+    <li>In der <code>docker-compose.yml</code> Medienordner, <code>STASH_URL</code> und ggf. die Grafikkarte (<code>/dev/dri</code>) eintragen.</li>
+    <li>Bauen und starten:</li>
+  </ol>
+  <pre><code>docker compose up -d --build</code></pre>
+  <p class="note">Web Bluetooth (Satisfyer) und Vollbild als App brauchen HTTPS mit gültigem Zertifikat – z. B. hinter Traefik.
+    Die Bibliothek aus Stash läuft über den Server; der Browser spricht nie direkt mit Stash.</p>
+
+  <h2>Begriffe</h2>
+  <div class="grid">
+    <div class="card"><h3>Funscript-Punkte</h3><p>Ein Funscript ist eine Liste von Punkten „zu Zeit X auf Position Y“. Mehr Punkte = feinere Bewegung. Die Heatmap zeigt das Tempo zwischen den Punkten.</p></div>
+    <div class="card"><h3>Offset</h3><p>Verschiebt das Script gegenüber dem Video, falls es leicht versetzt ist. Wird pro Szene gemerkt und lässt sich im Takt einmessen.</p></div>
+    <div class="card"><h3>Vorlauf</h3><p>Gleicht die Bluetooth-Verzögerung aus: Befehle gehen etwas früher raus, damit Gerät und Bild zusammenpassen.</p></div>
+  </div>
+
+  <footer>Handy Player · privates Projekt · Details zu jeder Version im CHANGELOG und in den Release-Notes.</footer>
+</main>
+</body>
+</html>

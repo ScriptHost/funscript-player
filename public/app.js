@@ -57,12 +57,20 @@ function showView(view) {
   window.dispatchEvent(new Event('resize'));
 }
 
-// Einstellungen: eigene Seite, ändert den Modus nicht
+// Einstellungen: eigene Seite, ändert den Modus nicht. Video, Handy und Satisfyer laufen weiter;
+// zurück geht es über die „Läuft gerade“-Leiste unten oder die Modus-Knöpfe.
 function openSettings(section) {
-  if (!video.paused) video.pause();
   showView('settings');
   if (section) $(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  else window.scrollTo(0, 0);
 }
+// Links in die Einstellungen (Geräte-Spalte, Bereichs-Leiste) – ohne die Adresse (#player) zu ändern
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-settings], #setNav a');
+  if (!a) return;
+  e.preventDefault();
+  openSettings(a.dataset.settings || a.getAttribute('href').slice(1));
+});
 $('navSettings').addEventListener('click', () => (document.body.dataset.view === 'settings' ? setMode(appMode) : openSettings()));
 $('openImageSettings').addEventListener('click', () => openSettings('imageSettings'));
 
@@ -78,6 +86,8 @@ function setMode(mode) {
     // Streamen: Geräte folgen dem Video nicht mehr
     if (mode === 'stream' && handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
     resync();
+    // Jeder Modus hat seinen eigenen Stash-Filter (z. B. Streamen „2D“, Sync „2D Script“)
+    if (typeof modeFilterChanged === 'function') modeFilterChanged();
     // „nur mit Funscript“ gilt nur bei Sync -> Bibliothek passend neu laden
     if (typeof refresh === 'function' && typeof lib !== 'undefined' && document.body.dataset.view === 'library') refresh();
   }
@@ -89,14 +99,15 @@ function openPlayer() {
   if (appMode === 'control') setMode(store.get('lastWatchMode', 'sync'));
   if (location.hash !== '#player') history.pushState(null, '', '#player');
   showView('player');
+  window.scrollTo(0, 0); // Video oben, nicht da, wo die Bibliothek gerade gescrollt war
 }
+// Zurück zur Bibliothek: Video, Handy und Satisfyer laufen weiter (Leiste „Läuft gerade“ unten)
 function backToLibrary() {
   if (location.hash === '#player') history.back();
-  else { video.pause(); showView('library'); }
+  else showView('library');
 }
 window.addEventListener('popstate', () => {
   if (location.hash !== '#player' && document.body.dataset.view === 'player') {
-    video.pause();
     showView('library');
   } else if (location.hash === '#player' && (video.src || remote.on) && appMode !== 'control') {
     showView('player');
@@ -111,6 +122,7 @@ document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.addEventL
 document.querySelectorAll('nav.subtabs').forEach((nav) => {
   const group = nav.dataset.group;
   const show = (sub) => {
+    if (!nav.querySelector(`[data-sub="${sub}"]`)) sub = nav.querySelector('button').dataset.sub; // z. B. alter Reiter „Sicherheit“
     nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.sub === sub));
     document.querySelectorAll(`[data-panel^="${group}:"]`).forEach((p) => { p.hidden = p.dataset.panel !== `${group}:${sub}`; });
     store.set('sub.' + group, sub);
@@ -136,6 +148,11 @@ function loadVideo(src, name, hqSrc = '') {
   nowPlaying = { kind: 'file', title: name };
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   objectUrl = src.startsWith('blob:') ? src : null;
+  // Altes Bild nicht kurz zeigen: Video leeren und bis zum ersten neuen Bild ausblenden
+  video.pause();
+  video.removeAttribute('src');
+  video.load();
+  $('drop').classList.add('loading');
   Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
   // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
   if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
@@ -366,7 +383,7 @@ updateOutputs();
 
 async function connectHandy(auto = false) {
   const key = $('key').value.trim();
-  if (!key) return auto ? undefined : log('Bitte Connection Key eingeben.', true);
+  if (!key) return auto ? undefined : openSettings('setDevices');
   store.set('key', key);
   const btn = $('connect');
   btn.disabled = true;
@@ -387,6 +404,34 @@ async function connectHandy(auto = false) {
   }
 }
 $('connect').addEventListener('click', () => connectHandy());
+// Key steht in den Einstellungen; in der Geräte-Spalte nur ein Hinweis, solange er fehlt
+const updateKeyHint = () => { $('keyHint').hidden = !!$('key').value.trim(); };
+$('key').addEventListener('input', updateKeyHint);
+$('key').addEventListener('change', () => { if ($('key').value.trim()) connectHandy(); });
+updateKeyHint();
+
+// ---------------------------------------------------------------------------
+// „Läuft gerade“: unten in Bibliothek/Einstellungen/Steuern, solange ein Video geladen ist
+// ---------------------------------------------------------------------------
+function updateNowBar() {
+  const loaded = remote.on ? !!remote.state?.src : !!video.currentSrc && !!nowPlaying;
+  $('nowBar').hidden = !loaded || document.body.dataset.view === 'player';
+  if ($('nowBar').hidden) return;
+  $('nowTitle').textContent = $('ovTitle').textContent;
+  $('nowPlay').textContent = videoPlaying() ? '❚❚' : '▶';
+}
+setInterval(updateNowBar, 500);
+$('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNowBar, 100); });
+$('nowOpen').addEventListener('click', () => openPlayer());
+
+// Kopfzeile kompakt um die Kamera herum (⚙️ → Anzeige)
+$('hdrNotch').checked = store.get('hdrNotch', false);
+const applyHdr = () => document.body.classList.toggle('hdr-notch', $('hdrNotch').checked);
+$('hdrNotch').addEventListener('change', () => { store.set('hdrNotch', $('hdrNotch').checked); applyHdr(); });
+applyHdr();
+// Höhe der (klebenden) Kopfzeile für die Bereichs-Leiste der Einstellungen
+new ResizeObserver(([e]) => document.documentElement.style.setProperty('--hdr-h', e.target.offsetHeight + 'px'))
+  .observe(document.querySelector('header'));
 
 // ---------------------------------------------------------------------------
 // Sync-Pflege: die Handy läuft nach ihrer eigenen Uhr. Kleine Abweichungen
@@ -478,6 +523,7 @@ $('invert').addEventListener('change', () => {
 
 // Drag & Drop + Dateiauswahl
 const drop = $('drop');
+['loadeddata', 'error'].forEach((ev) => video.addEventListener(ev, () => drop.classList.remove('loading')));
 ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, () => drop.classList.remove('over')));
 drop.addEventListener('drop', (e) => { e.preventDefault(); e.stopPropagation(); handleFiles(e.dataTransfer.files); });

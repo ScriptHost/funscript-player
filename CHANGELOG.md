@@ -1,5 +1,22 @@
 # Änderungen
 
+## 1.9.0 – 31.10.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.9.0.md](RELEASE-NOTES-1.9.0.md)
+
+- **Einstellungen neu geordnet** mit Bereichs-Leiste oben (Geräte, Sicherheit, Bild, Script, Fernbedienung,
+  Anzeige, Bibliothek, System). Connection Key, Script umkehren, Bluetooth, Satisfyer-Übersetzung,
+  Intiface und Sicherheit sind aus der Geräte-Spalte dorthin gewandert; die Spalte zeigt nur noch,
+  was man beim Schauen braucht
+- **Video, Handy und Satisfyer laufen weiter** in Bibliothek und Einstellungen; unten erscheint
+  „Läuft gerade“ mit Play/Pause und „Zum Video“
+- Neues Video: kein kurzes Aufblitzen des alten Bildes mehr; der Player öffnet oben beim Video
+- Satisfyer: nach Bildschirmsperre/App-Wechsel automatisch neu verbinden, statt neu koppeln zu müssen
+- Satisfyer: neuer Regler **Gleichmäßigkeit** (glättet die Vibration über bis zu 1,5 s)
+- Bibliothek: **jeder Modus merkt sich seinen Stash-Filter** – Streamen startet mit „2D“, Sync mit „2D Script“
+- Kopfzeile optional kompakt: Status links/rechts neben der Kamera (⚙️ → Anzeige)
+- Feature-Übersicht als Webseite: `docs/index.html`
+
 ## 1.8.0 – 31.10.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.8.0.md](RELEASE-NOTES-1.8.0.md)

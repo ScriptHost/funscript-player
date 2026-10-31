@@ -162,6 +162,84 @@
       <!-- ================= Einstellungen ================= -->
       <section id="view-settings" class="view" hidden>
         <h2 class="page-title">⚙️ Einstellungen</h2>
+        <nav id="setNav" class="set-nav" aria-label="Bereiche">
+          <a href="#setDevices">🔌 Geräte</a>
+          <a href="#setSafety">🛡️ Sicherheit</a>
+          <a href="#imageSettings">✨ Bild</a>
+          <a href="#setScript">🛠️ Script &amp; Finale</a>
+          <a href="#setRemote">📱 Fernbedienung</a>
+          <a href="#setPlayer">🖥️ Anzeige</a>
+          <a href="#setLibrary">📚 Bibliothek</a>
+          <a href="#setSystem">ℹ️ System</a>
+        </nav>
+
+        <div id="setDevices" class="card">
+          <h2>↕ The Handy</h2>
+          <label>Connection Key
+            <input id="key" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="check"><input id="autoConnect" type="checkbox" checked> Beim Start automatisch verbinden (Handy und bekannte Satisfyer)</label>
+          <label class="check"><input id="autoSync" type="checkbox" checked> Sync automatisch nachkorrigieren</label>
+          <label class="check"><input id="invert" type="checkbox"> Script umkehren</label>
+          <details>
+            <summary>Ohne Internet: Handy per Bluetooth</summary>
+            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann unten bei „Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
+            <label>Bluetooth-Vorlauf <output id="btLeadVal"></output>
+              <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
+            </label>
+          </details>
+          <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein.</p>
+        </div>
+
+        <div class="card">
+          <h2>〰 Satisfyer</h2>
+          <label class="check"><input id="vibeAll" type="checkbox"> Beim Verbinden alle Bluetooth-Geräte anzeigen</label>
+          <h3>Übersetzung Script → Vibration</h3>
+          <label>Berechnung
+            <select id="vibeMap">
+              <option value="rhythm">Rhythmus: pulsiert mit jedem Stoß, stärker bei Tempo</option>
+              <option value="speed">Nach Geschwindigkeit: gleichmäßig, folgt nur dem Tempo</option>
+              <option value="pos">Nach Position (unten = stark)</option>
+              <option value="posInv">Nach Position (oben = stark)</option>
+            </select>
+          </label>
+          <label>Gleichmäßigkeit <output id="vibeSmoothVal"></output>
+            <input id="vibeSmooth" type="range" min="0" max="100" step="5" value="0">
+          </label>
+          <p class="hint-text">Glättet die Vibration über die Zeit: 0 = jeder Stoß einzeln spürbar, höher = ruhiger, schwankt weniger.
+            Für ganz gleichmäßig: „Nach Geschwindigkeit“ plus Gleichmäßigkeit 40–60 %.</p>
+          <div class="grid2">
+            <label>Minimum <output id="vibeMinVal"></output>
+              <input id="vibeMin" type="range" min="0" max="100" value="10">
+            </label>
+            <label>Maximum <output id="vibeMaxVal"></output>
+              <input id="vibeMax" type="range" min="0" max="100" value="100">
+            </label>
+            <label>Volle Stärke ab <output id="vibeFullVal"></output>
+              <input id="vibeFull" type="range" min="50" max="600" step="10" value="300">
+            </label>
+            <label>Vorlauf (Bluetooth-Verzögerung) <output id="vibeLeadVal"></output>
+              <input id="vibeLead" type="range" min="-300" max="600" step="10" value="100">
+            </label>
+          </div>
+          <details>
+            <summary>Intiface Central (auch: Handy per Bluetooth)</summary>
+            <p class="hint-text">Intiface Central auf dem Smartphone starten, unter Einstellungen „Listen on all interfaces“ aktivieren und den Server starten.</p>
+            <label>IP des Smartphones<input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
+            <button id="vibeConnect" class="secondary">Mit Intiface verbinden</button>
+            <button id="vibeScan" class="secondary" hidden>In Intiface nach Geräten suchen</button>
+          </details>
+        </div>
+
+        <div id="setSafety" class="card">
+          <h2>🛡️ Sicherheit</h2>
+          <label>Max. Geschwindigkeit Direktsteuerung <output id="capSpeedVal"></output>
+            <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
+          </label>
+          <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
+          <label class="check"><input id="stopButton" type="checkbox" checked> Roten STOPP-Knopf über dem Video zeigen (schwebend und im Vollbild)</label>
+          <p class="hint-text">Not-Aus: Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ in der Geräte-Spalte (bleibt immer da). Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
+        </div>
 
         <div id="imageSettings" class="card">
           <h2>✨ Bild &amp; Qualität</h2>
@@ -225,7 +303,7 @@
           </details>
         </div>
 
-        <div class="card">
+        <div id="setScript" class="card">
           <h2>🛠️ Script-Werkzeuge</h2>
           <p class="hint-text">Rechnen das Script nur beim Abspielen um – deine Dateien bleiben unverändert. Die Heatmap zeigt, was an die Geräte geht.</p>
           <label class="check"><input id="tool_stretch" type="checkbox"> Auf vollen Hub strecken – Scripts, die nur einen Teil des Bereichs nutzen, wirken nicht mehr flach</label>
@@ -281,7 +359,7 @@
           <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen.</p>
         </div>
 
-        <div class="card">
+        <div id="setRemote" class="card">
           <h2>📱 Fernbedienung</h2>
           <p class="hint-text">Video am TV/PC, Bedienung und Satisfyer am Smartphone: Auf beiden Geräten den Player öffnen,
             dann am Smartphone in der Bibliothek oben bei „📺 Abspielen auf“ den Bildschirm wählen und eine Szene antippen.</p>
@@ -293,7 +371,7 @@
             des Smartphones auch den Bildschirm an.</p>
         </div>
 
-        <div class="card">
+        <div id="setPlayer" class="card">
           <h2>🖥️ Anzeige im Player</h2>
           <p class="hint-text">Was unter dem Video stehen soll – Nicht-Benötigtes einfach ausblenden.</p>
           <div id="hudOptions" class="hud-options">
@@ -306,9 +384,12 @@
             <label class="check"><input type="checkbox" data-hud="details"> Beschreibung</label>
             <label class="check"><input type="checkbox" data-hud="quality"> Zeile „Bild / HQ – Einstellungen“</label>
           </div>
+          <h3>Kopfzeile</h3>
+          <label class="check"><input id="hdrNotch" type="checkbox"> Kompakt: Handy- und Satisfyer-Status links und rechts neben der Kamera (für Smartphones mit Kamera oben in der Mitte)</label>
+          <p class="hint-text">Browser verraten nur, wie hoch der Kamerabereich ist, nicht wo die Kamera sitzt – deshalb zum Einschalten.</p>
         </div>
 
-        <div class="card">
+        <div id="setLibrary" class="card">
           <h2>📚 Bibliothek</h2>
           <label>Beim Start anzeigen
             <select id="setStartSource"></select>
@@ -321,11 +402,10 @@
             <code>- /pfad/zu/downloads:/media/Downloads:ro</code> – jeder Unterordner von <code>/media</code> wird eine eigene Quelle. Danach <code>docker compose up -d</code>.</p>
         </div>
 
-        <div class="card">
+        <div id="setSystem" class="card">
           <h2>ℹ️ System</h2>
           <dl id="sysInfo" class="sysinfo"></dl>
           <button id="resetLocal" class="small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
-          <p class="hint-text">Geräte (Handy, Satisfyer, Sicherheit) stellst du rechts in der Geräte-Spalte ein.</p>
         </div>
       </section>
 
@@ -423,16 +503,11 @@
         <nav class="subtabs" data-group="dev">
           <button data-sub="handy" class="active">The Handy</button>
           <button data-sub="vibe">Satisfyer</button>
-          <button data-sub="safety">Sicherheit</button>
         </nav>
 
         <div data-panel="dev:handy">
-          <label>Connection Key
-            <input id="key" type="password" autocomplete="off" spellcheck="false">
-          </label>
           <button id="connect">Verbinden</button>
-          <label class="check small-check"><input id="autoConnect" type="checkbox" checked> Beim Start automatisch verbinden</label>
-          <label class="check small-check"><input id="autoSync" type="checkbox" checked> Sync automatisch nachkorrigieren</label>
+          <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key in <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
           <button id="resyncBtn" class="small secondary wide">⟳ Neu synchronisieren</button>
           <label>Video-Offset <output id="offsetVal">0 ms</output>
             <input id="offset" type="range" min="-500" max="500" step="10" value="0">
@@ -444,19 +519,11 @@
           <label>Hub max <output id="maxVal">100 %</output>
             <input id="slideMax" type="range" min="0" max="100" value="100">
           </label>
-          <label class="check"><input id="invert" type="checkbox"> Script umkehren</label>
-          <details>
-            <summary>Ohne Internet: Handy per Bluetooth</summary>
-            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann im Reiter „Satisfyer“ → „Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
-            <label>Bluetooth-Vorlauf <output id="btLeadVal"></output>
-              <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
-            </label>
-          </details>
+          <a href="#" class="more-settings" data-settings="setDevices">⚙️ Key, Umkehren, Bluetooth … in den Einstellungen</a>
         </div>
 
         <div data-panel="dev:vibe" hidden>
           <button id="vibeBle">＋ Satisfyer per Bluetooth verbinden</button>
-          <label class="check small-check"><input id="vibeAll" type="checkbox"> Alle Bluetooth-Geräte anzeigen</label>
           <p id="vibeBleHint" class="hint-text">Direkt aus dem Browser – Chrome auf Android/PC, auf dem iPhone die App „Bluefy“.</p>
           <ul id="vibeDevices" class="devices"></ul>
 
@@ -471,48 +538,7 @@
           </label>
           <div class="meter" title="Aktuelle Stärke"><div id="vibeMeter"></div></div>
           <button id="vibePause" class="secondary">❚❚ Vibration pausieren</button>
-
-          <details>
-            <summary>Übersetzung Script → Vibration</summary>
-            <label>Berechnung
-              <select id="vibeMap">
-                <option value="rhythm">Rhythmus: pulsiert mit jedem Stoß, stärker bei Tempo</option>
-                <option value="speed">Nach Geschwindigkeit der Bewegung</option>
-                <option value="pos">Nach Position (unten = stark)</option>
-                <option value="posInv">Nach Position (oben = stark)</option>
-              </select>
-            </label>
-  <script src="remote.js"></script>
-            <label>Minimum <output id="vibeMinVal"></output>
-              <input id="vibeMin" type="range" min="0" max="100" value="10">
-            </label>
-            <label>Maximum <output id="vibeMaxVal"></output>
-              <input id="vibeMax" type="range" min="0" max="100" value="100">
-            </label>
-            <label>Volle Stärke ab <output id="vibeFullVal"></output>
-              <input id="vibeFull" type="range" min="50" max="600" step="10" value="300">
-            </label>
-            <label>Vorlauf (Bluetooth-Verzögerung) <output id="vibeLeadVal"></output>
-              <input id="vibeLead" type="range" min="-300" max="600" step="10" value="100">
-            </label>
-          </details>
-
-          <details>
-            <summary>Intiface Central (auch: Handy per Bluetooth)</summary>
-            <p class="hint-text">Intiface Central auf dem Smartphone starten, unter Einstellungen „Listen on all interfaces“ aktivieren und den Server starten.</p>
-            <label>IP des Smartphones<input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
-            <button id="vibeConnect" class="secondary">Mit Intiface verbinden</button>
-            <button id="vibeScan" class="secondary" hidden>In Intiface nach Geräten suchen</button>
-          </details>
-        </div>
-
-        <div data-panel="dev:safety" hidden>
-          <label>Max. Geschwindigkeit Direktsteuerung <output id="capSpeedVal"></output>
-            <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
-          </label>
-          <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
-          <label class="check"><input id="stopButton" type="checkbox" checked> Roten STOPP-Knopf über dem Video zeigen (schwebend und im Vollbild)</label>
-          <p class="hint-text">Not-Aus: Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ hier in der Geräte-Spalte (bleibt immer da). Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
+          <a href="#" class="more-settings" data-settings="setDevices">⚙️ Übersetzung, Gleichmäßigkeit, Intiface … in den Einstellungen</a>
         </div>
 
         <button id="finaleBtn" class="finale-btn wide">🔥 Finale</button>
@@ -523,6 +549,10 @@
   </main>
 
   <button id="fabStop" class="fab-stop" hidden>■ STOPP</button>
+  <div id="nowBar" class="now-bar" hidden>
+    <button id="nowPlay" title="Abspielen / Pause">▶</button>
+    <button id="nowOpen" class="now-open" title="Zurück zum Video"><span id="nowTitle"></span><small>Zum Video ↑</small></button>
+  </div>
 
   <script src="handy.js"></script>
   <script src="app.js"></script>
@@ -536,5 +566,6 @@
   <script src="tools.js"></script>
   <script src="stroker.js"></script>
   <script src="settings.js"></script>
+  <script src="remote.js"></script>
 </body>
 </html>

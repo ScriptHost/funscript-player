@@ -20,7 +20,7 @@ Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per
 Oben drei Modi:
 
 - **📺 Streamen** – Bibliothek und Player, ohne Geräte. Handy und Vibrator folgen dem Video nicht.
-- **🔄 Sync** – wie Streamen, im Player rechts die Geräte mit Unterreitern *The Handy*, *Satisfyer*, *Sicherheit*.
+- **🔄 Sync** – wie Streamen, im Player rechts die Geräte mit Unterreitern *The Handy* und *Satisfyer* (Verbinden, Offset, Hub, Stärke). Key, Übersetzung, Sicherheit u. a. stehen unter ⚙️ Einstellungen.
 - **🎮 Steuern** – ohne Video: *Direkt*, *Patterns*, *Script-Baukasten*, rechts die Geräte.
 
 Die **Bibliothek** zeigt Stash-Szenen als Kacheln (Vorschauvideo beim Drüberfahren, endloses Scrollen).
@@ -85,8 +85,8 @@ Containername, z. B. `http://Stash:9999`).
 - Der Bildschirm bleibt an, solange etwas läuft.
 - **Not-Aus**: roter STOPP-Knopf (schwebend bzw. im Vollbild oben rechts), Esc-Taste oder „Alles stoppen“.
   Stoppt Video, Handy, Patterns und Vibratoren sofort. Optional automatisch bei Bildschirmsperre/App-Wechsel.
-  Der rote STOPP-Knopf über dem Video lässt sich unter Geräte → Sicherheit ausblenden.
-- Grenzen: max. Geschwindigkeit der Direktsteuerung (Handy-Karte → Sicherheit), „Maximum“ beim Vibrator gilt
+  Der rote STOPP-Knopf über dem Video lässt sich unter ⚙️ Einstellungen → Sicherheit ausblenden.
+- Grenzen: max. Geschwindigkeit der Direktsteuerung (⚙️ Einstellungen → Sicherheit), „Maximum“ beim Vibrator gilt
   auch für die manuelle Stärke.
 
 ## Fernbedienung
@@ -232,7 +232,7 @@ Ohne irgendeine Anmeldung bitte nicht ins Internet stellen.
 
 ## Bedienung
 
-1. Seite öffnen, unter **The Handy** den Connection Key eingeben → *Verbinden*
+1. Seite öffnen, unter **⚙️ Einstellungen → Geräte** den Connection Key eingeben – der Player verbindet sofort
    (die Handy muss im WLAN-Modus und online sein).
 2. Video aus der Bibliothek wählen oder Video + Funscript in den Player ziehen.
 3. Abspielen. Pause, Spulen und Puffern werden automatisch nachsynchronisiert.

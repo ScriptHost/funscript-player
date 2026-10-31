@@ -247,8 +247,13 @@ function renderSavedFilters() {
 }
 
 function selectSavedFilter(id) {
+  applySavedFilter(id);
+  store.set(modeFilterKey(), id); // gilt für den aktuellen Modus (Streamen / Sync)
+  if (lib.browse !== 'scenes') setBrowse('scenes'); else refresh();
+}
+
+function applySavedFilter(id) {
   lib.saved = id;
-  store.set('savedFilter', id);
   // Die Stash-Filter regeln selbst, ob mit Script („2D“ vs. „2D Script“)
   if (id && $('onlyScripts').checked) {
     $('onlyScripts').checked = false;
@@ -257,7 +262,21 @@ function selectSavedFilter(id) {
   // Mit Filter: dessen Sortierung aus Stash übernehmen; ohne: wieder „Neueste“
   $('stashSort').value = id ? 'saved' : (store.get('stashSort', 'new') === 'saved' ? 'new' : store.get('stashSort', 'new'));
   renderSavedFilters();
-  if (lib.browse !== 'scenes') setBrowse('scenes'); else refresh();
+}
+
+// Jeder Modus merkt sich seinen Filter. Noch nichts gewählt: Streamen „2D“, Sync „2D Script“
+// (falls es in Stash so heißt), sonst der bisher gewählte Filter.
+const modeFilterKey = () => 'savedFilter.' + (appMode === 'stream' ? 'stream' : 'sync');
+function modeDefaultFilter() {
+  const stored = store.get(modeFilterKey(), null);
+  if (stored !== null && (stored === '' || lib.savedList.some((f) => f.id === stored))) return stored;
+  const want = appMode === 'stream' ? '2d' : '2d script';
+  return lib.savedList.find((f) => f.name.trim().toLowerCase() === want)?.id ?? store.get('savedFilter', '');
+}
+function modeFilterChanged() {
+  if (typeof lib === 'undefined' || !lib.savedList.length || appMode === 'control') return;
+  const id = modeDefaultFilter();
+  if (id !== lib.saved) applySavedFilter(lib.savedList.some((f) => f.id === id) ? id : '');
 }
 
 // ---------------------------------------------------------------------------
@@ -650,6 +669,9 @@ $('stashRandom').addEventListener('click', async () => {
     // Zuletzt gewählter gespeicherter Filter (wie „Als Voreinstellung“ in Stash)
     lib.saved = store.get('savedFilter', '');
     if (status.ok) await loadSavedFilters();
+    if (lib.savedList.length) lib.saved = modeDefaultFilter();
+    if (!lib.savedList.some((f) => f.id === lib.saved)) lib.saved = '';
+    renderSavedFilters();
     if (lib.saved) $('stashSort').value = 'saved';
     setSource(store.get('libSource', 'stash'));
   } else {

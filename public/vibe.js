@@ -137,13 +137,22 @@ async function attachBleDevice(device) {
     log(`Verbinde mit ${dev.name} …`);
     await dev.connect();
     bleDevices.push(dev);
-    // Bricht Bluetooth kurz ab, bis zu 3× neu verbinden, bevor das Gerät entfernt wird
+    // Bricht Bluetooth ab, bis zu 5× neu verbinden, bevor das Gerät entfernt wird.
+    // Android trennt bei Bildschirmsperre/App-Wechsel; im Hintergrund scheitert jeder Versuch –
+    // deshalb erst neu verbinden, wenn die Seite wieder sichtbar ist (sonst musste man neu koppeln).
     device.addEventListener('gattserverdisconnected', async () => {
       clearInterval(dev.keepalive);
       dev.tx = null;
       if (dev.closed) return;
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        log(`${dev.name}: Verbindung verloren – neuer Versuch ${attempt}/3 …`, true);
+      if (document.hidden) {
+        log(`${dev.name}: getrennt – verbindet neu, sobald der Player wieder sichtbar ist.`, true);
+        await new Promise((resolve) => {
+          const back = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', back); resolve(); } };
+          document.addEventListener('visibilitychange', back);
+        });
+      }
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        log(`${dev.name}: Verbindung verloren – neuer Versuch ${attempt}/5 …`, true);
         await new Promise((r) => setTimeout(r, 1000 * attempt));
         if (dev.closed) return;
         try {
@@ -409,7 +418,7 @@ vibe.onchange = renderVibe;
 // ---------------------------------------------------------------------------
 // Script -> Vibration
 // ---------------------------------------------------------------------------
-['vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeLevel'].forEach((id) => {
+['vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeLevel', 'vibeSmooth'].forEach((id) => {
   $(id).value = store.get(id, $(id).value);
   $(id).addEventListener('input', () => { store.set(id, Number($(id).value)); updateVibeOutputs(); });
 });
@@ -425,6 +434,7 @@ function updateVibeOutputs() {
   $('vibeFullVal').textContent = `${$('vibeFull').value} %/s`;
   $('vibeLeadVal').textContent = `${$('vibeLead').value} ms`;
   $('vibeLevelVal').textContent = `${$('vibeLevel').value} %`;
+  $('vibeSmoothVal').textContent = Number($('vibeSmooth').value) ? `${$('vibeSmooth').value} %` : 'aus';
   $('vibeLevelRow').hidden = $('vibeSource').value !== 'manual';
 }
 updateVibeOutputs();
@@ -501,13 +511,18 @@ function targetLevel() {
 }
 
 // ~16× pro Sekunde abgleichen; nur senden, wenn sich etwas ändert.
-// Im Rhythmus-Modus ungeglättet, damit jeder Stoß spürbar bleibt.
+// Im Rhythmus-Modus ungeglättet, damit jeder Stoß spürbar bleibt – außer „Gleichmäßigkeit“
+// ist eingestellt: dann folgt die Stärke mit Verzögerung (bis 1,5 s), Spitzen werden flacher.
 let vibeLevel = 0;
 let vibeSending = false;
 setInterval(async () => {
   const target = targetLevel();
-  const smooth = $('vibeMap').value === 'rhythm' ? 0 : 0.35;
-  vibeLevel = target === 0 ? 0 : vibeLevel * smooth + target * (1 - smooth);
+  const even = Number($('vibeSmooth').value) / 100;
+  const smooth = Math.max($('vibeMap').value === 'rhythm' ? 0 : 0.35, even ? Math.exp(-0.06 / (even * 1.5)) : 0);
+  // Pause, Not-Aus oder kein Script: sofort aus; sonst auch nach unten weich
+  const stopNow = target === 0 && (vibePaused || !even || !scriptSource());
+  vibeLevel = stopNow ? 0 : vibeLevel * smooth + target * (1 - smooth);
+  if (vibeLevel < 0.01) vibeLevel = 0;
   $('vibeMeter').style.width = `${Math.round(vibeLevel * 100)}%`;
   if (vibeSending) return;
   vibeSending = true;
