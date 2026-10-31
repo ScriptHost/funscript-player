@@ -119,6 +119,15 @@
         <div class="sceneinfo">
           <h2 id="videoName">Kein Video</h2>
           <p id="sceneMeta" class="meta"></p>
+          <div id="sceneActions" class="scene-actions" hidden>
+            <span id="stars" class="stars" title="Bewertung in Stash">
+              <button data-star="1">★</button><button data-star="2">★</button><button data-star="3">★</button><button data-star="4">★</button><button data-star="5">★</button>
+            </span>
+            <button id="favBtn" class="small secondary" title="Als Favorit markieren (Tag „Favorit“ in Stash)">♡ Favorit</button>
+            <button id="oBtn" class="small secondary" title="O-Zähler in Stash +1">💦 <b id="oCount">0</b></button>
+            <button id="oUndo" class="small secondary" title="Letztes O zurücknehmen">−</button>
+            <button id="markBtn" class="small secondary" title="Marker an dieser Stelle in Stash setzen (Taste P)">📍 Marker setzen</button>
+          </div>
           <p class="meta sync-only"><span id="scriptName">Kein Script</span></p>
           <div id="scenePeople" class="chips-row"></div>
           <div id="sceneTags" class="chips-row"></div>
@@ -191,6 +200,18 @@
             <p id="hqInfo" class="hint-text"></p>
           </div>
           </details>
+        </div>
+
+        <div class="card">
+          <h2>🛠️ Script-Werkzeuge</h2>
+          <p class="hint-text">Rechnen das Script nur beim Abspielen um – deine Dateien bleiben unverändert. Die Heatmap zeigt, was an die Geräte geht.</p>
+          <label class="check"><input id="tool_stretch" type="checkbox"> Auf vollen Hub strecken – Scripts, die nur einen Teil des Bereichs nutzen, wirken nicht mehr flach</label>
+          <label class="check"><input id="tool_limit" type="checkbox"> Zu schnelle Stellen glätten – die Handy muss nicht selbst „abkürzen“</label>
+          <label id="toolMaxRow">Höchstgeschwindigkeit <output id="tool_maxSpeedVal"></output>
+            <input id="tool_maxSpeed" type="range" min="150" max="700" step="25" value="400">
+          </label>
+          <p id="toolInfo" class="hint-text"></p>
+          <p class="hint-text">🎯 Offset per Takt einmessen: Knopf in der Handy-Karte (rechts) oder Taste T während das Video läuft.</p>
         </div>
 
         <div class="card">
@@ -366,6 +387,7 @@
           <label>Video-Offset <output id="offsetVal">0 ms</output>
             <input id="offset" type="range" min="-500" max="500" step="10" value="0">
           </label>
+          <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
           <label>Hub min <output id="minVal">0 %</output>
             <input id="slideMin" type="range" min="0" max="100" value="0">
           </label>
@@ -452,6 +474,7 @@
   <script src="enhance.js"></script>
   <script src="hq.js"></script>
   <script src="finale.js"></script>
+  <script src="tools.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

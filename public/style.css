@@ -504,6 +504,17 @@ aside { min-width: 0; }
 .continue-list { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 240px); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
 @media (max-width: 600px) { .continue-list { grid-auto-columns: 46%; } }
 
+/* 1.4: Stash-Aktionen im Player */
+.scene-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
+.scene-actions > button { width: auto; margin: 0; }
+.stars { display: inline-flex; margin-right: 6px; }
+.stars button { width: auto; margin: 0; padding: 0 2px; background: none; color: var(--line); font-size: 22px; line-height: 1; }
+.stars button.on { color: #ffc400; }
+.stars:hover button { color: #ffc400; }
+.stars button:hover ~ button { color: var(--line); }
+#favBtn.active { background: #c2185b; color: #fff; }
+.tools-calib { font-variant-numeric: tabular-nums; }
+
 /* Einstellungen */
 #imageSettings .seg { flex-wrap: wrap; margin-bottom: 12px; }
 #imageSettings .seg button { flex: 1 1 auto; width: auto; padding: 7px 10px; }

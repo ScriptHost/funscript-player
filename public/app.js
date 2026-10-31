@@ -131,6 +131,7 @@ function loadVideo(src, name, hqSrc = '') {
   $('ovTitle').textContent = name;
   $('dropHint').classList.add('hidden');
   ['sceneMeta', 'sceneDetails'].forEach((id) => { $(id).textContent = ''; });
+  $('sceneActions').hidden = true; // nur bei Stash-Szenen
   ['scenePeople', 'sceneTags', 'sceneMarkers'].forEach((id) => $(id).replaceChildren());
 }
 
@@ -139,6 +140,7 @@ function loadScript(text, name) {
     script = { name, actions: parseFunscript(text) };
     $('scriptName').textContent = `⚡ ${name} (${script.actions.length} Punkte)`;
     drawHeatmap();
+    if (typeof toolsChanged === 'function') toolsChanged(); // Info der Script-Werkzeuge für dieses Video
     preloadScript();
   } catch (e) {
     script = null;
@@ -219,9 +221,14 @@ async function doSync() {
 
 ['playing', 'pause', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
 
+// Script nach den Script-Werkzeugen (Hub strecken, Spitzen glätten) – siehe tools.js
+function toolActions() {
+  return typeof processScript === 'function' ? processScript(script.actions) : script.actions;
+}
+
 // Was an Handy und Vibrator geht: das Script, im Finale „sanfter + halbes Tempo“ halbiert
 function sendActions() {
-  return typeof effectiveActions === 'function' ? effectiveActions(script.actions) : script.actions;
+  return typeof effectiveActions === 'function' ? effectiveActions(toolActions()) : toolActions();
 }
 
 // Für den Vibrator: laufendes Video-Script und aktuelle Stelle (nur im Modus „Sync“)
@@ -271,7 +278,7 @@ function drawHeatmap() {
   b.clearRect(0, 0, w, h);
   const total = duration();
   if (script && total > 0) {
-    const a = script.actions;
+    const a = toolActions(); // so, wie es an die Geräte geht (inkl. Script-Werkzeuge)
     const x = (ms) => (ms / total) * w;
     for (let i = 1; i < a.length; i++) {
       const dt = a[i].at - a[i - 1].at;

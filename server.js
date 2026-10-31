@@ -310,7 +310,7 @@ async function stashScenes(params) {
 // Details einer Szene: Marker (Kapitel) und Wiedergabeposition zum Weiterschauen
 const SCENE_QUERY = `query($id: ID!) {
   findScene(id: $id) {
-    id title date details interactive resume_time play_count
+    id title date details interactive resume_time play_count rating100 o_counter
     files { basename duration width height }
     studio { id name }
     performers { id name }
@@ -339,6 +339,9 @@ async function stashScene(id) {
     duration: s.files[0]?.duration || 0,
     resume: s.resume_time || 0,
     playCount: s.play_count || 0,
+    rating100: s.rating100 || 0,
+    oCounter: s.o_counter || 0,
+    favorite: (s.tags || []).some((t) => t.name.toLowerCase() === FAV_TAG.toLowerCase()),
     date: s.date || '',
     details: s.details || '',
     studio: s.studio ? { id: s.studio.id, name: s.studio.name } : null,
@@ -439,6 +442,11 @@ async function heresphereStash(req, id) {
   ];
   return {
     ...hsCommon(),
+    // Bewertung (0–5 Sterne) und Favorit können in HereSphere geändert werden
+    rating: s.rating100 / 20,
+    isFavorite: s.favorite,
+    writeRating: true,
+    writeFavorite: true,
     title: s.title,
     description: s.details,
     thumbnailImage: `${base}/stash/scene/${id}/screenshot`,
@@ -474,9 +482,79 @@ async function heresphereMedia(req, rel) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Zurückschreiben in Stash: Bewertung, Favorit, O-Zähler, Marker.
+// Szenen haben in Stash kein Favoriten-Feld – „Favorit“ ist ein Tag (wie bei Stashs
+// eigener HereSphere-Anbindung). Marker brauchen einen Tag: „Lieblingsstelle“.
+// Fehlende Tags legt der Player einmalig an.
+// ---------------------------------------------------------------------------
+const FAV_TAG = process.env.STASH_FAVORITE_TAG || 'Favorit';
+const MARKER_TAG = process.env.STASH_MARKER_TAG || 'Lieblingsstelle';
+const tagIdCache = new Map();
+
+async function tagId(name) {
+  if (tagIdCache.has(name)) return tagIdCache.get(name);
+  const found = await stashGraphql(`query($n: String!) {
+    findTags(tag_filter: { name: { value: $n, modifier: EQUALS } }, filter: { per_page: 1 }) { tags { id } }
+  }`, { n: name });
+  let id = found.findTags.tags[0]?.id;
+  if (!id) id = (await stashGraphql('mutation($n: String!) { tagCreate(input: { name: $n }) { id } }', { n: name })).tagCreate.id;
+  tagIdCache.set(name, id);
+  return id;
+}
+
+async function stashSetRating(id, rating100) {
+  const r = Math.max(0, Math.min(100, Math.round(Number(rating100) || 0)));
+  await stashGraphql('mutation($id: ID!, $r: Int) { sceneUpdate(input: { id: $id, rating100: $r }) { id } }', { id, r: r || null });
+  return { rating100: r };
+}
+
+async function stashSetFavorite(id, on) {
+  const fav = await tagId(FAV_TAG);
+  const scene = (await stashGraphql('query($id: ID!) { findScene(id: $id) { tags { id } } }', { id })).findScene;
+  const ids = new Set((scene?.tags || []).map((t) => t.id));
+  if (on) ids.add(fav); else ids.delete(fav);
+  await stashGraphql('mutation($id: ID!, $t: [ID!]) { sceneUpdate(input: { id: $id, tag_ids: $t }) { id } }', { id, t: [...ids] });
+  return { favorite: !!on };
+}
+
+async function stashO(id, undo) {
+  const add = undo ? 'sceneDeleteO' : 'sceneAddO';
+  try {
+    const d = await stashGraphql(`mutation($id: ID!) { ${add}(id: $id) { count } }`, { id });
+    return { oCounter: d[add].count };
+  } catch {
+    // ältere Stash-Versionen
+    const old = undo ? 'sceneDecrementO' : 'sceneIncrementO';
+    const d = await stashGraphql(`mutation($id: ID!) { ${old}(id: $id) }`, { id });
+    return { oCounter: d[old] };
+  }
+}
+
+async function stashAddMarker(id, seconds, title) {
+  const tag = await tagId(MARKER_TAG);
+  const d = await stashGraphql(`mutation($s: ID!, $sec: Float!, $t: String!, $tag: ID!) {
+    sceneMarkerCreate(input: { scene_id: $s, seconds: $sec, title: $t, primary_tag_id: $tag }) { id seconds title }
+  }`, { s: id, sec: Math.max(0, Number(seconds) || 0), t: String(title || MARKER_TAG).slice(0, 200), tag });
+  return { marker: d.sceneMarkerCreate };
+}
+
+async function stashSceneAction(id, action, req) {
+  const body = action === 'play' ? {} : JSON.parse((await readBody(req, 10000)) || '{}');
+  switch (action) {
+    case 'activity': return stashActivity(id, body);
+    case 'play': return stashAddPlay(id);
+    case 'rating': return stashSetRating(id, body.rating100);
+    case 'favorite': return stashSetFavorite(id, body.favorite);
+    case 'o': return stashO(id, false);
+    case 'o-undo': return stashO(id, true);
+    case 'marker': return stashAddMarker(id, body.seconds, body.title);
+    default: throw Object.assign(new Error('Unbekannte Aktion'), { status: 404 });
+  }
+}
+
 // Position und Spieldauer an Stash melden (wie Stash es selbst beim Abspielen tut)
-async function stashActivity(id, req) {
-  const { resume, played } = JSON.parse(await readBody(req, 10000));
+async function stashActivity(id, { resume, played }) {
   await stashGraphql('mutation($id: ID!, $r: Float, $p: Float) { sceneSaveActivity(id: $id, resume_time: $r, playDuration: $p) }', {
     id, r: Math.max(0, Number(resume) || 0), p: Math.max(0, Number(played) || 0),
   });
@@ -776,13 +854,13 @@ const handler = async (req, res) => {
       return res.end(JSON.stringify(await readStore()));
     }
 
-    const sa = /^\/api\/stash\/scene\/(\d+)(?:\/(activity|play))?$/.exec(pathname);
+    const sa = /^\/api\/stash\/scene\/(\d+)(?:\/(activity|play|rating|favorite|o|o-undo|marker))?$/.exec(pathname);
     if (sa) {
       if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
       if (sa[2] && req.method === 'POST') {
-        await (sa[2] === 'activity' ? stashActivity(sa[1], req) : stashAddPlay(sa[1]));
-        res.writeHead(204);
-        return res.end();
+        const result = await stashSceneAction(sa[1], sa[2], req);
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(result || { ok: true }));
       }
       if (!sa[2] && req.method === 'GET') {
         const scene = await stashScene(sa[1]);
@@ -792,14 +870,19 @@ const handler = async (req, res) => {
       throw Object.assign(new Error('Methode nicht erlaubt'), { status: 405 });
     }
 
-    // HereSphere fragt per GET oder POST an (POST enthält ggf. Bewertung/Favorit – wird ignoriert)
+    // HereSphere fragt per GET oder POST an. Bei Stash-Szenen enthält der POST ggf. eine
+    // neue Bewertung (0–5) oder den Favoriten-Status – das wird nach Stash geschrieben.
     if (pathname === '/heresphere' || pathname.startsWith('/heresphere/')) {
-      req.resume();
+      let body = {};
+      try { body = JSON.parse((await readBody(req, 100000)) || '{}'); } catch { body = {}; }
       let data;
       if (pathname === '/heresphere' || pathname === '/heresphere/') data = await heresphereIndex(req);
       else if (/^\/heresphere\/stash\/\d+$/.test(pathname)) {
         if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
-        data = await heresphereStash(req, pathname.split('/').pop());
+        const id = pathname.split('/').pop();
+        if (typeof body.rating === 'number') await stashSetRating(id, body.rating * 20).catch((e) => console.warn('HereSphere-Bewertung:', e.message));
+        if (typeof body.isFavorite === 'boolean') await stashSetFavorite(id, body.isFavorite).catch((e) => console.warn('HereSphere-Favorit:', e.message));
+        data = await heresphereStash(req, id);
       } else if (pathname.startsWith('/heresphere/media/')) data = await heresphereMedia(req, pathname.slice('/heresphere/media/'.length));
       else throw Object.assign(new Error('Nicht gefunden'), { status: 404 });
       res.writeHead(200, HS_HEADERS);

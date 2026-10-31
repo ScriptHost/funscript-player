@@ -398,7 +398,79 @@ async function openStashScene(s) {
   }
 }
 
+// --- Zurückschreiben in Stash: Sterne, Favorit, O-Zähler, Marker ---------------
+async function stashAction(action, body) {
+  if (!stashSession) return null;
+  try {
+    const res = await fetch(`/api/stash/scene/${stashSession.id}/${action}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch (e) {
+    log('Stash: ' + (e.message || e), true);
+    return null;
+  }
+}
+
+function showActions(d) {
+  $('sceneActions').hidden = false;
+  const stars = Math.round((d.rating100 || 0) / 20);
+  document.querySelectorAll('#stars button').forEach((b) => b.classList.toggle('on', Number(b.dataset.star) <= stars));
+  $('favBtn').classList.toggle('active', !!d.favorite);
+  $('favBtn').textContent = d.favorite ? '♥ Favorit' : '♡ Favorit';
+  $('oCount').textContent = d.oCounter || 0;
+  stashSession.info = d;
+}
+
+document.querySelectorAll('#stars button').forEach((b) => b.addEventListener('click', async () => {
+  const info = stashSession?.info;
+  if (!info) return;
+  const stars = Number(b.dataset.star);
+  // Gleichen Stern nochmal = Bewertung entfernen
+  const rating100 = Math.round((info.rating100 || 0) / 20) === stars ? 0 : stars * 20;
+  const r = await stashAction('rating', { rating100 });
+  if (r) { showActions({ ...info, rating100: r.rating100 }); log(rating100 ? `Bewertung: ${stars} ★` : 'Bewertung entfernt.'); }
+}));
+$('favBtn').addEventListener('click', async () => {
+  const info = stashSession?.info;
+  if (!info) return;
+  const r = await stashAction('favorite', { favorite: !info.favorite });
+  if (r) { showActions({ ...info, favorite: r.favorite }); log(r.favorite ? 'Als Favorit markiert.' : 'Favorit entfernt.'); }
+});
+$('oBtn').addEventListener('click', async () => {
+  const info = stashSession?.info;
+  if (!info) return;
+  const r = await stashAction('o');
+  if (r) { showActions({ ...info, oCounter: r.oCounter }); log(`O-Zähler: ${r.oCounter}`); }
+});
+$('oUndo').addEventListener('click', async () => {
+  const info = stashSession?.info;
+  if (!info || !info.oCounter) return;
+  const r = await stashAction('o-undo');
+  if (r) { showActions({ ...info, oCounter: r.oCounter }); log(`O-Zähler: ${r.oCounter}`); }
+});
+
+// Marker an der aktuellen Stelle (Taste P); erscheint sofort in Zeitleiste und Liste
+async function setMarkerHere() {
+  if (!stashSession?.info) return;
+  const at = mediaTime();
+  const title = `${MARKER_TITLE} ${fmtDuration(at) || '0:00'}`;
+  const r = await stashAction('marker', { seconds: at, title });
+  if (!r) return;
+  stashSession.markers = [...stashSession.markers, { seconds: at, title }].sort((a, b) => a.seconds - b.seconds);
+  showSceneInfo({ ...stashSession.info, markers: stashSession.markers });
+  drawHeatmap();
+  log(`📍 Marker bei ${fmtDuration(at) || '0:00'} in Stash gespeichert.`);
+}
+const MARKER_TITLE = 'Lieblingsstelle';
+$('markBtn').addEventListener('click', setMarkerHere);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'p' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) setMarkerHere();
+});
+
 function showSceneInfo(d) {
+  showActions(d);
   $('videoName').textContent = $('ovTitle').textContent = d.title;
   $('sceneMeta').textContent = [d.date, fmtDuration(d.duration), d.playCount ? `${d.playCount}× gesehen` : ''].filter(Boolean).join(' · ');
   $('sceneDetails').textContent = d.details || '';

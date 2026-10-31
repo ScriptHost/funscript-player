@@ -1,5 +1,14 @@
 # Änderungen
 
+## 1.4.0 – 01.11.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.4.0.md](RELEASE-NOTES-1.4.0.md)
+
+- Zurückschreiben in Stash: Sterne, Favorit (Tag), O-Zähler, Marker setzen (Taste P)
+- HereSphere: Bewertung und Favorit werden nach Stash geschrieben
+- Script-Werkzeuge (standardmäßig aus): Hub strecken, Spitzen glätten
+- Offset per Takt einmessen (Taste T)
+
 ## 1.3.2 – 01.11.2026
 
 - „Weiterschauen“-Reihe ist jetzt ein Schalter in ⚙️ Einstellungen → Bibliothek, **standardmäßig aus**
