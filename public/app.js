@@ -189,6 +189,7 @@ function clearScript() {
   script = null;
   $('scriptName').textContent = 'Kein Script';
   drawHeatmap();
+  if (typeof toolsChanged === 'function') toolsChanged(); // Anpassungs-Zeile ausblenden
   if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
 }
 

@@ -591,6 +591,17 @@ body.hdr-notch #status { grid-area: hs; justify-self: start; }
 body.hdr-notch #vibeStatus { grid-area: vs; justify-self: end; }
 body.hdr-notch .modes { grid-area: nav; width: auto; margin: 0; }
 
+/* 1.11: Script-Anpassung pro Szene */
+.preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: -4px 0 8px; font-size: 13px; color: var(--muted); }
+.preset-row[hidden] { display: none; }
+.preset-row label { display: flex; align-items: center; gap: 6px; margin: 0; }
+.preset-row select { width: auto; margin: 0; padding: 3px 6px; font-size: 13px; }
+.preset-info { min-width: 0; }
+.preset-help { margin: 6px 0; padding-left: 18px; }
+.preset-help li { margin-bottom: 3px; }
+#presetDefault button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+#toolCustom[hidden] { display: none; }
+
 /* Wenig Platz: Leiste bricht in eine zweite Zeile um, statt Knöpfe zusammenzuquetschen */
 .ov-row { flex-wrap: wrap; row-gap: 6px; }
 .ov-row button { white-space: nowrap; flex-shrink: 0; }

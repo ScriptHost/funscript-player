@@ -517,7 +517,9 @@ let vibeLevel = 0;
 let vibeSending = false;
 setInterval(async () => {
   const target = targetLevel();
-  const even = Number($('vibeSmooth').value) / 100;
+  // Regler oder Script-Preset (z. B. „Sanft“) – das Ruhigere gilt; Patterns/Steuern nur der Regler
+  const fromPreset = typeof presetVibeEven === 'function' && !(typeof controlScriptSource === 'function' && controlScriptSource()) ? presetVibeEven() : 0;
+  const even = Math.max(Number($('vibeSmooth').value) / 100, fromPreset);
   const smooth = Math.max($('vibeMap').value === 'rhythm' ? 0 : 0.35, even ? Math.exp(-0.06 / (even * 1.5)) : 0);
   // Pause, Not-Aus oder kein Script: sofort aus; sonst auch nach unten weich
   const stopNow = target === 0 && (vibePaused || !even || !scriptSource());

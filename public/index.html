@@ -152,6 +152,18 @@
             <button id="markBtn" class="small secondary" title="Marker an dieser Stelle in Stash setzen (Taste P)">📍 Marker setzen</button>
           </div>
           <p class="meta sync-only"><span id="scriptName">Kein Script</span></p>
+          <div id="presetRow" class="preset-row sync-only" hidden>
+            <label>🛠️ Anpassung
+              <select id="scenePreset" title="Gilt für diese Szene – Standard unter ⚙️ → Script">
+                <option value="auto">Automatisch</option>
+                <option value="original">Original</option>
+                <option value="soft">Sanft</option>
+                <option value="intense">Intensiv</option>
+                <option value="custom">Eigene</option>
+              </select>
+            </label>
+            <span id="presetInfo" class="preset-info"></span>
+          </div>
           <div id="scenePeople" class="chips-row"></div>
           <div id="sceneTags" class="chips-row"></div>
           <div id="sceneMarkers" class="markers"></div>
@@ -306,11 +318,28 @@
         <div id="setScript" class="card">
           <h2>🛠️ Script-Werkzeuge</h2>
           <p class="hint-text">Rechnen das Script nur beim Abspielen um – deine Dateien bleiben unverändert. Die Heatmap zeigt, was an die Geräte geht.</p>
-          <label class="check"><input id="tool_stretch" type="checkbox"> Auf vollen Hub strecken – Scripts, die nur einen Teil des Bereichs nutzen, wirken nicht mehr flach</label>
-          <label class="check"><input id="tool_limit" type="checkbox"> Zu schnelle Stellen glätten – die Handy muss nicht selbst „abkürzen“</label>
-          <label id="toolMaxRow">Höchstgeschwindigkeit <output id="tool_maxSpeedVal"></output>
-            <input id="tool_maxSpeed" type="range" min="150" max="700" step="25" value="400">
-          </label>
+          <h3>Standard für alle Szenen</h3>
+          <div id="presetDefault" class="seg">
+            <button data-preset="original">Original</button>
+            <button data-preset="auto">Automatisch</button>
+            <button data-preset="soft">Sanft</button>
+            <button data-preset="intense">Intensiv</button>
+            <button data-preset="custom">Eigene</button>
+          </div>
+          <ul class="hint-text preset-help">
+            <li><b>Automatisch</b> – prüft jedes Script und ändert nur, was nötig ist: Zittern weg, zu kleinen Hub (&lt; 70 %) strecken, was die Handy nicht schafft kürzen, bei sehr wechselndem Tempo den Satisfyer beruhigen.</li>
+            <li><b>Sanft</b> – Hub 15–85 %, langsamer (max. 300 %/s), Satisfyer ruhig.</li>
+            <li><b>Intensiv</b> – voller Hub, nur das physisch Nötige gekürzt, Satisfyer im vollen Rhythmus.</li>
+            <li><b>Original</b> – genau wie die Datei. <b>Eigene</b> – die Haken unten.</li>
+          </ul>
+          <p class="hint-text">Pro Szene änderst du die Anpassung unter dem Video (wird wie der Offset gemerkt).</p>
+          <div id="toolCustom">
+            <label class="check"><input id="tool_stretch" type="checkbox"> Auf vollen Hub strecken – Scripts, die nur einen Teil des Bereichs nutzen, wirken nicht mehr flach</label>
+            <label class="check"><input id="tool_limit" type="checkbox"> Zu schnelle Stellen glätten – die Handy muss nicht selbst „abkürzen“</label>
+            <label id="toolMaxRow">Höchstgeschwindigkeit <output id="tool_maxSpeedVal"></output>
+              <input id="tool_maxSpeed" type="range" min="150" max="700" step="25" value="400">
+            </label>
+          </div>
           <p id="toolInfo" class="hint-text"></p>
           <p class="hint-text">🎯 Offset per Takt einmessen: Knopf in der Handy-Karte (rechts) oder Taste T während das Video läuft.</p>
         </div>

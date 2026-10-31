@@ -1,5 +1,16 @@
 # Änderungen
 
+## 1.11.0 – 31.10.2026
+
+- Neu: **Script-Automatik mit Presets** – Original · Automatisch · Sanft · Intensiv · Eigene.
+  „Automatisch“ (Standard) prüft jedes Script und ändert nur, was nötig ist: Zitterbewegungen
+  (< 3 %) entfernen, zu kleinen Hub (< 70 %) strecken, für die Handy zu schnelle Stellen kürzen,
+  bei stark wechselndem Tempo den Satisfyer beruhigen
+  (Warum: jedes Script hat andere Schwächen – feste Haken passten nie für alle)
+- Unter dem Video steht, was angepasst wurde; das Preset lässt sich **pro Szene** ändern und wird gemerkt
+- Zu schnelle Stellen werden jetzt zur Mitte hin verkleinert (z. B. 23–77 %) statt nach unten zu rutschen
+- Wer bisher eigene Haken gesetzt hatte, startet mit „Eigene“ – es ändert sich nichts ungefragt
+
 ## 1.10.0 – 31.10.2026
 
 - Neuer Name: **Funscript Player** (statt „Handy Player“) – in Kopfzeile, Browser-Tab, App-Name beim
