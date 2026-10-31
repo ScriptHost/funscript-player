@@ -31,7 +31,7 @@ document.addEventListener('hq-ready', renderQualityMode);
 
 // --- Anzeige im Player -----------------------------------------------------------
 // Standard: was man beim normalen Schauen braucht; Tags, Studio/Darsteller, Beschreibung aus.
-const HUD_DEFAULT = { meta: true, actions: true, baractions: true, people: false, tags: false, markers: true, details: false, quality: true };
+const HUD_DEFAULT = { meta: true, actions: true, baractions: true, people: false, tags: false, markers: true, details: false, quality: false };
 const hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
 function applyHud() {
   for (const [k, on] of Object.entries(hud)) document.body.classList.toggle('hud-off-' + k, !on);

@@ -17,11 +17,12 @@ Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per
 
 ## Aufbau
 
-Oben drei Modi:
+Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰:
 
-- **📺 Streamen** – Bibliothek und Player, ohne Geräte. Handy und Vibrator folgen dem Video nicht.
-- **🔄 Sync** – wie Streamen, im Player rechts die Geräte mit Unterreitern *The Handy* und *Satisfyer* (Verbinden, Offset, Hub, Stärke). Key, Übersetzung, Sicherheit u. a. stehen unter ⚙️ Einstellungen.
-- **🎮 Steuern** – ohne Video: *Direkt*, *Patterns*, *Script-Baukasten*, rechts die Geräte.
+- **Status antippen** (`Handy: verbunden`, am Smartphone `↕ verbunden`) öffnet das Geräte-Fenster: Verbinden,
+  Neu synchronisieren, Offset, Hub, Satisfyer verbinden, Stärke, Pause, Finale, Alles stoppen.
+- **🔄 Geräte folgen dem Video** (im Geräte-Fenster und im Menü): an = Sync, aus = nur schauen (Streamen).
+- **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
 
 Die **Bibliothek** zeigt Stash-Szenen als Kacheln (Vorschauvideo beim Drüberfahren, endloses Scrollen).
 Über *Tags*, *Darsteller*, *Studios* stöbern; ein Klick setzt einen Filter-Chip, mehrere Filter lassen sich
@@ -36,7 +37,8 @@ in der `docker-compose.yml` einfach weitere Zeilen unter `volumes` ergänzen, z.
 
 ## VR-Brille (HereSphere)
 
-In HereSphere im Browser `https://player.<domain>/heresphere` öffnen. Kategorien: *Alle mit Script*,
+In HereSphere im Browser `https://player.<domain>/heresphere` öffnen. Es erscheinen **nur VR-Videos**: Stash-Szenen mit
+mindestens einem VR-Tag (z. B. „VR“, „180°“, „360°“), Ordner-Videos mit VR-Kennung im Dateinamen. Kategorien: *Alle mit Script*,
 deine gespeicherten Stash-Filter und die eingebundenen Ordner – mit Vorschau, Tags, Markern und Funscript.
 Die Handy steuert HereSphere selbst (Connection Key in HereSphere eintragen). Das VR-Format wird an
 Dateinamen (`_180`, `_LR`, `_TB`, `_360`, `MKX200`, `fisheye` …) und VR-Tags erkannt.

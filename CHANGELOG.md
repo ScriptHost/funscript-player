@@ -1,5 +1,19 @@
 # Änderungen
 
+## 1.12.0 – 31.10.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.12.0.md](RELEASE-NOTES-1.12.0.md)
+
+- **Ruhigere Oberfläche:** oben nur noch Handy-/Satisfyer-Status und Menü ☰
+  - Status antippen öffnet das Geräte-Fenster (Verbinden, Offset, Hub, Stärke, Finale, Alles stoppen) –
+    die Geräte-Spalte neben/unter dem Video ist weg
+  - Streamen/Sync ist jetzt der Schalter „🔄 Geräte folgen dem Video“; Steuern und Einstellungen im Menü
+  - Darsteller, Tags, Marker und Beschreibung unter „Mehr zur Szene“; Zeile „Bild/HQ“ standardmäßig aus
+  - Meldungen erscheinen kurz als Einblendung
+  - Smartphone: Status kompakt („↕ verbunden“), Kopfzeile einzeilig
+- **HereSphere zeigt nur VR-Videos:** Stash-Szenen mit mindestens einem VR-Tag, Ordner-Videos mit
+  VR-Kennung im Dateinamen; leere Kategorien entfallen
+
 ## 1.11.0 – 31.10.2026
 
 - Neu: **Script-Automatik mit Presets** – Original · Automatisch · Sanft · Intensiv · Eigene.

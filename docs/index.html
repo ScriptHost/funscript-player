@@ -49,8 +49,7 @@
     <div class="phone" aria-label="Player auf dem Smartphone (Abbildung)">
       <div class="screen">
         <div class="scr-head"><b>Funscript Player</b><span><span class="pill on">Handy ✓</span> <span class="pill on">Satisfyer ✓</span></span></div>
-        <div class="scr-modes"><span>📺 Streamen</span><span class="on">🔄 Sync</span><span>🎮 Steuern</span><span>⚙️</span></div>
-        <div class="video">
+                <div class="video">
           <span class="stop">■ STOPP</span>
           <span class="play">❚❚</span>
           <div class="bar-wrap">
@@ -65,14 +64,13 @@
 
   <!-- ============ Modi ============ -->
   <section id="modi">
-    <span class="kicker">Drei Modi</span>
-    <h2>Streamen, Sync oder Steuern</h2>
-    <p class="sub">Oben schaltest du um, je nachdem was du vorhast. Video, Handy und Satisfyer laufen beim Wechsel in
-      Bibliothek oder Einstellungen weiter – unten erscheint „Läuft gerade“.</p>
+    <span class="kicker">Ruhig bedienen</span>
+    <h2>Schauen, Sync oder Steuern – ohne Ballast</h2>
+    <p class="sub">Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰. Ein Tipp auf den Status öffnet das Geräte-Fenster mit Verbinden, Offset, Hub und Stärke. Video, Handy und Satisfyer laufen beim Wechsel in Bibliothek oder Einstellungen weiter – unten erscheint „Läuft gerade“.</p>
     <div class="grid">
-      <div class="card"><div class="icon">📺</div><h3>Streamen</h3><p>Nur schauen. Alle Videos, Geräte bleiben aus. Startet mit deinem Stash-Filter „2D“.</p></div>
-      <div class="card"><div class="icon">🔄</div><h3>Sync</h3><p>Video mit Script: Handy und Satisfyer folgen dem Video. Rechts die Geräte-Spalte mit Verbinden, Offset, Hub und Stärke. Startet mit „2D Script“.</p></div>
-      <div class="card"><div class="icon">🎮</div><h3>Steuern</h3><p>Ohne Video: Direktsteuerung mit Geschwindigkeit, eigene Patterns zeichnen, Patterns zu einem Script zusammenbauen und exportieren.</p></div>
+      <div class="card"><div class="icon">📺</div><h3>Nur schauen</h3><p>„Geräte folgen dem Video“ aus: alle Videos, Geräte bleiben aus. Startet mit deinem Stash-Filter „2D“.</p></div>
+      <div class="card"><div class="icon">🔄</div><h3>Sync</h3><p>„Geräte folgen dem Video“ an: Handy und Satisfyer laufen im Takt. Feinheiten im Geräte-Fenster. Startet mit „2D Script“.</p></div>
+      <div class="card"><div class="icon">🎮</div><h3>Steuern</h3><p>Im Menü ☰, ohne Video: Direktsteuerung mit Geschwindigkeit, eigene Patterns zeichnen, Patterns zu einem Script zusammenbauen und exportieren.</p></div>
     </div>
   </section>
 
@@ -261,7 +259,7 @@
     <h2>Bild, VR, Sicherheit</h2>
     <div class="grid">
       <div class="card"><div class="icon">✨</div><h3>Bild &amp; Qualität</h3><p>„Automatisch“ wählt pro Video: Schärfen und Anti-Banding im Browser, Hochrechnen auf dem Server mit Intel Quick Sync, wenn das Video kleiner ist als dein Bildschirm.</p></div>
-      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Die Bibliothek als VR-Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash.</p></div>
+      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash.</p></div>
       <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, Stopp bei Bildschirmsperre, Grenzen für Geschwindigkeit und Vibration.</p></div>
       <div class="card"><div class="icon">📲</div><h3>Als App</h3><p>Auf dem Smartphone installierbar – startet ohne Browserleisten, Bildschirm bleibt an, solange etwas läuft.</p></div>
       <div class="card"><div class="icon">⚙️</div><h3>Einstellungen</h3><p>Eine Seite mit Sprungleiste: Geräte, Sicherheit, Bild, Script, Fernbedienung, Anzeige, Bibliothek. Was unter dem Video steht, wählst du selbst.</p></div>
@@ -281,7 +279,7 @@
         <li>Bauen und starten – fertig unter <code>https://player.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.11.0.zip
+<pre><code>unzip handy-player-linux-v1.12.0.zip
 cd handy-player
 docker compose up -d --build</code></pre>
         <p class="note">Bluetooth (Satisfyer) und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat,

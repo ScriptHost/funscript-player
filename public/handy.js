@@ -125,14 +125,35 @@ const store = {
 function setStatus(state, text) {
   const el = $('status');
   el.className = 'pill ' + state;
-  el.textContent = 'Handy: ' + text;
+  pillText(el, 'Handy', '↕', text);
 }
 
+// Status-Chip oben: „Handy: verbunden“ – auf schmalen Bildschirmen nur „↕ verbunden“ (CSS)
+function pillText(el, label, icon, text) {
+  const lbl = document.createElement('span');
+  lbl.className = 'lbl';
+  lbl.textContent = label + ': ';
+  const ic = document.createElement('span');
+  ic.className = 'ic';
+  ic.textContent = icon + ' ';
+  el.replaceChildren(ic, lbl, text);
+}
+
+// Meldung im Geräte-Fenster und – weil das meist zu ist – kurz als Einblendung unten
+let toastTimer;
 function log(msg, isError = false) {
   const el = $('log');
-  el.textContent = msg instanceof Error ? msg.message : msg;
+  const text = msg instanceof Error ? msg.message : msg;
+  el.textContent = text;
   el.className = 'log' + (isError ? ' err' : '');
   if (isError) console.error(msg);
+  const t = $('toast');
+  if (!t || !text || document.body.classList.contains('dev-open')) return;
+  t.textContent = text;
+  t.className = 'toast' + (isError ? ' err' : '');
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, isError ? 6000 : 3500);
 }
 
 function requireHandy() {

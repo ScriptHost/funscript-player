@@ -404,8 +404,6 @@ header { position: sticky; top: 0; z-index: 50; background: var(--bg); padding-t
 }
 
 /* Geräte-Spalte nur im Sync-Modus (Player) und im Steuer-Modus */
-body[data-mode=stream] #devices, body[data-view=library] #devices { display: none; }
-body[data-mode=stream] main, body[data-view=library] main { grid-template-columns: minmax(0, 1fr); }
 body[data-mode=stream] .sync-only { display: none !important; }
 body:not([data-mode=stream]) .stream-only { display: none !important; }
 aside { min-width: 0; }
@@ -579,17 +577,6 @@ body.remote-on .drop video { opacity: 1 !important; object-fit: contain; }
 #fabStop[hidden] ~ .now-bar { right: calc(12px + env(safe-area-inset-right)); }
 body.fs-open .now-bar { display: none; }
 
-/* Kopfzeile kompakt: Status links/rechts der Kamera, Titel aus */
-body.hdr-notch header {
-  display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "hs vs" "nav nav";
-  column-gap: 120px; row-gap: 8px; padding-top: max(6px, calc((env(safe-area-inset-top) - 24px) / 2));
-}
-body.hdr-notch header h1 { display: none; }
-body.hdr-notch .pills { display: contents; }
-body.hdr-notch #status, body.hdr-notch #vibeStatus { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-body.hdr-notch #status { grid-area: hs; justify-self: start; }
-body.hdr-notch #vibeStatus { grid-area: vs; justify-self: end; }
-body.hdr-notch .modes { grid-area: nav; width: auto; margin: 0; }
 
 /* 1.11: Script-Anpassung pro Szene */
 .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: -4px 0 8px; font-size: 13px; color: var(--muted); }
@@ -640,9 +627,6 @@ body.hud-off-quality #openImageSettings { display: none !important; }
 .quality-link { width: auto; margin: 10px 0 0; font-weight: 500; }
 code { background: var(--bg); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
 .tile .new { position: absolute; right: 6px; top: 6px; background: var(--ok); color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-body[data-view=settings] #devices { display: block !important; }
-body[data-view=settings] main { grid-template-columns: minmax(0, 1fr) 320px; }
-@media (max-width: 900px) { body[data-view=settings] main { grid-template-columns: minmax(0, 1fr); } }
 
 .version { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 4px; }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; }
@@ -681,3 +665,77 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 details { margin-bottom: 12px; }
 details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-bottom: 10px; }
 details[open] summary { color: var(--text); }
+
+/* 1.12: Ruhige Oberfläche – Status oben antippen, Geräte als Fenster, Menü statt Modus-Leiste */
+main { grid-template-columns: minmax(0, 1fr); max-width: 1200px; }
+header { gap: 10px; }
+header h1 { margin-right: auto; }
+.pills { display: flex; gap: 6px; align-items: center; }
+header .pill { width: auto; margin: 0; padding: 4px 10px; background: none; font: inherit; font-size: 13px; font-weight: 500; border: 1px solid currentColor; cursor: pointer; }
+header .pill:hover { background: var(--card); }
+header .pill::after { content: " ▾"; font-size: 10px; opacity: .7; }
+.menu-btn { width: 38px; height: 34px; margin: 0; padding: 0; background: var(--card); color: var(--text); border: 1px solid var(--line); font-size: 18px; line-height: 1; }
+.menu {
+  position: fixed; z-index: 1200; top: calc(var(--hdr-h, 56px) - 4px); right: calc(12px + env(safe-area-inset-right));
+  width: min(300px, calc(100vw - 24px)); padding: 6px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 2px;
+}
+.menu[hidden] { display: none; }
+.menu button { margin: 0; padding: 10px 12px; background: none; color: var(--text); text-align: left; font-weight: 500; border-radius: 8px; }
+.menu button:hover, .menu button.active { background: var(--bg); }
+.menu button small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+.menu .menu-sync { margin: 4px 0 0; padding: 10px 12px; border-top: 1px solid var(--line); font-size: 14px; }
+
+/* Geräte-Fenster */
+#devices.sheet { display: none; }
+body.dev-open #devices.sheet {
+  display: block; position: fixed; z-index: 1300; top: calc(var(--hdr-h, 56px) + 6px); right: calc(12px + env(safe-area-inset-right));
+  width: 380px; max-height: calc(100vh - var(--hdr-h, 56px) - 24px); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
+}
+body.dev-open #devices.sheet > .card { margin: 0; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.sheet-head .check { margin: 0; font-size: 14px; }
+.sheet-close { width: 34px; height: 34px; margin: 0; padding: 0; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 50%; }
+.sheet-backdrop { position: fixed; inset: 0; z-index: 1250; background: rgba(0,0,0,.35); }
+.sheet-backdrop[hidden] { display: none; }
+@media (max-width: 700px) {
+  body.dev-open #devices.sheet {
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 78vh; max-height: 78dvh;
+    border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom);
+  }
+  body.dev-open #devices.sheet > .card { border-radius: 16px 16px 0 0; }
+  header .pill { font-size: 12px; padding: 4px 8px; }
+  h1 .version { display: none; }
+}
+
+/* Kurzmeldungen */
+.toast {
+  position: fixed; z-index: 2100; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 32px)); padding: 10px 16px; border-radius: 10px; background: var(--card);
+  color: var(--text); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,.4); font-size: 14px; text-align: center;
+}
+.toast[hidden] { display: none; }
+.toast.err { border-color: var(--err); color: var(--err); }
+
+/* Mehr zur Szene */
+.scene-more { margin: 6px 0; }
+.scene-more summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+.scene-more[hidden] { display: none; }
+
+/* Kopfzeile kompakt: Status links/rechts der Kamera, Titel aus */
+body.hdr-notch header { padding-top: max(6px, calc((env(safe-area-inset-top) - 30px) / 2)); }
+body.hdr-notch header h1 { display: none; }
+body.hdr-notch .pills { display: contents; }
+body.hdr-notch #status { margin-right: auto; }
+body.hdr-notch #status, body.hdr-notch #vibeStatus { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; }
+body.dev-open .now-bar { display: none; }
+
+/* Status-Chips: am PC „Handy: verbunden“, schmal nur „↕ verbunden“; Kopfzeile bleibt einzeilig */
+header .pill .ic { display: none; }
+@media (max-width: 700px) {
+  header { flex-wrap: nowrap; }
+  header .pill .ic { display: inline; }
+  header .pill .lbl { display: none; }
+}
+@media (max-width: 420px) { header h1 { display: none; } }

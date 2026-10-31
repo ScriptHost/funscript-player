@@ -327,7 +327,7 @@ function intifaceUrl(addr) {
 function setVibeStatus(state, text) {
   const el = $('vibeStatus');
   el.className = 'pill ' + state;
-  el.textContent = 'Satisfyer: ' + text;
+  pillText(el, 'Satisfyer', '〰', text);
 }
 
 $('vibeBle').addEventListener('click', addBluetoothDevice);

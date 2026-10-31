@@ -53,7 +53,7 @@ function showView(view) {
   document.body.dataset.view = view;
   ['library', 'player', 'control', 'settings'].forEach((v) => { $('view-' + v).hidden = v !== view; });
   $('navSettings').classList.toggle('active', view === 'settings');
-  document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.classList.toggle('active', view !== 'settings' && b.dataset.mode === appMode));
+  document.querySelectorAll('button[data-mode]').forEach((b) => b.classList.toggle('active', view !== 'settings' && b.dataset.mode === appMode));
   window.dispatchEvent(new Event('resize'));
 }
 
@@ -69,6 +69,7 @@ document.addEventListener('click', (e) => {
   const a = e.target.closest('[data-settings], #setNav a');
   if (!a) return;
   e.preventDefault();
+  closeDevices();
   openSettings(a.dataset.settings || a.getAttribute('href').slice(1));
 });
 $('navSettings').addEventListener('click', () => (document.body.dataset.view === 'settings' ? setMode(appMode) : openSettings()));
@@ -78,7 +79,8 @@ function setMode(mode) {
   appMode = mode;
   store.set('mode', mode);
   document.body.dataset.mode = mode;
-  document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+  document.querySelectorAll('button[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+  if (typeof updateSyncToggles === 'function') updateSyncToggles();
   if (mode === 'control') {
     showView('control');
   } else {
@@ -92,7 +94,7 @@ function setMode(mode) {
     if (typeof refresh === 'function' && typeof lib !== 'undefined' && document.body.dataset.view === 'library') refresh();
   }
 }
-document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
 // Player öffnen = eigener Verlaufseintrag, damit die Zurück-Geste zur Bibliothek führt
 function openPlayer() {
@@ -114,8 +116,54 @@ window.addEventListener('popstate', () => {
   }
 });
 $('backToLib').addEventListener('click', backToLibrary);
-document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.addEventListener('click', () => {
+document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.mode !== 'control') store.set('lastWatchMode', b.dataset.mode);
+}));
+
+// ---------------------------------------------------------------------------
+// Ruhige Oberfläche: Menü (☰), Geräte-Fenster (Status oben antippen), Sync-Schalter
+// ---------------------------------------------------------------------------
+function toggleMenu(open = $('menu').hidden) {
+  $('menu').hidden = !open;
+  $('menuBtn').setAttribute('aria-expanded', String(open));
+}
+$('menuBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+document.addEventListener('click', (e) => { if (!$('menu').hidden && !e.target.closest('#menu, #menuBtn')) toggleMenu(false); });
+$('menu').addEventListener('click', (e) => { if (e.target.closest('button')) toggleMenu(false); });
+$('menuLibrary').addEventListener('click', () => {
+  if (appMode === 'control') setMode(store.get('lastWatchMode', 'sync'));
+  showView('library');
+});
+
+// Geräte-Fenster: oben rechts (PC) bzw. von unten (Smartphone)
+function openDevices(sub) {
+  if (sub) document.querySelector(`nav[data-group="dev"] [data-sub="${sub}"]`)?.click();
+  document.body.classList.add('dev-open');
+  $('sheetBackdrop').hidden = false;
+}
+function closeDevices() {
+  document.body.classList.remove('dev-open');
+  $('sheetBackdrop').hidden = true;
+}
+document.querySelectorAll('.pills [data-dev]').forEach((b) => b.addEventListener('click', () => {
+  const same = document.querySelector(`nav[data-group="dev"] [data-sub="${b.dataset.dev}"]`)?.classList.contains('active');
+  if (document.body.classList.contains('dev-open') && same) closeDevices(); else openDevices(b.dataset.dev);
+}));
+$('sheetClose').addEventListener('click', closeDevices);
+$('sheetBackdrop').addEventListener('click', closeDevices);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDevices(); toggleMenu(false); } });
+
+// „Geräte folgen dem Video“ = Sync, aus = nur Streamen (ersetzt die Modus-Knöpfe oben)
+function updateSyncToggles() {
+  const on = (appMode === 'control' ? store.get('lastWatchMode', 'sync') : appMode) === 'sync';
+  document.querySelectorAll('.sync-toggle').forEach((cb) => { cb.checked = on; });
+}
+document.querySelectorAll('.sync-toggle').forEach((cb) => cb.addEventListener('change', () => {
+  const mode = cb.checked ? 'sync' : 'stream';
+  store.set('lastWatchMode', mode);
+  if (appMode !== 'control') setMode(mode);
+  updateSyncToggles();
+  log(cb.checked ? '🔄 Geräte folgen dem Video.' : '📺 Nur schauen – Geräte folgen dem Video nicht.');
 }));
 
 // Unterreiter (Geräte: Handy/Vibrator/Sicherheit, Steuern: Direkt/Patterns/Baukasten)
@@ -422,6 +470,13 @@ function updateNowBar() {
   $('nowPlay').textContent = videoPlaying() ? '❚❚' : '▶';
 }
 setInterval(updateNowBar, 500);
+
+// „Mehr zur Szene“ nur zeigen, wenn darin etwas steht (und es nicht unter ⚙️ → Anzeige ausgeblendet ist)
+function updateSceneMore() {
+  const parts = ['scenePeople', 'sceneTags', 'sceneMarkers', 'sceneDetails'].map($);
+  $('sceneMore').hidden = !parts.some((p) => p.textContent.trim() && getComputedStyle(p).display !== 'none');
+}
+setInterval(updateSceneMore, 1000);
 $('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNowBar, 100); });
 $('nowOpen').addEventListener('click', () => openPlayer());
 

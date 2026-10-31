@@ -368,11 +368,14 @@ function publicBase(req) {
 }
 const encPath = (rel) => rel.split('/').map(encodeURIComponent).join('/');
 
+// Stash-Tag, der eine Szene als VR kennzeichnet (z. B. „VR“, „180°“, „Virtual Reality“)
+const isVrTag = (t) => /\b(vr|virtual reality|180°?|360°?)\b/i.test(t);
+
 // VR-Format aus Dateinamen (übliche Kennungen) und VR-Tags ableiten
 function vrFormat(name, tags = []) {
   const n = ` ${String(name).toLowerCase().replace(/[._\-\s()[\]]+/g, ' ')} `;
   const has = (re) => re.test(n);
-  const vrTag = tags.some((t) => /\b(vr|virtual reality|180°?|360°?)\b/i.test(t));
+  const vrTag = tags.some(isVrTag);
   const vr = vrTag || has(/ (vr|180|190|200|220|360|lr|sbs|tb|ou|3dh|3dv|fisheye\d*|mkx200|mkx220|vrca220|rf52) /);
   if (!vr) return { projection: 'perspective', stereo: 'mono', fov: 180, lens: 'Linear' };
   const stereo = has(/ (tb|ou|3dv|over under) /) ? 'tb' : has(/ (mono|2d) /) ? 'mono' : 'sbs';
@@ -389,8 +392,11 @@ function vrFormat(name, tags = []) {
 }
 
 const HS_IDS_QUERY = `query($filter: FindFilterType, $scene_filter: SceneFilterType) {
-  findScenes(filter: $filter, scene_filter: $scene_filter) { count scenes { id } }
+  findScenes(filter: $filter, scene_filter: $scene_filter) { count scenes { id tags { name } } }
 }`;
+
+// HereSphere zeigt nur VR: Stash-Szenen mit mindestens einem VR-Tag, Ordner-Videos mit
+// VR-Kennung im Dateinamen (Ordner haben keine Tags). Leere Listen fallen weg.
 
 async function heresphereIndex(req) {
   const base = publicBase(req);
@@ -406,7 +412,9 @@ async function heresphereIndex(req) {
           filter: { q: l.q || '', per_page: -1, sort: l.sort.startsWith('random') ? 'created_at' : l.sort, direction: l.direction },
           scene_filter: JSON.parse(JSON.stringify(l.filter)),
         }, [], HS_IDS_QUERY);
-        library.push({ name: l.name, list: data.findScenes.scenes.map((s) => `${base}/heresphere/stash/${s.id}`) });
+        const list = data.findScenes.scenes.filter((s) => (s.tags || []).some((t) => isVrTag(t.name)))
+          .map((s) => `${base}/heresphere/stash/${s.id}`);
+        if (list.length) library.push({ name: l.name, list });
       } catch (e) {
         console.warn(`HereSphere: Liste „${l.name}“ übersprungen: ${e.message}`);
       }
@@ -415,6 +423,7 @@ async function heresphereIndex(req) {
   const items = await scanLibrary(MEDIA_DIR);
   const roots = new Map();
   for (const it of items) {
+    if (vrFormat(path.basename(it.video).replace(/\.[^.]+$/, '')).projection === 'perspective') continue; // kein VR
     const root = it.video.includes('/') ? it.video.split('/')[0] : 'Ordner';
     if (!roots.has(root)) roots.set(root, []);
     roots.get(root).push(`${base}/heresphere/media/${encPath(it.video)}`);
