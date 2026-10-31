@@ -29,6 +29,19 @@ document.querySelectorAll('#qualityMode button').forEach((b) => b.addEventListen
 $('imageSettings').addEventListener('click', () => setTimeout(renderQualityMode, 50));
 document.addEventListener('hq-ready', renderQualityMode);
 
+// --- Anzeige im Player -----------------------------------------------------------
+// Standard: was man beim normalen Schauen braucht; Tags, Studio/Darsteller, Beschreibung aus.
+const HUD_DEFAULT = { meta: true, actions: true, people: false, tags: false, markers: true, details: false, quality: true };
+const hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
+function applyHud() {
+  for (const [k, on] of Object.entries(hud)) document.body.classList.toggle('hud-off-' + k, !on);
+}
+document.querySelectorAll('#hudOptions input').forEach((cb) => {
+  cb.checked = hud[cb.dataset.hud];
+  cb.addEventListener('change', () => { hud[cb.dataset.hud] = cb.checked; store.set('hud', hud); applyHud(); });
+});
+applyHud();
+
 // --- HereSphere --------------------------------------------------------------
 $('hsUrl').value = `${location.origin}/heresphere`;
 $('hsCopy').addEventListener('click', async () => {

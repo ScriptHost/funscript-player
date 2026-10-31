@@ -91,6 +91,14 @@ async function bluetoothProblem() {
   return '';
 }
 
+// Suchfilter: übliche Satisfyer-Namen, Satisfyer-Dienst und alle einmal gewählten Gerätenamen
+function bleFilters() {
+  return [
+    { namePrefix: 'SF' }, { namePrefix: 'Satisfyer' }, { namePrefix: 'Power Masturbator' }, { services: [SF_SERVICE] },
+    ...store.get('bleKnownNames', []).map((name) => ({ name })),
+  ];
+}
+
 async function addBluetoothDevice() {
   const problem = await bluetoothProblem();
   if (problem) {
@@ -102,9 +110,11 @@ async function addBluetoothDevice() {
     // Standard: nur Satisfyer („SF …“). Mit „Alle Bluetooth-Geräte anzeigen“, falls er anders heißt.
     const device = await navigator.bluetooth.requestDevice($('vibeAll').checked
       ? { acceptAllDevices: true, optionalServices: [SF_SERVICE] }
-      : { filters: [{ namePrefix: 'SF ' }, { services: [SF_SERVICE] }], optionalServices: [SF_SERVICE] });
+      : { filters: bleFilters(), optionalServices: [SF_SERVICE] });
     if (bleDevices.some((d) => d.device.id === device.id)) return log(`${device.name} ist schon verbunden.`);
     await attachBleDevice(device);
+    // Namen merken: beim nächsten Mal findet die normale Suche das Gerät auch ohne „Alle Geräte“
+    if (device.name) store.set('bleKnownNames', [...new Set([...store.get('bleKnownNames', []), device.name])]);
   } catch (e) {
     if (e.name === 'NotFoundError') {
       log('Kein Gerät gewählt. Tipp: Satisfyer einschalten, Satisfyer-App schließen (nur eine Verbindung möglich), '

@@ -1,5 +1,14 @@
 # Änderungen
 
+## 1.6.0 – 01.11.2026
+
+- Bluetooth-Suche findet den Satisfyer ohne „Alle Geräte anzeigen“: Namen „Power Masturbator“,
+  „SF…“, „Satisfyer…“; einmal über „Alle Geräte“ gewählte Namen merkt sich der Player
+  (Warum: der Power Masturbator meldet sich nicht als „SF …“, wie es die Buttplug-Liste vermuten ließ)
+- Neu in ⚙️ Einstellungen → **Anzeige im Player**: Datum/Länge, Bewertung/Favorit/O, Studio/Darsteller,
+  Tags, Marker-Liste, Beschreibung und Bild-Zeile einzeln ein-/ausblenden.
+  Standard: Tags, Studio/Darsteller und Beschreibung aus (Warum: beim normalen Schauen nicht nötig)
+
 ## 1.5.1 – 01.11.2026
 
 - Streamen: „⚡ nur mit Funscript“ ausgeblendet, es werden immer alle Videos gezeigt

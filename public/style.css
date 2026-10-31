@@ -518,6 +518,12 @@ aside { min-width: 0; }
 /* Heatmap nur noch in der Player-Leiste (die separate Leiste darunter war doppelt) */
 #heatmap { display: none !important; }
 
+/* Anpassbare Anzeige im Player (⚙️ → Anzeige im Player) */
+body.hud-off-meta #sceneMeta, body.hud-off-actions #sceneActions, body.hud-off-people #scenePeople,
+body.hud-off-tags #sceneTags, body.hud-off-markers #sceneMarkers, body.hud-off-details #sceneDetails,
+body.hud-off-quality #openImageSettings { display: none !important; }
+.hud-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 16px; }
+
 /* Einstellungen */
 #imageSettings .seg { flex-wrap: wrap; margin-bottom: 12px; }
 #imageSettings .seg button { flex: 1 1 auto; width: auto; padding: 7px 10px; }
