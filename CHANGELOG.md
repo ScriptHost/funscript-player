@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.3.1 – 01.11.2026
+
+- Link rechts in der Bibliothek je nach Modus: **Streamen** → „Pornhub ↗“, **Sync** → „FapTap ↗“
+  (Warum: beim reinen Schauen braucht man keine Script-Seite, beim Sync schon)
+
 ## 1.3.0 – 01.11.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.3.0.md](RELEASE-NOTES-1.3.0.md)

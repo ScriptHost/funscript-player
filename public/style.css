@@ -406,6 +406,7 @@ header { position: sticky; top: 0; z-index: 50; background: var(--bg); padding-t
 body[data-mode=stream] #devices, body[data-view=library] #devices { display: none; }
 body[data-mode=stream] main, body[data-view=library] main { grid-template-columns: minmax(0, 1fr); }
 body[data-mode=stream] .sync-only { display: none !important; }
+body:not([data-mode=stream]) .stream-only { display: none !important; }
 aside { min-width: 0; }
 .view[hidden] { display: none !important; }
 
