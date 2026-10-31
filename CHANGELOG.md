@@ -1,5 +1,18 @@
 # Änderungen
 
+## 1.13.0 – 31.10.2026
+
+- **Geräte-Steuerung wieder am Video:** im Player stehen Verbinden, Neu synchronisieren, Offset, Hub,
+  Satisfyer-Stärke/Pause, Finale und Alles stoppen fest unter dem Video (am PC rechts daneben).
+  Abschaltbar unter ⚙️ → Anzeige. Connection Key und Einmaliges bleiben in den Einstellungen
+  (Warum: 1.12 hatte zu viel weggeräumt – beim Schauen braucht man diese Regler direkt)
+- Status oben antippen: im Player springt die Seite zum Geräte-Bereich, sonst öffnet sich das Pop-up
+- **HereSphere abschaltbar** (⚙️ → VR-Brille, gilt für alle Geräte; fest aus mit `HERESPHERE=off`).
+  Aus = der Server antwortet unter `/heresphere` nicht mehr, die Ausnahme in der Proxy-Anmeldung kann weg
+- **Titel „Funscript Player“ antippen:** zur Bibliothek – steht man dort und läuft ein Video, zurück zum Video
+- Stash-Szenen zeigen bis zum Play ihr Vorschaubild statt Schwarz
+- Zeile „Bild / HQ – Einstellungen“ wieder standardmäßig an; mehr Abstand im Geräte-Fenster
+
 ## 1.12.0 – 31.10.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.12.0.md](RELEASE-NOTES-1.12.0.md)

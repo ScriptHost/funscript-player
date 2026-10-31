@@ -23,6 +23,8 @@ Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰:
   Neu synchronisieren, Offset, Hub, Satisfyer verbinden, Stärke, Pause, Finale, Alles stoppen.
 - **🔄 Geräte folgen dem Video** (im Geräte-Fenster und im Menü): an = Sync, aus = nur schauen (Streamen).
 - **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
+- **Im Player** stehen die Regler fürs Schauen fest am Video (am Smartphone darunter, am PC rechts daneben);
+  abschaltbar unter ⚙️ → Anzeige. Der Titel „Funscript Player“ führt zur Bibliothek bzw. zurück zum laufenden Video.
 
 Die **Bibliothek** zeigt Stash-Szenen als Kacheln (Vorschauvideo beim Drüberfahren, endloses Scrollen).
 Über *Tags*, *Darsteller*, *Studios* stöbern; ein Klick setzt einen Filter-Chip, mehrere Filter lassen sich
@@ -43,6 +45,8 @@ deine gespeicherten Stash-Filter und die eingebundenen Ordner – mit Vorschau, 
 Die Handy steuert HereSphere selbst (Connection Key in HereSphere eintragen). Das VR-Format wird an
 Dateinamen (`_180`, `_LR`, `_TB`, `_360`, `MKX200`, `fisheye` …) und VR-Tags erkannt.
 Eine Anmeldung im Reverse Proxy muss für `/heresphere` ausgenommen sein.
+Wer HereSphere nicht nutzt, schaltet es unter ⚙️ → VR-Brille ab (oder fest mit `HERESPHERE=off` in der
+`docker-compose.yml`) – dann antwortet der Server dort nicht mehr und die Ausnahme kann weg.
 
 ## Bildverbesserung
 

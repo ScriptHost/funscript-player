@@ -158,7 +158,8 @@
         <p>Kopfzeile: Status-Chips (<code>[data-dev]</code>) öffnen <code>#devices</code> als Fenster
           (<code>body.dev-open</code>), Menü <code>#menu</code>. Streamen/Sync schaltet <code>.sync-toggle</code> über
           <code>setMode()</code>. Video läuft in Bibliothek/Einstellungen weiter (<code>#nowBar</code>).
-          Alle IDs der Geräte-Regler sind gleich geblieben – das Fenster ist die frühere Spalte.</p>
+          Alle IDs der Geräte-Regler sind gleich geblieben. Im Player steht <code>#devices</code> fest am Video
+          (<code>devInline()</code>, abschaltbar per HUD <code>devices</code>), sonst ist es ein Fenster.</p>
       </div>
       <div class="card">
         <h3>Einstellungen speichern</h3>
@@ -189,6 +190,7 @@
       <tr><td><span class="m get">GET</span></td><td><code>/api/hq/status</code> · <code>probe</code> · <code>bench</code></td><td>HQ verfügbar? · Auflösung/Format · Leistungstest</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m post">POST</span></td><td><code>/heresphere</code> · <code>/heresphere/stash/&lt;id&gt;</code> · <code>/heresphere/media/…</code></td><td>HereSphere-API (Bewertung/Favorit im POST). Liste nur mit VR: Stash-Szenen mit VR-Tag (<code>isVrTag</code>), Ordner-Videos mit VR-Kennung im Namen (<code>vrFormat</code>)</td></tr>
       <tr><td><span class="m ws">WS</span></td><td><code>/intiface?target=IP:PORT</code></td><td>WebSocket-Weiterleitung zu Intiface, nur private IPv4</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/settings</code></td><td>Server-Einstellungen (<code>{ heresphere }</code>, gespeichert in <code>data/settings.json</code>)</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/remote/time</code> · <code>/api/remote/events</code></td><td>Serveruhr · SSE-Verbindung der Fernbedienung</td></tr>
       <tr><td><span class="m post">POST</span></td><td><code>/api/remote/state</code> · <code>/api/remote/cmd</code></td><td>Zustand eines Bildschirms · Befehl an einen Bildschirm</td></tr>
     </table>
@@ -246,6 +248,7 @@
       <tr><td><code>STASH_FAVORITE_TAG</code> · <code>STASH_MARKER_TAG</code></td><td>Favorit · Lieblingsstelle</td><td>Tag für Favoriten bzw. gesetzte Marker</td></tr>
       <tr><td><code>HQ_ACCEL</code> · <code>HQ_DEVICE</code></td><td>auto · /dev/dri/renderD128</td><td><code>vaapi</code> oder <code>cpu</code>; Grafikgerät</td></tr>
       <tr><td><code>HQ_MAX</code></td><td>3</td><td>Gleichzeitige HQ-Umwandlungen</td></tr>
+      <tr><td><code>HERESPHERE</code></td><td>an</td><td><code>off</code> = HereSphere fest aus (sonst in der Oberfläche schaltbar)</td></tr>
       <tr><td><code>FFMPEG</code> · <code>FFPROBE</code></td><td>ffmpeg · ffprobe</td><td>Pfade zu den Programmen</td></tr>
       <tr><td><code>AUTH_USER</code> · <code>AUTH_PASS</code></td><td>–</td><td>Optionale Basic-Auth (sonst über den Reverse Proxy absichern)</td></tr>
       <tr><td><code>TLS_PFX</code> (+<code>_PASS</code>) / <code>TLS_CERT</code> + <code>TLS_KEY</code></td><td>–</td><td>Direkt HTTPS ohne Reverse Proxy</td></tr>

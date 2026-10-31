@@ -27,6 +27,8 @@ services:
       # HQ-Stream: "vaapi" (Intel-Grafik), "cpu" oder leer = automatisch
       HQ_ACCEL: ""
       HQ_MAX: "3"
+      # HereSphere-Schnittstelle: leer = an (in der Oberfläche schaltbar), "off" = fest aus
+      HERESPHERE: ""
     volumes:
       # Videoordner (+ gleichnamige .funscript) – jeder Ordner unter /media/<Name> wird eine
       # eigene Quelle in der Bibliothek und in HereSphere. Beliebig viele Zeilen möglich:

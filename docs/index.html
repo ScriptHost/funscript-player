@@ -87,14 +87,15 @@
         <div class="sd-btn stop">■ Alles stoppen</div>
       </div>
       <div>
-        <h3>Ein Tipp auf den Status – alles für die Geräte</h3>
-        <p class="muted">Oben siehst du nur, ob Handy und Satisfyer verbunden sind. Antippen öffnet das Geräte-Fenster:
-          am PC oben rechts, am Smartphone von unten.</p>
+        <h3>Die Regler fürs Schauen – direkt am Video</h3>
+        <p class="muted">Im Player steht dieser Bereich fest am Video – am Smartphone darunter, am PC rechts daneben
+          (abschaltbar unter ⚙️ → Anzeige). Auf allen anderen Seiten öffnet ein Tipp auf den Status oben dasselbe als Fenster.</p>
         <ul class="muted">
           <li><b>Handy:</b> Verbinden, neu synchronisieren, Offset (auch per Takt einmessen), Hub</li>
           <li><b>Satisfyer:</b> per Bluetooth verbinden, Stärke, Vibration pausieren</li>
           <li><b>Immer da:</b> 🔥 Finale und ■ Alles stoppen</li>
           <li>Einmalige Dinge wie Connection Key, Übersetzung und Sicherheit stehen unter ⚙️ Einstellungen</li>
+          <li>Der Titel „Funscript Player“ führt zur Bibliothek – und von dort zurück zum laufenden Video</li>
         </ul>
         <p class="muted">Im Menü ☰: Bibliothek, 🎮 Steuern, ⚙️ Einstellungen und derselbe Schalter „Geräte folgen dem Video“.</p>
       </div>
@@ -321,7 +322,7 @@
     <h2>Bild, VR, Sicherheit</h2>
     <div class="grid">
       <div class="card"><div class="icon">✨</div><h3>Bild &amp; Qualität</h3><p>„Automatisch“ wählt pro Video: Schärfen und Anti-Banding im Browser, Hochrechnen auf dem Server mit Intel Quick Sync, wenn das Video kleiner ist als dein Bildschirm.</p></div>
-      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash. <code>/heresphere</code> muss von einer Proxy-Anmeldung ausgenommen sein.</p></div>
+      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash. <code>/heresphere</code> muss von einer Proxy-Anmeldung ausgenommen sein – oder du schaltest HereSphere unter ⚙️ ab.</p></div>
       <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, Stopp bei Bildschirmsperre, Grenzen für Geschwindigkeit und Vibration.</p></div>
       <div class="card"><div class="icon">📲</div><h3>Als App</h3><p>Auf dem Smartphone installierbar – startet ohne Browserleisten, Bildschirm bleibt an, solange etwas läuft.</p></div>
       <div class="card"><div class="icon">⚙️</div><h3>Einstellungen</h3><p>Eine Seite mit Sprungleiste: Geräte, Sicherheit, Bild, Script, Fernbedienung, Anzeige, Bibliothek. Was unter dem Video steht, wählst du selbst.</p></div>
@@ -334,6 +335,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="grid">
+      <div class="card"><h3>1.13 · Regler am Video</h3><p>Geräte-Steuerung wieder unter dem Video, HereSphere abschaltbar, Titel führt zur Bibliothek, Standbild statt Schwarz.</p></div>
       <div class="card"><h3>1.12 · Ruhiger</h3><p>Oben nur Status und Menü, Geräte-Fenster statt Spalte, „Mehr zur Szene“ einklappbar, Meldungen als Einblendung. HereSphere zeigt nur VR-Videos.</p></div>
       <div class="card"><h3>1.11 · Script-Automatik</h3><p>Presets Original, Automatisch, Sanft, Intensiv – pro Szene wählbar.</p></div>
       <div class="card"><h3>1.10 · Neuer Name</h3><p>Aus „Handy Player“ wird „Funscript Player“.</p></div>
@@ -355,7 +357,7 @@
         <li>Bauen und starten – fertig unter <code>https://player.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.12.0.zip
+<pre><code>unzip handy-player-linux-v1.13.0.zip
 cd handy-player
 docker compose up -d --build</code></pre>
         <p class="note">Bluetooth (Satisfyer) und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat,
