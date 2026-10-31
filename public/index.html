@@ -22,6 +22,7 @@
       <button data-mode="stream"><span>📺</span> Streamen</button>
       <button data-mode="sync"><span>🔄</span> Sync</button>
       <button data-mode="control"><span>🎮</span> Steuern</button>
+      <button id="navSettings" class="nav-settings" title="Einstellungen"><span>⚙️</span><span class="lbl"> Einstellungen</span></button>
     </nav>
     <div class="pills">
       <span id="status" class="pill off">Handy: getrennt</span>
@@ -35,10 +36,7 @@
       <!-- ================= Bibliothek ================= -->
       <section id="view-library" class="view">
         <div class="libbar">
-          <div id="libSource" class="seg" hidden>
-            <button data-src="stash">Stash</button>
-            <button data-src="folder">Ordner</button>
-          </div>
+          <div id="libSource" class="seg" hidden></div>
           <input id="search" type="search" placeholder="Szenen, Titel, Dateien suchen …">
           <select id="stashSort" aria-label="Sortierung">
             <option value="saved">Sortierung des Filters</option>
@@ -108,8 +106,26 @@
         </div>
         <canvas id="heatmap" class="sync-only" title="Klicken zum Springen"></canvas>
 
-        <details id="enhPanel" class="enhance">
-          <summary>✨ Bildverbesserung: <b id="enhState">Natürlich</b></summary>
+        <button id="openImageSettings" class="small secondary quality-link">✨ Bild: <b id="enhState">Natürlich</b> · HQ: <b id="hqLabel">Auto</b> – Einstellungen</button>
+
+        <div class="sceneinfo">
+          <h2 id="videoName">Kein Video</h2>
+          <p id="sceneMeta" class="meta"></p>
+          <p class="meta sync-only"><span id="scriptName">Kein Script</span></p>
+          <div id="scenePeople" class="chips-row"></div>
+          <div id="sceneTags" class="chips-row"></div>
+          <div id="sceneMarkers" class="markers"></div>
+          <p id="sceneDetails" class="details"></p>
+        </div>
+      </section>
+
+      <!-- ================= Einstellungen ================= -->
+      <section id="view-settings" class="view" hidden>
+        <h2 class="page-title">⚙️ Einstellungen</h2>
+
+        <div id="imageSettings" class="card">
+          <h2>✨ Bild &amp; Qualität</h2>
+          <h3>Bildverbesserung im Browser</h3>
           <div id="enhPresets" class="seg">
             <button data-preset="off">Aus</button>
             <button data-preset="natural">Natürlich</button>
@@ -140,12 +156,14 @@
             <p class="hint-text">Der Server entrauscht, skaliert hoch und verstärkt Details in Hardware, bevor gestreamt wird. Spulen startet die Umwandlung neu (≈ 1 s).</p>
             <div id="hqPresets" class="seg">
               <button data-hq="off">Aus</button>
+              <button data-hq="auto" title="Nur wenn das Video kleiner ist als der Bildschirm – 4K und VR bleiben Original">Auto</button>
               <button data-hq="clean">Sauber</button>
               <button data-hq="strong">Stark</button>
             </div>
             <div class="actions">
               <label class="inline">Auflösung
                 <select id="hqHeight">
+                  <option value="auto">Auto (passend zum Bildschirm)</option>
                   <option value="720">720p</option>
                   <option value="1080">1080p</option>
                   <option value="1440">1440p</option>
@@ -155,15 +173,41 @@
             </div>
             <p id="hqInfo" class="hint-text"></p>
           </div>
-        </details>
+        </div>
 
-        <div class="sceneinfo">
-          <h2 id="videoName">Kein Video</h2>
-          <p id="sceneMeta" class="meta"></p>
-          <p class="meta sync-only"><span id="scriptName">Kein Script</span></p>          <div id="scenePeople" class="chips-row"></div>
-          <div id="sceneTags" class="chips-row"></div>
-          <div id="sceneMarkers" class="markers"></div>
-          <p id="sceneDetails" class="details"></p>
+        <div class="card">
+          <h2>🥽 VR-Brille (HereSphere)</h2>
+          <p>In HereSphere im Browser diese Adresse öffnen und als Lesezeichen speichern:</p>
+          <div class="copyrow">
+            <input id="hsUrl" type="text" readonly>
+            <button id="hsCopy" class="small secondary">Kopieren</button>
+          </div>
+          <ol class="steps-list">
+            <li>HereSphere starten → Web-Browser öffnen → Adresse oben eingeben.</li>
+            <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner.</li>
+            <li>The Handy: in HereSphere unter <i>Einstellungen → Haptik</i> deinen Connection Key eintragen. HereSphere lädt das Funscript automatisch mit.</li>
+            <li>Das VR-Format (180°/360°, SBS/TB, Fisheye/MKX) erkennt der Player an Dateinamen und VR-Tags.</li>
+          </ol>
+          <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen.</p>
+        </div>
+
+        <div class="card">
+          <h2>📚 Bibliothek</h2>
+          <label>Beim Start anzeigen
+            <select id="setStartSource"></select>
+          </label>
+          <label class="check"><input id="setHoverPreview" type="checkbox" checked> Vorschauvideo beim Drüberfahren mit der Maus</label>
+          <h3>Eingebundene Ordner</h3>
+          <ul id="setFolders" class="folders"></ul>
+          <p class="hint-text">Weitere Ordner einbinden: in der <code>docker-compose.yml</code> pro Ordner eine Zeile unter <code>volumes</code>, z. B.
+            <code>- /pfad/zu/downloads:/media/Downloads:ro</code> – jeder Unterordner von <code>/media</code> wird eine eigene Quelle. Danach <code>docker compose up -d</code>.</p>
+        </div>
+
+        <div class="card">
+          <h2>ℹ️ System</h2>
+          <dl id="sysInfo" class="sysinfo"></dl>
+          <button id="resetLocal" class="small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
+          <p class="hint-text">Geräte (Handy, Vibrator, Sicherheit) stellst du rechts in der Geräte-Spalte ein.</p>
         </div>
       </section>
 
@@ -303,6 +347,7 @@
             <summary>Übersetzung Script → Vibration</summary>
             <label>Berechnung
               <select id="vibeMap">
+                <option value="rhythm">Rhythmus: pulsiert mit jedem Stoß, stärker bei Tempo</option>
                 <option value="speed">Nach Geschwindigkeit der Bewegung</option>
                 <option value="pos">Nach Position (unten = stark)</option>
                 <option value="posInv">Nach Position (oben = stark)</option>
@@ -355,5 +400,6 @@
   <script src="fullscreen.js"></script>
   <script src="enhance.js"></script>
   <script src="hq.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>

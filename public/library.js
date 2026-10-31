@@ -36,10 +36,36 @@ const KIND_PATH = { tags: 'tag', performers: 'performer', studios: 'studio' };
 // ---------------------------------------------------------------------------
 // Quelle, Ansicht und Filter
 // ---------------------------------------------------------------------------
+// Quellen: „stash“ und je eingebundenem Ordner „folder:<Name>“ (Unterordner von /media)
+function folderRoots() {
+  const roots = [...new Set(lib.folder.map((it) => it.root))];
+  return roots.sort((a, b) => a.localeCompare(b, 'de'));
+}
+const rootLabel = (root) => root || 'Ordner';
+
+function librarySources() {
+  const list = lib.stashOk ? [{ id: 'stash', label: 'Stash' }] : [];
+  for (const r of folderRoots()) list.push({ id: 'folder:' + r, label: '📁 ' + rootLabel(r) });
+  if (!list.length) list.push({ id: 'folder:', label: '📁 Ordner' });
+  return list;
+}
+
+function renderSources() {
+  const seg = $('libSource');
+  const list = librarySources();
+  seg.hidden = list.length < 2;
+  seg.replaceChildren(...list.map((s) => {
+    const b = el('button', { className: s.id === lib.source ? 'active' : '' }, s.label);
+    b.addEventListener('click', () => setSource(s.id));
+    return b;
+  }));
+}
+
 function setSource(src) {
+  if (!librarySources().some((s) => s.id === src)) src = librarySources()[0].id;
   lib.source = src;
   store.set('libSource', src);
-  document.querySelectorAll('#libSource button').forEach((b) => b.classList.toggle('active', b.dataset.src === src));
+  renderSources();
   const stash = src === 'stash';
   $('browseTabs').hidden = !stash;
   $('stashSort').hidden = !stash;
@@ -168,7 +194,7 @@ function sceneCard(s) {
   card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openStashScene(s); });
   // Vorschauvideo beim Drüberfahren mit der Maus
   card.addEventListener('pointerenter', (e) => {
-    if (e.pointerType !== 'mouse') return;
+    if (e.pointerType !== 'mouse' || !store.get('hoverPreview', true)) return;
     const pv = el('video', { src: `/stash/scene/${s.id}/preview`, muted: true, loop: true, autoplay: true, playsInline: true, className: 'preview' });
     pv.addEventListener('error', () => pv.remove());
     thumb.append(pv);
@@ -287,13 +313,22 @@ async function loadFolder() {
 function renderFolder() {
   const grid = $('sceneGrid');
   grid.replaceChildren();
+  const root = lib.source.startsWith('folder:') ? lib.source.slice(7) : '';
   const q = $('search').value.trim().toLowerCase();
-  const items = lib.folder.filter((it) => (!$('onlyScripts').checked || it.script) && (!q || it.video.toLowerCase().includes(q)));
-  $('libInfo').textContent = lib.folder.length ? `${items.length} Videos im Ordner` : 'Bibliotheksordner ist leer – Videos mit gleichnamiger .funscript hineinlegen oder „📂 Datei“ nutzen.';
+  const items = lib.folder
+    .filter((it) => it.root === root && (!$('onlyScripts').checked || it.script) && (!q || it.video.toLowerCase().includes(q)))
+    .sort((a, b) => b.mtime - a.mtime); // neueste zuerst
+  const total = lib.folder.filter((it) => it.root === root).length;
+  $('libInfo').textContent = total
+    ? `${items.length} Videos in „${rootLabel(root)}“${items.length < total ? ` (${total - items.length} ohne Funscript ausgeblendet)` : ''}`
+    : 'Ordner ist leer – Videos mit gleichnamiger .funscript hineinlegen oder „📂 Datei“ nutzen.';
+  const weekAgo = Date.now() - 7 * 864e5;
   for (const it of items) {
     const thumb = el('div', { className: 'thumb' }, el('div', { className: 'noimg' }, '🎬'),
-      it.script ? el('span', { className: 'badge' }, '⚡') : null);
-    const tile = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, it.name), el('div', { className: 'tile-sub' }, it.folder));
+      it.script ? el('span', { className: 'badge' }, '⚡') : null,
+      it.mtime > weekAgo ? el('span', { className: 'new' }, 'Neu') : null);
+    const sub = [it.folder.split('/').slice(1).join('/'), it.mtime ? new Date(it.mtime).toLocaleDateString('de-DE') : ''].filter(Boolean).join(' · ');
+    const tile = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, it.name), el('div', { className: 'tile-sub' }, sub));
     tile.addEventListener('click', () => openFolderItem(it));
     grid.append(tile);
   }
@@ -425,7 +460,6 @@ function saveStashActivity(beacon = false) {
 // ---------------------------------------------------------------------------
 // Bedienelemente
 // ---------------------------------------------------------------------------
-document.querySelectorAll('#libSource button').forEach((b) => b.addEventListener('click', () => setSource(b.dataset.src)));
 document.querySelectorAll('#browseTabs button').forEach((b) => b.addEventListener('click', () => { $('search').value = ''; setBrowse(b.dataset.browse); }));
 $('stashSort').addEventListener('change', () => { store.set('stashSort', $('stashSort').value); refresh(); });
 $('onlyScripts').addEventListener('change', () => { store.set('onlyScripts', $('onlyScripts').checked); refresh(); });
@@ -460,8 +494,8 @@ $('stashRandom').addEventListener('click', async () => {
   let status = { configured: false };
   try { status = await (await fetch('/api/stash/status')).json(); } catch { /* ohne Stash */ }
   lib.stashOk = status.configured;
+  lib.stashStatus = status;
   if (status.configured) {
-    $('libSource').hidden = false;
     if (!status.ok) {
       log(status.error, true);
       lib.error = status.error;
@@ -472,8 +506,9 @@ $('stashRandom').addEventListener('click', async () => {
     if (lib.saved) $('stashSort').value = 'saved';
     setSource(store.get('libSource', 'stash'));
   } else {
-    setSource('folder');
+    setSource(store.get('libSource', ''));
   }
+  document.dispatchEvent(new Event('library-ready'));
 
   // Direktlink: …/?stash=123 öffnet die Szene sofort
   const id = new URLSearchParams(location.search).get('stash');

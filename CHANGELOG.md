@@ -1,5 +1,18 @@
 # Änderungen
 
+## 1.1.0 – 31.10.2026
+
+- **Ordner direkt einbinden**: jeder Ordner unter `/media/<Name>` ist eine eigene Quelle (Bibliothek + HereSphere),
+  neueste zuerst, „Neu“-Markierung für Dateien der letzten 7 Tage
+- **HereSphere** (VR): API unter `/heresphere` mit Kategorien (Alle mit Script, gespeicherte Stash-Filter,
+  Ordner), Vorschaubildern/-videos, Tags, Markern, Funscripts; VR-Format aus Dateinamen/Tags
+- **Vibrator „Rhythmus“** (neuer Standard): pulsiert mit jedem Stoß, Tempo bestimmt die Stärke;
+  schnellere Aktualisierung (60 ms), keine Glättung im Rhythmus-Modus
+- **HQ „Auto“** (neuer Standard): verbessert nur, wenn das Video kleiner als der Bildschirm ist;
+  4K und VR werden nie heruntergerechnet; Zielauflösung passend zum Gerät
+- **⚙️ Einstellungen**: Bild & Qualität, VR/HereSphere-Adresse, Bibliothek (Startquelle, eingebundene
+  Ordner, Vorschauvideos), System-Infos, Zurücksetzen
+
 ## 1.0.0 – 31.10.2026 (Zwischenstand)
 
 Erste festgehaltene Version.

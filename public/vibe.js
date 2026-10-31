@@ -376,9 +376,10 @@ vibe.onchange = renderVibe;
   $(id).addEventListener('input', () => { store.set(id, Number($(id).value)); updateVibeOutputs(); });
 });
 $('vibeSource').value = store.get('vibeSource', 'script');
-$('vibeMap').value = store.get('vibeMap', 'speed');
+// Neuer Schlüssel ab 1.1: alle starten mit „Rhythmus“
+$('vibeMap').value = store.get('vibeMap2', 'rhythm');
 $('vibeSource').addEventListener('change', () => { store.set('vibeSource', $('vibeSource').value); updateVibeOutputs(); });
-$('vibeMap').addEventListener('change', () => store.set('vibeMap', $('vibeMap').value));
+$('vibeMap').addEventListener('change', () => store.set('vibeMap2', $('vibeMap').value));
 
 function updateVibeOutputs() {
   $('vibeMinVal').textContent = `${$('vibeMin').value} %`;
@@ -407,14 +408,8 @@ function scriptSource() {
     || null;
 }
 
-// Rohwert 0–1 aus dem Script an Stelle ms
-function scriptIntensity(actions, ms) {
-  const mode = $('vibeMap').value;
-  if (mode !== 'speed') {
-    let pos = positionAt(actions, ms);
-    if ($('invert').checked) pos = 100 - pos;
-    return mode === 'pos' ? 1 - pos / 100 : pos / 100;
-  }
+// Geschwindigkeit (Positionseinheiten/s) des Script-Abschnitts an Stelle ms, 0 in Pausen
+function speedAt(actions, ms) {
   if (!actions.length || ms < actions[0].at || ms >= actions[actions.length - 1].at) return 0;
   let lo = 0, hi = actions.length - 1;
   while (hi - lo > 1) {
@@ -422,8 +417,24 @@ function scriptIntensity(actions, ms) {
     if (actions[mid].at <= ms) lo = mid; else hi = mid;
   }
   const a = actions[lo], b = actions[hi];
-  const speed = (Math.abs(b.pos - a.pos) / Math.max(1, b.at - a.at)) * 1000;
-  return Math.min(1, speed / Number($('vibeFull').value));
+  return (Math.abs(b.pos - a.pos) / Math.max(1, b.at - a.at)) * 1000;
+}
+
+// Rohwert 0–1 aus dem Script an Stelle ms
+//   rhythm: pulsiert mit jedem Stoß (tief = stark), Tempo bestimmt die Gesamtstärke
+//   speed:  nur das Tempo (gleichmäßige Stöße = gleichmäßige Vibration)
+//   pos/posInv: nur die Position
+function scriptIntensity(actions, ms) {
+  const mode = $('vibeMap').value;
+  let pos = positionAt(actions, ms);
+  if ($('invert').checked) pos = 100 - pos;
+  if (mode === 'pos') return 1 - pos / 100;
+  if (mode === 'posInv') return pos / 100;
+  const tempo = Math.min(1, speedAt(actions, ms) / Number($('vibeFull').value));
+  if (mode === 'speed') return tempo;
+  if (tempo === 0) return 0;
+  const depth = 1 - pos / 100;
+  return Math.max(0.12, depth) * (0.35 + 0.65 * tempo);
 }
 
 function targetLevel() {
@@ -434,19 +445,28 @@ function targetLevel() {
   let raw = null;
   const src = scriptSource();
   if (src) raw = scriptIntensity(src.actions, src.ms + Number($('vibeLead').value));
-  else if (typeof hampLevel === 'function') raw = hampLevel();
+  else if (typeof hampLevel === 'function' && hampLevel() !== null) {
+    // Direktsteuerung: im Rhythmus-Modus Stöße nachbilden (schneller bei höherer Geschwindigkeit)
+    const speed = hampLevel();
+    if ($('vibeMap').value === 'rhythm' && speed > 0) {
+      const hz = 0.5 + speed * 3;
+      raw = speed * (0.45 + 0.55 * (0.5 + 0.5 * Math.sin(performance.now() / 1000 * hz * 2 * Math.PI)));
+    } else raw = speed;
+  }
   if (!raw || raw < 0.01) return 0;
   const min = Number($('vibeMin').value) / 100;
   const max = Number($('vibeMax').value) / 100;
   return min + (max - min) * raw;
 }
 
-// 10× pro Sekunde abgleichen; nur senden, wenn sich etwas ändert.
+// ~16× pro Sekunde abgleichen; nur senden, wenn sich etwas ändert.
+// Im Rhythmus-Modus ungeglättet, damit jeder Stoß spürbar bleibt.
 let vibeLevel = 0;
 let vibeSending = false;
 setInterval(async () => {
   const target = targetLevel();
-  vibeLevel = target === 0 ? 0 : vibeLevel * 0.35 + target * 0.65;
+  const smooth = $('vibeMap').value === 'rhythm' ? 0 : 0.35;
+  vibeLevel = target === 0 ? 0 : vibeLevel * smooth + target * (1 - smooth);
   $('vibeMeter').style.width = `${Math.round(vibeLevel * 100)}%`;
   if (vibeSending) return;
   vibeSending = true;
@@ -462,7 +482,7 @@ setInterval(async () => {
   } finally {
     vibeSending = false;
   }
-}, 100);
+}, 60);
 
 // Beim Schließen der Seite Vibratoren aus
 window.addEventListener('pagehide', () => {

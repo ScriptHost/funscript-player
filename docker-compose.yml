@@ -28,8 +28,11 @@ services:
       HQ_ACCEL: ""
       HQ_MAX: "3"
     volumes:
-      # Ordner mit Videos + gleichnamigen .funscript-Dateien (nur lesend) – Pfad anpassen
-      - /srv/media/filme:/media:ro
+      # Videoordner (+ gleichnamige .funscript) – jeder Ordner unter /media/<Name> wird eine
+      # eigene Quelle in der Bibliothek und in HereSphere. Beliebig viele Zeilen möglich:
+      - /srv/media/filme:/media/Filme:ro
+      # - /srv/downloads:/media/Downloads:ro
+      # - /srv/media/vr:/media/VR:ro
       # Eigene Patterns und Scripts aus „Steuern“
       - handy-data:/app/data
 

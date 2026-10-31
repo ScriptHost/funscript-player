@@ -1,7 +1,8 @@
 ﻿# Einstellungen für den Handy Player unter Windows.
 # Nach Änderungen den Player neu starten (bzw. setup.ps1 erneut ausführen, wenn sich Port oder HTTPS ändern).
 @{
-    # Ordner mit Videos und gleichnamigen .funscript-Dateien (auch UNC-Pfade wie \\nas\filme)
+    # Ordner mit Videos und gleichnamigen .funscript-Dateien (auch UNC-Pfade wie \\nas\filme).
+    # Jeder Unterordner (z. B. D:\Filme\Downloads) erscheint als eigene Quelle in der Bibliothek.
     MediaDir   = 'D:\Filme'
 
     # Netzwerk: 0.0.0.0 = von überall erreichbar, 127.0.0.1 = nur lokal (z. B. Reverse Proxy auf derselben VM)

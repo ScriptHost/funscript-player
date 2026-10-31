@@ -42,15 +42,26 @@ const syncActive = () => appMode === 'sync';
 
 function showView(view) {
   document.body.dataset.view = view;
-  ['library', 'player', 'control'].forEach((v) => { $('view-' + v).hidden = v !== view; });
+  ['library', 'player', 'control', 'settings'].forEach((v) => { $('view-' + v).hidden = v !== view; });
+  $('navSettings').classList.toggle('active', view === 'settings');
+  document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.classList.toggle('active', view !== 'settings' && b.dataset.mode === appMode));
   window.dispatchEvent(new Event('resize'));
 }
+
+// Einstellungen: eigene Seite, ändert den Modus nicht
+function openSettings(section) {
+  if (!video.paused) video.pause();
+  showView('settings');
+  if (section) $(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('navSettings').addEventListener('click', () => (document.body.dataset.view === 'settings' ? setMode(appMode) : openSettings()));
+$('openImageSettings').addEventListener('click', () => openSettings('imageSettings'));
 
 function setMode(mode) {
   appMode = mode;
   store.set('mode', mode);
   document.body.dataset.mode = mode;
-  document.querySelectorAll('.modes button').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+  document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
   if (mode === 'control') {
     showView('control');
   } else {
@@ -60,7 +71,7 @@ function setMode(mode) {
     resync();
   }
 }
-document.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
 // Player öffnen = eigener Verlaufseintrag, damit die Zurück-Geste zur Bibliothek führt
 function openPlayer() {
@@ -81,7 +92,7 @@ window.addEventListener('popstate', () => {
   }
 });
 $('backToLib').addEventListener('click', backToLibrary);
-document.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => {
+document.querySelectorAll('.modes button[data-mode]').forEach((b) => b.addEventListener('click', () => {
   if (b.dataset.mode !== 'control') store.set('lastWatchMode', b.dataset.mode);
 }));
 
@@ -112,9 +123,9 @@ function loadVideo(src, name, hqSrc = '') {
   stashSession = null;
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   objectUrl = src.startsWith('blob:') ? src : null;
-  Object.assign(hq, { active: false, offset: 0, duration: 0, src: hqSrc, url: src });
-  if (typeof hqWanted === 'function' && hqWanted()) hqStart(0);
-  else video.src = src;
+  Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
+  // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
+  if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
   $('videoName').textContent = name;
   $('ovTitle').textContent = name;
   $('dropHint').classList.add('hidden');

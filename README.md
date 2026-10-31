@@ -28,6 +28,20 @@ Die **Bibliothek** zeigt Stash-Szenen als Kacheln (Vorschauvideo beim Drüberfah
 kombinieren. Im Player sind Studio, Darsteller und Tags anklickbar, Marker springen an die Stelle.
 Die Zurück-Geste am Smartphone führt vom Player zur Bibliothek.
 
+## Ordner einbinden
+
+Jeder Ordner unter `/media/<Name>` wird eine eigene Quelle in der Bibliothek und in HereSphere –
+in der `docker-compose.yml` einfach weitere Zeilen unter `volumes` ergänzen, z. B.
+`- /srv/downloads:/media/Downloads:ro`. Video und Script brauchen denselben Namen (`Name.mp4` + `Name.funscript`).
+
+## VR-Brille (HereSphere)
+
+In HereSphere im Browser `https://player.<domain>/heresphere` öffnen. Kategorien: *Alle mit Script*,
+deine gespeicherten Stash-Filter und die eingebundenen Ordner – mit Vorschau, Tags, Markern und Funscript.
+Die Handy steuert HereSphere selbst (Connection Key in HereSphere eintragen). Das VR-Format wird an
+Dateinamen (`_180`, `_LR`, `_TB`, `_360`, `MKX200`, `fisheye` …) und VR-Tags erkannt.
+Eine Anmeldung im Reverse Proxy muss für `/heresphere` ausgenommen sein.
+
 ## Bildverbesserung
 
 „✨ Bildverbesserung“ unter dem Video bzw. ✨ in der Bedienleiste (schaltet Aus → Natürlich → Schärfer → Maximal).

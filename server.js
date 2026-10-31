@@ -91,6 +91,9 @@ async function scanLibrary(dir, rel = '') {
       out.push({
         name: base,
         folder: rel,
+        // Quelle = erster Unterordner (z. B. /media/Downloads), Dateien direkt in /media = „Ordner“
+        root: relPath.includes('/') ? relPath.split('/')[0] : '',
+        mtime: (await fsp.stat(path.join(dir, e.name)).catch(() => null))?.mtimeMs || 0,
         video: relPath,
         script: names.has(scriptName) ? (rel ? `${rel}/${scriptName}` : scriptName) : null,
       });
@@ -216,9 +219,9 @@ async function stashSavedFilters() {
 }
 
 // Findet Stash eine Bedingung nicht (andere Version), wird sie weggelassen und neu gesucht.
-async function findScenesTolerant(variables, dropped = []) {
+async function findScenesTolerant(variables, dropped = [], query = SCENES_QUERY) {
   try {
-    return { data: await stashGraphql(SCENES_QUERY, variables), dropped };
+    return { data: await stashGraphql(query, variables), dropped };
   } catch (e) {
     const sf = variables.scene_filter.AND || {};
     const keys = [...Object.keys(sf), ...Object.keys(variables.scene_filter)].filter((k) => k !== 'AND');
@@ -226,7 +229,7 @@ async function findScenesTolerant(variables, dropped = []) {
     if (!bad || dropped.length > 5) throw e;
     delete sf[bad];
     delete variables.scene_filter[bad];
-    return findScenesTolerant(variables, [...dropped, bad]);
+    return findScenesTolerant(variables, [...dropped, bad], query);
   }
 }
 
@@ -290,20 +293,30 @@ async function stashScenes(params) {
 const SCENE_QUERY = `query($id: ID!) {
   findScene(id: $id) {
     id title date details interactive resume_time play_count
-    files { basename duration }
+    files { basename duration width height }
     studio { id name }
     performers { id name }
     tags { id name }
-    scene_markers { title seconds primary_tag { name } }
+    scene_markers { title seconds end_seconds primary_tag { name } }
   }
 }`;
 
 async function stashScene(id) {
-  const s = (await stashGraphql(SCENE_QUERY, { id })).findScene;
+  let s;
+  try {
+    s = (await stashGraphql(SCENE_QUERY, { id })).findScene;
+  } catch (e) {
+    // ältere Stash-Versionen kennen end_seconds noch nicht
+    if (!/end_seconds/.test(e.message)) throw e;
+    s = (await stashGraphql(SCENE_QUERY.replace(' end_seconds', ''), { id })).findScene;
+  }
   if (!s) throw Object.assign(new Error('Szene nicht gefunden'), { status: 404 });
   return {
     id: s.id,
     title: s.title || s.files[0]?.basename || `Szene ${s.id}`,
+    basename: s.files[0]?.basename || '',
+    width: s.files[0]?.width || 0,
+    height: s.files[0]?.height || 0,
     interactive: s.interactive,
     duration: s.files[0]?.duration || 0,
     resume: s.resume_time || 0,
@@ -314,8 +327,132 @@ async function stashScene(id) {
     performers: (s.performers || []).map((p) => ({ id: p.id, name: p.name })),
     tags: (s.tags || []).map((t) => ({ id: t.id, name: t.name })),
     markers: (s.scene_markers || [])
-      .map((m) => ({ seconds: m.seconds, title: m.title || m.primary_tag?.name || 'Marker' }))
+      .map((m) => ({ seconds: m.seconds, end: m.end_seconds || null, title: m.title || m.primary_tag?.name || 'Marker' }))
       .sort((a, b) => a.seconds - b.seconds),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// HereSphere (VR-Player): eigene API, damit die Brille die Bibliothek direkt
+// durchsuchen und Videos samt Funscript abspielen kann.
+//   In HereSphere die Adresse https://<player>/heresphere öffnen.
+//   Kategorien: gespeicherte Stash-Filter, „Alle mit Script“, eingebundene Ordner.
+// ---------------------------------------------------------------------------
+const HS_HEADERS = { 'Content-Type': MIME['.json'], 'HereSphere-JSON-Version': '1', 'Cache-Control': 'no-store' };
+
+function publicBase(req) {
+  const proto = String(req.headers['x-forwarded-proto'] || (req.socket.encrypted ? 'https' : 'http')).split(',')[0].trim();
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host).split(',')[0].trim();
+  return `${proto}://${host}`;
+}
+const encPath = (rel) => rel.split('/').map(encodeURIComponent).join('/');
+
+// VR-Format aus Dateinamen (übliche Kennungen) und VR-Tags ableiten
+function vrFormat(name, tags = []) {
+  const n = ` ${String(name).toLowerCase().replace(/[._\-\s()[\]]+/g, ' ')} `;
+  const has = (re) => re.test(n);
+  const vrTag = tags.some((t) => /\b(vr|virtual reality|180°?|360°?)\b/i.test(t));
+  const vr = vrTag || has(/ (vr|180|190|200|220|360|lr|sbs|tb|ou|3dh|3dv|fisheye\d*|mkx200|mkx220|vrca220|rf52) /);
+  if (!vr) return { projection: 'perspective', stereo: 'mono', fov: 180, lens: 'Linear' };
+  const stereo = has(/ (tb|ou|3dv|over under) /) ? 'tb' : has(/ (mono|2d) /) ? 'mono' : 'sbs';
+  let projection = 'equirectangular', fov = 180, lens = 'Linear';
+  if (has(/ 360 /)) { projection = 'equirectangular360'; fov = 360; }
+  if (has(/ (fisheye\d*|mkx200|mkx220|vrca220|rf52|190|200|220) /)) {
+    projection = 'fisheye';
+    fov = has(/ (mkx220|vrca220|220) /) ? 220 : has(/ (mkx200|200) /) ? 200 : 190;
+    if (has(/ mkx200 /)) lens = 'MKX200';
+    else if (has(/ mkx220 /)) lens = 'MKX220';
+    else if (has(/ vrca220 /)) lens = 'VRCA220';
+  }
+  return { projection, stereo, fov, lens };
+}
+
+const HS_IDS_QUERY = `query($filter: FindFilterType, $scene_filter: SceneFilterType) {
+  findScenes(filter: $filter, scene_filter: $scene_filter) { count scenes { id } }
+}`;
+
+async function heresphereIndex(req) {
+  const base = publicBase(req);
+  const library = [];
+  if (STASH_URL) {
+    const lists = [{ name: 'Alle mit Script', filter: { interactive: true }, sort: 'created_at', direction: 'DESC' }];
+    try {
+      for (const f of await stashSavedFilters()) lists.push({ name: f.name, filter: f.filter, sort: f.sort || 'created_at', direction: f.direction || 'DESC', q: f.q });
+    } catch { /* ohne gespeicherte Filter */ }
+    for (const l of lists) {
+      try {
+        const { data } = await findScenesTolerant({
+          filter: { q: l.q || '', per_page: -1, sort: l.sort.startsWith('random') ? 'created_at' : l.sort, direction: l.direction },
+          scene_filter: JSON.parse(JSON.stringify(l.filter)),
+        }, [], HS_IDS_QUERY);
+        library.push({ name: l.name, list: data.findScenes.scenes.map((s) => `${base}/heresphere/stash/${s.id}`) });
+      } catch (e) {
+        console.warn(`HereSphere: Liste „${l.name}“ übersprungen: ${e.message}`);
+      }
+    }
+  }
+  const items = await scanLibrary(MEDIA_DIR);
+  const roots = new Map();
+  for (const it of items) {
+    const root = it.video.includes('/') ? it.video.split('/')[0] : 'Ordner';
+    if (!roots.has(root)) roots.set(root, []);
+    roots.get(root).push(`${base}/heresphere/media/${encPath(it.video)}`);
+  }
+  for (const [name, list] of roots) library.push({ name: `Ordner: ${name}`, list });
+  return { access: 1, library };
+}
+
+function hsCommon() {
+  return {
+    access: 1, rating: 0, favorites: 0, comments: 0, isFavorite: false, isEyeSwapped: false, cameraIPD: 6.5,
+    subtitles: [], writeFavorite: false, writeRating: false, writeTags: false, writeHSP: false,
+  };
+}
+
+async function heresphereStash(req, id) {
+  const base = publicBase(req);
+  const s = await stashScene(id);
+  const ms = (sec) => Math.round(sec * 1000);
+  const tags = [
+    ...(s.studio ? [{ name: `Studio:${s.studio.name}` }] : []),
+    ...s.performers.map((p) => ({ name: `Performer:${p.name}` })),
+    ...s.tags.map((t) => ({ name: `Tag:${t.name}` })),
+    ...s.markers.map((m) => ({ name: `Marker:${m.title}`, start: ms(m.seconds), end: ms(m.end || m.seconds + 20), track: 0 })),
+  ];
+  return {
+    ...hsCommon(),
+    title: s.title,
+    description: s.details,
+    thumbnailImage: `${base}/stash/scene/${id}/screenshot`,
+    thumbnailVideo: `${base}/stash/scene/${id}/preview`,
+    dateReleased: s.date || undefined,
+    duration: ms(s.duration),
+    ...vrFormat(s.basename || s.title, s.tags.map((t) => t.name)),
+    scripts: s.interactive ? [{ name: `${s.title}.funscript`, url: `${base}/stash/scene/${id}/funscript` }] : [],
+    tags,
+    media: [{
+      name: 'Original',
+      sources: [{ resolution: s.height, height: s.height, width: s.width, url: `${base}/stash/scene/${id}/stream` }],
+    }],
+  };
+}
+
+async function heresphereMedia(req, rel) {
+  const base = publicBase(req);
+  const file = safeJoin(MEDIA_DIR, rel);
+  if (!file || !fs.existsSync(file)) throw Object.assign(new Error('Datei nicht gefunden'), { status: 404 });
+  const name = path.basename(rel).replace(/\.[^.]+$/, '');
+  const scriptRel = rel.replace(/\.[^.]+$/, '.funscript');
+  const info = await hqProbe('media:' + rel).catch(() => ({ width: 0, height: 0, duration: 0 }));
+  return {
+    ...hsCommon(),
+    title: name,
+    description: '',
+    duration: Math.round((info.duration || 0) * 1000),
+    ...vrFormat(name),
+    scripts: fs.existsSync(safeJoin(MEDIA_DIR, scriptRel) || '') ? [{ name: path.basename(scriptRel), url: `${base}/media/${encPath(scriptRel)}` }] : [],
+    tags: rel.includes('/') ? [{ name: `Ordner:${rel.split('/')[0]}` }] : [],
+    media: [{ name: 'Original', sources: [{ resolution: info.height, height: info.height, width: info.width, url: `${base}/media/${encPath(rel)}` }] }],
   };
 }
 
@@ -635,6 +772,20 @@ const handler = async (req, res) => {
         return res.end(JSON.stringify(scene));
       }
       throw Object.assign(new Error('Methode nicht erlaubt'), { status: 405 });
+    }
+
+    // HereSphere fragt per GET oder POST an (POST enthält ggf. Bewertung/Favorit – wird ignoriert)
+    if (pathname === '/heresphere' || pathname.startsWith('/heresphere/')) {
+      req.resume();
+      let data;
+      if (pathname === '/heresphere' || pathname === '/heresphere/') data = await heresphereIndex(req);
+      else if (/^\/heresphere\/stash\/\d+$/.test(pathname)) {
+        if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
+        data = await heresphereStash(req, pathname.split('/').pop());
+      } else if (pathname.startsWith('/heresphere/media/')) data = await heresphereMedia(req, pathname.slice('/heresphere/media/'.length));
+      else throw Object.assign(new Error('Nicht gefunden'), { status: 404 });
+      res.writeHead(200, HS_HEADERS);
+      return res.end(JSON.stringify(data));
     }
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
