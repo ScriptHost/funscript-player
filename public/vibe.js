@@ -253,17 +253,26 @@ class Buttplug {
 
   addDevice(d) {
     const scalars = (d.DeviceMessages?.ScalarCmd || []).map((s, i) => ({ index: i, type: s.ActuatorType }));
+    // Bewegungsgeräte (z. B. The Handy per Bluetooth): „fahre in x ms auf Position y“
+    const linear = (d.DeviceMessages?.LinearCmd || []).map((_, i) => ({ index: i }));
     const name = d.DeviceDisplayName || d.DeviceName;
     const dev = {
       index: d.DeviceIndex,
       name,
-      kind: 'Intiface',
+      kind: linear.length ? 'Intiface ↕ Bewegung' : 'Intiface',
       scalars,
+      linear,
       enabled: !store.get('vibeOff', []).includes(name),
       level: -1,
       setLevel: (level) => (scalars.length
         ? this.send('ScalarCmd', { DeviceIndex: d.DeviceIndex, Scalars: scalars.map((s) => ({ Index: s.index, Scalar: level, ActuatorType: s.type })) })
         : Promise.resolve()),
+      // pos 0–1, duration in ms
+      move: (pos, duration) => this.send('LinearCmd', {
+        DeviceIndex: d.DeviceIndex,
+        Vectors: linear.map((l) => ({ Index: l.index, Duration: Math.max(20, Math.round(duration)), Position: Math.max(0, Math.min(1, pos)) })),
+      }),
+      stop: () => this.send('StopDeviceCmd', { DeviceIndex: d.DeviceIndex }),
     };
     this.devices.set(d.DeviceIndex, dev);
     this.onchange();

@@ -1,5 +1,13 @@
 # Änderungen
 
+## 1.5.0 – 01.11.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.5.0.md](RELEASE-NOTES-1.5.0.md)
+
+- Handy per Bluetooth über Intiface als Offline-Weg (Bewegungsgeräte mit Positionssteuerung)
+- Funktioniert mit Video-Sync, Patterns, Direktsteuerung, Finale, Hub, Offset, Not-Aus
+- Bluetooth-Vorlauf einstellbar
+
 ## 1.4.0 – 01.11.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.4.0.md](RELEASE-NOTES-1.4.0.md)

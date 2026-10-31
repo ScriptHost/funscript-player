@@ -395,6 +395,13 @@
             <input id="slideMax" type="range" min="0" max="100" value="100">
           </label>
           <label class="check"><input id="invert" type="checkbox"> Script umkehren</label>
+          <details>
+            <summary>Ohne Internet: Handy per Bluetooth</summary>
+            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann im Reiter „Vibrator“ → „Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
+            <label>Bluetooth-Vorlauf <output id="btLeadVal"></output>
+              <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
+            </label>
+          </details>
         </div>
 
         <div data-panel="dev:vibe" hidden>
@@ -440,7 +447,7 @@
           </details>
 
           <details>
-            <summary>Alternative: Intiface Central</summary>
+            <summary>Intiface Central (auch: Handy per Bluetooth)</summary>
             <p class="hint-text">Intiface Central auf dem Smartphone starten, unter Einstellungen „Listen on all interfaces“ aktivieren und den Server starten.</p>
             <label>IP des Smartphones<input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
             <button id="vibeConnect" class="secondary">Mit Intiface verbinden</button>
@@ -475,6 +482,7 @@
   <script src="hq.js"></script>
   <script src="finale.js"></script>
   <script src="tools.js"></script>
+  <script src="stroker.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>
