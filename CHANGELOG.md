@@ -1,5 +1,21 @@
 # Änderungen
 
+## 1.16.0 – 31.10.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.16.0.md](RELEASE-NOTES-1.16.0.md)
+
+- Eine Status-Anzeige für beide Geräte; Verbinden nur im Geräte-Fenster oben
+- Unter dem Video ein gemeinsamer Bereich ohne Reiter – nur für verbundene Geräte; Offset gilt auch für den Satisfyer
+- Sync („Geräte folgen dem Video“) ist Standard, Schalter nur in den Einstellungen, Hinweis im Player
+- „Selbst steuern“ immer sichtbar (mit Gerät), auch beim „nur schauen“; **Mitschnitt zum Video** als eigenes Script
+- Touch-Steuerung aus der Beta, mit ⏺ Aufnahme (Pattern / .funscript / zum Video); Beta: Aufnahme als Position
+- Script-Automatik je Gerät (Handy gekürzt, Satisfyer ungekürzt); Hub und Satisfyer-Stärke pro Szene
+- Bibliothek: Intensität filtern/sortieren; Mini-Player beim Stöbern; ⧉ Bild-in-Bild
+- Satisfyer-Akku, gemessene Verzögerung (Vorlauf automatisch), Bluetooth „Alle Geräte“ direkt, Zeitgrenze
+- Fernbedienung: Lautstärke, „Ferngesteuert von …“ mit Trennen; STOPP-Option koppelt „Alles stoppen“
+- Kompakte Kopfzeile nur am Smartphone, Pixel-Erkennung repariert; Domain `handy.${DOMAIN}`
+- Automatische Tests (`node --test "test/*.test.js"`)
+
 ## 1.15.0 – 31.10.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.15.0.md](RELEASE-NOTES-1.15.0.md)

@@ -1,11 +1,14 @@
 'use strict';
 
 // ===========================================================================
-// 🧪 Beta: Touch-Steuerung (⚙️ → Geräte, Standard aus) – wie in der Satisfyer-App.
+// Touch-Steuerung – wie in der Satisfyer-App.
 //   Eine Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ am Video:
 //   Finger oben = stark/schnell, unten = schwach/langsam. Loslassen = aus,
-//   wahlweise „beim Loslassen halten“. Pro Fläche wählbar: ↕ Handy und/oder 〰 Satisfyer.
-//   Grenzen aus ⚙️ → Sicherheit gelten (setSpeed / selfSpeed / vibeMax), STOPP setzt zurück.
+//   wahlweise „beim Loslassen halten“. Pro Fläche: ↕ Handy und/oder 〰 Satisfyer
+//   (nur verbundene Geräte werden angeboten). Grenzen aus ⚙️ → Sicherheit gelten,
+//   STOPP setzt zurück.
+//   ⏺ Aufnehmen: Finger-Verlauf -> Pattern, .funscript oder neben das Video.
+//     Standard: Finger-Höhe = Tempo der Stöße. 🧪 Beta (⚙️ → Geräte): Finger-Höhe = Position.
 // ===========================================================================
 const touch = { vibe: null }; // Satisfyer-Stärke aus der Fläche unter 🎮 Steuern (0–1) oder null
 
@@ -33,27 +36,58 @@ const TOUCH_TARGETS = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// Aufnahme -> Funscript-Aktionen
+// ---------------------------------------------------------------------------
+// samples: [[ms, wert 0–100 | null (losgelassen)]] im Abstand von ~50 ms
+function touchToTempoActions(samples, end, start = 0) {
+  const valueAt = (t) => { let v = null; for (const [ts, x] of samples) { if (ts > t) break; v = x; } return v; };
+  const out = [{ at: start, pos: 10 }];
+  let t = start, up = true;
+  while (t < end) {
+    const v = valueAt(t);
+    if (!v) { t += 100; continue; }                // losgelassen/0 = Pause, Position bleibt
+    t += Math.round(900 - v * 7.5);                // 0 % = 900 ms je Halbstoß … 100 % = 150 ms
+    out.push({ at: t, pos: up ? 90 : 10 });
+    up = !up;
+  }
+  return out;
+}
+function touchToPositionActions(samples) {
+  const out = [];
+  let last = 50;
+  for (const [t, v] of samples) {
+    const pos = v ?? last;
+    if (!out.length || Math.abs(pos - out[out.length - 1].pos) >= 2 || t - out[out.length - 1].at >= 500) out.push({ at: t, pos });
+    last = pos;
+  }
+  return out;
+}
+
 function setupTouchPad(pad) {
   const target = TOUCH_TARGETS[pad.dataset.touch];
   const area = pad.querySelector('.tp-area');
-  const opt = (cls) => pad.querySelector(cls).checked;
-  let down = false;
+  const q = (cls) => pad.querySelector(cls);
+  const on = (cls) => q(cls).checked && getComputedStyle(q(cls).closest('label')).display !== 'none';
+  let down = false, cur = null, rec = null, recTimer = null, lastActions = null;
 
   const show = (v) => {
-    pad.querySelector('.tp-fill').style.height = v === null ? '0' : `${v}%`;
-    pad.querySelector('.tp-val').textContent = v === null ? '–' : `${v} %`;
+    q('.tp-fill').style.height = v === null ? '0' : `${v}%`;
+    q('.tp-val').textContent = v === null ? '–' : `${v} %`;
   };
   const apply = (e) => {
     const r = area.getBoundingClientRect();
     const v = Math.round(Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height)) * 100);
-    if (opt('.tp-handy')) target.handy(v);
-    if (opt('.tp-vibe')) target.vibe(v);
+    if (on('.tp-handy')) target.handy(v);
+    if (on('.tp-vibe')) target.vibe(v);
+    cur = v;
     show(v);
   };
   const release = () => {
-    if (opt('.tp-hold')) return;
+    if (q('.tp-hold').checked) return;
     target.handyOff();
     target.vibeOff();
+    cur = null;
     show(null);
   };
 
@@ -69,7 +103,7 @@ function setupTouchPad(pad) {
 
   // Geräte-Auswahl und „halten“ merken (für alle Geräte gleich); Abwählen schaltet ab
   for (const [cls, key, def] of [['.tp-handy', 'touchHandy', true], ['.tp-vibe', 'touchVibe', true], ['.tp-hold', 'touchHold', false]]) {
-    const cb = pad.querySelector(cls);
+    const cb = q(cls);
     cb.checked = store.get(key, def);
     cb.addEventListener('change', () => {
       store.set(key, cb.checked);
@@ -79,19 +113,44 @@ function setupTouchPad(pad) {
       if (cls === '.tp-hold' && !cb.checked && !down) release();
     });
   }
+
+  // ⏺ Aufnahme
+  q('.tp-rec').addEventListener('click', () => {
+    if (!rec) {
+      rec = { t0: performance.now(), samples: [] };
+      recTimer = setInterval(() => rec.samples.push([Math.round(performance.now() - rec.t0), cur]), 50);
+      q('.tp-rec').textContent = '■ Aufnahme beenden';
+      q('.tp-rec').classList.add('recording');
+      q('.tp-recout').hidden = true;
+      return;
+    }
+    clearInterval(recTimer);
+    const end = Math.round(performance.now() - rec.t0);
+    const asPos = $('touchRecPos').checked;
+    lastActions = asPos ? touchToPositionActions(rec.samples) : touchToTempoActions(rec.samples, end);
+    rec = null;
+    q('.tp-rec').textContent = '⏺ Aufnehmen';
+    q('.tp-rec').classList.remove('recording');
+    if (lastActions.length < 3) return log('Aufnahme zu kurz – Finger auflegen, während ⏺ läuft.', true);
+    q('.tp-recinfo').textContent = `Aufnahme ${Math.round(end / 1000)} s · ${lastActions.length} Punkte (${asPos ? 'Position' : 'Tempo'})`;
+    // „Neben dem Video speichern“ nur bei Videos aus dem Ordner und wenn erlaubt
+    q('.tp-save-lib').hidden = !(pad.dataset.touch === 'self' && nowKey() && store.get('saveScripts', true));
+    q('.tp-recout').hidden = false;
+  });
+  q('.tp-save-pattern').addEventListener('click', () => {
+    const len = lastActions[lastActions.length - 1].at || 1;
+    const name = `Touch-Aufnahme ${new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+    saveRecordingAsPattern(name, len, lastActions);
+    log(`🎮 Als Pattern „${name}“ gespeichert (🎮 Steuern → Patterns).`);
+  });
+  q('.tp-save-file').addEventListener('click', () => downloadFunscript(lastActions, 'touch-aufnahme'));
+  q('.tp-save-lib').addEventListener('click', () => saveScriptToLibrary(lastActions));
+
   // STOPP: Fläche zurücksetzen (die Geräte hält emergencyStop selbst an)
-  document.addEventListener('handy-owner', (e) => { if (e.detail === 'none') { touch.vibe = null; show(null); } });
+  document.addEventListener('handy-owner', (e) => { if (e.detail === 'none') { touch.vibe = null; cur = null; show(null); } });
   show(null);
 }
 
 document.querySelectorAll('.touchpad').forEach(setupTouchPad);
-
-// Beta-Schalter
-const applyTouchBeta = () => document.body.classList.toggle('beta-touch', $('betaTouch').checked);
-$('betaTouch').checked = store.get('betaTouch', false);
-$('betaTouch').addEventListener('change', () => {
-  store.set('betaTouch', $('betaTouch').checked);
-  if (!$('betaTouch').checked) { touch.vibe = null; document.querySelectorAll('.touchpad .tp-fill').forEach((f) => { f.style.height = '0'; }); }
-  applyTouchBeta();
-});
-applyTouchBeta();
+$('touchRecPos').checked = store.get('touchRecPos', false);
+$('touchRecPos').addEventListener('change', () => store.set('touchRecPos', $('touchRecPos').checked));

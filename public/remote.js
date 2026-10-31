@@ -100,6 +100,8 @@ function screenState() {
     at: serverNow(),
     playing: !video.paused && !video.ended && video.readyState >= 3,
     rate: video.playbackRate,
+    vol: Math.round(video.volume * 100),
+    muted: video.muted,
     paused: video.paused,
     duration: duration() / 1000,
     handy: handy.connected && syncActive(), // dann steuert der Bildschirm die Handy
@@ -128,8 +130,19 @@ function screenPlay() {
 }
 video.addEventListener('playing', () => { rcError = ''; });
 
-function runCmd({ cmd, arg }) {
-  if (remote.on || !$('rcScreen').checked) return;
+// Bildschirm: wer gerade fernsteuert (Anzeige oben, „Trennen“ sperrt diese Fernbedienung bis zum Neuladen)
+const rcBlocked = new Set();
+let rcLast = null;
+function runCmd({ from, fromName, cmd, arg }) {
+  if (cmd === 'kicked') {
+    if (remote.on && from === remote.target) { remoteLeave(); log('Der Bildschirm hat die Fernbedienung getrennt.', true); }
+    return;
+  }
+  if (remote.on || !$('rcScreen').checked || rcBlocked.has(from)) return;
+  if (cmd !== 'hello') rcLast = { from, name: fromName || 'Fernbedienung', at: Date.now() };
+  showRcBadge();
+  if (cmd === 'vol') { video.volume = Math.max(0, Math.min(1, Number(arg) / 100)); video.muted = Number(arg) === 0; sendState(); return; }
+  if (cmd === 'mute') { video.muted = !video.muted; sendState(); return; }
   if (cmd === 'open') {
     if (arg?.kind === 'stash') openStashScene(arg);
     else if (arg?.kind === 'media') openFolderItem(arg);
@@ -298,6 +311,8 @@ function applyState(s) {
   if (srcKey(s.src) !== remote.srcKey) remoteLoad(s.src);
   setRemoteState(s.error === 'autoplay' ? 'bitte am Bildschirm einmal tippen/klicken' : s.paused ? 'pausiert' : s.playing ? 'läuft' : 'lädt …', s.error === 'autoplay');
   $('ovPlay').textContent = s.paused ? '▶' : '❚❚';
+  if (Number.isFinite(s.vol) && document.activeElement !== $('remoteVol')) $('remoteVol').value = s.muted ? 0 : s.vol;
+  $('remoteMute').textContent = s.muted ? '🔇' : '🔊';
 
   // Bewertung/O/Marker, die am Bildschirm geändert wurden
   const info = stashSession?.info;
@@ -360,3 +375,23 @@ $('rcName').addEventListener('change', () => { store.set('rcName', $('rcName').v
 
 syncClock().then(rcConnect);
 setInterval(syncClock, 60000);
+
+// „Ferngesteuert von …“ am Bildschirm – bis 30 min nach dem letzten Befehl
+function showRcBadge() {
+  const on = !!rcLast && Date.now() - rcLast.at < 30 * 60000 && !remote.on;
+  $('rcBadge').hidden = !on;
+  if (on) $('rcBadgeName').textContent = rcLast.name;
+}
+setInterval(showRcBadge, 10000);
+$('rcKick').addEventListener('click', () => {
+  if (!rcLast) return;
+  rcBlocked.add(rcLast.from);
+  rcPost('cmd', { to: rcLast.from, cmd: 'kicked' }).catch(() => {});
+  log(`Fernbedienung „${rcLast.name}“ getrennt (bis zum Neuladen gesperrt).`);
+  rcLast = null;
+  showRcBadge();
+});
+// Fernbedienung: Lautstärke/Ton des Bildschirms
+$('remoteVol').addEventListener('change', () => remoteCmd('vol', Number($('remoteVol').value)));
+$('remoteMute').addEventListener('click', () => remoteCmd('mute'));
+video.addEventListener('volumechange', () => sendState());

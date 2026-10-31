@@ -54,16 +54,18 @@ class Handy {
 
   // Schätzt die Abweichung zwischen lokaler Uhr und Handy-Serveruhr.
   async syncTime(rounds = 10) {
-    const offsets = [];
+    const offsets = [], rtts = [];
     for (let i = 0; i < rounds; i++) {
       const t0 = Date.now();
       const r = await this.req('GET', '/servertime');
       const t1 = Date.now();
       offsets.push((this.v3 ? r.server_time : r.serverTime) + (t1 - t0) / 2 - t1);
+      rtts.push(t1 - t0);
     }
     offsets.sort((a, b) => a - b);
     const mid = offsets.slice(2, -2);
     this.serverOffset = mid.reduce((s, o) => s + o, 0) / mid.length;
+    this.rtt = rtts.sort((a, b) => a - b)[Math.floor(rtts.length / 2)]; // Antwortzeit der Handy-Cloud (Median)
   }
 
   serverTime() {
@@ -141,7 +143,7 @@ const SHARED_PREFS = new Set([
   'key', 'appId', 'autoConnect', 'autoSync', 'invert', 'btLead', 'offset', 'offsets', 'min', 'max',
   'capSpeed', 'stopButton', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeSmooth', 'vibeMap2', 'vibeSource',
   'bleKnownNames', 'scriptTools', 'scriptPreset', 'scenePresets', 'finale', 'hud',
-  'selfMode', 'selfSpeed', 'selfVibe', 'betaTouch', 'touchHandy', 'touchVibe', 'touchHold', 'savedFilter', 'stashSort', 'onlyScripts', 'showContinue',
+  'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'touchRecPos', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts', 'showContinue',
 ]);
 const isSharedPref = (k) => SHARED_PREFS.has(k) || k.startsWith('savedFilter.');
 let prefsPending = {}, prefsTimer = null;

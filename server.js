@@ -186,6 +186,34 @@ async function scriptHeat(src) {
   return heat;
 }
 
+// Eigene Scripts (Touch-Aufnahmen, Mitschnitte, über „📂 Datei“ geladene) dauerhaft zu einem Video:
+//   Ordner-Video -> <Video>.funscript daneben (wie in der Bibliothek üblich), wenn der Ordner beschreibbar ist,
+//   sonst und bei Stash-Szenen -> data/scripts/ auf dem Player-Server (Stash selbst bleibt unverändert).
+const USER_SCRIPTS = path.join(DATA_DIR, 'scripts');
+const userScriptFile = (src) => path.join(USER_SCRIPTS, src.replace(/[^\w.-]+/g, '_').slice(0, 180) + '.funscript');
+async function saveUserScript(req) {
+  const { src, funscript } = JSON.parse(await readBody(req, 20 * 1024 * 1024) || '{}');
+  const m = /^(stash|media):(.+)$/.exec(src || '');
+  if (!m || !funscript || !Array.isArray(funscript.actions)) throw Object.assign(new Error('Ungültige Daten'), { status: 400 });
+  const text = JSON.stringify(funscript);
+  if (m[1] === 'media') {
+    const video = safeJoin(MEDIA_DIR, m[2]);
+    if (!video || !fs.existsSync(video)) throw Object.assign(new Error('Video nicht gefunden'), { status: 404 });
+    const target = video.replace(/\.[^.]+$/, '.funscript');
+    try {
+      await fsp.writeFile(target, text, { flag: 'wx' }); // nie eine vorhandene Datei überschreiben
+      heatCache.delete('media:' + path.relative(MEDIA_DIR, target).split(path.sep).join('/'));
+      return { where: 'folder', file: path.basename(target) };
+    } catch (e) {
+      if (e.code === 'EEXIST') throw Object.assign(new Error('Neben dem Video liegt schon ein Funscript – nichts überschrieben.'), { status: 409 });
+      // Schreibgeschützt (z. B. „:ro“ in der docker-compose.yml) -> auf dem Player-Server ablegen
+    }
+  }
+  await fsp.mkdir(USER_SCRIPTS, { recursive: true });
+  await fsp.writeFile(userScriptFile(src), text);
+  return { where: 'server' };
+}
+
 async function readStore() {
   try {
     return JSON.parse(await fsp.readFile(STORE_FILE, 'utf8'));
@@ -973,8 +1001,9 @@ async function rcPost(req, kind) {
   }
   // Befehl der Fernbedienung an einen Bildschirm
   const target = rc.clients.get(body.to);
-  if (!target || !target.screen) throw Object.assign(new Error('Bildschirm nicht verbunden'), { status: 404 });
-  rcSend(target, 'cmd', { from: body.from, cmd: String(body.cmd || ''), arg: body.arg ?? null });
+  const cmd = String(body.cmd || '');
+  if (!target || (!target.screen && cmd !== 'kicked')) throw Object.assign(new Error('Bildschirm nicht verbunden'), { status: 404 });
+  rcSend(target, 'cmd', { from: body.from, fromName: rc.clients.get(body.from)?.name || 'Fernbedienung', cmd, arg: body.arg ?? null });
 }
 
 // Optional direkt HTTPS: entweder TLS_PFX (+ TLS_PFX_PASS) oder TLS_CERT + TLS_KEY (PEM).
@@ -1039,6 +1068,16 @@ const handler = async (req, res) => {
       if (req.method === 'PUT') await writePrefs(req);
       res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
       return res.end(JSON.stringify(await readPrefs()));
+    }
+    if (pathname === '/api/userscript') {
+      if (req.method === 'POST') {
+        const r = await saveUserScript(req);
+        res.writeHead(200, { 'Content-Type': MIME['.json'] });
+        return res.end(JSON.stringify(r));
+      }
+      const src = url.searchParams.get('src') || '';
+      if (!/^(stash|media):/.test(src)) throw Object.assign(new Error('Ungültige Quelle'), { status: 400 });
+      return sendFile(req, res, userScriptFile(src));
     }
     if (pathname === '/api/heat') {
       const heat = await scriptHeat(url.searchParams.get('src'));

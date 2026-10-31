@@ -46,12 +46,20 @@ function videoPlaying() {
 // ---------------------------------------------------------------------------
 // Modi und Seiten
 // ---------------------------------------------------------------------------
+// 1.16: „Geräte folgen dem Video“ ist Standard. Alte, unbemerkt gespeicherte „nur schauen“-Zustände
+// einmal zurücksetzen; danach gilt nur noch, was unter ⚙️ → Geräte bewusst ausgeschaltet wurde.
+if (!store.get('syncDefault116', false)) {
+  if (store.get('mode', 'sync') === 'stream') store.set('mode', 'sync');
+  store.set('lastWatchMode', 'sync');
+  store.set('syncDefault116', true);
+}
 let appMode = store.get('mode', 'sync');
 const syncActive = () => appMode === 'sync';
 
 function showView(view) {
   closeDevices();
   document.body.dataset.view = view;
+  if (typeof updateNowBar === 'function') setTimeout(updateNowBar, 0);
   ['library', 'player', 'control', 'settings'].forEach((v) => { $('view-' + v).hidden = v !== view; });
   $('navSettings').classList.toggle('active', view === 'settings');
   document.querySelectorAll('button[data-mode]').forEach((b) => b.classList.toggle('active', view !== 'settings' && b.dataset.mode === appMode));
@@ -150,7 +158,6 @@ $('homeBtn').addEventListener('keydown', (e) => { if (e.key === 'Enter') goHome(
 const devInline = () => document.body.dataset.view === 'player' && !document.body.classList.contains('hud-off-devices');
 function openDevices(sub) {
   if (sub) document.querySelector(`nav[data-group="dev"] [data-sub="${sub}"]`)?.click();
-  if (devInline()) { $('devices').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   document.body.classList.add('dev-open');
   $('sheetBackdrop').hidden = false;
 }
@@ -158,10 +165,11 @@ function closeDevices() {
   document.body.classList.remove('dev-open');
   $('sheetBackdrop').hidden = true;
 }
-document.querySelectorAll('.pills [data-dev]').forEach((b) => b.addEventListener('click', () => {
-  const same = document.querySelector(`nav[data-group="dev"] [data-sub="${b.dataset.dev}"]`)?.classList.contains('active');
-  if (document.body.classList.contains('dev-open') && same) closeDevices(); else openDevices(b.dataset.dev);
-}));
+// Gemeinsame Status-Anzeige: öffnet/schließt das Geräte-Fenster; Reiter = das verbundene Gerät
+$('devChip').addEventListener('click', () => {
+  if (document.body.classList.contains('dev-open')) return closeDevices();
+  openDevices(hasHandy() && !hasVibe() ? 'handy' : hasVibe() && !hasHandy() ? 'vibe' : null);
+});
 $('sheetClose').addEventListener('click', closeDevices);
 $('sheetBackdrop').addEventListener('click', closeDevices);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDevices(); toggleMenu(false); } });
@@ -264,7 +272,14 @@ async function handleFiles(fileList) {
     loadVideo(URL.createObjectURL(vid), vid.name);
     if (!fs) clearScript();
   }
-  if (fs) loadScript(await fs.text(), fs.name);
+  if (fs) {
+    const text = await fs.text();
+    loadScript(text, fs.name);
+    // Nur ein Script zu einem Bibliotheks-Video gewählt -> anbieten, es dauerhaft dazu zu speichern
+    if (!vid && script && nowKey() && store.get('saveScripts', true) && confirm('Dieses Script dauerhaft zu diesem Video speichern?')) {
+      saveScriptToLibrary(script.actions);
+    }
+  }
   if (!vid && !fs) log('Keine Video- oder .funscript-Datei erkannt', true);
 }
 
@@ -296,7 +311,7 @@ async function doSync() {
   if (!handy.connected || !script || (typeof finDetached === 'function' && finDetached())) return;
   try {
     // Fernbedienung: die Handy steuert der Bildschirm, wenn sie dort verbunden ist (genauer)
-    const playing = syncActive() && videoPlaying() && (remote.on ? !remote.state?.handy : video.readyState >= 3);
+    const playing = syncActive() && videoPlaying() && !vibePaused && (remote.on ? !remote.state?.handy : video.readyState >= 3);
     if (!playing) {
       if (handy.owner === 'video') await handy.stop();
       return;
@@ -323,19 +338,23 @@ async function doSync() {
 ['playing', 'pause', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
 
 // Script nach den Script-Werkzeugen (Hub strecken, Spitzen glätten) – siehe tools.js
-function toolActions() {
-  return typeof processScript === 'function' ? processScript(script.actions) : script.actions;
+function toolActions(target = 'handy') {
+  return typeof processScript === 'function' ? processScript(script.actions, target) : script.actions;
 }
 
-// Was an Handy und Vibrator geht: das Script, im Finale „sanfter + halbes Tempo“ halbiert
+// Was an die Handy geht: das Script, im Finale „sanfter + halbes Tempo“ halbiert
 function sendActions() {
-  return typeof effectiveActions === 'function' ? effectiveActions(toolActions()) : toolActions();
+  return typeof effectiveActions === 'function' ? effectiveActions(toolActions('handy')) : toolActions('handy');
+}
+// Was der Satisfyer bekommt: eigene Fassung (ungekürzt), sonst gleich
+function vibeActions() {
+  return typeof effectiveActions === 'function' ? effectiveActions(toolActions('vibe')) : toolActions('vibe');
 }
 
 // Für den Vibrator: laufendes Video-Script und aktuelle Stelle (nur im Modus „Sync“)
 function videoScriptSource() {
   if (!syncActive() || !script || !videoPlaying()) return null;
-  return { actions: sendActions(), ms: mediaTime() * 1000 };
+  return { actions: vibeActions(), ms: mediaTime() * 1000, video: true };
 }
 
 // Stash-Marker der aktuellen Szene (für Zeitleisten)
@@ -380,7 +399,8 @@ function drawHeatmap() {
   b.clearRect(0, 0, w, h);
   const total = duration();
   if (script && total > 0) {
-    const a = toolActions(); // so, wie es an die Geräte geht (inkl. Script-Werkzeuge)
+    // Heatmap: Handy-Fassung, wenn eine Handy verbunden ist, sonst die des Satisfyers
+    const a = toolActions(typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy');
     const x = (ms) => (ms / total) * w;
     for (let i = 1; i < a.length; i++) {
       const dt = a[i].at - a[i - 1].at;
@@ -488,12 +508,41 @@ updateKeyHint();
 // ---------------------------------------------------------------------------
 function updateNowBar() {
   const loaded = remote.on ? !!remote.state?.src : !!video.currentSrc && !!nowPlaying;
-  $('nowBar').hidden = !loaded || document.body.dataset.view === 'player';
+  // Beim Stöbern: Mini-Player in der Ecke (Standard) oder nur die Leiste
+  const corner = store.get('browseMini', 'left');
+  const mini = loaded && document.body.dataset.view !== 'player' && corner !== 'bar' && !$('drop').classList.contains('fs');
+  document.body.classList.toggle('mini-on', mini);
+  document.body.classList.toggle('mini-right', corner === 'right');
+  $('miniPlay').textContent = videoPlaying() ? '❚❚' : '▶';
+  $('nowBar').hidden = !loaded || mini || document.body.dataset.view === 'player';
   if ($('nowBar').hidden) return;
   $('nowTitle').textContent = $('ovTitle').textContent;
   $('nowPlay').textContent = videoPlaying() ? '❚❚' : '▶';
 }
 setInterval(updateNowBar, 500);
+
+// Welche Geräte verbunden sind -> nur deren Regler zeigen (CSS: has-handy / has-vibe / has-dev)
+const hasHandy = () => handy.connected || (typeof strokers === 'function' && strokers().length > 0);
+const hasVibe = () => typeof allVibes === 'function' && allVibes().some((d) => !d.linear?.length);
+let lastDevState = '';
+function updateDevClasses() {
+  const h = hasHandy(), v = hasVibe();
+  if (lastDevState !== `${h}${v}`) { lastDevState = `${h}${v}`; if (typeof toolsChanged === 'function') toolsChanged(); }
+  document.body.classList.toggle('has-handy', h);
+  document.body.classList.toggle('has-vibe', v);
+  document.body.classList.toggle('has-dev', h || v);
+  $('handyLat').textContent = handy.connected && handy.rtt ? `Handy-Cloud: ${handy.rtt} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
+  // Hinweis im Player: Gerät da, Video mit Script, aber Sync aus
+  $('syncHint').hidden = !(h || v) || !script || appMode !== 'stream' || document.body.dataset.view !== 'player';
+}
+setInterval(updateDevClasses, 500);
+$('syncHintOn').addEventListener('click', () => {
+  store.set('lastWatchMode', 'sync');
+  setMode('sync');
+  showView('player');
+  updateDevClasses();
+  log('🔄 Geräte folgen dem Video.');
+});
 
 // „Mehr zur Szene“ nur zeigen, wenn darin etwas steht (und es nicht unter ⚙️ → Anzeige ausgeblendet ist)
 function updateSceneMore() {
@@ -503,6 +552,23 @@ function updateSceneMore() {
 setInterval(updateSceneMore, 1000);
 $('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNowBar, 100); });
 $('nowOpen').addEventListener('click', () => openPlayer());
+$('miniPlay').addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); setTimeout(updateNowBar, 100); });
+$('miniOpen').addEventListener('click', (e) => { e.stopPropagation(); openPlayer(); });
+$('drop').addEventListener('click', (e) => {
+  if (!document.body.classList.contains('mini-on') || e.target.closest('#miniCtl')) return;
+  e.stopPropagation();
+  openPlayer();
+}, true);
+$('browseMini').value = store.get('browseMini', 'left');
+$('browseMini').addEventListener('change', () => { store.set('browseMini', $('browseMini').value); updateNowBar(); });
+// System-Bild-in-Bild (schwebt auch über anderen Apps)
+$('ovPip').hidden = !document.pictureInPictureEnabled;
+$('ovPip').addEventListener('click', () => {
+  if (document.pictureInPictureElement) return document.exitPictureInPicture().catch(() => {});
+  video.requestPictureInPicture().then(() => {
+    if ($('stopHidden').checked) log('Hinweis: „Alles stoppen bei App-Wechsel“ ist an – wechselst du die App, halten die Geräte an.');
+  }).catch((e) => log('Bild-in-Bild: ' + e.message, true));
+});
 
 // Kopfzeile kompakt um die Kamera herum (⚙️ → Anzeige)
 // Pixel-Smartphones haben die Kamera oben mittig -> dort standardmäßig an
@@ -510,6 +576,13 @@ $('hdrNotch').checked = store.get('hdrNotch', /Pixel/i.test(navigator.userAgent)
 const applyHdr = () => document.body.classList.toggle('hdr-notch', $('hdrNotch').checked);
 $('hdrNotch').addEventListener('change', () => { store.set('hdrNotch', $('hdrNotch').checked); applyHdr(); });
 applyHdr();
+if (store.get('hdrNotch', null) === null && navigator.userAgentData?.getHighEntropyValues) {
+  navigator.userAgentData.getHighEntropyValues(['model']).then(({ model }) => {
+    if (!/pixel/i.test(model || '') || store.get('hdrNotch', null) !== null) return;
+    $('hdrNotch').checked = true;
+    applyHdr();
+  }).catch(() => {});
+}
 // Höhe der (klebenden) Kopfzeile für die Bereichs-Leiste der Einstellungen
 new ResizeObserver(([e]) => document.documentElement.style.setProperty('--hdr-h', e.target.offsetHeight + 'px'))
   .observe(document.querySelector('header'));
@@ -555,7 +628,27 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // Offset: wird pro Szene gemerkt (manche Scripts sind leicht versetzt)
 // ---------------------------------------------------------------------------
 function offsetKey() { return hq.src || ''; }
+// Hub und Satisfyer-Stärke dieser Szene (gemerkt wie der Offset)
+function loadSceneDev() {
+  const d = store.get('sceneDev', {})[offsetKey()] || {};
+  $('slideMin').value = d.min ?? store.get('min', 0);
+  $('slideMax').value = d.max ?? store.get('max', 100);
+  $('vibeScene').value = d.vibe ?? 100;
+  $('vibeSceneVal').textContent = `${$('vibeScene').value} %`;
+  updateOutputs();
+  if (handy.connected) handy.slide(Number($('slideMin').value), Number($('slideMax').value)).catch(() => {});
+}
+$('vibeScene').addEventListener('input', () => {
+  $('vibeSceneVal').textContent = `${$('vibeScene').value} %`;
+  const k = offsetKey();
+  if (!k) return;
+  const map = store.get('sceneDev', {});
+  map[k] = { ...map[k], vibe: Number($('vibeScene').value) };
+  store.set('sceneDev', map);
+});
+
 function loadOffsetForVideo() {
+  loadSceneDev();
   const map = store.get('offsets', {});
   const v = offsetKey() in map ? map[offsetKey()] : store.get('offset', 0);
   $('offset').value = v;
@@ -586,8 +679,15 @@ async function applySlide() {
     $('slideMax').value = max;
     updateOutputs();
   }
-  store.set('min', min);
-  store.set('max', max);
+  const k = offsetKey();
+  if (k) {
+    const map = store.get('sceneDev', {});
+    map[k] = { ...map[k], min, max };
+    store.set('sceneDev', map);
+  } else {
+    store.set('min', min);
+    store.set('max', max);
+  }
   if (handy.connected) {
     try { await handy.slide(min, max); } catch (e) { log(e, true); }
   }

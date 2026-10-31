@@ -19,16 +19,17 @@
   <header>
     <h1 id="homeBtn" role="button" tabindex="0" title="Bibliothek – oder zurück zum laufenden Video">Funscript Player <small id="appVersion" class="version"></small></h1>
     <!-- Status antippen = Geräte-Fenster (Verbinden, Offset, Hub, Stärke …) -->
-    <div class="pills">
-      <button id="status" class="pill off" data-dev="handy" title="The Handy – antippen für Verbinden, Offset, Hub"><span class="ic">↕ </span><span class="lbl">Handy: </span>getrennt</button>
-      <button id="vibeStatus" class="pill off" data-dev="vibe" title="Satisfyer – antippen für Verbinden, Stärke"><span class="ic">〰 </span><span class="lbl">Satisfyer: </span>getrennt</button>
-    </div>
+    <!-- Eine Status-Anzeige für beide Geräte; antippen = Geräte-Fenster -->
+    <button id="devChip" class="pills dev-chip" title="Geräte – antippen für Verbinden, Offset, Hub, Stärke">
+      <span id="status" class="pill off"><span class="ic">↕ </span><span class="lbl">Handy: </span>getrennt</span>
+      <span class="sep">·</span>
+      <span id="vibeStatus" class="pill off"><span class="ic">〰 </span><span class="lbl">Satisfyer: </span>getrennt</span>
+    </button>
     <button id="menuBtn" class="menu-btn" aria-label="Menü" aria-expanded="false">☰</button>
     <nav id="menu" class="menu" aria-label="Menü" hidden>
       <button id="menuLibrary">📚 Bibliothek</button>
       <button data-mode="control">🎮 Steuern <small>Direkt, Patterns, Baukasten</small></button>
       <button id="navSettings">⚙️ Einstellungen</button>
-      <label class="check menu-sync"><input class="sync-toggle" type="checkbox"> 🔄 Geräte folgen dem Video (Sync)</label>
     </nav>
   </header>
   <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
@@ -56,6 +57,14 @@
             <option value="random">Zufällig</option>
           </select>
           <label class="check chip-toggle sync-only"><input id="onlyScripts" type="checkbox" checked> ⚡ nur mit Funscript</label>
+          <select id="heatFilter" class="sync-only" aria-label="Intensität" title="Gilt für die geladenen Szenen">
+            <option value="">🌡️ Intensität: alle</option>
+            <option value="calm">ruhig</option>
+            <option value="mid">mittel</option>
+            <option value="hot">intensiv</option>
+            <option value="asc">sortiert: ruhig → intensiv</option>
+            <option value="desc">sortiert: intensiv → ruhig</option>
+          </select>
           <button id="stashRandom" class="small secondary">🎲 Zufall</button>
           <a class="small secondary btn sync-only" href="https://faptap.net/videos" target="_blank" rel="noopener noreferrer" title="Neue Scripts auf FapTap finden">FapTap ↗</a>
           <a class="small secondary btn stream-only" href="https://www.pornhub.com/" target="_blank" rel="noopener noreferrer" title="Pornhub öffnen">Pornhub ↗</a>
@@ -89,6 +98,8 @@
         <button id="backToLib" class="back">← Bibliothek</button>
         <div id="remoteBanner" class="remote-banner" hidden>
           <span>📱 Fernbedienung für <b id="remoteName"></b> · <span id="remoteState">verbunden</span></span>
+          <label class="remote-vol" title="Lautstärke am Bildschirm">🔊 <input id="remoteVol" type="range" min="0" max="100" step="5" value="100"></label>
+          <button id="remoteMute" class="small secondary" title="Ton am Bildschirm an/aus">🔇</button>
           <button id="remoteLeave" class="small secondary">Trennen</button>
         </div>
         <div id="drop" class="drop" data-fit="cover">
@@ -99,6 +110,8 @@
             <small>oder in der Bibliothek eine Szene wählen</small>
           </div>
 
+          <!-- Mini-Player beim Stöbern -->
+          <div id="miniCtl" class="mini-ctl"><button id="miniPlay" aria-label="Abspielen / Pause">❚❚</button><button id="miniOpen" aria-label="Zum Video">⤢</button></div>
           <!-- Bedienung im Vollbild -->
           <div id="ov" class="overlay">
             <div id="ovHit" class="ov-hit"></div>
@@ -134,6 +147,7 @@
                 <button id="ovVibe" class="sync-only" title="Vibration pausieren">Vib ❚❚</button>
                 <button id="ovEnh" title="Bildverbesserung umschalten">✨</button>
                 <button id="ovFit" title="Bild füllen / einpassen">Einpassen</button>
+                <button id="ovPip" title="Bild-in-Bild – schwebt auch über anderen Apps" hidden>⧉</button>
                 <button id="ovFs" title="Vollbild (F)">⛶</button>
               </div>
             </div>
@@ -155,12 +169,13 @@
             <button id="oUndo" class="small secondary" title="Letztes O zurücknehmen">−</button>
             <button id="markBtn" class="small secondary" title="Marker an dieser Stelle in Stash setzen (Taste P)">📍 Marker setzen</button>
           </div>
+          <p id="syncHint" class="sync-hint" hidden>〰 Die Geräte folgen dem Video gerade nicht. <button id="syncHintOn" class="small">Einschalten</button></p>
           <p id="scriptLine" class="meta sync-only"><span id="scriptName">Kein Script</span></p>
           <!-- Videos ohne Funscript: Geräte von Hand mitlaufen lassen -->
-          <div id="selfRow" class="self-row sync-only" hidden>
+          <div id="selfRow" class="self-row" hidden>
             <div class="self-head">
               <span>Kein Funscript</span>
-              <span id="selfSeg" class="seg self-seg"><button data-self="off">Aus</button><button data-self="self">Selbst steuern</button></span>
+              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button></span>
             </div>
             <div id="selfCtl" class="self-ctl" hidden>
               <div class="self-dev">
@@ -176,10 +191,16 @@
                 <div id="selfVibeChips" class="chips"><button data-v="0">Aus</button><button data-v="20">20</button><button data-v="40">40</button><button data-v="60">60</button><button data-v="80">80</button></div>
               </div>
               <div class="touchpad" data-touch="self">
-            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">🧪 Finger auflegen – oben stark, unten schwach</span></div>
-            <div class="tp-opts"><label class="check"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label></div>
+            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
+            <div class="tp-opts"><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
+            <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
           </div>
-              <p class="hint-text">Läuft nur, solange das Video läuft – Pause hält Handy und Satisfyer an. STOPP wie immer.</p>
+              <div class="self-rec"><button id="selfRec" class="small secondary">⏺ Mitschnitt zum Video</button>
+                <span id="selfRecInfo" class="hint-text"></span>
+                <button id="selfRecSave" class="small" hidden>💾 Als Script zu diesem Video speichern</button>
+                <button id="selfRecFile" class="small secondary" hidden>.funscript herunterladen</button></div>
+              <p class="hint-text">Läuft nur, solange das Video läuft – Pause hält Handy und Satisfyer an. STOPP wie immer.
+                Der Mitschnitt hängt an der Video-Zeit: gespeichert läuft er beim nächsten Mal genau so synchron mit.</p>
             </div>
           </div>
           <div id="presetRow" class="preset-row sync-only" hidden>
@@ -241,7 +262,7 @@
             </label>
           </details>
           <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein.</p>
-          <label class="check"><input id="betaTouch" type="checkbox"> 🧪 <b>Beta: Touch-Steuerung</b> – Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ am Video (wie in der Satisfyer-App)</label>
+          <label class="check"><input id="touchRecPos" type="checkbox"> 🧪 <b>Beta: Touch-Aufnahme als Position</b> – Finger-Höhe = Position der Handy (statt Tempo der Stöße)</label>
         </div>
 
         <div class="card">
@@ -271,7 +292,8 @@
             <label>Volle Stärke ab <output id="vibeFullVal"></output>
               <input id="vibeFull" type="range" min="50" max="600" step="10" value="300">
             </label>
-            <label>Vorlauf (Bluetooth-Verzögerung) <output id="vibeLeadVal"></output>
+            <label class="check"><input id="vibeLeadAuto" type="checkbox" checked> Vorlauf automatisch (Bluetooth-Laufzeit messen) <small id="vibeLeadAutoInfo" class="muted"></small></label>
+            <label>Vorlauf von Hand <output id="vibeLeadVal"></output>
               <input id="vibeLead" type="range" min="-300" max="600" step="10" value="100">
             </label>
           </div>
@@ -290,7 +312,7 @@
             <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
           </label>
           <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
-          <label class="check"><input id="stopButton" type="checkbox" checked> Roten STOPP-Knopf über dem Video zeigen (schwebend und im Vollbild)</label>
+          <label class="check"><input id="stopButton" type="checkbox" checked> STOPP-Knöpfe am Video zeigen (schwebend, Vollbild und „Alles stoppen“ unter dem Video – im Status-Fenster oben bleibt „Alles stoppen“ immer)</label>
           <p class="hint-text">Not-Aus: Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ in der Geräte-Spalte (bleibt immer da). Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
         </div>
 
@@ -460,6 +482,14 @@
             <label class="check"><input type="checkbox" data-hud="details"> Beschreibung</label>
             <label class="check"><input type="checkbox" data-hud="quality"> Zeile „Bild / HQ – Einstellungen“</label>
           </div>
+          <h3>Beim Stöbern</h3>
+          <label>Video, während du in Bibliothek oder Einstellungen bist
+            <select id="browseMini">
+              <option value="left">Mini-Player unten links</option>
+              <option value="right">Mini-Player unten rechts</option>
+              <option value="bar">Nur Leiste „Läuft gerade“</option>
+            </select>
+          </label>
           <h3>Kopfzeile</h3>
           <label class="check"><input id="hdrNotch" type="checkbox"> Kompakt: Handy- und Satisfyer-Status links und rechts neben der Kamera (für Smartphones mit Kamera oben in der Mitte)</label>
           <p class="hint-text">Browser verraten nur, wie hoch der Kamerabereich ist, nicht wo die Kamera sitzt – deshalb zum Einschalten.</p>
@@ -471,6 +501,8 @@
             <select id="setStartSource"></select>
           </label>
           <label class="check"><input id="setHoverPreview" type="checkbox" checked> Vorschauvideo beim Drüberfahren mit der Maus</label>
+          <label class="check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, über „📂 Datei“ geladene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
+          <p class="hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
           <label class="check"><input id="setShowContinue" type="checkbox"> „Weiterschauen“-Reihe oben in der Stash-Bibliothek anzeigen</label>
           <h3>Eingebundene Ordner</h3>
           <ul id="setFolders" class="folders"></ul>
@@ -511,8 +543,9 @@
           </div>
           <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Satisfyer</p>
           <div class="touchpad" data-touch="control">
-            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">🧪 Finger auflegen – oben stark, unten schwach</span></div>
-            <div class="tp-opts"><label class="check"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label></div>
+            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
+            <div class="tp-opts"><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
+            <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
           </div>
         </div>
 
@@ -589,28 +622,41 @@
           <button data-sub="handy" class="active">The Handy</button>
           <button data-sub="vibe">Satisfyer</button>
         </nav>
+        <p id="devNone" class="hint-text dev-none">Kein Gerät verbunden – oben auf <b>↕</b> (Handy) oder <b>〰</b> (Satisfyer) tippen.</p>
 
-        <div data-panel="dev:handy">
-          <button id="connect">Verbinden</button>
-          <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key in <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
-          <button id="resyncBtn" class="small secondary wide">⟳ Neu synchronisieren</button>
-          <label>Video-Offset <output id="offsetVal">0 ms</output>
+        <!-- Für alle verbundenen Geräte -->
+        <div id="devCommon" class="dev-common">
+          <button id="vibePause" class="secondary">❚❚ Geräte pausieren</button>
+          <label>Video-Offset <small class="muted">(Handy und Satisfyer)</small> <output id="offsetVal">0 ms</output>
             <input id="offset" type="range" min="-500" max="500" step="10" value="0">
           </label>
           <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
+        </div>
+
+        <div data-panel="dev:handy">
+          <div class="conn">
+            <button id="connect">Verbinden</button>
+            <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key in <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
+            <p id="handyLat" class="hint-text"></p>
+          </div>
+          <button id="resyncBtn" class="small secondary wide">⟳ Neu synchronisieren</button>
           <label>Hub min <output id="minVal">0 %</output>
             <input id="slideMin" type="range" min="0" max="100" value="0">
           </label>
           <label>Hub max <output id="maxVal">100 %</output>
             <input id="slideMax" type="range" min="0" max="100" value="100">
           </label>
-          <a href="#" class="more-settings" data-settings="setDevices">⚙️ Key, Umkehren, Bluetooth … in den Einstellungen</a>
+          <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Key, Umkehren, Bluetooth … in den Einstellungen</a>
         </div>
 
         <div data-panel="dev:vibe" hidden>
-          <button id="vibeBle">＋ Satisfyer per Bluetooth verbinden</button>
-          <p id="vibeBleHint" class="hint-text">Direkt aus dem Browser – Chrome auf Android/PC, auf dem iPhone die App „Bluefy“.</p>
-          <ul id="vibeDevices" class="devices"></ul>
+          <div class="conn">
+            <button id="vibeBle">＋ Satisfyer per Bluetooth verbinden</button>
+            <button id="vibeBleAll" class="secondary" hidden>Nicht dabei? Alle Bluetooth-Geräte anzeigen</button>
+            <p id="vibeBleHint" class="hint-text">Direkt aus dem Browser – Chrome auf Android/PC, auf dem iPhone die App „Bluefy“.</p>
+            <ul id="vibeDevices" class="devices"></ul>
+            <p id="vibeLat" class="hint-text"></p>
+          </div>
 
           <label>Steuerung
             <select id="vibeSource">
@@ -622,8 +668,10 @@
             <input id="vibeLevel" type="range" min="0" max="100" value="0">
           </label>
           <div class="meter" title="Aktuelle Stärke"><div id="vibeMeter"></div></div>
-          <button id="vibePause" class="secondary">❚❚ Vibration pausieren</button>
-          <a href="#" class="more-settings" data-settings="setDevices">⚙️ Übersetzung, Gleichmäßigkeit, Intiface … in den Einstellungen</a>
+          <label>Stärke für diese Szene <output id="vibeSceneVal">100 %</output>
+            <input id="vibeScene" type="range" min="10" max="100" step="5" value="100">
+          </label>
+          <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Übersetzung, Gleichmäßigkeit, Intiface … in den Einstellungen</a>
         </div>
 
         <button id="finaleBtn" class="finale-btn wide">🔥 Finale</button>
@@ -634,6 +682,7 @@
   </main>
 
   <button id="fabStop" class="fab-stop" hidden>■ STOPP</button>
+  <div id="rcBadge" class="rc-badge" hidden>📱 Ferngesteuert von <b id="rcBadgeName"></b> <button id="rcKick" class="small secondary">Trennen</button></div>
   <div id="nowBar" class="now-bar" hidden>
     <button id="nowPlay" title="Abspielen / Pause">▶</button>
     <button id="nowOpen" class="now-open" title="Zurück zum Video"><span id="nowTitle"></span><small>Zum Video ↑</small></button>

@@ -226,6 +226,36 @@ async function loadHeat(strip) {
   const word = h.avg < 120 ? 'ruhig' : h.avg < 250 ? 'mittel' : 'intensiv';
   strip.title = `Intensität: ${word} (Ø ${h.avg} %/s)`;
   strip.classList.add('on');
+  const tile = strip.closest('.tile');
+  if (tile) { tile.dataset.heat = h.avg; if ($('heatFilter').value) scheduleHeatFilter(); }
+}
+
+// Nach Intensität filtern / sortieren – gilt für die geladenen Kacheln. Mit Filter werden
+// die Werte aller Kacheln geladen (nicht nur der sichtbaren).
+const heatCat = (avg) => (avg < 120 ? 'calm' : avg < 250 ? 'mid' : 'hot');
+let heatFilterTimer = null;
+function scheduleHeatFilter() { clearTimeout(heatFilterTimer); heatFilterTimer = setTimeout(applyHeatFilter, 150); }
+const gridObserver = new MutationObserver(() => { if ($('heatFilter').value) scheduleHeatFilter(); });
+function applyHeatFilter() {
+  const f = $('heatFilter').value;
+  const grid = $('sceneGrid');
+  const tiles = [...grid.children];
+  if (f) {
+    for (const t of tiles) {
+      const strip = t.querySelector('.heatstrip');
+      if (strip && !strip.dataset.queued) { strip.dataset.queued = '1'; heatObserver.unobserve(strip); heatQueue.push(strip); }
+    }
+    pumpHeat();
+  }
+  const cat = ['calm', 'mid', 'hot'].includes(f) ? f : '';
+  for (const t of tiles) t.hidden = !!cat && (t.dataset.heat === undefined || heatCat(Number(t.dataset.heat)) !== cat);
+  if (f === 'asc' || f === 'desc') {
+    const dir = f === 'asc' ? 1 : -1;
+    const known = tiles.filter((t) => t.dataset.heat !== undefined).sort((a, b) => dir * (a.dataset.heat - b.dataset.heat));
+    gridObserver.disconnect(); // Umsortieren soll den Filter nicht erneut auslösen
+    for (const t of [...known, ...tiles.filter((t) => t.dataset.heat === undefined)]) grid.append(t);
+    gridObserver.observe(grid, { childList: true });
+  }
 }
 
 function sceneCard(s) {
@@ -422,7 +452,7 @@ async function openFolderItem(it) {
   loadVideo(mediaUrl(it.video), it.name, 'media:' + it.video);
   nowPlaying = { kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder };
   $('sceneMeta').textContent = it.folder ? `Ordner: ${it.folder}` : 'Bibliotheksordner';
-  if (!it.script) return clearScript();
+  if (!it.script) { clearScript(); return loadUserScript('media:' + it.video); }
   try {
     const res = await fetch(mediaUrl(it.script));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -457,7 +487,7 @@ async function openStashScene(s) {
     })
     .catch(() => {});
 
-  if (s.interactive === false) return clearScript();
+  if (s.interactive === false) { clearScript(); return loadUserScript('stash:' + s.id); }
   try {
     const res = await fetch(`/stash/scene/${s.id}/funscript`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -466,6 +496,32 @@ async function openStashScene(s) {
     clearScript();
     if (s.interactive) log('Funscript konnte nicht geladen werden: ' + e.message, true);
   }
+}
+
+// --- Eigene Scripts zu einem Video (Touch-Aufnahme, Mitschnitt, über „📂 Datei“ geladen) ---------
+const nowKey = () => (nowPlaying?.kind === 'stash' ? 'stash:' + nowPlaying.id : nowPlaying?.kind === 'media' ? 'media:' + nowPlaying.video : '');
+async function loadUserScript(src) {
+  try {
+    const res = await fetch('/api/userscript?src=' + encodeURIComponent(src));
+    if (!res.ok || nowKey() !== src) return;
+    loadScript(await res.text(), 'Eigenes Script');
+  } catch { /* keins vorhanden */ }
+}
+// Speichert ein Script dauerhaft zum laufenden Video (abschaltbar unter ⚙️ → Bibliothek)
+async function saveScriptToLibrary(actions) {
+  const src = nowKey();
+  const funscript = { version: '1.0', inverted: false, range: 100, actions: actions.map((a) => ({ at: Math.round(a.at), pos: a.pos })) };
+  if (!src || !store.get('saveScripts', true)) {
+    downloadFunscript(funscript.actions, nowPlaying?.title || nowPlaying?.name || 'script');
+    return log(src ? 'Speichern zum Video ist aus (⚙️ → Bibliothek) – als Datei heruntergeladen.' : 'Lokale Datei – als .funscript heruntergeladen.');
+  }
+  try {
+    const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, funscript }) });
+    if (!res.ok) throw new Error(await res.text());
+    const r = await res.json();
+    loadScript(JSON.stringify(funscript), 'Eigenes Script');
+    log(r.where === 'folder' ? `💾 Als ${r.file} neben dem Video gespeichert – läuft ab jetzt synchron mit.` : '💾 Auf dem Player-Server zu diesem Video gespeichert – läuft ab jetzt synchron mit.');
+  } catch (e) { log('Speichern: ' + e.message, true); }
 }
 
 // --- Zurückschreiben in Stash: Sterne, Favorit, O-Zähler, Marker ---------------
@@ -728,3 +784,12 @@ $('stashRandom').addEventListener('click', async () => {
   const id = new URLSearchParams(location.search).get('stash');
   if (status.configured && /^\d+$/.test(id || '')) openStashScene({ id, title: `Stash-Szene ${id}`, interactive: null });
 })();
+
+// Intensitäts-Filter (Wahl wird gemerkt)
+$('heatFilter').value = store.get('heatFilter', '');
+$('heatFilter').addEventListener('change', () => { store.set('heatFilter', $('heatFilter').value); applyHeatFilter(); });
+gridObserver.observe($('sceneGrid'), { childList: true });
+
+// Eigene Scripts speichern an/aus (⚙️ → Bibliothek)
+$('saveScripts').checked = store.get('saveScripts', true);
+$('saveScripts').addEventListener('change', () => store.set('saveScripts', $('saveScripts').checked));

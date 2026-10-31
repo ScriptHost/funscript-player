@@ -53,6 +53,15 @@ async function loadStore() {
   }
 }
 
+// Touch-Aufnahme als Pattern: Punkte als Anteil der Gesamtlänge (höchstens ~2000 Punkte)
+function saveRecordingAsPattern(name, length, actions) {
+  const step = Math.max(1, Math.ceil(actions.length / 2000));
+  const points = actions.filter((_, i) => i % step === 0).map((a) => ({ t: Math.min(0.9999, a.at / length), pos: a.pos }));
+  db.patterns.push({ id: uid(), name, length: Math.round(length), points });
+  saveStore();
+  fillPatternSelects();
+}
+
 let saveTimer;
 function saveStore() {
   clearTimeout(saveTimer);

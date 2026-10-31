@@ -21,7 +21,8 @@ const selfCtl = {
 const selfVideoLoaded = () => (remote.on ? !!remote.state?.src : !!nowPlaying);
 // Läuft „Selbst steuern“ gerade? (Sync an, Video ohne Script, Video läuft)
 function selfActive() {
-  return selfCtl.mode === 'self' && !script && syncActive() && selfVideoLoaded() && videoPlaying();
+  // Bewusste Wahl -> gilt in jedem Modus, auch bei „nur schauen“
+  return selfCtl.mode === 'self' && !script && selfVideoLoaded() && videoPlaying();
 }
 const selfSpeed = () => Math.min(selfCtl.speed, Number($('capSpeed').value));
 
@@ -39,7 +40,8 @@ function selfRunning() {
 }
 
 function selfUI() {
-  $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player';
+  $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
+    || !(typeof hasHandy === 'function' && (hasHandy() || hasVibe())); // nur mit verbundenem Gerät
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
@@ -105,3 +107,42 @@ document.querySelectorAll('#selfChips button').forEach((b) => b.addEventListener
 }));
 document.querySelectorAll('#selfVibeChips button').forEach((b) => b.addEventListener('click', () => setSelfVibe(b.dataset.v)));
 selfUI();
+
+// ---------------------------------------------------------------------------
+// ⏺ Mitschnitt zum Video: zeichnet die Steuerung (Regler, Schnellwahl, Touch) an der
+// Video-Zeit auf -> wird ein Funscript zu diesem Video (Tempo der Stöße = Stärke).
+// ---------------------------------------------------------------------------
+let selfRec = null, selfRecTimer = null, selfRecActions = null;
+const selfRecValue = () => {
+  const v = Math.max(selfCtl.handyOn ? selfSpeed() : 0, selfCtl.vibe);
+  return selfActive() && v > 0 ? v : null;
+};
+$('selfRec').addEventListener('click', () => {
+  if (!selfRec) {
+    selfRec = [];
+    selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
+    $('selfRec').textContent = '■ Mitschnitt beenden';
+    $('selfRec').classList.add('recording');
+    $('selfRecSave').hidden = $('selfRecFile').hidden = true;
+    $('selfRecInfo').textContent = 'läuft – steuere wie gewohnt';
+    return;
+  }
+  clearInterval(selfRecTimer);
+  $('selfRec').textContent = '⏺ Mitschnitt zum Video';
+  $('selfRec').classList.remove('recording');
+  // Spulen: nach Zeit sortieren; Lücken (Pause/Sprung) gelten als losgelassen
+  const samples = selfRec.sort((a, b) => a[0] - b[0]);
+  selfRec = null;
+  const withGaps = [];
+  for (let i = 0; i < samples.length; i++) {
+    withGaps.push(samples[i]);
+    if (samples[i + 1] && samples[i + 1][0] - samples[i][0] > 600) withGaps.push([samples[i][0] + 150, null]);
+  }
+  if (!withGaps.some((x) => x[1])) { $('selfRecInfo').textContent = 'nichts aufgenommen – Video abspielen und steuern'; return; }
+  const start = withGaps[0][0], end = withGaps[withGaps.length - 1][0];
+  selfRecActions = touchToTempoActions(withGaps, end, start);
+  $('selfRecInfo').textContent = `${Math.round((end - start) / 1000)} s · ${selfRecActions.length} Punkte`;
+  $('selfRecSave').hidden = $('selfRecFile').hidden = false;
+});
+$('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions));
+$('selfRecFile').addEventListener('click', () => downloadFunscript(selfRecActions, nowPlaying?.title || nowPlaying?.name || 'mitschnitt'));

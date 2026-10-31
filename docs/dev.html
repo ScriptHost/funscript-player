@@ -107,6 +107,7 @@
       <tr><td><code>stroker.js</code></td><td>Bewegungsgeräte über Intiface (z. B. Handy per Bluetooth).</td></tr>
       <tr><td><code>selfctl.js</code></td><td>„Selbst steuern“ für Videos ohne Funscript: Handy per HAMP (Besitzer <code>'self'</code>) bzw. <code>hampLevel()</code> für Bluetooth, Satisfyer über <code>selfVibeLevel()</code>.</td></tr>
       <tr><td><code>touchpad.js</code></td><td>🧪 Beta: Touch-Fläche (Finger-Höhe = Stärke/Tempo) für 🎮 Steuern und „Selbst steuern“.</td></tr>
+      <tr><td><code>test/</code></td><td>Automatische Tests mit Node-Bordmitteln: <code>node --test "test/*.test.js"</code> (Script-Logik direkt aus den Dateien, Server mit Testordnern).</td></tr>
       <tr><td><code>settings.js</code></td><td>Einstellungsseite: Bild/HQ-Modus, Anzeige im Player, System, Zurücksetzen.</td></tr>
       <tr><td><code>remote.js</code></td><td>Fernbedienung: Bildschirm-Seite (Zustand melden, Befehle ausführen) und Fernbedienungs-Seite.</td></tr>
     </table>
@@ -193,6 +194,7 @@
       <tr><td><span class="m get">GET</span> <span class="m post">POST</span></td><td><code>/heresphere</code> · <code>/heresphere/stash/&lt;id&gt;</code> · <code>/heresphere/media/…</code></td><td>HereSphere-API (Bewertung/Favorit im POST). Liste nur mit VR: Stash-Szenen mit VR-Tag (<code>isVrTag</code>), Ordner-Videos mit VR-Kennung im Namen (<code>vrFormat</code>)</td></tr>
       <tr><td><span class="m ws">WS</span></td><td><code>/intiface?target=IP:PORT</code></td><td>WebSocket-Weiterleitung zu Intiface, nur private IPv4</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/prefs</code></td><td>Gemeinsame Einstellungen aller Geräte (<code>data/prefs.json</code>); PUT führt zusammen, <code>null</code> löscht</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m post">POST</span></td><td><code>/api/userscript?src=…</code></td><td>Eigenes Script zu einem Video: POST <code>{ src, funscript }</code> legt es neben das Ordner-Video (nie überschreiben) bzw. nach <code>data/scripts/</code>; GET liefert es</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/heat?src=stash:&lt;id&gt;|media:&lt;pfad&gt;</code></td><td>Intensität eines Scripts: 48 Abschnitte mit mittlerem Tempo + Durchschnitt (für die Kacheln)</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/settings</code></td><td>Server-Einstellungen (<code>{ heresphere }</code>, gespeichert in <code>data/settings.json</code>)</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/remote/time</code> · <code>/api/remote/events</code></td><td>Serveruhr · SSE-Verbindung der Fernbedienung</td></tr>
@@ -275,7 +277,7 @@ node server.js
       <div>
         <h3>Ablauf einer Version</h3>
         <ol class="steps">
-          <li>Ändern, dann <code>node --check</code> für alle JS-Dateien.</li>
+          <li>Ändern, dann <code>node --check</code> für alle JS-Dateien und <code>node --test "test/*.test.js"</code>.</li>
           <li>Im Browser testen (Testvideo + Funscript, Stash ggf. nachbauen).</li>
           <li><code>VERSION</code>, <code>CHANGELOG.md</code>, bei größeren Versionen <code>RELEASE-NOTES-x.y.z.md</code> – jeweils „was &amp; warum“.</li>
           <li>Commit, Tag <code>vX.Y.Z</code>, ZIP für Docker per <code>git archive</code>.</li>

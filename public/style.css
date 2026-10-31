@@ -727,9 +727,7 @@ body.dev-open #devices.sheet > .card { margin: 0; }
 /* Kopfzeile kompakt: Status links/rechts der Kamera, Titel aus */
 body.hdr-notch header { padding-top: max(6px, calc((env(safe-area-inset-top) - 30px) / 2)); }
 body.hdr-notch header h1 { display: none; }
-body.hdr-notch .pills { display: contents; }
-body.hdr-notch #status { margin-right: auto; }
-body.hdr-notch #status, body.hdr-notch #vibeStatus { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; }
+body.hdr-notch .dev-chip { margin-right: auto; }
 body.dev-open .now-bar { display: none; }
 
 /* Status-Chips: am PC „Handy: verbunden“, schmal nur „↕ verbunden“; Kopfzeile bleibt einzeilig */
@@ -742,13 +740,13 @@ header .pill .ic { display: none; }
 @media (max-width: 420px) { header h1 { display: none; } }
 
 /* 1.13: Geräte-Steuerung am Video (Player-Seite, abschaltbar unter ⚙️ → Anzeige) */
-body[data-view=player]:not(.hud-off-devices) #devices.sheet {
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices.sheet {
   display: block; position: static; width: auto; max-height: none; overflow: visible; box-shadow: none; border-radius: 0; padding: 0;
 }
-body[data-view=player]:not(.hud-off-devices) #devices.sheet > .card { border-radius: 12px; }
-body[data-view=player]:not(.hud-off-devices) .sheet-close { display: none; }
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices.sheet > .card { border-radius: 12px; }
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) .sheet-close { display: none; }
 @media (min-width: 901px) {
-  body[data-view=player]:not(.hud-off-devices) main { grid-template-columns: minmax(0, 1fr) 340px; max-width: 1600px; }
+  body[data-view=player]:not(.hud-off-devices):not(.dev-open) main { grid-template-columns: minmax(0, 1fr) 340px; max-width: 1600px; }
 }
 #homeBtn { cursor: pointer; }
 
@@ -772,8 +770,13 @@ body[data-view=player]:not(.hud-off-devices) .sheet-close { display: none; }
 body[data-mode=stream] .heatstrip { display: none; }
 
 /* 1.15 Beta: Touch-Steuerung */
-.touchpad { display: none; grid-column: 1 / -1; margin-top: 10px; }
-body.beta-touch .touchpad { display: block; }
+.touchpad { grid-column: 1 / -1; margin-top: 10px; }
+body:not(.has-handy) .tpl-handy, body:not(.has-vibe) .tpl-vibe { display: none !important; }
+.tp-rec { width: auto; margin: 0 0 0 auto; }
+.tp-rec.recording { background: #c62828; color: #fff; }
+.tp-recout { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.tp-recout[hidden], .tp-save-lib[hidden] { display: none; }
+.tp-recout button { width: auto; margin: 0; }
 .tp-area { position: relative; height: 220px; border-radius: 14px; overflow: hidden; touch-action: none; user-select: none; cursor: ns-resize;
   background: linear-gradient(to top, var(--card), var(--bg)); border: 1px solid var(--line); }
 .tp-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(to top, rgba(224,69,123,.25), rgba(224,69,123,.75)); transition: height .05s linear; }
@@ -781,3 +784,69 @@ body.beta-touch .touchpad { display: block; }
 .tp-hint { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 13px; color: var(--muted); pointer-events: none; }
 .tp-opts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; }
 .tp-opts .check { margin: 0; }
+
+/* 1.16: Geräte-Bereich – Verbinden nur im Status-Fenster, sonst nur verbundene Geräte */
+.dev-none { display: none; }
+body[data-view=player]:not(.dev-open):not(.has-dev) .dev-none { display: block; }
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices nav.subtabs,
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices .conn { display: none !important; }
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices [data-panel][hidden] { display: block !important; }
+body:not(.has-handy) #devices [data-panel="dev:handy"] > :not(.conn),
+body:not(.has-vibe) #devices [data-panel="dev:vibe"] > :not(.conn) { display: none !important; }
+body:not(.has-dev) #devCommon, body:not(.has-dev) #finaleBtn { display: none; }
+body:not(.has-dev):not(.dev-open) #stopAll, body.no-stop-btn:not(.dev-open) #stopAll { display: none; }
+.dev-common { margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.dev-common #vibePause { margin-bottom: 10px; }
+.sync-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 8px 12px; border: 1px solid #ffb74d; border-radius: 10px; color: #ffb74d; font-size: 14px; }
+.sync-hint[hidden] { display: none; }
+.sync-hint button { width: auto; margin: 0; }
+#vibeBleAll[hidden] { display: none; }
+
+/* 1.16: eine Status-Anzeige für beide Geräte */
+.dev-chip { display: inline-flex; align-items: center; gap: 6px; width: auto; margin: 0; padding: 5px 12px; background: none;
+  border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.dev-chip:hover { background: var(--card); }
+.dev-chip::after { content: "▾"; font-size: 10px; opacity: .7; }
+header .dev-chip .pill { border: 0; padding: 0; font-size: inherit; cursor: inherit; }
+header .dev-chip .pill::after { content: none; }
+.dev-chip .sep { opacity: .5; }
+/* Kompakte Kopfzeile nur auf schmalen Bildschirmen – am PC normal */
+@media (min-width: 701px) {
+  body.hdr-notch header h1 { display: block; }
+  body.hdr-notch header { padding-top: calc(12px + env(safe-area-inset-top)); }
+  body.hdr-notch .dev-chip { margin-right: 0; }
+}
+
+/* 1.16: Intensität filtern */
+#heatFilter { width: auto; margin: 0; }
+.tile[hidden] { display: none; }
+/* 1.16: Mini-Player beim Stöbern */
+.mini-ctl { display: none; }
+body.mini-on #view-player { display: block !important; }
+body.mini-on #view-player > :not(#drop) { display: none !important; }
+body.mini-on #drop {
+  position: fixed; z-index: 1600; left: calc(12px + env(safe-area-inset-left)); bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(44vw, 340px); height: auto; aspect-ratio: 16 / 9; margin: 0; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.55); cursor: pointer;
+}
+body.mini-on.mini-right #drop { left: auto; right: calc(12px + env(safe-area-inset-right)); }
+body.mini-on #drop .overlay, body.mini-on #drop .hint { display: none !important; }
+body.mini-on .mini-ctl { display: flex; position: absolute; right: 6px; bottom: 6px; gap: 6px; z-index: 6; }
+.mini-ctl button { width: auto; margin: 0; padding: 6px 10px; background: rgba(0,0,0,.65); color: #fff; border-radius: 8px; font-size: 14px; }
+body.remote-on #ovPip { display: none !important; }
+
+/* 1.16: Mitschnitt zum Video */
+.self-rec { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; }
+.self-rec button { width: auto; margin: 0; }
+.self-rec button[hidden] { display: none; }
+#selfRec.recording { background: #c62828; color: #fff; }
+
+/* 1.16: Fernbedienung – Lautstärke, Anzeige am Bildschirm */
+.remote-vol { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+.remote-vol input { width: 110px; margin: 0; }
+.rc-badge { position: fixed; z-index: 1700; top: calc(var(--hdr-h, 56px) + 8px); left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 999px; background: var(--card);
+  border: 1px solid var(--accent); box-shadow: 0 6px 20px rgba(0,0,0,.4); font-size: 13px; white-space: nowrap; }
+.rc-badge[hidden] { display: none; }
+.rc-badge button { width: auto; margin: 0; }
+body.fs-open .rc-badge { top: 12px; }

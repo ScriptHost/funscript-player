@@ -17,20 +17,23 @@ Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per
 
 ## Aufbau
 
-Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰:
+Oben stehen nur eine Status-Anzeige für beide Geräte und das Menü ☰:
 
-- **Status antippen** (`Handy: verbunden`, am Smartphone `↕ verbunden`) öffnet das Geräte-Fenster: Verbinden,
-  Neu synchronisieren, Offset, Hub, Satisfyer verbinden, Stärke, Pause, Finale, Alles stoppen.
-- **🔄 Geräte folgen dem Video** (⚙️ → Geräte ganz oben und im Menü): an = Sync, aus = nur schauen (Streamen).
+- **Status antippen** öffnet das Geräte-Fenster – dort wird verbunden (Handy, Satisfyer per Bluetooth, Geräteliste).
+- **Unter dem Video** stehen nur die Regler der verbundenen Geräte (Pause, Offset, Hub, Stärke, Finale, Alles stoppen).
+- **🔄 Geräte folgen dem Video** ist Standard (an); ausschalten nur unter ⚙️ → Geräte.
 - **Videos ohne Funscript:** unter dem Video „Selbst steuern“ – Handy-Geschwindigkeit und Satisfyer-Stärke
-  von Hand, solange das Video läuft. Pause hält an, STOPP wie immer.
+  von Hand, solange das Video läuft. Pause hält an, STOPP wie immer. **⏺ Mitschnitt zum Video** speichert das als
+  eigenes Funscript zum Video (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: auf dem Player-Server).
 - Der Satisfyer braucht **kein eigenes Vibrations-Script** – er nutzt dasselbe Funscript wie die Handy.
 - **Einstellungen gelten auf allen Geräten** (Key, Offsets, Satisfyer, Sicherheit … liegen auf dem Server, `data/prefs.json`);
   Bild/HQ, Kopfzeile und Bildschirmsperre bleiben pro Gerät.
 - **Handy-API v3:** unter ⚙️ → Geräte eine *Application ID* eintragen (handyfeeling.com → Application IDs) – dann läuft
   die Handy auch bei anderer Wiedergabegeschwindigkeit mit. Den geheimen *Application Key* braucht der Player nicht.
 - **Bibliothek:** Kacheln mit Funscript zeigen unten eine Heatmap-Leiste – Intensität auf einen Blick.
-- 🧪 **Beta: Touch-Steuerung** (⚙️ → Geräte): Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ – oben stark, unten schwach.
+- **Touch-Steuerung:** Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ – oben stark, unten schwach; ⏺ nimmt auf.
+- **Bibliothek:** nach Intensität filtern/sortieren; beim Stöbern läuft das Video als Mini-Player weiter.
+- **Tests:** `node --test "test/*.test.js"` (ohne zusätzliche Pakete).
 - **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
 - **Im Player** stehen die Regler fürs Schauen fest am Video (am Smartphone darunter, am PC rechts daneben);
   abschaltbar unter ⚙️ → Anzeige. Der Titel „Funscript Player“ führt zur Bibliothek bzw. zurück zum laufenden Video.
@@ -48,7 +51,7 @@ in der `docker-compose.yml` einfach weitere Zeilen unter `volumes` ergänzen, z.
 
 ## VR-Brille (HereSphere)
 
-In HereSphere im Browser `https://player.<domain>/heresphere` öffnen. Es erscheinen **nur VR-Videos**: Stash-Szenen mit
+In HereSphere im Browser `https://handy.<domain>/heresphere` öffnen. Es erscheinen **nur VR-Videos**: Stash-Szenen mit
 mindestens einem VR-Tag (z. B. „VR“, „180°“, „360°“), Ordner-Videos mit VR-Kennung im Dateinamen. Kategorien: *Alle mit Script*,
 deine gespeicherten Stash-Filter und die eingebundenen Ordner – mit Vorschau, Tags, Markern und Funscript.
 Die Handy steuert HereSphere selbst (Connection Key in HereSphere eintragen). Das VR-Format wird an
@@ -85,7 +88,7 @@ per CPU (hqdn3d → Lanczos → unsharp → x264). Die Browser-Verbesserung komm
 ## Docker mit Traefik
 
 Die `docker-compose.yml` ist für ein Traefik-Setup
-vorbereitet (Labels und Netze selbst ergänzen); erreichbar unter `https://player.${DOMAIN}`
+vorbereitet (Labels und Netze selbst ergänzen); erreichbar unter `https://handy.${DOMAIN}`
 (`DOMAIN` aus deiner `.env`). Anzupassen: Videoordner und ggf. `STASH_URL` (am besten der interne
 Containername, z. B. `http://Stash:9999`).
 

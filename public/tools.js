@@ -12,7 +12,7 @@
 // ===========================================================================
 
 const tools = Object.assign({ stretch: false, limit: false, maxSpeed: 400 }, store.get('scriptTools', {}));
-let toolCache = { src: null, key: '', actions: null, info: '', even: 0 };
+let toolCache = { handy: null, vibe: null };
 
 const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv', custom: 'Eigene' };
 // Wer schon eigene Haken gesetzt hatte, bleibt bei „Eigene“; alle anderen starten mit „Automatisch“
@@ -94,14 +94,18 @@ function limitSpeed(a, maxSpeed) {
   return { actions: res, changed };
 }
 
-function processScript(actions) {
+// target = 'handy' oder 'vibe': Die Handy bekommt Kürzungen auf das, was sie physisch schafft;
+// der Satisfyer hat keine Tempo-Grenze und bekommt das Script ungekürzt (dafür ggf. ruhiger).
+function processScript(actions, target = 'handy') {
   if (!actions) return actions;
   const preset = currentPreset();
   const key = `${preset}|${tools.stretch}|${tools.limit}|${tools.maxSpeed}`;
-  if (toolCache.src === actions && toolCache.key === key) return toolCache.actions;
+  const hit = toolCache[target];
+  if (hit && hit.src === actions && hit.key === key) return hit.actions;
   let out = actions;
-  const notes = [];
-  let even = 0; // zusätzliche Gleichmäßigkeit für den Satisfyer (0–1)
+  const notes = [];      // gilt für beide Geräte
+  const only = [];       // nur für dieses Gerät
+  let even = 0;          // zusätzliche Gleichmäßigkeit für den Satisfyer (0–1)
 
   if (preset === 'custom') {
     if (tools.stretch) {
@@ -110,49 +114,59 @@ function processScript(actions) {
       if (max - min >= 5 && max - min < 90) {
         out = stretchRange(out, min, max);
         notes.push(`Hub ${min}–${max} → 0–100 gestreckt`);
-      } else notes.push('Hub nutzt schon fast den ganzen Bereich');
+      }
     }
-    if (tools.limit) {
+    if (tools.limit && target === 'handy') {
       const r = limitSpeed(out, tools.maxSpeed);
       out = r.actions;
-      notes.push(r.changed ? `${r.changed} zu schnelle Stellen geglättet` : 'keine zu schnellen Stellen');
+      if (r.changed) only.push(`${r.changed} zu schnelle Stellen gekürzt`);
     }
   } else if (preset !== 'original') {
-    const s = analyzeScript(out);
-    if (s) {
-      // Zittern: Automatisch erst ab 5 % der Bewegungen, Sanft/Intensiv immer
-      if (preset !== 'auto' || s.jitter / s.segs > 0.05) {
+    const st = analyzeScript(out);
+    if (st) {
+      if (preset !== 'auto' || st.jitter / st.segs > 0.05) {
         const r = removeJitter(out);
         if (r.removed) { out = r.actions; notes.push(`${r.removed} Zitterpunkte entfernt`); }
       }
-      // Hub: Automatisch streckt, wenn weniger als 70 % genutzt werden, Intensiv schon unter 90 %
-      const range = s.hi - s.lo;
+      const range = st.hi - st.lo;
       if (range >= 5 && ((preset === 'auto' && range < 70) || (preset === 'intense' && range < 90))) {
-        out = stretchRange(out, s.lo, s.hi);
-        notes.push(`Hub ${s.lo}–${s.hi} → 0–100 gestreckt`);
+        out = stretchRange(out, st.lo, st.hi);
+        notes.push(`Hub ${st.lo}–${st.hi} → 0–100 gestreckt`);
       }
-      // Sanft: jedes Script auf 15–85 % bringen (flache werden nicht noch flacher)
       if (preset === 'soft' && range >= 5) {
-        out = stretchRange(out, s.lo, s.hi).map((x) => ({ at: x.at, pos: Math.round(15 + x.pos * 0.7) }));
-        notes.push(`Hub ${s.lo}–${s.hi} → 15–85 %`);
+        out = stretchRange(out, st.lo, st.hi).map((x) => ({ at: x.at, pos: Math.round(15 + x.pos * 0.7) }));
+        notes.push(`Hub ${st.lo}–${st.hi} → 15–85 %`);
       }
-      // Tempo: was die Handy nicht schafft, kürzen (nach dem Strecken, das macht Bewegungen schneller)
-      const r = limitSpeed(out, preset === 'soft' ? 300 : preset === 'intense' ? 500 : 450);
-      if (r.changed) { out = r.actions; notes.push(`${r.changed} zu schnelle Stellen geglättet`); }
-      // Satisfyer: bei stark schwankendem Tempo ruhiger, bei Sanft immer
-      even = preset === 'soft' ? 0.5 : preset === 'auto' && s.cv > 0.7 ? 0.3 : 0;
-      if (even) notes.push('Satisfyer ruhiger');
+      if (target === 'handy') {
+        // Was die Handy nicht schafft, kürzen (nach dem Strecken – das macht Bewegungen schneller)
+        const r = limitSpeed(out, preset === 'soft' ? 300 : preset === 'intense' ? 500 : 450);
+        if (r.changed) { out = r.actions; only.push(`${r.changed} zu schnelle Stellen gekürzt`); }
+      } else {
+        even = preset === 'soft' ? 0.5 : preset === 'auto' && st.cv > 0.7 ? 0.3 : 0;
+        if (even) only.push('ruhiger');
+      }
     }
   }
-
-  const info = notes.join(' · ') || (preset === 'original' ? 'unverändert' : 'Script passt, nichts geändert');
-  toolCache = { src: actions, key, actions: out, info: `${SCRIPT_PRESETS[preset]}: ${info}`, even };
+  toolCache[target] = { src: actions, key, actions: out, notes, only, even, preset };
   return out;
+}
+
+// Info-Zeile: Gemeinsames + was für die VERBUNDENEN Geräte gilt (ohne Gerät: beides)
+function presetInfoText() {
+  if (!script) return '';
+  const h = processScript(script.actions, 'handy') && toolCache.handy;
+  const v = processScript(script.actions, 'vibe') && toolCache.vibe;
+  const anyDev = typeof hasHandy === 'function' && (hasHandy() || hasVibe());
+  const showH = !anyDev || hasHandy(), showV = !anyDev || hasVibe();
+  const parts = [...h.notes];
+  if (showH && h.only.length) parts.push(`Handy: ${h.only.join(', ')}`);
+  if (showV && v.only.length) parts.push(`Satisfyer: ${v.only.join(', ')}`);
+  return parts.join(' · ') || (h.preset === 'original' ? 'unverändert' : 'Script passt, nichts geändert');
 }
 
 // Gleichmäßigkeit, die das Preset für das laufende Video-Script vorgibt (vibe.js)
 function presetVibeEven() {
-  return script && toolCache.src === script.actions ? toolCache.even : 0;
+  return script && toolCache.vibe?.src === script.actions ? toolCache.vibe.even : 0;
 }
 
 function toolsChanged() {
@@ -162,10 +176,10 @@ function toolsChanged() {
   document.querySelectorAll('#presetDefault button').forEach((b) => b.classList.toggle('active', b.dataset.preset === presetDefault));
   $('toolCustom').hidden = presetDefault !== 'custom' && currentPreset() !== 'custom';
   if (script) processScript(script.actions);
-  $('toolInfo').textContent = script ? `Aktuelles Video – ${toolCache.info}` : '';
+  $('toolInfo').textContent = script ? `Aktuelles Video – ${SCRIPT_PRESETS[currentPreset()]}: ${presetInfoText()}` : '';
   $('presetRow').hidden = !script;
   $('scenePreset').value = currentPreset();
-  $('presetInfo').textContent = script ? toolCache.info.replace(/^[^:]+: /, '') : '';
+  $('presetInfo').textContent = presetInfoText();
   drawHeatmap();
   if (handy.owner === 'video') resync(); // geändertes Script sofort an die Handy
 }
