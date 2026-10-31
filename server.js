@@ -118,6 +118,74 @@ async function writeSettings(req) {
   await fsp.writeFile(SETTINGS_FILE, JSON.stringify(serverSettings));
 }
 
+// Gemeinsame Einstellungen aller Geräte (data/prefs.json): Handy-Key, Offsets, Satisfyer-
+// Übersetzung … Welche Schlüssel dazugehören, entscheidet die Oberfläche (handy.js).
+// PUT führt zusammen; null löscht einen Schlüssel.
+const PREFS_FILE = path.join(DATA_DIR, 'prefs.json');
+async function readPrefs() {
+  try { return JSON.parse(await fsp.readFile(PREFS_FILE, 'utf8')); } catch { return {}; }
+}
+let prefsWrite = Promise.resolve();
+async function writePrefs(req) {
+  const patch = JSON.parse(await readBody(req, 1024 * 1024) || '{}');
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) throw Object.assign(new Error('Ungültige Daten'), { status: 400 });
+  // Nacheinander schreiben, damit sich zwei Geräte nicht gegenseitig überschreiben
+  prefsWrite = prefsWrite.then(async () => {
+    const prefs = await readPrefs();
+    for (const [k, v] of Object.entries(patch)) {
+      if (!/^[\w.:-]{1,80}$/.test(k)) continue;
+      if (v === null) delete prefs[k]; else prefs[k] = v;
+    }
+    await fsp.mkdir(DATA_DIR, { recursive: true });
+    await fsp.writeFile(PREFS_FILE + '.tmp', JSON.stringify(prefs));
+    await fsp.rename(PREFS_FILE + '.tmp', PREFS_FILE);
+  });
+  await prefsWrite;
+}
+
+// Intensität für die Kacheln der Bibliothek: Funscript -> 48 Abschnitte mit mittlerem Tempo
+// (Positionseinheiten pro Sekunde, wie die Heatmap im Player). Wird im Speicher gemerkt.
+const HEAT_BINS = 48;
+const heatCache = new Map();
+function heatSummary(text) {
+  const actions = (JSON.parse(text).actions || [])
+    .filter((x) => Number.isFinite(x.at) && Number.isFinite(x.pos)).sort((x, y) => x.at - y.at);
+  if (actions.length < 2) return { bins: [], avg: 0 };
+  const end = actions[actions.length - 1].at || 1;
+  const sum = new Array(HEAT_BINS).fill(0), dur = new Array(HEAT_BINS).fill(0);
+  let total = 0, totalDt = 0;
+  for (let i = 1; i < actions.length; i++) {
+    const dt = actions[i].at - actions[i - 1].at;
+    if (dt <= 0) continue;
+    const v = (Math.abs(actions[i].pos - actions[i - 1].pos) / dt) * 1000;
+    const b = Math.min(HEAT_BINS - 1, Math.floor((actions[i - 1].at / end) * HEAT_BINS));
+    sum[b] += v * dt; dur[b] += dt; total += v * dt; totalDt += dt;
+  }
+  return { bins: sum.map((s, i) => (dur[i] ? Math.round(s / dur[i]) : 0)), avg: Math.round(total / (totalDt || 1)) };
+}
+async function scriptHeat(src) {
+  if (heatCache.has(src)) return heatCache.get(src);
+  const m = /^(stash|media):(.+)$/.exec(src || '');
+  if (!m) throw Object.assign(new Error('Ungültige Quelle'), { status: 400 });
+  let text;
+  if (m[1] === 'stash') {
+    if (!STASH_URL || !/^\d+$/.test(m[2])) throw Object.assign(new Error('Ungültige Stash-Szene'), { status: 400 });
+    const up = await stashRequest('GET', `/scene/${m[2]}/funscript`);
+    if (up.statusCode !== 200) { up.resume(); throw Object.assign(new Error('Kein Funscript'), { status: 404 }); }
+    const chunks = [];
+    for await (const c of up) chunks.push(c);
+    text = Buffer.concat(chunks).toString('utf8');
+  } else {
+    const file = safeJoin(MEDIA_DIR, m[2]);
+    if (!file || !/\.funscript$/i.test(file)) throw Object.assign(new Error('Ungültige Datei'), { status: 400 });
+    text = await fsp.readFile(file, 'utf8');
+  }
+  const heat = heatSummary(text);
+  if (heatCache.size > 5000) heatCache.clear();
+  heatCache.set(src, heat);
+  return heat;
+}
+
 async function readStore() {
   try {
     return JSON.parse(await fsp.readFile(STORE_FILE, 'utf8'));
@@ -967,6 +1035,17 @@ const handler = async (req, res) => {
 
     // HereSphere fragt per GET oder POST an. Bei Stash-Szenen enthält der POST ggf. eine
     // neue Bewertung (0–5) oder den Favoriten-Status – das wird nach Stash geschrieben.
+    if (pathname === '/api/prefs') {
+      if (req.method === 'PUT') await writePrefs(req);
+      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(await readPrefs()));
+    }
+    if (pathname === '/api/heat') {
+      const heat = await scriptHeat(url.searchParams.get('src'));
+      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'max-age=3600' });
+      return res.end(JSON.stringify(heat));
+    }
+
     if (pathname === '/api/settings') {
       if (req.method === 'PUT') await writeSettings(req);
       res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });

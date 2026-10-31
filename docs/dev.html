@@ -96,7 +96,7 @@
     <table class="tbl">
       <tr><th>Datei</th><th>Aufgabe</th></tr>
       <tr><td><code>server.js</code></td><td>Alles auf der Server-Seite: statische Dateien, Range-Streaming, Bibliothek-Scan, Stash-GraphQL und -Proxy, Zurückschreiben, HereSphere-API, HQ-Stream über ffmpeg, Intiface-WebSocket-Weiterleitung, Fernbedienungs-Relais.</td></tr>
-      <tr><td><code>handy.js</code></td><td>Klasse <code>Handy</code> (API v2: HAMP, HSSP, Uhrabgleich, Upload-Cache), <code>claimHandy()</code>, Helfer <code>$</code>, <code>store</code>, <code>log</code> (auch als Einblendung <code>#toast</code>), <code>pillText</code> (Status-Chips), <code>positionAt</code>.</td></tr>
+      <tr><td><code>handy.js</code></td><td>Klasse <code>Handy</code> (API v2 bzw. v3 mit Application ID: HAMP, HSSP mit <code>playback_rate</code>, Uhrabgleich, Upload-Cache), gemeinsame Einstellungen (<code>SHARED_PREFS</code>, beim Laden synchron von <code>/api/prefs</code>), <code>claimHandy()</code>, Helfer <code>$</code>, <code>store</code>, <code>log</code> (auch als Einblendung <code>#toast</code>), <code>pillText</code> (Status-Chips), <code>positionAt</code>.</td></tr>
       <tr><td><code>app.js</code></td><td>Modi und Seiten, Menü ☰, Geräte-Fenster (<code>openDevices</code>/<code>closeDevices</code>), Schalter „Geräte folgen dem Video“, Video + Script laden, Sync Video → Handy (<code>doSync</code>), Heatmap, „Läuft gerade“.</td></tr>
       <tr><td><code>library.js</code></td><td>Bibliothek (Ordner + Stash), Filter je Modus, Szene öffnen, Stash-Aktionen (★, Favorit, O, Marker), Weiterschauen, Sprites.</td></tr>
       <tr><td><code>control.js</code></td><td>Modus Steuern: Direktsteuerung, Pattern-Editor, Script-Baukasten, <code>emergencyStop()</code>.</td></tr>
@@ -106,6 +106,7 @@
       <tr><td><code>finale.js</code> · <code>tools.js</code></td><td>Finale (lösen / sanfter) · Script-Automatik: Analyse, Presets, pro Szene (<code>processScript</code>), Offset einmessen.</td></tr>
       <tr><td><code>stroker.js</code></td><td>Bewegungsgeräte über Intiface (z. B. Handy per Bluetooth).</td></tr>
       <tr><td><code>selfctl.js</code></td><td>„Selbst steuern“ für Videos ohne Funscript: Handy per HAMP (Besitzer <code>'self'</code>) bzw. <code>hampLevel()</code> für Bluetooth, Satisfyer über <code>selfVibeLevel()</code>.</td></tr>
+      <tr><td><code>touchpad.js</code></td><td>🧪 Beta: Touch-Fläche (Finger-Höhe = Stärke/Tempo) für 🎮 Steuern und „Selbst steuern“.</td></tr>
       <tr><td><code>settings.js</code></td><td>Einstellungsseite: Bild/HQ-Modus, Anzeige im Player, System, Zurücksetzen.</td></tr>
       <tr><td><code>remote.js</code></td><td>Fernbedienung: Bildschirm-Seite (Zustand melden, Befehle ausführen) und Fernbedienungs-Seite.</td></tr>
     </table>
@@ -191,6 +192,8 @@
       <tr><td><span class="m get">GET</span></td><td><code>/api/hq/status</code> · <code>probe</code> · <code>bench</code></td><td>HQ verfügbar? · Auflösung/Format · Leistungstest</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m post">POST</span></td><td><code>/heresphere</code> · <code>/heresphere/stash/&lt;id&gt;</code> · <code>/heresphere/media/…</code></td><td>HereSphere-API (Bewertung/Favorit im POST). Liste nur mit VR: Stash-Szenen mit VR-Tag (<code>isVrTag</code>), Ordner-Videos mit VR-Kennung im Namen (<code>vrFormat</code>)</td></tr>
       <tr><td><span class="m ws">WS</span></td><td><code>/intiface?target=IP:PORT</code></td><td>WebSocket-Weiterleitung zu Intiface, nur private IPv4</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/prefs</code></td><td>Gemeinsame Einstellungen aller Geräte (<code>data/prefs.json</code>); PUT führt zusammen, <code>null</code> löscht</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/heat?src=stash:&lt;id&gt;|media:&lt;pfad&gt;</code></td><td>Intensität eines Scripts: 48 Abschnitte mit mittlerem Tempo + Durchschnitt (für die Kacheln)</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/settings</code></td><td>Server-Einstellungen (<code>{ heresphere }</code>, gespeichert in <code>data/settings.json</code>)</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/remote/time</code> · <code>/api/remote/events</code></td><td>Serveruhr · SSE-Verbindung der Fernbedienung</td></tr>
       <tr><td><span class="m post">POST</span></td><td><code>/api/remote/state</code> · <code>/api/remote/cmd</code></td><td>Zustand eines Bildschirms · Befehl an einen Bildschirm</td></tr>

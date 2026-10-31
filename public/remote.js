@@ -99,6 +99,7 @@ function screenState() {
     t: mediaTime(),
     at: serverNow(),
     playing: !video.paused && !video.ended && video.readyState >= 3,
+    rate: video.playbackRate,
     paused: video.paused,
     duration: duration() / 1000,
     handy: handy.connected && syncActive(), // dann steuert der Bildschirm die Handy
@@ -167,7 +168,7 @@ function remoteTime() {
   const s = remote.state;
   if (!s || !s.src) return 0;
   let t = s.t;
-  if (remotePlaying()) t += (serverNow() - s.at) / 1000;
+  if (remotePlaying()) t += ((serverNow() - s.at) / 1000) * (s.rate || 1);
   return Math.max(0, s.duration ? Math.min(t, s.duration) : t);
 }
 

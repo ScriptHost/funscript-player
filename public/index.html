@@ -175,6 +175,10 @@
                 </label>
                 <div id="selfVibeChips" class="chips"><button data-v="0">Aus</button><button data-v="20">20</button><button data-v="40">40</button><button data-v="60">60</button><button data-v="80">80</button></div>
               </div>
+              <div class="touchpad" data-touch="self">
+            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">🧪 Finger auflegen – oben stark, unten schwach</span></div>
+            <div class="tp-opts"><label class="check"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label></div>
+          </div>
               <p class="hint-text">Läuft nur, solange das Video läuft – Pause hält Handy und Satisfyer an. STOPP wie immer.</p>
             </div>
           </div>
@@ -220,6 +224,12 @@
           <label>Connection Key
             <input id="key" type="password" autocomplete="off" spellcheck="false">
           </label>
+          <label>Application ID <small class="muted">(optional – für die Handy-API v3)</small>
+            <input id="appId" type="text" autocomplete="off" spellcheck="false" placeholder="z. B. aus handyfeeling.com → Application IDs">
+          </label>
+          <p class="hint-text">Mit Application ID nutzt der Player die neue Handy-API v3: Die Handy läuft dann auch bei anderer
+            Wiedergabegeschwindigkeit (0,5× … 2×) im Takt. Ohne ID wie bisher (API v2, nur 1×). Eine <b>Application ID</b> ist kein
+            Geheimnis – den geheimen <i>Application Key</i> braucht der Player nicht.</p>
           <label class="check"><input id="autoConnect" type="checkbox" checked> Beim Start automatisch verbinden (Handy und bekannte Satisfyer)</label>
           <label class="check"><input id="autoSync" type="checkbox" checked> Sync automatisch nachkorrigieren</label>
           <label class="check"><input id="invert" type="checkbox"> Script umkehren</label>
@@ -231,6 +241,7 @@
             </label>
           </details>
           <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein.</p>
+          <label class="check"><input id="betaTouch" type="checkbox"> 🧪 <b>Beta: Touch-Steuerung</b> – Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ am Video (wie in der Satisfyer-App)</label>
         </div>
 
         <div class="card">
@@ -498,7 +509,11 @@
               </div>
             </div>
           </div>
-          <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Vibrator</p>
+          <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Satisfyer</p>
+          <div class="touchpad" data-touch="control">
+            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">🧪 Finger auflegen – oben stark, unten schwach</span></div>
+            <div class="tp-opts"><label class="check"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label></div>
+          </div>
         </div>
 
         <div class="card" data-panel="control:patterns" hidden>
@@ -636,6 +651,7 @@
   <script src="tools.js"></script>
   <script src="stroker.js"></script>
   <script src="selfctl.js"></script>
+  <script src="touchpad.js"></script>
   <script src="settings.js"></script>
   <script src="remote.js"></script>
 </body>

@@ -186,11 +186,54 @@ function updateLibInfo() {
   $('libInfo').textContent = text;
 }
 
+// ---------------------------------------------------------------------------
+// Intensität auf einen Blick: schmale Heatmap-Leiste unten auf jeder Kachel mit Funscript.
+// Der Server fasst das Script in 48 Abschnitte zusammen (/api/heat); geladen wird erst,
+// wenn die Kachel ins Bild kommt, höchstens 4 gleichzeitig.
+// ---------------------------------------------------------------------------
+const heatMem = new Map();
+const heatQueue = [];
+let heatBusy = 0;
+const heatObserver = new IntersectionObserver((entries) => {
+  for (const e of entries) if (e.isIntersecting) { heatObserver.unobserve(e.target); heatQueue.push(e.target); }
+  pumpHeat();
+}, { rootMargin: '200px' });
+function heatStrip(src) {
+  const strip = el('div', { className: 'heatstrip' });
+  strip.dataset.src = src;
+  heatObserver.observe(strip);
+  return strip;
+}
+function pumpHeat() {
+  while (heatBusy < 4 && heatQueue.length) {
+    const strip = heatQueue.shift();
+    heatBusy++;
+    loadHeat(strip).finally(() => { heatBusy--; pumpHeat(); });
+  }
+}
+async function loadHeat(strip) {
+  const src = strip.dataset.src;
+  let h = heatMem.get(src);
+  if (!h) {
+    const res = await fetch('/api/heat?src=' + encodeURIComponent(src)).catch(() => null);
+    if (!res?.ok) return strip.remove();
+    h = await res.json();
+    heatMem.set(src, h);
+  }
+  if (!h.bins.length) return strip.remove();
+  const n = h.bins.length;
+  strip.style.background = `linear-gradient(90deg, ${h.bins.map((v, i) => `${heatColor(v)} ${((i / n) * 100).toFixed(1)}% ${(((i + 1) / n) * 100).toFixed(1)}%`).join(', ')})`;
+  const word = h.avg < 120 ? 'ruhig' : h.avg < 250 ? 'mittel' : 'intensiv';
+  strip.title = `Intensität: ${word} (Ø ${h.avg} %/s)`;
+  strip.classList.add('on');
+}
+
 function sceneCard(s) {
   const img = el('img', { src: `/stash/scene/${s.id}/screenshot`, loading: 'lazy', alt: '' });
   const thumb = el('div', { className: 'thumb' }, img,
     s.duration ? el('span', { className: 'dur' }, fmtDuration(s.duration)) : null,
-    s.interactive ? el('span', { className: 'badge', title: 'Mit Funscript' }, '⚡') : null);
+    s.interactive ? el('span', { className: 'badge', title: 'Mit Funscript' }, '⚡') : null,
+    s.interactive ? heatStrip('stash:' + s.id) : null);
   const sub = [s.studio?.name, s.date, s.performers?.slice(0, 2).map((p) => p.name).join(', ')].filter(Boolean).join(' · ');
   const card = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, s.title), el('div', { className: 'tile-sub' }, sub));
   card.addEventListener('click', () => openStashScene(s));
@@ -364,7 +407,8 @@ function renderFolder() {
   for (const it of items) {
     const thumb = el('div', { className: 'thumb' }, el('div', { className: 'noimg' }, '🎬'),
       it.script ? el('span', { className: 'badge' }, '⚡') : null,
-      it.mtime > weekAgo ? el('span', { className: 'new' }, 'Neu') : null);
+      it.mtime > weekAgo ? el('span', { className: 'new' }, 'Neu') : null,
+      it.script ? heatStrip('media:' + it.script) : null);
     const sub = [it.folder.split('/').slice(1).join('/'), it.mtime ? new Date(it.mtime).toLocaleDateString('de-DE') : ''].filter(Boolean).join(' · ');
     const tile = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, it.name), el('div', { className: 'tile-sub' }, sub));
     tile.addEventListener('click', () => openFolderItem(it));

@@ -488,6 +488,9 @@ function scriptIntensity(actions, ms) {
 function targetLevel() {
   if (vibePaused) return 0;
   if (typeof finDetached === 'function' && finDetached()) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
+  // Touch-Fläche unter 🎮 Steuern (Beta): Finger-Höhe = Stärke, „Maximum“ gilt
+  const touched = typeof touchVibeLevel === 'function' ? touchVibeLevel() : null;
+  if (touched !== null) return Math.min(touched * 100, Number($('vibeMax').value)) / 100;
   // „Selbst steuern“ am Video (ohne Funscript): eigene Stärke, „Maximum“ gilt auch hier
   const own = typeof selfVibeLevel === 'function' ? selfVibeLevel() : null;
   if (own !== null) return Math.min(own * 100, Number($('vibeMax').value)) / 100;

@@ -301,16 +301,18 @@ async function doSync() {
       if (handy.owner === 'video') await handy.stop();
       return;
     }
-    if (!remote.on && video.playbackRate !== 1) {
+    // Andere Geschwindigkeit als 1×: mit API v3 läuft die Handy mit, mit v2 pausiert sie
+    const rate = remote.on ? (remote.state?.rate || 1) : video.playbackRate;
+    if (rate !== 1 && !handy.v3) {
       if (handy.owner === 'video') await handy.stop();
-      log('Handy pausiert: Wiedergabegeschwindigkeit muss 1× sein.');
+      log('Handy pausiert: Wiedergabegeschwindigkeit muss 1× sein – mit Application ID (⚙️ → Geräte) läuft sie mit.');
       return;
     }
     claimHandy('video');
     if (handy.hsspUrl === null || handy.mode !== 1) setStatus('busy', 'Script wird übertragen …');
     await handy.prepare(toCsv(sendActions()));
     if (!videoPlaying() || handy.owner !== 'video') return;
-    await handy.play(mediaTime() * 1000 + Number($('offset').value));
+    await handy.play(mediaTime() * 1000 + Number($('offset').value), rate);
     setStatus('on', 'Video läuft');
   } catch (e) {
     setStatus('err', 'Fehler');
@@ -454,9 +456,10 @@ async function connectHandy(auto = false) {
   if (!auto) log('');
   try {
     claimHandy(null);
-    await handy.connect(key);
+    await handy.connect(key, store.get('appId', '').trim());
     setStatus('on', 'verbunden');
-    log(auto ? 'Handy automatisch verbunden.' : 'Verbunden.');
+    const api = handy.v3 ? ' (Handy-API v3)' : '';
+    log(auto ? `Handy automatisch verbunden${api}.` : `Verbunden${api}.`);
     await applySlide();
     if (script) await preloadScript();
   } catch (e) {
@@ -467,6 +470,13 @@ async function connectHandy(auto = false) {
   }
 }
 $('connect').addEventListener('click', () => connectHandy());
+// Application ID (Handy-API v3): gilt für alle Geräte; ändern = neu verbinden
+$('appId').value = store.get('appId', '');
+$('appId').addEventListener('change', () => {
+  store.set('appId', $('appId').value.trim());
+  if ($('key').value.trim()) connectHandy();
+});
+
 // Key steht in den Einstellungen; in der Geräte-Spalte nur ein Hinweis, solange er fehlt
 const updateKeyHint = () => { $('keyHint').hidden = !!$('key').value.trim(); };
 $('key').addEventListener('input', updateKeyHint);
@@ -495,7 +505,8 @@ $('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNo
 $('nowOpen').addEventListener('click', () => openPlayer());
 
 // Kopfzeile kompakt um die Kamera herum (⚙️ → Anzeige)
-$('hdrNotch').checked = store.get('hdrNotch', false);
+// Pixel-Smartphones haben die Kamera oben mittig -> dort standardmäßig an
+$('hdrNotch').checked = store.get('hdrNotch', /Pixel/i.test(navigator.userAgent));
 const applyHdr = () => document.body.classList.toggle('hdr-notch', $('hdrNotch').checked);
 $('hdrNotch').addEventListener('change', () => { store.set('hdrNotch', $('hdrNotch').checked); applyHdr(); });
 applyHdr();

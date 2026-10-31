@@ -25,6 +25,12 @@ Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰:
 - **Videos ohne Funscript:** unter dem Video „Selbst steuern“ – Handy-Geschwindigkeit und Satisfyer-Stärke
   von Hand, solange das Video läuft. Pause hält an, STOPP wie immer.
 - Der Satisfyer braucht **kein eigenes Vibrations-Script** – er nutzt dasselbe Funscript wie die Handy.
+- **Einstellungen gelten auf allen Geräten** (Key, Offsets, Satisfyer, Sicherheit … liegen auf dem Server, `data/prefs.json`);
+  Bild/HQ, Kopfzeile und Bildschirmsperre bleiben pro Gerät.
+- **Handy-API v3:** unter ⚙️ → Geräte eine *Application ID* eintragen (handyfeeling.com → Application IDs) – dann läuft
+  die Handy auch bei anderer Wiedergabegeschwindigkeit mit. Den geheimen *Application Key* braucht der Player nicht.
+- **Bibliothek:** Kacheln mit Funscript zeigen unten eine Heatmap-Leiste – Intensität auf einen Blick.
+- 🧪 **Beta: Touch-Steuerung** (⚙️ → Geräte): Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ – oben stark, unten schwach.
 - **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
 - **Im Player** stehen die Regler fürs Schauen fest am Video (am Smartphone darunter, am PC rechts daneben);
   abschaltbar unter ⚙️ → Anzeige. Der Titel „Funscript Player“ führt zur Bibliothek bzw. zurück zum laufenden Video.

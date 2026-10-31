@@ -765,3 +765,19 @@ body[data-view=player]:not(.hud-off-devices) .sheet-close { display: none; }
 .self-top label { flex: 1; margin: 0; gap: 6px; }
 #selfHandy.running { background: var(--ok); }
 .sync-setting { padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+
+/* 1.15: Intensität auf den Kacheln */
+.heatstrip { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; opacity: 0; transition: opacity .3s; z-index: 2; }
+.heatstrip.on { opacity: 1; }
+body[data-mode=stream] .heatstrip { display: none; }
+
+/* 1.15 Beta: Touch-Steuerung */
+.touchpad { display: none; grid-column: 1 / -1; margin-top: 10px; }
+body.beta-touch .touchpad { display: block; }
+.tp-area { position: relative; height: 220px; border-radius: 14px; overflow: hidden; touch-action: none; user-select: none; cursor: ns-resize;
+  background: linear-gradient(to top, var(--card), var(--bg)); border: 1px solid var(--line); }
+.tp-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: linear-gradient(to top, rgba(224,69,123,.25), rgba(224,69,123,.75)); transition: height .05s linear; }
+.tp-val { position: absolute; right: 12px; top: 10px; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tp-hint { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 13px; color: var(--muted); pointer-events: none; }
+.tp-opts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; }
+.tp-opts .check { margin: 0; }

@@ -1,5 +1,16 @@
 # Änderungen
 
+## 1.15.0 – 31.10.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.15.0.md](RELEASE-NOTES-1.15.0.md)
+
+- **Handy-API v3:** mit Application ID (⚙️ → Geräte) läuft die Handy auch bei 0,5× … 2× im Takt; ohne ID wie bisher v2
+- **Einstellungen für alle Geräte gleich** (Key, Offsets, Satisfyer-Übersetzung, Sicherheit …) – auf dem Server;
+  Bild, Kopfzeile und Bildschirmsperre bleiben pro Gerät
+- **Intensität auf einen Blick:** schmale Heatmap-Leiste auf jeder Kachel mit Funscript
+- Pixel-Smartphones: „Kompakt neben der Kamera“ standardmäßig an
+- 🧪 **Beta: Touch-Steuerung** (⚙️ → Geräte, Standard aus): Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“
+
 ## 1.14.0 – 31.10.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.14.0.md](RELEASE-NOTES-1.14.0.md)

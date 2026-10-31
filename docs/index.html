@@ -192,7 +192,7 @@
           <li>Szene im Modus Sync öffnen: Script wird hochgeladen.</li>
           <li>Play: Handy startet an der richtigen Stelle, auch nach Spulen.</li>
         </ol>
-        <p class="muted">Ohne Internet: Handy auf Bluetooth stellen und über <b>Intiface Central</b> verbinden.</p>
+        <p class="muted">Mit <b>Application ID</b> (Handy-API v3) bleibt die Handy auch bei 0,5× bis 2× Wiedergabe im Takt. Ohne Internet: Handy auf Bluetooth stellen und über <b>Intiface Central</b> verbinden.</p>
       </div>
       <div class="diagram" aria-label="Ablauf Handy-Sync">
         <svg viewBox="0 0 440 250" role="img">
@@ -251,6 +251,7 @@
       <div class="card"><div class="icon">🎯</div><h3>Offset einmessen</h3><p>Script leicht versetzt? Im Takt der Stöße tippen (Taste T) – der Player berechnet den Versatz und merkt ihn sich pro Szene.</p></div>
       <div class="card"><div class="icon">🛠️</div><h3>Script-Automatik</h3><p>Prüft jedes Script und korrigiert nur, was nötig ist: Zittern weg, flachen Hub strecken, Unmögliches kürzen. Presets Sanft und Intensiv, pro Szene wählbar – deine Dateien bleiben unverändert.</p></div>
       <div class="card"><div class="icon">🎚️</div><h3>Selbst steuern</h3><p>Video ohne Funscript? Unter dem Video „Selbst steuern“ wählen: Handy-Geschwindigkeit und Satisfyer-Stärke regeln, während das Video läuft. Pause hält an.</p></div>
+      <div class="card"><div class="icon">🧪</div><h3>Touch-Steuerung (Beta)</h3><p>Wie in der Satisfyer-App: Finger oben = stark, unten = schwach, Loslassen = aus. Unter 🎮 Steuern und bei „Selbst steuern“; einschalten unter ⚙️ → Geräte.</p></div>
       <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script komplett lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt. Auf Wunsch automatisch zurück.</p></div>
     </div>
   </section>
@@ -346,6 +347,7 @@
       Der Browser spricht nie direkt mit Stash, ein API-Key bleibt auf dem Server.</p>
     <div class="grid">
       <div class="card"><div class="icon">🔎</div><h3>Finden</h3><p>Suche, Sortierung, deine gespeicherten Stash-Filter als Leiste, Tags, Darsteller, Studios, 🎲 Zufall.</p></div>
+      <div class="card"><div class="icon">🌡️</div><h3>Intensität auf einen Blick</h3><p>Jede Kachel mit Funscript zeigt unten eine kleine Heatmap-Leiste – blau ruhig, rot schnell.</p></div>
       <div class="card"><div class="icon">🧭</div><h3>Filter je Modus</h3><p>Streamen startet mit „2D“, Sync mit „2D Script“. Wählst du einen anderen, merkt sich jeder Modus seinen.</p></div>
       <div class="card"><div class="icon">✍️</div><h3>Zurückschreiben</h3><p>Sterne, Favorit (Tag), O-Zähler, Marker („Lieblingsstelle“), Wiedergabeposition und Play-Count.</p></div>
       <div class="card"><div class="icon">📂</div><h3>Ordner</h3><p>Jeder Ordner unter <code>/media</code> wird eine Quelle. Video + gleichnamige <code>.funscript</code> = fertig.</p></div>
@@ -361,7 +363,7 @@
       <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash. <code>/heresphere</code> muss von einer Proxy-Anmeldung ausgenommen sein – oder du schaltest HereSphere unter ⚙️ ab.</p></div>
       <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, Stopp bei Bildschirmsperre, Grenzen für Geschwindigkeit und Vibration.</p></div>
       <div class="card"><div class="icon">📲</div><h3>Als App</h3><p>Auf dem Smartphone installierbar – startet ohne Browserleisten, Bildschirm bleibt an, solange etwas läuft.</p></div>
-      <div class="card"><div class="icon">⚙️</div><h3>Einstellungen</h3><p>Eine Seite mit Sprungleiste: Geräte, Sicherheit, Bild, Script, Fernbedienung, Anzeige, Bibliothek. Was unter dem Video steht, wählst du selbst.</p></div>
+      <div class="card"><div class="icon">⚙️</div><h3>Einstellungen</h3><p>Eine Seite mit Sprungleiste. Key, Offsets, Satisfyer und Sicherheit gelten auf allen deinen Geräten; Bild und Kopfzeile pro Gerät.</p></div>
       <div class="card"><div class="icon">🎮</div><h3>Patterns</h3><p>Eigene Bewegungen zeichnen, zu Scripts zusammensetzen, abspielen oder als <code>.funscript</code> exportieren.</p></div>
     </div>
   </section>
@@ -371,6 +373,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="grid">
+      <div class="card"><h3>1.15 · v3 &amp; alle Geräte</h3><p>Handy-API v3 (auch bei 0,5×–2× im Takt), Einstellungen auf allen Geräten gleich, Heatmap-Leiste auf den Kacheln, 🧪 Touch-Steuerung (Beta).</p></div>
       <div class="card"><h3>1.14 · Selbst steuern</h3><p>Videos ohne Funscript mit eigener Handy-Geschwindigkeit und Satisfyer-Stärke. Sync-Schalter in den Einstellungen, Script-Zeile abschaltbar.</p></div>
       <div class="card"><h3>1.13 · Regler am Video</h3><p>Geräte-Steuerung wieder unter dem Video, HereSphere abschaltbar, Titel führt zur Bibliothek, Standbild statt Schwarz.</p></div>
       <div class="card"><h3>1.12 · Ruhiger</h3><p>Oben nur Status und Menü, Geräte-Fenster statt Spalte, „Mehr zur Szene“ einklappbar, Meldungen als Einblendung. HereSphere zeigt nur VR-Videos.</p></div>
@@ -394,7 +397,7 @@
         <li>Bauen und starten – fertig unter <code>https://player.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.14.0.zip
+<pre><code>unzip handy-player-linux-v1.15.0.zip
 cd handy-player
 docker compose up -d --build</code></pre>
         <p class="note">Bluetooth (Satisfyer) und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat,
