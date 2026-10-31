@@ -157,3 +157,38 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line);
 .sd-slider b { font-weight: 500; color: #9aa1ab; }
 .sd-slider i { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #22262e var(--s, 0%), #e0457b var(--s, 0%) var(--v), #22262e var(--v)); }
 .scr-head .burger { font-size: 15px; }
+
+/* Sync-Animation */
+.sync-demo { display: grid; grid-template-columns: 200px minmax(0, 1fr) 220px; gap: 18px; align-items: stretch;
+  margin: 8px 0 32px; padding: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+.sd-cap { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.sd-cap b { display: block; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sdv-frame { position: relative; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(120% 90% at 30% 20%, #6a2a4a, #1d2440 55%, #0c0e14); }
+.sdv-dot { position: absolute; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 18px rgba(255,255,255,.6); }
+.sdv-play { position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: rgba(255,255,255,.7); }
+.sdv-bar { height: 6px; margin-top: 8px; border-radius: 3px; background: var(--card2); overflow: hidden; }
+.sdv-bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.sdv-time { margin-top: 6px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sd-graph { display: flex; flex-direction: column; min-width: 0; }
+.sd-graph canvas { flex: 1; width: 100%; min-height: 160px; border-radius: 10px; background: var(--card2); }
+.sd-devs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sd-handy, .sd-vibe { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; }
+.sd-rail { position: relative; width: 34px; flex: 1; min-height: 150px; border-radius: 17px; background: var(--card2); border: 1px solid var(--line); }
+.sd-slider { position: absolute; left: 3px; right: 3px; height: 14%; border-radius: 12px; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.sd-orb { --lvl: 0; position: relative; width: 84px; height: 84px; margin: auto 0; display: grid; place-items: center; }
+.sd-orb::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--accent);
+  opacity: calc(.12 + var(--lvl) * .5); transform: scale(calc(.55 + var(--lvl) * .55)); filter: blur(calc(var(--lvl) * 6px)); }
+.sd-orb span { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); transform: scale(calc(.8 + var(--lvl) * .4)); }
+.sd-ctrl { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.sd-ctrl button { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card2); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+.sd-seg { display: inline-flex; gap: 4px; }
+.sd-seg button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+@media (max-width: 860px) {
+  .sync-demo { grid-template-columns: 1fr; }
+  .sdv { display: grid; grid-template-columns: 140px 1fr; gap: 0 12px; align-items: center; }
+  .sdv .sdv-frame { grid-row: span 3; }
+  .sd-graph canvas { min-height: 140px; }
+  .sd-rail { min-height: 120px; }
+}

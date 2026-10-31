@@ -148,6 +148,35 @@
   <section id="geraete">
     <span class="kicker">Geräte</span>
     <h2>The Handy und Satisfyer</h2>
+    <p class="sub">So sieht Sync aus: Das Funscript läuft im Takt des Videos, die Handy fährt die Position,
+      der Satisfyer macht daraus Vibration. Schalte unten zwischen den Übersetzungen um.</p>
+
+    <div id="syncDemo" class="sync-demo" aria-label="Animation: Video, Funscript, The Handy und Satisfyer im Takt">
+      <div class="sdv">
+        <div class="sdv-frame"><span class="sdv-dot"></span><span class="sdv-play">▶</span></div>
+        <div class="sdv-bar"><i></i></div>
+        <div class="sdv-time">0:05 / 0:24</div>
+        <div class="sd-cap">📺 Video</div>
+      </div>
+      <div class="sd-graph">
+        <canvas></canvas>
+        <div class="sd-cap">⚡ Funscript – Farbe = Tempo, Linie = jetzt</div>
+      </div>
+      <div class="sd-devs">
+        <div class="sd-handy">
+          <div class="sd-rail"><div class="sd-slider"></div></div>
+          <div class="sd-cap">↕ The Handy <b class="sd-pos">50 %</b></div>
+        </div>
+        <div class="sd-vibe">
+          <div class="sd-orb"><span></span></div>
+          <div class="sd-cap">〰 Satisfyer <b class="sd-lvl">0 %</b></div>
+        </div>
+      </div>
+      <div class="sd-ctrl">
+        <button class="sd-play">❚❚ Pause</button>
+        <span class="sd-seg"><button data-vmode="rhythm" class="on">Rhythmus</button><button data-vmode="even">Gleichmäßig</button></span>
+      </div>
+    </div>
 
     <div class="split">
       <div>
@@ -384,5 +413,6 @@ docker compose up -d --build</code></pre>
     <span><a href="dev.html">Entwickler-Doku →</a></span>
   </footer>
 </main>
+<script src="sync-demo.js"></script>
 </body>
 </html>
