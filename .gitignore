@@ -1,0 +1,6 @@
+# Laufzeitdaten und Geheimnisse gehören nicht ins Repository
+data/
+windows/cert/
+windows/logs/
+*.zip
+node_modules/

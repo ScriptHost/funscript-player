@@ -1,0 +1,37 @@
+services:
+
+  Handy-Player:
+    build: .
+    image: handy-player:local
+    container_name: Handy-Player
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    # Erreichbar unter http://<server>:8080 – für HTTPS einen Reverse Proxy davor setzen
+    ports:
+      - "8080:8080"
+    # Intel-Grafik für den HQ-Stream (wie bei Immich); 992 = Gruppe „render“ auf dem Host
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "992"
+    environment:
+      # Leer = keine Anmeldung im Player (ggf. über einen Reverse Proxy absichern)
+      AUTH_USER: ""
+      AUTH_PASS: ""
+      # Stash: am besten direkt über das Docker-Netz, z. B. "http://Stash:9999"
+      # (Containername deines Stash-Containers, wenn er im selben Docker-Netz hängt).
+      STASH_URL: "https://stash.${DOMAIN}"
+      STASH_API_KEY: ""
+      STASH_INSECURE: ""
+      # HQ-Stream: "vaapi" (Intel-Grafik), "cpu" oder leer = automatisch
+      HQ_ACCEL: ""
+      HQ_MAX: "3"
+    volumes:
+      # Ordner mit Videos + gleichnamigen .funscript-Dateien (nur lesend) – Pfad anpassen
+      - /srv/media/filme:/media:ro
+      # Eigene Patterns und Scripts aus „Steuern“
+      - handy-data:/app/data
+
+volumes:
+  handy-data:

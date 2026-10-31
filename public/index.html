@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#111317">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Handy Player">
+  <title>Handy Player</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-mode="sync" data-view="library">
+  <header>
+    <h1>Handy Player <small id="appVersion" class="version"></small></h1>
+    <nav class="modes" aria-label="Modus">
+      <button data-mode="stream"><span>📺</span> Streamen</button>
+      <button data-mode="sync"><span>🔄</span> Sync</button>
+      <button data-mode="control"><span>🎮</span> Steuern</button>
+    </nav>
+    <div class="pills">
+      <span id="status" class="pill off">Handy: getrennt</span>
+      <span id="vibeStatus" class="pill off">Vibrator: getrennt</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="content">
+
+      <!-- ================= Bibliothek ================= -->
+      <section id="view-library" class="view">
+        <div class="libbar">
+          <div id="libSource" class="seg" hidden>
+            <button data-src="stash">Stash</button>
+            <button data-src="folder">Ordner</button>
+          </div>
+          <input id="search" type="search" placeholder="Szenen, Titel, Dateien suchen …">
+          <select id="stashSort" aria-label="Sortierung">
+            <option value="saved">Sortierung des Filters</option>
+            <option value="new">Neueste zuerst</option>
+            <option value="date">Nach Datum</option>
+            <option value="title">Nach Titel</option>
+            <option value="random">Zufällig</option>
+          </select>
+          <label class="check chip-toggle"><input id="onlyScripts" type="checkbox" checked> ⚡ nur mit Funscript</label>
+          <button id="stashRandom" class="small secondary">🎲 Zufall</button>
+          <a class="small secondary btn" href="https://faptap.net/videos" target="_blank" rel="noopener noreferrer" title="Neue Scripts auf FapTap finden">FapTap ↗</a>
+          <label class="small secondary btn" title="Lokale Dateien abspielen">📂 Datei
+            <input id="fileInput" type="file" multiple accept="video/*,.funscript,application/json" hidden>
+          </label>
+        </div>
+
+        <nav id="browseTabs" class="browse" hidden>
+          <button data-browse="scenes" class="active">Szenen</button>
+          <button data-browse="tags">Tags</button>
+          <button data-browse="performers">Darsteller</button>
+          <button data-browse="studios">Studios</button>
+        </nav>
+
+        <div id="savedFilters" class="savedbar" hidden></div>
+        <div id="activeFilters" class="filters"></div>
+        <p id="libInfo" class="hint-text"></p>
+
+        <div id="sceneGrid" class="grid scenes"></div>
+        <div id="facetGrid" class="grid facets" hidden></div>
+        <div id="libSentinel" class="sentinel"></div>
+      </section>
+
+      <!-- ================= Player ================= -->
+      <section id="view-player" class="view" hidden>
+        <button id="backToLib" class="back">← Bibliothek</button>
+        <div id="drop" class="drop" data-fit="cover">
+          <video id="video" playsinline preload="metadata"></video>
+          <canvas id="enh" class="enh"></canvas>
+          <div id="dropHint" class="hint">
+            Video + .funscript hierher ziehen
+            <small>oder in der Bibliothek eine Szene wählen</small>
+          </div>
+
+          <!-- Bedienung im Vollbild -->
+          <div id="ov" class="overlay">
+            <div id="ovHit" class="ov-hit"></div>
+            <div class="ov-top">
+              <span id="ovTitle" class="ov-title"></span>
+              <button id="ovStop" class="estop">■ STOPP</button>
+            </div>
+            <button id="ovPlay" class="ov-play">▶</button>
+            <div class="ov-bottom">
+              <canvas id="ovBar"></canvas>
+              <div class="ov-row">
+                <button id="ovBack">−10</button>
+                <button id="ovFwd">+10</button>
+                <span id="ovTime" class="ov-time">0:00 / 0:00</span>
+                <span class="grow"></span>
+                <button id="ovMute" title="Ton an/aus (M)">🔊</button>
+                <button id="ovVibe" class="sync-only" title="Vibration pausieren">Vib ❚❚</button>
+                <button id="ovEnh" title="Bildverbesserung umschalten">✨</button>
+                <button id="ovFit" title="Bild füllen / einpassen">Einpassen</button>
+                <button id="ovFs" title="Vollbild (F)">⛶</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <canvas id="heatmap" class="sync-only" title="Klicken zum Springen"></canvas>
+
+        <details id="enhPanel" class="enhance">
+          <summary>✨ Bildverbesserung: <b id="enhState">Natürlich</b></summary>
+          <div id="enhPresets" class="seg">
+            <button data-preset="off">Aus</button>
+            <button data-preset="natural">Natürlich</button>
+            <button data-preset="sharp">Schärfer</button>
+            <button data-preset="max">Maximal</button>
+            <button data-preset="custom">Eigene</button>
+          </div>
+          <div id="enhSliders" class="grid2">
+            <label>Schärfe <output id="enh_sharpVal"></output>
+              <input id="enh_sharp" type="range" min="0" max="100" value="35">
+            </label>
+            <label>Kontrast <output id="enh_contrastVal"></output>
+              <input id="enh_contrast" type="range" min="-20" max="30" value="3">
+            </label>
+            <label>Sättigung <output id="enh_saturationVal"></output>
+              <input id="enh_saturation" type="range" min="-30" max="40" value="6">
+            </label>
+            <label>Helligkeit <output id="enh_brightnessVal"></output>
+              <input id="enh_brightness" type="range" min="-15" max="15" value="0">
+            </label>
+          </div>
+          <label class="check"><input id="enh_deband" type="checkbox" checked> Farbtreppen glätten (Anti-Banding)</label>
+          <label class="check"><input id="enh_compare" type="checkbox"> Vorher/Nachher-Vergleich (links Original)</label>
+          <p class="hint-text">Läuft auf der Grafik dieses Geräts: bikubisches Hochskalieren + AMD-CAS-Schärfung. Einstellung gilt pro Gerät.</p>
+
+          <div id="hqBox" class="hq" hidden>
+            <h3>HQ-Stream vom Server (Intel Quick Sync)</h3>
+            <p class="hint-text">Der Server entrauscht, skaliert hoch und verstärkt Details in Hardware, bevor gestreamt wird. Spulen startet die Umwandlung neu (≈ 1 s).</p>
+            <div id="hqPresets" class="seg">
+              <button data-hq="off">Aus</button>
+              <button data-hq="clean">Sauber</button>
+              <button data-hq="strong">Stark</button>
+            </div>
+            <div class="actions">
+              <label class="inline">Auflösung
+                <select id="hqHeight">
+                  <option value="720">720p</option>
+                  <option value="1080">1080p</option>
+                  <option value="1440">1440p</option>
+                </select>
+              </label>
+              <button id="hqBench" class="small secondary">Leistung testen</button>
+            </div>
+            <p id="hqInfo" class="hint-text"></p>
+          </div>
+        </details>
+
+        <div class="sceneinfo">
+          <h2 id="videoName">Kein Video</h2>
+          <p id="sceneMeta" class="meta"></p>
+          <p class="meta sync-only"><span id="scriptName">Kein Script</span></p>          <div id="scenePeople" class="chips-row"></div>
+          <div id="sceneTags" class="chips-row"></div>
+          <div id="sceneMarkers" class="markers"></div>
+          <p id="sceneDetails" class="details"></p>
+        </div>
+      </section>
+
+      <!-- ================= Steuern ================= -->
+      <section id="view-control" class="view" hidden>
+        <nav class="subtabs" data-group="control">
+          <button data-sub="direct" class="active">Direkt</button>
+          <button data-sub="patterns">Patterns</button>
+          <button data-sub="builder">Script-Baukasten</button>
+        </nav>
+
+        <div class="card" data-panel="control:direct">
+          <h2>Direktsteuerung</h2>
+          <div class="direct">
+            <button id="hampToggle" class="big">▶ Start</button>
+            <div class="grow">
+              <label>Geschwindigkeit <output id="speedVal">30 %</output>
+                <input id="speed" type="range" min="0" max="100" value="30">
+              </label>
+              <div id="speedChips" class="chips">
+                <button data-v="10">10</button><button data-v="25">25</button><button data-v="40">40</button>
+                <button data-v="55">55</button><button data-v="70">70</button><button data-v="85">85</button>
+                <button data-v="100">100</button>
+              </div>
+            </div>
+          </div>
+          <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Vibrator</p>
+        </div>
+
+        <div class="card" data-panel="control:patterns" hidden>
+          <h2>Pattern-Editor</h2>
+          <div class="toolbar">
+            <select id="patternSelect" aria-label="Pattern"></select>
+            <button id="patternNew" class="small">Neu</button>
+            <button id="patternDup" class="small">Kopieren</button>
+            <button id="patternDel" class="small danger">Löschen</button>
+          </div>
+          <div class="grid2">
+            <label>Name<input id="patternName" type="text" maxlength="60"></label>
+            <label>Vorlage übernehmen
+              <select id="patternPreset"><option value="">– Vorlage wählen –</option></select>
+            </label>
+          </div>
+          <div class="editor">
+            <canvas id="patternCanvas"></canvas>
+            <div class="stroker" title="Aktuelle Position"><div id="strokerFill"></div></div>
+          </div>
+          <p class="hint-text">Klicken = Punkt setzen · Ziehen = verschieben · Doppelklick / Rechtsklick = Punkt löschen</p>
+          <div class="grid2">
+            <label>Zykluslänge <output id="lengthVal"></output>
+              <input id="patternLength" type="range" min="200" max="8000" step="50">
+            </label>
+            <label>Tempo <output id="tempoVal"></output>
+              <input id="patternTempo" type="range" min="25" max="300" step="5" value="100">
+            </label>
+          </div>
+          <p id="patternInfo" class="hint-text"></p>
+          <div class="actions">
+            <button id="patternPlay">▶ Pattern abspielen</button>
+            <label class="inline">Export
+              <input id="patternExportMin" type="number" min="1" max="120" value="5"> min
+            </label>
+            <button id="patternExport" class="secondary">Als .funscript exportieren</button>
+          </div>
+        </div>
+
+        <div class="card" data-panel="control:builder" hidden>
+          <h2>Script-Baukasten</h2>
+          <p class="hint-text">Patterns hintereinander hängen und als eigenes Script abspielen oder exportieren.</p>
+          <div class="toolbar">
+            <select id="seqSelect" aria-label="Script"></select>
+            <button id="seqNew" class="small">Neu</button>
+            <button id="seqDel" class="small danger">Löschen</button>
+          </div>
+          <label>Name<input id="seqName" type="text" maxlength="60"></label>
+          <table class="steps">
+            <thead><tr><th>Pattern</th><th>Dauer (s)</th><th>Tempo %</th><th></th></tr></thead>
+            <tbody id="seqSteps"></tbody>
+          </table>
+          <button id="seqAdd" class="small secondary">+ Schritt</button>
+          <p id="seqInfo" class="hint-text"></p>
+          <div class="progress"><div id="seqProgress"></div></div>
+          <div class="actions">
+            <button id="seqPlay">▶ Script abspielen</button>
+            <label class="check"><input id="seqLoop" type="checkbox"> Wiederholen</label>
+            <button id="seqExport" class="secondary">Als .funscript exportieren</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= Geräte (Sync + Steuern) ================= -->
+    <aside id="devices">
+      <div class="card">
+        <nav class="subtabs" data-group="dev">
+          <button data-sub="handy" class="active">The Handy</button>
+          <button data-sub="vibe">Vibrator</button>
+          <button data-sub="safety">Sicherheit</button>
+        </nav>
+
+        <div data-panel="dev:handy">
+          <label>Connection Key
+            <input id="key" type="password" autocomplete="off" spellcheck="false">
+          </label>
+          <button id="connect">Verbinden</button>
+          <label>Video-Offset <output id="offsetVal">0 ms</output>
+            <input id="offset" type="range" min="-500" max="500" step="10" value="0">
+          </label>
+          <label>Hub min <output id="minVal">0 %</output>
+            <input id="slideMin" type="range" min="0" max="100" value="0">
+          </label>
+          <label>Hub max <output id="maxVal">100 %</output>
+            <input id="slideMax" type="range" min="0" max="100" value="100">
+          </label>
+          <label class="check"><input id="invert" type="checkbox"> Script umkehren</label>
+        </div>
+
+        <div data-panel="dev:vibe" hidden>
+          <button id="vibeBle">＋ Satisfyer per Bluetooth verbinden</button>
+          <label class="check small-check"><input id="vibeAll" type="checkbox"> Alle Bluetooth-Geräte anzeigen</label>
+          <p id="vibeBleHint" class="hint-text">Direkt aus dem Browser – Chrome auf Android/PC, auf dem iPhone die App „Bluefy“.</p>
+          <ul id="vibeDevices" class="devices"></ul>
+
+          <label>Steuerung
+            <select id="vibeSource">
+              <option value="script">Folgt Video / Pattern / Direktsteuerung</option>
+              <option value="manual">Manuell</option>
+            </select>
+          </label>
+          <label id="vibeLevelRow">Stärke <output id="vibeLevelVal">0 %</output>
+            <input id="vibeLevel" type="range" min="0" max="100" value="0">
+          </label>
+          <div class="meter" title="Aktuelle Stärke"><div id="vibeMeter"></div></div>
+          <button id="vibePause" class="secondary">❚❚ Vibration pausieren</button>
+
+          <details>
+            <summary>Übersetzung Script → Vibration</summary>
+            <label>Berechnung
+              <select id="vibeMap">
+                <option value="speed">Nach Geschwindigkeit der Bewegung</option>
+                <option value="pos">Nach Position (unten = stark)</option>
+                <option value="posInv">Nach Position (oben = stark)</option>
+              </select>
+            </label>
+            <label>Minimum <output id="vibeMinVal"></output>
+              <input id="vibeMin" type="range" min="0" max="100" value="10">
+            </label>
+            <label>Maximum <output id="vibeMaxVal"></output>
+              <input id="vibeMax" type="range" min="0" max="100" value="100">
+            </label>
+            <label>Volle Stärke ab <output id="vibeFullVal"></output>
+              <input id="vibeFull" type="range" min="50" max="600" step="10" value="300">
+            </label>
+            <label>Vorlauf (Bluetooth-Verzögerung) <output id="vibeLeadVal"></output>
+              <input id="vibeLead" type="range" min="-300" max="600" step="10" value="100">
+            </label>
+          </details>
+
+          <details>
+            <summary>Alternative: Intiface Central</summary>
+            <p class="hint-text">Intiface Central auf dem Smartphone starten, unter Einstellungen „Listen on all interfaces“ aktivieren und den Server starten.</p>
+            <label>IP des Smartphones<input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
+            <button id="vibeConnect" class="secondary">Mit Intiface verbinden</button>
+            <button id="vibeScan" class="secondary" hidden>In Intiface nach Geräten suchen</button>
+          </details>
+        </div>
+
+        <div data-panel="dev:safety" hidden>
+          <label>Max. Geschwindigkeit Direktsteuerung <output id="capSpeedVal"></output>
+            <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
+          </label>
+          <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
+          <p class="hint-text">Not-Aus: Esc-Taste oder der rote STOPP-Knopf. Die Vibration begrenzt „Maximum“ beim Vibrator.</p>
+        </div>
+
+        <button id="stopAll" class="estop wide">■ Alles stoppen</button>
+        <p id="log" class="log"></p>
+      </div>
+    </aside>
+  </main>
+
+  <button id="fabStop" class="fab-stop" hidden>■ STOPP</button>
+
+  <script src="handy.js"></script>
+  <script src="app.js"></script>
+  <script src="library.js"></script>
+  <script src="control.js"></script>
+  <script src="vibe.js"></script>
+  <script src="fullscreen.js"></script>
+  <script src="enhance.js"></script>
+  <script src="hq.js"></script>
+</body>
+</html>
