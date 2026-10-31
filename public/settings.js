@@ -45,6 +45,11 @@ $('hsCopy').addEventListener('click', async () => {
 // --- Bibliothek --------------------------------------------------------------
 $('setHoverPreview').checked = store.get('hoverPreview', true);
 $('setHoverPreview').addEventListener('change', () => store.set('hoverPreview', $('setHoverPreview').checked));
+$('setShowContinue').checked = store.get('showContinue', false);
+$('setShowContinue').addEventListener('change', () => {
+  store.set('showContinue', $('setShowContinue').checked);
+  renderContinue();
+});
 
 function renderLibrarySettings() {
   const sel = $('setStartSource');

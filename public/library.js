@@ -207,7 +207,8 @@ function sceneCard(s) {
 // „Weiterschauen“: angefangene Stash-Szenen, nur in der ungefilterten Startansicht
 async function renderContinue() {
   const box = $('continueRow');
-  const plain = lib.source === 'stash' && lib.browse === 'scenes' && !lib.saved && !$('search').value.trim()
+  const plain = store.get('showContinue', false) // in den Einstellungen einschaltbar, standardmäßig aus
+    && lib.source === 'stash' && lib.browse === 'scenes' && !lib.saved && !$('search').value.trim()
     && !Object.values(lib.filters).some((l) => l.length);
   if (!plain || !lib.stashStatus?.ok) { box.hidden = true; return; }
   try {

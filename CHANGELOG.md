@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.3.2 – 01.11.2026
+
+- „Weiterschauen“-Reihe ist jetzt ein Schalter in ⚙️ Einstellungen → Bibliothek, **standardmäßig aus**
+  (Warum: nicht jeder möchte sie oben in der Bibliothek sehen)
+
 ## 1.3.1 – 01.11.2026
 
 - Link rechts in der Bibliothek je nach Modus: **Streamen** → „Pornhub ↗“, **Sync** → „FapTap ↗“
