@@ -8,6 +8,9 @@ if (js.includes('</script')) throw new Error('script would close early');
 const swap = (a, b) => { if (!html.includes(a)) throw new Error('missing: ' + a); html = html.replace(a, b); };
 swap('<link rel="stylesheet" href="style.css">', `<style>\n${css}\n</style>`);
 swap('<script src="sync-demo.js"></script>', `<script>\n${js}\n</script>`);
+const js2 = fs.readFileSync('docs/try-demo.js', 'utf8');
+if (js2.includes('</script')) throw new Error('script would close early');
+swap('<script src="try-demo.js"></script>', `<script>\n${js2}\n</script>`);
 // Entwickler-Seite ist nicht dabei -> Links entfernen
 swap('      <a href="dev.html">Entwickler</a>\n', '');
 swap('<span><a href="dev.html">Entwickler-Doku →</a></span>', '<span>Selbst gehostet · Docker</span>');

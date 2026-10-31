@@ -15,6 +15,7 @@
     <nav>
       <a href="#start">Start</a>
       <a href="#sync">Sync</a>
+      <a href="#ausprobieren">Ausprobieren</a>
       <a href="#funktionen">Funktionen</a>
       <a href="#bedienung">Bedienung</a>
       <a href="#neu">Neu</a>
@@ -113,6 +114,41 @@
         <button class="sd-play">❚❚ Pause</button>
         <span class="sd-seg" title="Script"><button data-smode="original" class="on">Original</button><button data-smode="auto">Automatisch</button></span>
         <span class="sd-seg" title="Satisfyer-Übersetzung"><button data-vmode="rhythm" class="on">〰 Rhythmus</button><button data-vmode="even">〰 Gleichmäßig</button></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Ausprobieren ============ -->
+  <section id="ausprobieren">
+    <span class="kicker">Selbst ausprobieren</span>
+    <h2>Mini-Player – direkt hier</h2>
+    <p class="sub">Eine stark vereinfachte Fassung zum Reinschnuppern: Wähle ein Video und das passende
+      <code>.funscript</code> von deinem Gerät – oder spiel das Beispiel-Script ohne Video ab. Handy und Satisfyer
+      laufen als Anzeige mit; echte Geräte kannst du optional verbinden. Nichts wird hochgeladen, alles bleibt bei dir.</p>
+    <div id="tryDemo" class="try">
+      <div class="tr-pick">
+        <label class="btn tr-filebtn">📂 Video + Funscript wählen<input class="tr-files" type="file" multiple accept="video/*,.funscript,application/json" hidden></label>
+        <button class="btn ghost tr-example">▶ Beispiel ohne Video</button>
+        <span class="tr-msg muted"></span>
+      </div>
+      <div class="tr-stage" hidden>
+        <div class="tr-main">
+          <video playsinline hidden></video>
+          <div class="tr-name muted"></div>
+          <canvas class="tr-bar" title="Antippen zum Springen"></canvas>
+          <div class="tr-ctl"><button class="tr-play">▶</button><span class="tr-time">0:00 / 0:00</span></div>
+        </div>
+        <div class="tr-devs">
+          <div class="tr-dev"><div class="sd-rail"><div class="sd-carriage tr-carriage"></div></div><div class="sd-cap">↕ The Handy <b class="tr-hpos">–</b></div></div>
+          <div class="tr-dev"><div class="sd-orb tr-orb"><span></span></div><div class="sd-cap">〰 Satisfyer <b class="tr-vlvl">0 %</b></div></div>
+        </div>
+        <details class="tr-real">
+          <summary>Echte Geräte verbinden (optional, zum Ausprobieren)</summary>
+          <p class="muted">Satisfyer: Chrome oder Edge mit Bluetooth, Satisfyer-App vorher schließen. Handy: WLAN-Modus und Connection Key.
+            Je nach Browser klappt das aus einer lokal geöffneten Datei nicht – der volle Player läuft dafür auf einem Server.</p>
+          <div class="tr-row"><button class="btn ghost tr-ble">〰 Satisfyer verbinden</button></div>
+          <div class="tr-row"><input class="tr-key" type="password" placeholder="Handy Connection Key" autocomplete="off"><button class="btn ghost tr-handy">↕ Handy verbinden</button></div>
+        </details>
       </div>
     </div>
   </section>
@@ -360,5 +396,6 @@ docker compose up -d --build</code></pre>
   </footer>
 </main>
 <script src="sync-demo.js"></script>
+<script src="try-demo.js"></script>
 </body>
 </html>
