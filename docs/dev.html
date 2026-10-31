@@ -20,6 +20,7 @@
       <a href="#fernbedienung">Fernbedienung</a>
       <a href="#konfig">Konfiguration</a>
       <a href="#arbeiten">Arbeiten am Code</a>
+      <a href="#tests">Tests</a>
       <a href="index.html">← Funktionen</a>
     </nav>
   </div>
@@ -158,11 +159,29 @@
       </div>
       <div class="card">
         <h3>Oberfläche</h3>
-        <p>Kopfzeile: Status-Chips (<code>[data-dev]</code>) öffnen <code>#devices</code> als Fenster
-          (<code>body.dev-open</code>), Menü <code>#menu</code>. Streamen/Sync schaltet <code>.sync-toggle</code> über
-          <code>setMode()</code>. Video läuft in Bibliothek/Einstellungen weiter (<code>#nowBar</code>).
-          Alle IDs der Geräte-Regler sind gleich geblieben. Im Player steht <code>#devices</code> fest am Video
-          (<code>devInline()</code>, abschaltbar per HUD <code>devices</code>), sonst ist es ein Fenster.</p>
+        <p>Kopfzeile: eine Status-Anzeige <code>#devChip</code> öffnet <code>#devices</code> als Fenster
+          (<code>body.dev-open</code>) – nur dort steht Verbinden (<code>.conn</code>). Im Player steht <code>#devices</code>
+          fest am Video, ohne Reiter. Menü <code>#menu</code>; Sync-Schalter <code>.sync-toggle</code> nur in ⚙️ → Geräte.
+          Beim Stöbern: Mini-Player (<code>body.mini-on</code>) bzw. <code>#nowBar</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Nur verbundene Geräte</h3>
+        <p><code>updateDevClasses()</code> setzt alle 0,5 s <code>has-handy</code>, <code>has-vibe</code>, <code>has-dev</code>
+          am <code>body</code>. Das CSS blendet danach Regler, Touch-Haken und „Selbst steuern“ ein oder aus; ändert sich
+          etwas, rechnet die Script-Automatik die Info-Zeile neu.</p>
+      </div>
+      <div class="card">
+        <h3>Script je Gerät</h3>
+        <p><code>processScript(actions, 'handy' | 'vibe')</code>: gemeinsame Schritte (Zittern, Hub), danach nur für die Handy
+          <code>limitSpeed()</code>, für den Satisfyer ggf. Glättung. <code>sendActions()</code> geht an die Handy,
+          <code>vibeActions()</code> an den Satisfyer; Offset gilt für beide.</p>
+      </div>
+      <div class="card">
+        <h3>Eigene Scripts &amp; Mitschnitt</h3>
+        <p><code>saveScriptToLibrary()</code> -> <code>POST /api/userscript</code>: neben das Ordner-Video (<code>wx</code>,
+          nie überschreiben) oder <code>data/scripts/</code>. Beim Öffnen ohne Script lädt <code>loadUserScript()</code>.
+          Der Mitschnitt (selfctl.js) tastet alle 100 ms an <code>mediaTime()</code> ab; <code>touchToTempoActions()</code>
+          macht daraus Stöße, deren Tempo dem Wert folgt.</p>
       </div>
       <div class="card">
         <h3>Einstellungen speichern</h3>
@@ -289,6 +308,16 @@ node server.js
       <div class="card"><h3>Keine Abhängigkeiten</h3><p>Nur Node-Standardbibliothek und Browser-APIs. Kein Build, kein Bundler.</p></div>
       <div class="card"><h3>Sicherheit zuerst</h3><p>Alles, was Geräte bewegt, muss über <code>emergencyStop()</code> stoppbar sein und bei fehlender Verbindung anhalten.</p></div>
       <div class="card"><h3>Feature-Seite pflegen</h3><p>Neue Funktionen in <code>docs/index.html</code> ergänzen, technische Details hier.</p></div>
+    </div>
+  </section>
+
+  <section id="tests">
+    <h2>Tests</h2>
+    <p class="sub">Ohne zusätzliche Pakete, mit Node-Bordmitteln. Vor jeder Version laufen lassen:</p>
+<pre><code>node --test "test/*.test.js"</code></pre>
+    <div class="grid two">
+      <div class="card"><h3>test/scripts.test.js</h3><p>Funscript einlesen, Script-Automatik (Analyse, Zittern, Hub, Tempo-Grenze), Touch-Aufnahme als Tempo/Position, Intensitäts-Zusammenfassung. Die Funktionen werden direkt aus den Browser-Dateien gelesen (<code>loadFunctions</code> in <code>test/helpers.js</code>).</p></div>
+      <div class="card"><h3>test/server.test.js</h3><p>Startet <code>server.js</code> mit Testordnern: Bibliothek, gemeinsame Einstellungen, Intensität, eigene Scripts (nie überschreiben), Fernbedienungs-Relais über Server-Sent Events, HereSphere-Schalter.</p></div>
     </div>
   </section>
 

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Funscript Player</title>
-  <meta name="description" content="Selbst gehosteter Web-Player für Videos mit Funscripts – The Handy, Satisfyer, Stash, Fernbedienung, VR.">
+  <meta name="description" content="Selbst gehosteter Web-Player für Videos mit Funscripts – The Handy und Satisfyer im Takt, Stash, Fernbedienung, VR.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,15 +13,13 @@
   <div class="top-in">
     <a class="brand" href="#">Funscript <span>Player</span></a>
     <nav>
-      <a href="#modi">Modi</a>
-      <a href="#player">Player</a>
-      <a href="#geraete">Geräte</a>
-      <a href="#script">Script</a>
-      <a href="#fernbedienung">Fernbedienung</a>
-      <a href="#stash">Stash</a>
-      <a href="#mehr">Mehr</a>
+      <a href="#start">Start</a>
+      <a href="#sync">Sync</a>
+      <a href="#funktionen">Funktionen</a>
+      <a href="#bedienung">Bedienung</a>
       <a href="#neu">Neu</a>
       <a href="#installation">Installation</a>
+      <a href="#fragen">Fragen</a>
       <a href="dev.html">Entwickler</a>
     </nav>
   </div>
@@ -32,27 +30,27 @@
   <div class="hero">
     <div>
       <span class="kicker">Selbst gehostet · im Browser</span>
-      <h1>Videos, Scripts und Geräte – im Takt.</h1>
-      <p class="lead">Der Funscript Player spielt deine Videos mit Funscripts ab und steuert dabei <b>The Handy</b> und den
-        <b>Satisfyer</b> – beide aus demselben Funscript. Die Bibliothek kommt aus <b>Stash</b> oder deinen Ordnern – am PC, Smartphone, TV oder in der VR-Brille.</p>
+      <h1>Ein Funscript.<br>Alle Geräte.<br>Im Takt.</h1>
+      <p class="lead">Der Funscript Player spielt deine Videos ab und steuert dabei <b>The Handy</b> und den
+        <b>Satisfyer</b> – beide aus demselben Script, ohne eigenes Vibrations-Script. Deine Bibliothek kommt aus
+        <b>Stash</b> oder deinen Ordnern; schauen kannst du am PC, Smartphone, TV oder in der VR-Brille.</p>
       <div class="chips">
-        <span class="chip">↕ The Handy (WLAN &amp; Bluetooth)</span>
+        <span class="chip">↕ The Handy · API v3 · 0,5×–2×</span>
         <span class="chip">〰 Satisfyer per Bluetooth</span>
-        <span class="chip">⚡ Ein Script für beide Geräte</span>
-        <span class="chip">📚 Stash</span>
+        <span class="chip">📚 Stash &amp; Ordner</span>
         <span class="chip">📱 Fernbedienung</span>
         <span class="chip">🥽 HereSphere</span>
       </div>
       <div class="btns">
         <a class="btn" href="#installation">Installieren</a>
-        <a class="btn ghost" href="#player">So sieht's aus</a>
+        <a class="btn ghost" href="#sync">Sync ansehen</a>
       </div>
     </div>
 
     <div class="phone" aria-label="Player auf dem Smartphone (Abbildung)">
       <div class="screen">
-        <div class="scr-head"><span><span class="pill on">↕ verbunden</span> <span class="pill on">〰 1 Gerät</span></span><span class="burger">☰</span></div>
-                <div class="video">
+        <div class="scr-head"><span class="m-chip"><span class="ok">↕ verbunden</span> · <span class="ok">〰 1 · 🔋 64 %</span> ▾</span><span class="burger">☰</span></div>
+        <div class="video">
           <span class="stop">■ STOPP</span>
           <span class="play">❚❚</span>
           <div class="bar-wrap">
@@ -60,99 +58,35 @@
             <div class="row"><span>−10</span><span>+10</span><span class="t">12:40 / 31:05</span><span class="g"></span><span class="gold">★ 4</span><span>💦 2</span><span>📍</span><span>🔥</span><span>⛶</span></div>
           </div>
         </div>
-        <div class="scr-info"><b>Szene am See</b><span class="muted">2025-06-14 · 31 min · 3× gesehen</span><br><span class="stars">★★★★☆</span> ⚡ Funscript (1 842 Punkte)<br><span class="muted">🛠️ Automatisch · Hub 30–70 → 0–100 gestreckt</span><br><span class="muted">Mehr zur Szene ▾</span></div>
+        <div class="scr-info"><b>Szene am See</b><span class="muted">🛠️ Automatisch · Handy: 14 Stellen gekürzt</span></div>
+        <div class="scr-devs">
+          <span class="mbtn">❚❚ Geräte pausieren</span>
+          <span class="mrow">Offset <i style="--v:55%"></i> +40 ms</span>
+          <span class="mrow">Hub <i style="--v:80%;--s:10%"></i> 10–90 %</span>
+          <span class="mrow">〰 Stärke <i class="live" style="--v:62%"></i> 62 %</span>
+          <span class="mbtn fin">🔥 Finale</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ============ Modi ============ -->
-  <section id="modi">
-    <span class="kicker">Ruhig bedienen</span>
-    <h2>Schauen, Sync oder Steuern – ohne Ballast</h2>
-    <p class="sub">Oben stehen nur der Status von Handy und Satisfyer und das Menü ☰. Ein Tipp auf den Status öffnet das Geräte-Fenster mit Verbinden, Offset, Hub und Stärke. Video, Handy und Satisfyer laufen beim Wechsel in Bibliothek oder Einstellungen weiter – unten erscheint „Läuft gerade“.</p>
-    <div class="grid">
-      <div class="card"><div class="icon">📺</div><h3>Nur schauen</h3><p>„Geräte folgen dem Video“ aus: alle Videos, Geräte bleiben aus. Startet mit deinem Stash-Filter „2D“.</p></div>
-      <div class="card"><div class="icon">🔄</div><h3>Sync</h3><p>„Geräte folgen dem Video“ an: Handy und Satisfyer laufen im Takt. Feinheiten im Geräte-Fenster. Startet mit „2D Script“.</p></div>
-      <div class="card"><div class="icon">🎮</div><h3>Steuern</h3><p>Im Menü ☰, ohne Video: Direktsteuerung mit Geschwindigkeit, eigene Patterns zeichnen, Patterns zu einem Script zusammenbauen und exportieren.</p></div>
-    </div>
-
-    <div class="split" style="margin-top:28px">
-      <div class="sheet-demo" aria-label="Geräte-Fenster (Abbildung)">
-        <div class="sd-head"><span>🔄 Geräte folgen dem Video <i class="sd-switch"></i></span><span class="sd-x">✕</span></div>
-        <div class="sd-tabs"><span class="on">The Handy</span><span>Satisfyer</span></div>
-        <div class="sd-btn ok">✓ Verbunden</div>
-        <div class="sd-row"><span>⟳ Neu synchronisieren</span><span>🎯 Offset einmessen</span></div>
-        <div class="sd-slider"><span>Video-Offset</span><b>+40 ms</b><i style="--v:54%"></i></div>
-        <div class="sd-slider"><span>Hub</span><b>10–90 %</b><i style="--v:80%;--s:10%"></i></div>
-        <div class="sd-btn fin">🔥 Finale</div>
-        <div class="sd-btn stop">■ Alles stoppen</div>
-      </div>
-      <div>
-        <h3>Die Regler fürs Schauen – direkt am Video</h3>
-        <p class="muted">Im Player steht dieser Bereich fest am Video – am Smartphone darunter, am PC rechts daneben
-          (abschaltbar unter ⚙️ → Anzeige). Auf allen anderen Seiten öffnet ein Tipp auf den Status oben dasselbe als Fenster.</p>
-        <ul class="muted">
-          <li><b>Handy:</b> Verbinden, neu synchronisieren, Offset (auch per Takt einmessen), Hub</li>
-          <li><b>Satisfyer:</b> per Bluetooth verbinden, Stärke, Vibration pausieren</li>
-          <li><b>Immer da:</b> 🔥 Finale und ■ Alles stoppen</li>
-          <li>Einmalige Dinge wie Connection Key, Übersetzung und Sicherheit stehen unter ⚙️ Einstellungen</li>
-          <li>Der Titel „Funscript Player“ führt zur Bibliothek – und von dort zurück zum laufenden Video</li>
-        </ul>
-        <p class="muted">Im Menü ☰: Bibliothek, 🎮 Steuern, ⚙️ Einstellungen und derselbe Schalter „Geräte folgen dem Video“.</p>
-      </div>
+  <!-- ============ In drei Schritten ============ -->
+  <section id="start">
+    <span class="kicker">In drei Schritten</span>
+    <h2>Verbinden, wählen, abspielen</h2>
+    <div class="grid three-steps">
+      <div class="card step"><span class="num">1</span><h3>Verbinden</h3><p>Oben auf die Status-Anzeige tippen: Handy mit Connection Key, Satisfyer per Bluetooth. Einmal eingerichtet, verbindet der Player beim Start von selbst – auf allen deinen Geräten.</p></div>
+      <div class="card step"><span class="num">2</span><h3>Szene wählen</h3><p>In der Bibliothek zeigt jede Kachel mit Funscript ihre Intensität. Filtere nach ruhig, mittel oder intensiv – oder nimm 🎲 Zufall.</p></div>
+      <div class="card step"><span class="num">3</span><h3>Play</h3><p>Handy und Satisfyer laufen im Takt. Unter dem Video stehen nur die Regler der verbundenen Geräte: Pause, Offset, Hub, Stärke.</p></div>
     </div>
   </section>
 
-  <!-- ============ Player ============ -->
-  <section id="player">
-    <span class="kicker">Player</span>
-    <h2>Eine Leiste für alles – auch im Vollbild</h2>
-    <p class="sub">Die Zeitleiste ist gleichzeitig die <b>Heatmap</b> des Scripts: Farbe = Tempo der Bewegung,
-      gelbe Striche = Marker aus Stash. Mit der Maus darüber zeigt sie Vorschaubilder.</p>
-
-    <div class="bar-demo" aria-label="Player-Leiste (Abbildung)">
-      <div class="heat"><i style="left:22%"></i><i style="left:63%"></i><b></b></div>
-      <div class="row"><span>−10</span><span>+10</span><span class="t">12:40 / 31:05</span><span class="g"></span><span class="gold">★ 4 ♥</span><span>💦 2</span><span>📍</span><span>🔊</span><span>⟳</span><span>🔥</span><span>Vib ❚❚</span><span>✨</span><span>⛶</span></div>
-    </div>
-    <div class="scale"><span>langsam</span><div class="grad"></div><span>schnell</span></div>
-
-    <div class="legend">
-      <div><b>−10 / +10</b> – spulen (auch Doppeltippen links/rechts)</div>
-      <div><b>★</b> – Sterne, Favorit ♥, O zurücknehmen</div>
-      <div><b>💦</b> – O-Zähler +1 in Stash</div>
-      <div><b>📍</b> – Marker an dieser Stelle setzen</div>
-      <div><b>⟳</b> – Handy neu synchronisieren</div>
-      <div><b>🔥</b> – Finale: ruhiger werden</div>
-      <div><b>Vib ❚❚</b> – Vibration kurz pausieren</div>
-      <div><b>✨ / ⛶</b> – Bildverbesserung, Vollbild</div>
-    </div>
-
-    <div class="grid two" style="margin-top:20px">
-      <div class="card">
-        <h3>Bedienen mit Finger</h3>
-        <ul>
-          <li>Tippen: Bedienung ein/aus</li>
-          <li>Doppeltippen links/rechts: ±10 s, Mitte: Vollbild</li>
-          <li>Auf der Zeitleiste ziehen: springen mit Vorschau</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Bedienen mit Tastatur</h3>
-        <p><span class="kbd">Leertaste</span> Play · <span class="kbd">←</span><span class="kbd">→</span> ±5 s ·
-          <span class="kbd">F</span> Vollbild · <span class="kbd">M</span> Ton · <span class="kbd">P</span> Marker ·
-          <span class="kbd">S</span> Sync · <span class="kbd">O</span> Finale · <span class="kbd">Esc</span> Not-Aus</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Geräte ============ -->
-  <section id="geraete">
-    <span class="kicker">Geräte</span>
-    <h2>The Handy und Satisfyer</h2>
-    <p class="sub">So sieht Sync aus: Das Funscript läuft im Takt des Videos, die Handy fährt die Position,
-      der Satisfyer macht aus <b>demselben Script</b> Vibration – ein eigenes Vibrations-Script brauchst du nicht.
-      Unten schaltest du zwischen Original und Script-Automatik und zwischen den Satisfyer-Übersetzungen um.</p>
-
+  <!-- ============ Sync ============ -->
+  <section id="sync">
+    <span class="kicker">So sieht Sync aus</span>
+    <h2>Video, Script und Geräte – im selben Takt</h2>
+    <p class="sub">Das Funscript läuft mit dem Video. Die Handy fährt die Position, der Satisfyer macht aus <b>demselben
+      Script</b> Vibration. Schalte zwischen Original und Script-Automatik und zwischen den Satisfyer-Übersetzungen um.</p>
     <div id="syncDemo" class="sync-demo" aria-label="Animation: Video, Funscript, The Handy und Satisfyer im Takt">
       <div class="sdv">
         <div class="sdv-frame"><span class="sdv-dot"></span><span class="sdv-play">▶</span></div>
@@ -181,89 +115,27 @@
         <span class="sd-seg" title="Satisfyer-Übersetzung"><button data-vmode="rhythm" class="on">〰 Rhythmus</button><button data-vmode="even">〰 Gleichmäßig</button></span>
       </div>
     </div>
-
-    <div class="split">
-      <div>
-        <h3>↕ The Handy – Script vorab, Uhr abgeglichen</h3>
-        <p class="muted">Über WLAN bekommt die Handy das ganze Script vorab und spielt es nach einer mit dem Handy-Server
-          abgeglichenen Uhr ab. Der Player sagt nur „ab Position X, jetzt“. Kleine Abweichungen korrigiert er alle 30 s still nach.</p>
-        <ol class="steps">
-          <li>Connection Key einmal unter ⚙️ → Geräte eintragen – verbindet sofort.</li>
-          <li>Szene im Modus Sync öffnen: Script wird hochgeladen.</li>
-          <li>Play: Handy startet an der richtigen Stelle, auch nach Spulen.</li>
-        </ol>
-        <p class="muted">Mit <b>Application ID</b> (Handy-API v3) bleibt die Handy auch bei 0,5× bis 2× Wiedergabe im Takt. Ohne Internet: Handy auf Bluetooth stellen und über <b>Intiface Central</b> verbinden.</p>
-      </div>
-      <div class="diagram" aria-label="Ablauf Handy-Sync">
-        <svg viewBox="0 0 440 250" role="img">
-          <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
-          <rect class="d-acc" x="10" y="20" width="130" height="64" rx="10"/>
-          <text class="d-t" x="75" y="47" text-anchor="middle">Player</text>
-          <text class="d-s" x="75" y="66" text-anchor="middle">Video bei 12:40</text>
-          <rect class="d-box" x="300" y="20" width="130" height="64" rx="10"/>
-          <text class="d-t" x="365" y="47" text-anchor="middle">Handy-Cloud</text>
-          <text class="d-s" x="365" y="66" text-anchor="middle">Uhr · Script-Speicher</text>
-          <rect class="d-box" x="300" y="166" width="130" height="64" rx="10"/>
-          <text class="d-t" x="365" y="193" text-anchor="middle">The Handy</text>
-          <text class="d-s" x="365" y="212" text-anchor="middle">fährt das Script</text>
-          <path class="d-line" d="M140 40 H296" marker-end="url(#ah)"/>
-          <text class="d-s" x="218" y="33" text-anchor="middle">① Script hochladen</text>
-          <path class="d-line" d="M140 66 H296" marker-end="url(#ah)"/>
-          <text class="d-s" x="218" y="82" text-anchor="middle">② „ab 12:40, jetzt“</text>
-          <path class="d-line" d="M365 84 V162" marker-end="url(#ah)"/>
-          <text class="d-s" x="372" y="128">③ WLAN</text>
-          <path class="d-hot" d="M30 190 l12 -40 l12 40 l12 -40 l12 40 l8 -40 l8 40 l8 -40 l8 40 l8 -40 l8 40 l20 -20 l20 20"/>
-          <text class="d-s" x="20" y="232">Script: Positionen über die Zeit</text>
-        </svg>
-      </div>
-    </div>
-
-    <div class="split rev" style="margin-top:36px">
-      <div>
-        <h3>〰 Satisfyer – dasselbe Script wird zu Vibration</h3>
-        <p class="note">Kein eigenes Vibrations-Script nötig: Der Satisfyer nutzt dasselbe Funscript wie die Handy.
-          Der Player rechnet daraus die Stärke – im Takt, mit Vorlauf für Bluetooth.</p>
-        <p class="muted">Verbunden direkt per Bluetooth aus dem Browser (Chrome, auf dem iPhone „Bluefy“) oder über Intiface.
-          Der Player rechnet ~16× pro Sekunde aus dem Script eine Stärke aus. Wie, stellst du ein:</p>
-        <ul class="muted">
-          <li><b>Rhythmus</b> – pulsiert mit jedem Stoß, schneller = stärker</li>
-          <li><b>Nach Geschwindigkeit</b> – folgt nur dem Tempo, gleichmäßig</li>
-          <li><b>Nach Position</b> – unten (oder oben) = stark</li>
-          <li><b>Gleichmäßigkeit</b> – glättet über bis zu 1,5 s, Spitzen werden flacher</li>
-        </ul>
-        <p class="muted">Nach Bildschirmsperre verbindet er von selbst neu, sobald der Player wieder offen ist.</p>
-      </div>
-      <div class="diagram" aria-label="Script und Vibration im Vergleich">
-        <svg viewBox="0 0 440 270" role="img">
-          <text class="d-s" x="10" y="18">Script (Bewegung) – erst langsam, dann schnell</text>
-          <path class="d-line" style="stroke:var(--text)" d="M10 70 L40 30 L70 70 L100 30 L130 70 L160 30 L190 70 L205 30 L220 70 L235 30 L250 70 L265 30 L280 70 L295 30 L310 70 L325 30 L340 70 L355 30 L370 70 L385 30 L400 70 L415 30 L430 70"/>
-          <text class="d-s" x="10" y="108">Rhythmus – pulsiert, wird mit dem Tempo stärker</text>
-          <path class="d-hot" d="M10 160 L40 150 L70 132 L100 150 L130 132 L160 150 L190 132 L205 128 L220 116 L235 128 L250 116 L265 128 L280 116 L295 128 L310 116 L325 128 L340 116 L355 128 L370 116 L385 128 L400 116 L415 128 L430 116"/>
-          <text class="d-s" x="10" y="198">Nach Geschwindigkeit + Gleichmäßigkeit – ruhig</text>
-          <path class="d-gold" d="M10 252 C80 250 130 246 180 240 S240 214 280 208 S380 204 430 204"/>
-          <line class="d-line" x1="10" y1="168" x2="430" y2="168" style="opacity:.25"/>
-          <line class="d-line" x1="10" y1="258" x2="430" y2="258" style="opacity:.25"/>
-        </svg>
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:28px">
-      <div class="card"><div class="icon">🎯</div><h3>Offset einmessen</h3><p>Script leicht versetzt? Im Takt der Stöße tippen (Taste T) – der Player berechnet den Versatz und merkt ihn sich pro Szene.</p></div>
-      <div class="card"><div class="icon">🛠️</div><h3>Script-Automatik</h3><p>Prüft jedes Script und korrigiert nur, was nötig ist: Zittern weg, flachen Hub strecken, Unmögliches kürzen. Presets Sanft und Intensiv, pro Szene wählbar – deine Dateien bleiben unverändert.</p></div>
-      <div class="card"><div class="icon">🎚️</div><h3>Selbst steuern</h3><p>Video ohne Funscript? Unter dem Video „Selbst steuern“ wählen: Handy-Geschwindigkeit und Satisfyer-Stärke regeln, während das Video läuft. Pause hält an.</p></div>
-      <div class="card"><div class="icon">👆</div><h3>Touch-Steuerung</h3><p>Wie in der Satisfyer-App: Finger oben = stark, unten = schwach, Loslassen = aus. ⏺ nimmt auf – als Pattern, .funscript oder Script zum Video.</p></div>
-      <div class="card"><div class="icon">⏺</div><h3>Mitschnitt zum Video</h3><p>Bei „Selbst steuern“ aufnehmen, wie du steuerst – an der Video-Zeit. Gespeichert läuft es beim nächsten Mal genau so synchron mit.</p></div>
-      <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script komplett lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt. Auf Wunsch automatisch zurück.</p></div>
-    </div>
   </section>
 
-  <!-- ============ Script-Automatik ============ -->
-  <section id="script">
-    <span class="kicker">Neu in 1.11</span>
-    <h2>Script-Automatik: jedes Script passend gemacht</h2>
-    <p class="sub">Scripts sind unterschiedlich gut. Der Player prüft jedes beim Laden und korrigiert nur, was nötig ist –
-      deine Dateien bleiben unverändert, die Heatmap zeigt das Ergebnis. Unter dem Video steht, was angepasst wurde.</p>
-    <div class="split">
+  <!-- ============ Funktionen ============ -->
+  <section id="funktionen">
+    <span class="kicker">Funktionen</span>
+    <h2>Was der Player kann</h2>
+
+    <!-- Ein Script für alle Geräte -->
+    <div class="feature">
+      <div>
+        <h3 class="f-title">⚡ Ein Script für alle Geräte</h3>
+        <p class="muted">Ein Funscript reicht. Der Player macht daraus für jedes Gerät die passende Fassung – gleichzeitig:</p>
+        <ul class="ticks">
+          <li><b>The Handy</b> bekommt das Script über die Handy-Cloud, mit abgeglichener Uhr. Mit Application ID
+            (API v3) bleibt sie auch bei 0,5× bis 2× Wiedergabe im Takt.</li>
+          <li><b>Satisfyer</b>: Der Player rechnet daraus Vibration – im Rhythmus der Stöße, nach Tempo oder Position,
+            mit einstellbarer Gleichmäßigkeit. Den Vorlauf misst er selbst.</li>
+          <li><b>Script-Automatik</b> prüft jedes Script: Zittern weg, flachen Hub strecken – und nur für die Handy kürzen,
+            was sie nicht schafft. Presets: Automatisch, Sanft, Intensiv, Original.</li>
+        </ul>
+      </div>
       <div class="diagram" aria-label="Script vorher und nachher">
         <svg viewBox="0 0 440 300" role="img">
           <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
@@ -282,23 +154,87 @@
           <path class="d-hot" d="M245 261 L252 239 L259 261 L266 239 L273 261 L280 239 L287 261 L294 239 L301 261 L308 239 L315 261 L322 239 L329 261 L336 239 L343 261 L350 239 L357 261 L364 239 L371 261 L378 239 L385 261 L392 239 L399 261 L406 239 L413 261 L420 239"/>
         </svg>
       </div>
-      <div class="grid" style="grid-template-columns:1fr">
-        <div class="card"><h3>Automatisch <span class="muted">· Standard</span></h3><p>Zittern weg, Hub unter 70 % strecken, was die Handy nicht schafft kürzen, bei stark wechselndem Tempo den Satisfyer beruhigen.</p></div>
-        <div class="card"><h3>Sanft</h3><p>Jedes Script auf 15–85 % Hub, höchstens 300 %/s, Satisfyer ruhig.</p></div>
-        <div class="card"><h3>Intensiv</h3><p>Voller Hub, nur das physisch Nötige gekürzt, Satisfyer im vollen Rhythmus.</p></div>
-        <div class="card"><h3>Original · Eigene</h3><p>Genau wie die Datei – oder deine eigenen Haken (Hub strecken, Höchstgeschwindigkeit).</p></div>
+    </div>
+
+    <!-- Selbst steuern -->
+    <div class="feature rev">
+      <div>
+        <h3 class="f-title">👆 Kein Script? Selbst steuern – und mitschneiden</h3>
+        <p class="muted">Bei Videos ohne Funscript wählst du unter dem Video „Selbst steuern“: Handy-Tempo und
+          Satisfyer-Stärke per Regler, Schnellwahl oder Finger-Fläche – wie in der Satisfyer-App.</p>
+        <ul class="ticks">
+          <li><b>Finger oben = stark</b>, unten = schwach, Loslassen = aus (oder halten).</li>
+          <li><b>⏺ Mitschnitt zum Video</b> zeichnet deine Steuerung an der Video-Zeit auf. Gespeichert wird daraus ein
+            eigenes Funscript – beim nächsten Mal läuft es genau so synchron mit.</li>
+          <li>Aufnahmen auch als <b>Pattern</b> unter 🎮 Steuern oder als <b>.funscript</b> zum Herunterladen.</li>
+        </ul>
+      </div>
+      <div class="pad-demo" aria-label="Finger-Fläche (Abbildung)">
+        <div class="pd-area"><div class="pd-fill"></div><span class="pd-val">72 %</span><span class="pd-finger"></span><span class="pd-hint">Finger auflegen – oben stark, unten schwach</span></div>
+        <div class="pd-opts"><span>☑ ↕ Handy</span><span>☑ 〰 Satisfyer</span><span>☐ halten</span><span class="pd-rec">■ Mitschnitt läuft</span></div>
       </div>
     </div>
-    <p class="note" style="margin-top:16px">Das Preset gilt für alle Szenen (⚙️ → Script) und lässt sich pro Szene unter dem Video ändern – der Player merkt es sich wie den Offset.</p>
-  </section>
 
-  <!-- ============ Fernbedienung ============ -->
-  <section id="fernbedienung">
-    <span class="kicker">Neu in 1.8</span>
-    <h2>Fernbedienung: Bild am TV, Steuerung in der Hand</h2>
-    <p class="sub">Das Video läuft am großen Bildschirm, das Smartphone ist Fernbedienung – und trägt den Satisfyer,
-      der dort per Bluetooth hängt. Beide gleichen ihre Uhr mit dem Server ab und bleiben so im Takt.</p>
-    <div class="split">
+    <!-- Ruhig beim Schauen -->
+    <div class="feature">
+      <div>
+        <h3 class="f-title">🧘 Ruhig beim Schauen</h3>
+        <ul class="ticks">
+          <li><b>Eine Status-Anzeige</b> oben für beide Geräte, mit Akku. Antippen = verbinden und einstellen.</li>
+          <li><b>Nur, was verbunden ist</b>, steht unter dem Video – ohne Reiter, ohne Ballast.</li>
+          <li><b>Geräte folgen dem Video</b> ist Standard; einmalige Dinge stehen in den Einstellungen.</li>
+          <li><b>Mini-Player</b>: Beim Stöbern läuft das Video klein in der Ecke weiter, Geräte inklusive.
+            ⧉ schickt es als Bild-in-Bild über andere Apps.</li>
+          <li>Darsteller, Tags, Marker und Beschreibung stehen unter „Mehr zur Szene“.</li>
+        </ul>
+      </div>
+      <div class="sheet-demo" aria-label="Geräte-Fenster (Abbildung)">
+        <div class="sd-head"><span class="m-chip"><span class="ok">↕ verbunden</span> · <span class="ok">〰 1 · 🔋 64 %</span></span><span class="sd-x">✕</span></div>
+        <div class="sd-tabs"><span class="on">The Handy</span><span>Satisfyer</span></div>
+        <div class="sd-btn ok">✓ Verbunden · Handy-Cloud 120 ms · API v3</div>
+        <div class="sd-row"><span>⟳ Neu synchronisieren</span><span>🎯 Offset einmessen</span></div>
+        <div class="sd-slider"><span>Video-Offset (beide Geräte)</span><b>+40 ms</b><i style="--v:54%"></i></div>
+        <div class="sd-slider"><span>Hub</span><b>10–90 %</b><i style="--v:80%;--s:10%"></i></div>
+        <div class="sd-btn stop">■ Alles stoppen</div>
+      </div>
+    </div>
+
+    <!-- Bibliothek -->
+    <div class="feature rev">
+      <div>
+        <h3 class="f-title">📚 Bibliothek mit Intensität</h3>
+        <p class="muted">Stash bleibt deine Verwaltung – der Player liest sie und schreibt zurück, was du beim Schauen tust.</p>
+        <ul class="ticks">
+          <li><b>Heatmap-Leiste</b> auf jeder Kachel mit Funscript, <b>filtern und sortieren</b> nach Intensität.</li>
+          <li>Gespeicherte Stash-Filter als Leiste; Tags, Darsteller, Studios; 🎲 Zufall; Weiterschauen.</li>
+          <li><b>Zurückschreiben</b>: Sterne, Favorit, O-Zähler und Marker – direkt in der Player-Leiste, auch im Vollbild.</li>
+          <li>Ordner unter <code>/media</code> sind eigene Quellen: Video + gleichnamige <code>.funscript</code>.</li>
+        </ul>
+      </div>
+      <div class="tiles-demo" aria-label="Bibliothek mit Intensität (Abbildung)">
+        <div class="td-bar"><span class="on">2D Script</span><span>VR Script</span><span class="sel">🌡️ intensiv ▾</span></div>
+        <div class="td-grid">
+          <div class="td-tile"><div class="td-thumb t1"><span>⚡</span><i style="--h:linear-gradient(90deg,#28c864,#f0d228 30%,#fa821e 55%,#e62832 75%,#fa821e)"></i></div><b>Feierabend</b></div>
+          <div class="td-tile"><div class="td-thumb t2"><span>⚡</span><i style="--h:linear-gradient(90deg,#1e90ff,#f0d228 25%,#e62832 50%,#e62832 70%,#fa821e)"></i></div><b>Hotelzimmer</b></div>
+          <div class="td-tile"><div class="td-thumb t3"><span>⚡</span><i style="--h:linear-gradient(90deg,#fa821e,#e62832 40%,#f0d228 60%,#e62832 85%)"></i></div><b>Dachterrasse</b></div>
+          <div class="td-tile"><div class="td-thumb t4"><span>⚡</span><i style="--h:linear-gradient(90deg,#28c864,#fa821e 35%,#e62832 60%,#f0d228)"></i></div><b>Am See</b></div>
+        </div>
+        <div class="td-mini"><span>▶ Szene am See</span><b>❚❚ ⤢</b></div>
+      </div>
+    </div>
+
+    <!-- Fernbedienung -->
+    <div class="feature">
+      <div>
+        <h3 class="f-title">📱 Fernbedienung</h3>
+        <p class="muted">Video am TV oder PC, Bedienung und Satisfyer am Smartphone. Beide gleichen ihre Uhr mit dem
+          Server ab und bleiben im Takt.</p>
+        <ul class="ticks">
+          <li>Am Smartphone in der Bibliothek <b>„📺 Abspielen auf“</b> wählen, Szene antippen – sie startet am TV.</li>
+          <li>Player-Leiste, Heatmap, ★/💦/📍, <b>Lautstärke</b> und STOPP am Smartphone.</li>
+          <li>Am TV steht <b>„Ferngesteuert von …“</b> mit Trennen-Knopf.</li>
+        </ul>
+      </div>
       <div class="diagram" aria-label="Aufbau der Fernbedienung">
         <svg viewBox="0 0 440 300" role="img">
           <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
@@ -329,44 +265,40 @@
           <text class="d-s" x="300" y="156" text-anchor="end">rechnet Position weiter</text>
         </svg>
       </div>
-      <div>
-        <ol class="steps">
-          <li>Player am TV und am Smartphone öffnen.</li>
-          <li>Am Smartphone oben in der Bibliothek <b>„📺 Abspielen auf“</b> den Bildschirm wählen.</li>
-          <li>Szene antippen – sie startet am TV. Das Smartphone zeigt Player-Leiste, Heatmap, ★/💦/📍 und STOPP.</li>
-        </ol>
-        <p class="note">Sicherheit: Meldet sich der Bildschirm 8 s nicht, stoppen die Geräte. STOPP am Smartphone hält auch den TV an.</p>
-      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="icon">✨</div><h3>Bild &amp; Qualität</h3><p>Schärfen und Anti-Banding im Browser; HQ-Stream vom Server mit Intel Quick Sync, wenn das Video kleiner ist als dein Bildschirm.</p></div>
+      <div class="card"><div class="icon">🥽</div><h3>VR mit HereSphere</h3><p>Nur VR-Videos als Mediathek, Formaterkennung, Bewertung aus der Brille zurück nach Stash. Abschaltbar – dann bleibt <code>/heresphere</code> zu.</p></div>
+      <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, „Geräte pausieren“, Stopp bei Bildschirmsperre, Grenzen für Tempo und Vibration.</p></div>
+      <div class="card"><div class="icon">🔄</div><h3>Überall gleich</h3><p>Key, Offsets, Satisfyer-Übersetzung, Sicherheit und Presets liegen auf dem Server – auf jedem Gerät dieselben. Bild und Kopfzeile pro Gerät.</p></div>
+      <div class="card"><div class="icon">🎮</div><h3>Steuern ohne Video</h3><p>Direktsteuerung, Finger-Fläche, Pattern-Editor und Script-Baukasten – abspielen oder als .funscript exportieren.</p></div>
+      <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt.</p></div>
     </div>
   </section>
 
-  <!-- ============ Stash ============ -->
-  <section id="stash">
-    <span class="kicker">Bibliothek</span>
-    <h2>Stash und eigene Ordner</h2>
-    <p class="sub">Stash bleibt deine Verwaltung – der Player liest sie und schreibt zurück, was du beim Schauen tust.
-      Der Browser spricht nie direkt mit Stash, ein API-Key bleibt auf dem Server.</p>
-    <div class="grid">
-      <div class="card"><div class="icon">🔎</div><h3>Finden</h3><p>Suche, Sortierung, deine gespeicherten Stash-Filter als Leiste, Tags, Darsteller, Studios, 🎲 Zufall.</p></div>
-      <div class="card"><div class="icon">🌡️</div><h3>Intensität auf einen Blick</h3><p>Jede Kachel mit Funscript zeigt unten eine kleine Heatmap-Leiste – blau ruhig, rot schnell. Filtern und sortieren nach ruhig / mittel / intensiv.</p></div>
-      <div class="card"><div class="icon">🧭</div><h3>Filter je Modus</h3><p>Streamen startet mit „2D“, Sync mit „2D Script“. Wählst du einen anderen, merkt sich jeder Modus seinen.</p></div>
-      <div class="card"><div class="icon">✍️</div><h3>Zurückschreiben</h3><p>Sterne, Favorit (Tag), O-Zähler, Marker („Lieblingsstelle“), Wiedergabeposition und Play-Count.</p></div>
-      <div class="card"><div class="icon">📂</div><h3>Ordner</h3><p>Jeder Ordner unter <code>/media</code> wird eine Quelle. Video + gleichnamige <code>.funscript</code> = fertig.</p></div>
+  <!-- ============ Bedienung ============ -->
+  <section id="bedienung">
+    <span class="kicker">Bedienung</span>
+    <h2>Eine Leiste für alles – auch im Vollbild</h2>
+    <p class="sub">Die Zeitleiste ist zugleich die <b>Heatmap</b> des Scripts: Farbe = Tempo, gelbe Striche = Marker.
+      Mit der Maus darüber zeigt sie Vorschaubilder.</p>
+    <div class="bar-demo" aria-label="Player-Leiste (Abbildung)">
+      <div class="heat"><i style="left:22%"></i><i style="left:63%"></i><b></b></div>
+      <div class="row"><span>−10</span><span>+10</span><span class="t">12:40 / 31:05</span><span class="g"></span><span class="gold">★ 4 ♥</span><span>💦 2</span><span>📍</span><span>🔊</span><span>⟳</span><span>🔥</span><span>Vib ❚❚</span><span>✨</span><span>⧉</span><span>⛶</span></div>
     </div>
-  </section>
-
-  <!-- ============ Mehr ============ -->
-  <section id="mehr">
-    <span class="kicker">Und außerdem</span>
-    <h2>Bild, VR, Sicherheit</h2>
-    <div class="grid">
-      <div class="card"><div class="icon">✨</div><h3>Bild &amp; Qualität</h3><p>„Automatisch“ wählt pro Video: Schärfen und Anti-Banding im Browser, Hochrechnen auf dem Server mit Intel Quick Sync, wenn das Video kleiner ist als dein Bildschirm.</p></div>
-      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash. <code>/heresphere</code> muss von einer Proxy-Anmeldung ausgenommen sein – oder du schaltest HereSphere unter ⚙️ ab.</p></div>
-      <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, Stopp bei Bildschirmsperre, Grenzen für Geschwindigkeit und Vibration.</p></div>
-      <div class="card"><div class="icon">📲</div><h3>Als App</h3><p>Auf dem Smartphone installierbar – startet ohne Browserleisten, Bildschirm bleibt an, solange etwas läuft.</p></div>
-      <div class="card"><div class="icon">🖼️</div><h3>Mini-Player</h3><p>Beim Stöbern läuft das Video klein in der Ecke weiter; ⧉ schickt es als Bild-in-Bild über andere Apps.</p></div>
-      <div class="card"><div class="icon">⚙️</div><h3>Einstellungen</h3><p>Eine Seite mit Sprungleiste. Key, Offsets, Satisfyer und Sicherheit gelten auf allen deinen Geräten; Bild und Kopfzeile pro Gerät.</p></div>
-      <div class="card"><div class="icon">🎮</div><h3>Patterns</h3><p>Eigene Bewegungen zeichnen, zu Scripts zusammensetzen, abspielen oder als <code>.funscript</code> exportieren.</p></div>
+    <div class="scale"><span>langsam</span><div class="grad"></div><span>schnell</span></div>
+    <div class="legend">
+      <div><b>−10 / +10</b> – spulen (auch Doppeltippen)</div>
+      <div><b>★ / 💦 / 📍</b> – Bewertung, O-Zähler, Marker</div>
+      <div><b>⟳</b> – Handy neu synchronisieren</div>
+      <div><b>🔥</b> – Finale</div>
+      <div><b>⧉</b> – Bild-in-Bild über anderen Apps</div>
+      <div><b>⛶</b> – Vollbild</div>
+    </div>
+    <div class="grid two" style="margin-top:20px">
+      <div class="card"><h3>Mit dem Finger</h3><ul><li>Tippen: Bedienung ein/aus</li><li>Doppeltippen links/rechts: ±10 s, Mitte: Vollbild</li><li>Zeitleiste ziehen: springen mit Vorschau</li><li>„Funscript Player“ oben: Bibliothek bzw. zurück zum Video</li></ul></div>
+      <div class="card"><h3>Mit der Tastatur</h3><p><span class="kbd">Leertaste</span> Play · <span class="kbd">←</span><span class="kbd">→</span> ±5 s · <span class="kbd">F</span> Vollbild · <span class="kbd">M</span> Ton · <span class="kbd">P</span> Marker · <span class="kbd">S</span> Sync · <span class="kbd">O</span> Finale · <span class="kbd">T</span> Offset einmessen · <span class="kbd">Esc</span> Not-Aus</p></div>
     </div>
   </section>
 
@@ -374,18 +306,15 @@
   <section id="neu">
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
-    <div class="grid">
-      <div class="card"><h3>1.16 · Ruhig &amp; Mitschnitt</h3><p>Eine Status-Anzeige, nur verbundene Geräte am Video, Sync als Standard, Mitschnitt zum Video als eigenes Script, Touch mit Aufnahme, Mini-Player, Intensitäts-Filter.</p></div>
-      <div class="card"><h3>1.15 · v3 &amp; alle Geräte</h3><p>Handy-API v3 (auch bei 0,5×–2× im Takt), Einstellungen auf allen Geräten gleich, Heatmap-Leiste auf den Kacheln, 🧪 Touch-Steuerung (Beta).</p></div>
-      <div class="card"><h3>1.14 · Selbst steuern</h3><p>Videos ohne Funscript mit eigener Handy-Geschwindigkeit und Satisfyer-Stärke. Sync-Schalter in den Einstellungen, Script-Zeile abschaltbar.</p></div>
-      <div class="card"><h3>1.13 · Regler am Video</h3><p>Geräte-Steuerung wieder unter dem Video, HereSphere abschaltbar, Titel führt zur Bibliothek, Standbild statt Schwarz.</p></div>
-      <div class="card"><h3>1.12 · Ruhiger</h3><p>Oben nur Status und Menü, Geräte-Fenster statt Spalte, „Mehr zur Szene“ einklappbar, Meldungen als Einblendung. HereSphere zeigt nur VR-Videos.</p></div>
-      <div class="card"><h3>1.11 · Script-Automatik</h3><p>Presets Original, Automatisch, Sanft, Intensiv – pro Szene wählbar.</p></div>
-      <div class="card"><h3>1.10 · Neuer Name</h3><p>Aus „Handy Player“ wird „Funscript Player“.</p></div>
-      <div class="card"><h3>1.9 · Aufgeräumt</h3><p>Einstellungen mit Sprungleiste, Video läuft in Bibliothek und Einstellungen weiter, Filter je Modus, Satisfyer „Gleichmäßigkeit“.</p></div>
-      <div class="card"><h3>1.8 · Fernbedienung</h3><p>Video am TV, Bedienung und Satisfyer am Smartphone – im Takt über den Server.</p></div>
-      <div class="card"><h3>1.7 · Player-Leiste</h3><p>★, 💦 und 📍 direkt in der Leiste, auch im Vollbild.</p></div>
+    <div class="timeline">
+      <div class="tl"><b>1.16</b><p>Eine Status-Anzeige, nur verbundene Geräte am Video, Sync als Standard, Mitschnitt zum Video, Touch mit Aufnahme, Mini-Player, Intensitäts-Filter, Satisfyer-Akku, gemessene Verzögerung, automatische Tests.</p></div>
+      <div class="tl"><b>1.15</b><p>Handy-API v3 (0,5×–2×), Einstellungen auf allen Geräten gleich, Heatmap-Leiste auf den Kacheln.</p></div>
+      <div class="tl"><b>1.14</b><p>Selbst steuern bei Videos ohne Funscript.</p></div>
+      <div class="tl"><b>1.13</b><p>Regler am Video, HereSphere abschaltbar, Standbild statt Schwarz.</p></div>
+      <div class="tl"><b>1.11–1.12</b><p>Script-Automatik mit Presets, ruhigere Oberfläche, HereSphere nur VR.</p></div>
+      <div class="tl"><b>1.8–1.10</b><p>Fernbedienung, aufgeräumte Einstellungen, neuer Name „Funscript Player“.</p></div>
     </div>
+    <p class="muted">Alle Details im <code>CHANGELOG.md</code> und in den <code>RELEASE-NOTES-*.md</code> im Projekt.</p>
   </section>
 
   <!-- ============ Installation ============ -->
@@ -394,8 +323,9 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-vX.Y.Z.zip</code> auf den Server kopieren und entpacken.</li>
-        <li>In der <code>docker-compose.yml</code> Medienordner, <code>STASH_URL</code> und Domain eintragen.</li>
+        <li>ZIP <code>handy-player-linux-v1.16.0.zip</code> auf den Server kopieren und entpacken.</li>
+        <li>In der <code>docker-compose.yml</code> Medienordner, <code>STASH_URL</code> und Domain eintragen
+          (Player unter <code>handy.${DOMAIN}</code>).</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
         <li>Bauen und starten – fertig unter <code>https://handy.deine-domain</code>.</li>
       </ol>
@@ -403,22 +333,24 @@
 <pre><code>unzip handy-player-linux-v1.16.0.zip
 cd handy-player
 docker compose up -d --build</code></pre>
-        <p class="note">Bluetooth (Satisfyer) und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat,
-          z. B. hinter Traefik. Läuft auch ohne Grafikkarte – dann ohne HQ-Stream.</p>
+        <p class="note">Bluetooth und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat (z. B. Traefik).
+          Sollen eigene Scripts neben den Videos landen, Medienordner ohne <code>:ro</code> einbinden – sonst legt der
+          Player sie auf dem Server ab.</p>
       </div>
     </div>
   </section>
 
-  <!-- ============ Begriffe ============ -->
-  <section id="begriffe">
+  <!-- ============ Fragen & Begriffe ============ -->
+  <section id="fragen">
     <span class="kicker">Kurz erklärt</span>
-    <h2>Begriffe</h2>
-    <div class="grid">
-      <div class="card"><h3>Funscript-Punkte</h3><p>Ein Funscript ist eine Liste „zur Zeit X auf Position Y“. „1 842 Punkte“ = so viele Bewegungspunkte. Mehr Punkte = feinere Bewegung.</p></div>
-      <div class="card"><h3>Heatmap</h3><p>Das Tempo zwischen den Punkten als Farbe: blau langsam, grün mittel, gelb–rot schnell.</p></div>
-      <div class="card"><h3>Offset</h3><p>Verschiebt das Script gegen das Video. Wird pro Szene gemerkt.</p></div>
-      <div class="card"><h3>Vorlauf</h3><p>Befehle gehen etwas früher raus, um die Bluetooth-Verzögerung auszugleichen.</p></div>
-      <div class="card"><h3>Hub</h3><p>Der Bereich, in dem sich die Handy bewegt – z. B. 20–80 % für kürzere Wege.</p></div>
+    <h2>Fragen &amp; Begriffe</h2>
+    <div class="faq">
+      <details><summary>Brauche ich ein eigenes Script für den Satisfyer?</summary><p>Nein. Der Satisfyer nutzt dasselbe Funscript wie die Handy; der Player rechnet daraus die Vibration.</p></details>
+      <details><summary>Application ID oder Application Key?</summary><p>Die <b>Application ID</b> (handyfeeling.com → Application IDs) unter ⚙️ → Geräte eintragen – dann nutzt der Player die Handy-API v3. Den geheimen Application Key braucht er nicht.</p></details>
+      <details><summary>Warum folgen die Geräte dem Video nicht?</summary><p>Dann ist „Geräte folgen dem Video“ aus (⚙️ → Geräte). Der Player zeigt dafür einen Hinweis mit „Einschalten“ unter dem Video.</p></details>
+      <details><summary>Was bedeuten „1 842 Punkte“?</summary><p>Ein Funscript ist eine Liste „zur Zeit X auf Position Y“ – das ist die Anzahl dieser Bewegungspunkte. Mehr Punkte = feinere Bewegung.</p></details>
+      <details><summary>Offset, Vorlauf, Hub?</summary><p><b>Offset</b> verschiebt das Script gegen das Video (pro Szene gemerkt, für beide Geräte). <b>Vorlauf</b> gleicht die Bluetooth-Verzögerung aus – der Player misst sie selbst. <b>Hub</b> ist der Bereich, in dem sich die Handy bewegt.</p></details>
+      <details><summary>Der Satisfyer erscheint nicht in der Bluetooth-Suche</summary><p>Satisfyer-App schließen (nur eine Verbindung möglich). Wird nichts gefunden, bietet der Player „Alle Bluetooth-Geräte anzeigen“ an – einmal so verbunden, findet er ihn danach immer.</p></details>
     </div>
   </section>
 
