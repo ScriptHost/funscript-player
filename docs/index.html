@@ -16,9 +16,11 @@
       <a href="#modi">Modi</a>
       <a href="#player">Player</a>
       <a href="#geraete">Geräte</a>
+      <a href="#script">Script</a>
       <a href="#fernbedienung">Fernbedienung</a>
       <a href="#stash">Stash</a>
       <a href="#mehr">Mehr</a>
+      <a href="#neu">Neu</a>
       <a href="#installation">Installation</a>
       <a href="dev.html">Entwickler</a>
     </nav>
@@ -48,7 +50,7 @@
 
     <div class="phone" aria-label="Player auf dem Smartphone (Abbildung)">
       <div class="screen">
-        <div class="scr-head"><b>Funscript Player</b><span><span class="pill on">Handy ✓</span> <span class="pill on">Satisfyer ✓</span></span></div>
+        <div class="scr-head"><span><span class="pill on">↕ verbunden</span> <span class="pill on">〰 1 Gerät</span></span><span class="burger">☰</span></div>
                 <div class="video">
           <span class="stop">■ STOPP</span>
           <span class="play">❚❚</span>
@@ -57,7 +59,7 @@
             <div class="row"><span>−10</span><span>+10</span><span class="t">12:40 / 31:05</span><span class="g"></span><span class="gold">★ 4</span><span>💦 2</span><span>📍</span><span>🔥</span><span>⛶</span></div>
           </div>
         </div>
-        <div class="scr-info"><b>Szene am See</b><span class="muted">2025-06-14 · 31 min · 3× gesehen</span><br><span class="stars">★★★★☆</span> ⚡ Funscript (1 842 Punkte)</div>
+        <div class="scr-info"><b>Szene am See</b><span class="muted">2025-06-14 · 31 min · 3× gesehen</span><br><span class="stars">★★★★☆</span> ⚡ Funscript (1 842 Punkte)<br><span class="muted">🛠️ Automatisch · Hub 30–70 → 0–100 gestreckt</span><br><span class="muted">Mehr zur Szene ▾</span></div>
       </div>
     </div>
   </div>
@@ -71,6 +73,31 @@
       <div class="card"><div class="icon">📺</div><h3>Nur schauen</h3><p>„Geräte folgen dem Video“ aus: alle Videos, Geräte bleiben aus. Startet mit deinem Stash-Filter „2D“.</p></div>
       <div class="card"><div class="icon">🔄</div><h3>Sync</h3><p>„Geräte folgen dem Video“ an: Handy und Satisfyer laufen im Takt. Feinheiten im Geräte-Fenster. Startet mit „2D Script“.</p></div>
       <div class="card"><div class="icon">🎮</div><h3>Steuern</h3><p>Im Menü ☰, ohne Video: Direktsteuerung mit Geschwindigkeit, eigene Patterns zeichnen, Patterns zu einem Script zusammenbauen und exportieren.</p></div>
+    </div>
+
+    <div class="split" style="margin-top:28px">
+      <div class="sheet-demo" aria-label="Geräte-Fenster (Abbildung)">
+        <div class="sd-head"><span>🔄 Geräte folgen dem Video <i class="sd-switch"></i></span><span class="sd-x">✕</span></div>
+        <div class="sd-tabs"><span class="on">The Handy</span><span>Satisfyer</span></div>
+        <div class="sd-btn ok">✓ Verbunden</div>
+        <div class="sd-row"><span>⟳ Neu synchronisieren</span><span>🎯 Offset einmessen</span></div>
+        <div class="sd-slider"><span>Video-Offset</span><b>+40 ms</b><i style="--v:54%"></i></div>
+        <div class="sd-slider"><span>Hub</span><b>10–90 %</b><i style="--v:80%;--s:10%"></i></div>
+        <div class="sd-btn fin">🔥 Finale</div>
+        <div class="sd-btn stop">■ Alles stoppen</div>
+      </div>
+      <div>
+        <h3>Ein Tipp auf den Status – alles für die Geräte</h3>
+        <p class="muted">Oben siehst du nur, ob Handy und Satisfyer verbunden sind. Antippen öffnet das Geräte-Fenster:
+          am PC oben rechts, am Smartphone von unten.</p>
+        <ul class="muted">
+          <li><b>Handy:</b> Verbinden, neu synchronisieren, Offset (auch per Takt einmessen), Hub</li>
+          <li><b>Satisfyer:</b> per Bluetooth verbinden, Stärke, Vibration pausieren</li>
+          <li><b>Immer da:</b> 🔥 Finale und ■ Alles stoppen</li>
+          <li>Einmalige Dinge wie Connection Key, Übersetzung und Sicherheit stehen unter ⚙️ Einstellungen</li>
+        </ul>
+        <p class="muted">Im Menü ☰: Bibliothek, 🎮 Steuern, ⚙️ Einstellungen und derselbe Schalter „Geräte folgen dem Video“.</p>
+      </div>
     </div>
   </section>
 
@@ -191,6 +218,41 @@
     </div>
   </section>
 
+  <!-- ============ Script-Automatik ============ -->
+  <section id="script">
+    <span class="kicker">Neu in 1.11</span>
+    <h2>Script-Automatik: jedes Script passend gemacht</h2>
+    <p class="sub">Scripts sind unterschiedlich gut. Der Player prüft jedes beim Laden und korrigiert nur, was nötig ist –
+      deine Dateien bleiben unverändert, die Heatmap zeigt das Ergebnis. Unter dem Video steht, was angepasst wurde.</p>
+    <div class="split">
+      <div class="diagram" aria-label="Script vorher und nachher">
+        <svg viewBox="0 0 440 300" role="img">
+          <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
+          <text class="d-s" x="20" y="16" style="font-weight:600">vorher</text><text class="d-s" x="245" y="16" style="font-weight:600">nachher (Automatisch)</text>
+          <text class="d-s" x="20" y="30">Flacher Hub 35–65 % → gestreckt</text>
+          <path class="d-line" style="stroke:var(--muted)" d="M20 72 L38 56 L55 72 L73 56 L90 72 L108 56 L125 72 L143 56 L160 72 L178 56 L195 72"/>
+          <path class="d-line" d="M212 72 H234" marker-end="url(#ah3)"/>
+          <path class="d-hot" d="M245 88 L263 40 L280 88 L298 40 L315 88 L333 40 L350 88 L368 40 L385 88 L403 40 L420 88"/>
+          <text class="d-s" x="20" y="120">Zittern (winzige Bewegungen) → entfernt</text>
+          <path class="d-line" style="stroke:var(--muted)" d="M20 184 L26 189 L31 184 L45 136 L51 131 L56 136 L70 184 L76 189 L81 184 L95 136 L101 131 L106 136 L120 184 L126 189 L131 184 L145 136 L151 131 L156 136 L170 184 L176 189 L181 184 L195 136 L201 131 L206 136"/>
+          <path class="d-line" d="M212 162 H234" marker-end="url(#ah3)"/>
+          <path class="d-hot" d="M245 184 L270 136 L295 184 L320 136 L345 184 L370 136 L395 184 L420 136"/>
+          <text class="d-s" x="20" y="210">Zu schnell für die Handy → mittig verkleinert</text>
+          <path class="d-line" style="stroke:var(--muted)" d="M20 274 L27 226 L34 274 L41 226 L48 274 L55 226 L62 274 L69 226 L76 274 L83 226 L90 274 L97 226 L104 274 L111 226 L118 274 L125 226 L132 274 L139 226 L146 274 L153 226 L160 274 L167 226 L174 274 L181 226 L188 274 L195 226"/>
+          <path class="d-line" d="M212 252 H234" marker-end="url(#ah3)"/>
+          <path class="d-hot" d="M245 261 L252 239 L259 261 L266 239 L273 261 L280 239 L287 261 L294 239 L301 261 L308 239 L315 261 L322 239 L329 261 L336 239 L343 261 L350 239 L357 261 L364 239 L371 261 L378 239 L385 261 L392 239 L399 261 L406 239 L413 261 L420 239"/>
+        </svg>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr">
+        <div class="card"><h3>Automatisch <span class="muted">· Standard</span></h3><p>Zittern weg, Hub unter 70 % strecken, was die Handy nicht schafft kürzen, bei stark wechselndem Tempo den Satisfyer beruhigen.</p></div>
+        <div class="card"><h3>Sanft</h3><p>Jedes Script auf 15–85 % Hub, höchstens 300 %/s, Satisfyer ruhig.</p></div>
+        <div class="card"><h3>Intensiv</h3><p>Voller Hub, nur das physisch Nötige gekürzt, Satisfyer im vollen Rhythmus.</p></div>
+        <div class="card"><h3>Original · Eigene</h3><p>Genau wie die Datei – oder deine eigenen Haken (Hub strecken, Höchstgeschwindigkeit).</p></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:16px">Das Preset gilt für alle Szenen (⚙️ → Script) und lässt sich pro Szene unter dem Video ändern – der Player merkt es sich wie den Offset.</p>
+  </section>
+
   <!-- ============ Fernbedienung ============ -->
   <section id="fernbedienung">
     <span class="kicker">Neu in 1.8</span>
@@ -259,11 +321,25 @@
     <h2>Bild, VR, Sicherheit</h2>
     <div class="grid">
       <div class="card"><div class="icon">✨</div><h3>Bild &amp; Qualität</h3><p>„Automatisch“ wählt pro Video: Schärfen und Anti-Banding im Browser, Hochrechnen auf dem Server mit Intel Quick Sync, wenn das Video kleiner ist als dein Bildschirm.</p></div>
-      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash.</p></div>
+      <div class="card"><div class="icon">🥽</div><h3>HereSphere</h3><p>Nur VR-Videos (VR-Tag in Stash bzw. VR-Kennung im Dateinamen) als Mediathek: Kategorien, Formaterkennung (180°/360°, SBS, Fisheye), Bewertung aus der Brille zurück nach Stash. <code>/heresphere</code> muss von einer Proxy-Anmeldung ausgenommen sein.</p></div>
       <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, Stopp bei Bildschirmsperre, Grenzen für Geschwindigkeit und Vibration.</p></div>
       <div class="card"><div class="icon">📲</div><h3>Als App</h3><p>Auf dem Smartphone installierbar – startet ohne Browserleisten, Bildschirm bleibt an, solange etwas läuft.</p></div>
       <div class="card"><div class="icon">⚙️</div><h3>Einstellungen</h3><p>Eine Seite mit Sprungleiste: Geräte, Sicherheit, Bild, Script, Fernbedienung, Anzeige, Bibliothek. Was unter dem Video steht, wählst du selbst.</p></div>
       <div class="card"><div class="icon">🎮</div><h3>Patterns</h3><p>Eigene Bewegungen zeichnen, zu Scripts zusammensetzen, abspielen oder als <code>.funscript</code> exportieren.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ Neu ============ -->
+  <section id="neu">
+    <span class="kicker">Versionen</span>
+    <h2>Was zuletzt dazukam</h2>
+    <div class="grid">
+      <div class="card"><h3>1.12 · Ruhiger</h3><p>Oben nur Status und Menü, Geräte-Fenster statt Spalte, „Mehr zur Szene“ einklappbar, Meldungen als Einblendung. HereSphere zeigt nur VR-Videos.</p></div>
+      <div class="card"><h3>1.11 · Script-Automatik</h3><p>Presets Original, Automatisch, Sanft, Intensiv – pro Szene wählbar.</p></div>
+      <div class="card"><h3>1.10 · Neuer Name</h3><p>Aus „Handy Player“ wird „Funscript Player“.</p></div>
+      <div class="card"><h3>1.9 · Aufgeräumt</h3><p>Einstellungen mit Sprungleiste, Video läuft in Bibliothek und Einstellungen weiter, Filter je Modus, Satisfyer „Gleichmäßigkeit“.</p></div>
+      <div class="card"><h3>1.8 · Fernbedienung</h3><p>Video am TV, Bedienung und Satisfyer am Smartphone – im Takt über den Server.</p></div>
+      <div class="card"><h3>1.7 · Player-Leiste</h3><p>★, 💦 und 📍 direkt in der Leiste, auch im Vollbild.</p></div>
     </div>
   </section>
 
