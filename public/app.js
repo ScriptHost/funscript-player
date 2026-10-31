@@ -173,7 +173,7 @@ async function preloadScript() {
   if (!syncActive() || !handy.connected || !script || (handy.owner && handy.owner !== 'video')) return;
   setStatus('busy', 'Script wird übertragen …');
   try {
-    await handy.prepare(toCsv(script.actions));
+    await handy.prepare(toCsv(sendActions()));
     setStatus('on', 'bereit');
     log('Script geladen – Video starten.');
     resync();
@@ -193,7 +193,7 @@ function resync() {
 }
 
 async function doSync() {
-  if (!handy.connected || !script || (typeof fin !== 'undefined' && fin.active)) return;
+  if (!handy.connected || !script || (typeof finDetached === 'function' && finDetached())) return;
   try {
     const playing = syncActive() && !video.paused && !video.ended && video.readyState >= 3;
     if (!playing) {
@@ -207,7 +207,7 @@ async function doSync() {
     }
     claimHandy('video');
     if (handy.hsspUrl === null || handy.mode !== 1) setStatus('busy', 'Script wird übertragen …');
-    await handy.prepare(toCsv(script.actions));
+    await handy.prepare(toCsv(sendActions()));
     if (video.paused || handy.owner !== 'video') return;
     await handy.play(mediaTime() * 1000 + Number($('offset').value));
     setStatus('on', 'Video läuft');
@@ -219,10 +219,15 @@ async function doSync() {
 
 ['playing', 'pause', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
 
+// Was an Handy und Vibrator geht: das Script, im Finale „sanfter + halbes Tempo“ halbiert
+function sendActions() {
+  return typeof effectiveActions === 'function' ? effectiveActions(script.actions) : script.actions;
+}
+
 // Für den Vibrator: laufendes Video-Script und aktuelle Stelle (nur im Modus „Sync“)
 function videoScriptSource() {
   if (!syncActive() || !script || video.paused || video.ended) return null;
-  return { actions: script.actions, ms: mediaTime() * 1000 };
+  return { actions: sendActions(), ms: mediaTime() * 1000 };
 }
 
 // Stash-Marker der aktuellen Szene (für Zeitleisten)

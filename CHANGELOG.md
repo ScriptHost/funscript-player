@@ -1,5 +1,13 @@
 # Änderungen
 
+## 1.3.0 – 01.11.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.3.0.md](RELEASE-NOTES-1.3.0.md)
+
+- 🔥 Finale mit zwei Varianten: „Komplett lösen“ oder „Script weiter, sanfter“
+- „Sanfter“: kleinerer Hub, Vibration als einstellbarer Anteil, optional halbes Tempo (bleibt im Takt)
+- Mit echter Handy getestet (Sync funktioniert)
+
 ## 1.2.0 – 01.11.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.2.0.md](RELEASE-NOTES-1.2.0.md)

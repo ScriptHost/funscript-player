@@ -102,7 +102,7 @@
                 <span class="grow"></span>
                 <button id="ovMute" title="Ton an/aus (M)">🔊</button>
                 <button id="ovSync" class="sync-only" title="Handy neu synchronisieren (S)">⟳</button>
-                <button id="ovFinale" class="sync-only finale-btn" title="Finale: Script aus, kurze schnelle Stöße (O)">🔥</button>
+                <button id="ovFinale" class="sync-only finale-btn" title="Finale: ruhiger – Modus in den Einstellungen (O)">🔥</button>
                 <button id="ovVibe" class="sync-only" title="Vibration pausieren">Vib ❚❚</button>
                 <button id="ovEnh" title="Bildverbesserung umschalten">✨</button>
                 <button id="ovFit" title="Bild füllen / einpassen">Einpassen</button>
@@ -194,12 +194,18 @@
 
         <div class="card">
           <h2>🔥 Finale</h2>
-          <p class="hint-text">Der 🔥-Knopf im Player (oder Taste O) löst die Handy vom Script und fährt gleichmäßig – standardmäßig langsam und mit flachem Hub; der Vibrator läuft ruhig mit. Nochmal drücken = zurück zum Video-Sync.</p>
+          <p class="hint-text">Der 🔥-Knopf im Player (oder Taste O) schaltet auf ruhiger. Nochmal drücken = zurück zum normalen Video-Sync.</p>
+          <div id="finMode" class="seg big-seg">
+            <button data-fin="detach">Komplett lösen</button>
+            <button data-fin="soft">Script weiter, sanfter</button>
+          </div>
+          <p id="finModeInfo" class="hint-text"></p>
+          <label id="finHalfRow" class="check"><input id="fin_half" type="checkbox" checked> Halbes Tempo – aus zwei Stößen wird einer, bleibt im Takt des Videos</label>
           <div class="grid2">
-            <label>Geschwindigkeit <output id="fin_speedVal"></output>
+            <label id="finSpeedRow">Geschwindigkeit <output id="fin_speedVal"></output>
               <input id="fin_speed" type="range" min="5" max="100" step="5" value="30">
             </label>
-            <label>Vibration <output id="fin_vibeVal"></output>
+            <label><span id="finVibeLabel">Vibration</span> <output id="fin_vibeVal"></output>
               <input id="fin_vibe" type="range" min="0" max="100" step="5" value="50">
             </label>
             <label>Hub von <output id="fin_minVal"></output>
