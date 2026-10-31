@@ -17,6 +17,7 @@ const hqState = {
   height: store.get('hqHeight2', 'auto'),   // 'auto' | 720 | 1080 | 1440
   probes: new Map(),                        // Quelle -> { width, height, duration, codec }
   pending: 0,
+  downgraded: new Set(),                    // Videos, bei denen HQ wegen Ruckeln abgeschaltet wurde
 };
 const HQ_ACCEL_LABEL = { vaapi: 'Intel-Grafik (VAAPI / Quick Sync)', cpu: 'Prozessor (ohne Grafik-Beschleunigung)' };
 
@@ -35,6 +36,7 @@ const isVr = (info) => (info.width && info.height && info.width / info.height >=
 function hqDecision(info) {
   const target = hqState.height === 'auto' ? screenTarget() : Number(hqState.height);
   if (hqState.preset === 'off') return { use: false, reason: 'aus' };
+  if (hqState.downgraded.has(hq.src)) return { use: false, reason: 'wegen Ruckeln abgeschaltet – Original' };
   if (isVr(info)) return { use: false, reason: 'VR-Video – Original (kein Herunterrechnen)' };
   if (info.height >= target * 0.9) {
     // Video ist schon so groß wie der Bildschirm: bei „Auto“ Original, sonst nur entrauschen/schärfen in Originalgröße
@@ -84,9 +86,36 @@ function hqShowInfo(info, d) {
 function hqStart(start) {
   hq.active = true;
   hq.offset = start;
+  hqState.startedAt = Date.now();
   video.src = hqUrl(start);
   drawHeatmap();
 }
+
+// ---------------------------------------------------------------------------
+// Selbstregelung: Stockt der HQ-Stream mehrmals (Server oder Netz kommen nicht
+// hinterher), wird automatisch eine Stufe zurückgeschaltet:
+// 1440p -> 1080p -> 720p -> Original. Kurz nach Start/Spulen wird nicht gezählt.
+// ---------------------------------------------------------------------------
+const HQ_STEPS = [1440, 1080, 720];
+let hqStalls = [];
+video.addEventListener('waiting', () => {
+  if (!hq.active || video.paused || Date.now() - (hqState.startedAt || 0) < 4000) return;
+  const now = Date.now();
+  hqStalls = hqStalls.filter((t) => now - t < 60000).concat(now);
+  if (hqStalls.length < 3) return;
+  hqStalls = [];
+  const lower = HQ_STEPS.find((h) => h < hq.height);
+  if (lower && hq.height > 720) {
+    log(`Ruckeln erkannt – HQ von ${hq.height}p auf ${lower}p reduziert.`);
+    hq.height = lower;
+    hqRestart(mediaTime());
+  } else {
+    log('Ruckeln erkannt – HQ für dieses Video aus, spiele das Original.');
+    hqState.downgraded.add(hq.src);
+    hqToOriginal();
+  }
+  $('hqInfo').textContent = `Automatisch angepasst: ${hq.active ? hq.height + 'p' : 'Original'}`;
+});
 
 // Spulen im HQ-Stream: Umwandlung an neuer Stelle neu starten
 function hqRestart(at) {

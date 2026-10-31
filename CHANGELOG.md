@@ -1,5 +1,18 @@
 # Änderungen
 
+## 1.2.0 – 01.11.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.2.0.md](RELEASE-NOTES-1.2.0.md)
+
+- Sync-Auto-Korrektur (30 s Position, 5 min Uhrabgleich, nach App-Wechsel) + ⟳-Knopf (Taste S)
+- Vorschaubilder beim Spulen aus Stash-Sprites
+- Bildqualität: ein Schalter „Automatisch – bestes Bild“, Einzelregler unter „Erweitert“
+- Handy verbindet beim Start automatisch; gekoppelte Satisfyer werden wieder verbunden
+- Lesbare Titel aus Dateinamen, wenn kein Stash-Titel gepflegt ist
+- HQ schaltet bei Ruckeln automatisch eine Stufe zurück
+- 🔥 Finale-Knopf (Taste O): Script entkoppelt, langsam/flach, einstellbar
+- Offset pro Szene, „Weiterschauen“-Reihe
+
 ## 1.1.0 – 31.10.2026
 
 - **Ordner direkt einbinden**: jeder Ordner unter `/media/<Name>` ist eine eigene Quelle (Bibliothek + HereSphere),

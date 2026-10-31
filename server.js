@@ -89,7 +89,7 @@ async function scanLibrary(dir, rel = '') {
       const base = e.name.slice(0, -path.extname(e.name).length);
       const scriptName = `${base}.funscript`;
       out.push({
-        name: base,
+        name: cleanTitle(e.name),
         folder: rel,
         // Quelle = erster Unterordner (z. B. /media/Downloads), Dateien direkt in /media = „Ordner“
         root: relPath.includes('/') ? relPath.split('/')[0] : '',
@@ -233,6 +233,18 @@ async function findScenesTolerant(variables, dropped = [], query = SCENES_QUERY)
   }
 }
 
+// Lesbarer Titel aus einem Dateinamen, wenn in Stash keiner gepflegt ist:
+// „Studio_Szene.Name_1080p_60fps.mp4“ -> „Studio Szene Name“
+function cleanTitle(basename) {
+  if (!basename) return '';
+  let t = basename.replace(/\.[a-z0-9]{2,4}$/i, '');
+  t = t.replace(/[[(][^\])]*(\d{3,4}p|\dk|fps|x26[45]|h\.?26[45]|hevc|web|hd|uhd)[^\])]*[\])]/gi, ' ');
+  t = t.replace(/[._]+/g, ' ');
+  t = t.replace(/\b(\d{3,4}p|[2-8]k|uhd|fhd|hd|\d{2,3}fps|x26[45]|h ?26[45]|hevc|avc|aac|web(rip|dl)?|mp4|180|360|lr|sbs|tb|3dh|3dv|vr|mkx\d+|fisheye\d*)\b/gi, ' ');
+  t = t.replace(/\s*-\s*$/, '').replace(/\s{2,}/g, ' ').trim();
+  return t || basename;
+}
+
 async function stashScenes(params) {
   const sorts = { new: 'created_at', date: 'date', title: 'title', random: `random_${Number(params.get('seed')) || 1}` };
   let sort = sorts[params.get('sort')] || 'created_at';
@@ -245,6 +257,12 @@ async function stashScenes(params) {
   if (idList('tag').length) own.tags = { value: idList('tag'), modifier: 'INCLUDES_ALL', depth: 0 };
   if (idList('performer').length) own.performers = { value: idList('performer'), modifier: 'INCLUDES_ALL' };
   if (idList('studio').length) own.studios = { value: idList('studio'), modifier: 'INCLUDES', depth: 0 };
+  // „Weiterschauen“: angefangene Szenen, zuletzt gesehene zuerst
+  if (params.get('continue') === '1') {
+    own.resume_time = { value: 10, modifier: 'GREATER_THAN' };
+    sort = 'last_played_at';
+    direction = 'DESC';
+  }
 
   // Gespeicherter Stash-Filter als Grundlage, eigene Filter per AND dazu
   let sceneFilter = own;
@@ -278,7 +296,7 @@ async function stashScenes(params) {
     ignored: dropped,
     scenes: data.findScenes.scenes.map((s) => ({
       id: s.id,
-      title: s.title || s.files[0]?.basename || `Szene ${s.id}`,
+      title: s.title || cleanTitle(s.files[0]?.basename) || `Szene ${s.id}`,
       date: s.date || '',
       interactive: s.interactive,
       duration: s.files[0]?.duration || 0,
@@ -313,7 +331,7 @@ async function stashScene(id) {
   if (!s) throw Object.assign(new Error('Szene nicht gefunden'), { status: 404 });
   return {
     id: s.id,
-    title: s.title || s.files[0]?.basename || `Szene ${s.id}`,
+    title: s.title || cleanTitle(s.files[0]?.basename) || `Szene ${s.id}`,
     basename: s.files[0]?.basename || '',
     width: s.files[0]?.width || 0,
     height: s.files[0]?.height || 0,
@@ -446,7 +464,7 @@ async function heresphereMedia(req, rel) {
   const info = await hqProbe('media:' + rel).catch(() => ({ width: 0, height: 0, duration: 0 }));
   return {
     ...hsCommon(),
-    title: name,
+    title: cleanTitle(path.basename(rel)),
     description: '',
     duration: Math.round((info.duration || 0) * 1000),
     ...vrFormat(name),
@@ -836,8 +854,8 @@ const handler = async (req, res) => {
       return res.end(JSON.stringify(scenes));
     }
 
-    // Durchgereicht werden nur diese Stash-Dateien: Videos, Funscript, Vorschauen und Bilder
-    const sm = /^\/stash\/(scene)\/(\d+)\/(stream|stream\.mp4|funscript|screenshot|preview|webp)$/.exec(pathname)
+    // Durchgereicht werden nur diese Stash-Dateien: Videos, Funscript, Vorschauen, Spul-Sprites und Bilder
+    const sm = /^\/stash\/(scene)\/(\d+)\/(stream|stream\.mp4|funscript|screenshot|preview|webp|vtt\/thumbs|vtt\/sprite)$/.exec(pathname)
       || /^\/stash\/(tag|performer|studio)\/(\d+)\/(image)$/.exec(pathname);
     if (sm) {
       if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });

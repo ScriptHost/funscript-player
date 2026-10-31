@@ -15,7 +15,16 @@ const ENH_PRESETS = {
   sharp: { sharp: 65, contrast: 6, saturation: 10, brightness: 1, deband: true },
   max: { sharp: 95, contrast: 10, saturation: 16, brightness: 2, deband: true },
 };
-const ENH_LABEL = { off: 'Aus', natural: 'Natürlich', sharp: 'Schärfer', max: 'Maximal', custom: 'Eigene' };
+const ENH_LABEL = { auto: 'Auto', off: 'Aus', natural: 'Natürlich', sharp: 'Schärfer', max: 'Maximal', custom: 'Eigene' };
+
+// „Auto“: Schärfe nach Vergrößerungsfaktor (Anzeigehöhe / Videohöhe). Kleine Videos auf großem
+// Bildschirm brauchen mehr Schärfe, Videos in voller Auflösung nur einen Hauch.
+function enhAutoValues() {
+  const f = enh.scale || 1;
+  const sharp = f >= 2 ? 75 : f >= 1.4 ? 55 : f > 1.05 ? 40 : 25;
+  return { sharp, contrast: 3, saturation: 6, brightness: 0, deband: true };
+}
+const presetValues = (s) => (s.preset === 'custom' ? s : s.preset === 'auto' ? enhAutoValues() : ENH_PRESETS[s.preset] || ENH_PRESETS.natural);
 
 const VERT = `
 attribute vec2 a_pos;
@@ -125,7 +134,7 @@ const enh = {
   canvas: $('enh'),
   gl: null,
   ok: false,
-  settings: { preset: 'natural', sharp: 35, contrast: 3, saturation: 6, brightness: 0, deband: true, compare: false },
+  settings: { preset: 'auto', sharp: 35, contrast: 3, saturation: 6, brightness: 0, deband: true, compare: false },
   lastTime: -1,
   frame: 0,
   dirty: true,
@@ -190,7 +199,7 @@ function enhActive() {
 
 function enhParams() {
   const s = enh.settings;
-  const p = s.preset === 'custom' ? s : ENH_PRESETS[s.preset];
+  const p = presetValues(s);
   return {
     sharp: p.sharp / 100,
     contrast: 1 + p.contrast / 100,
@@ -216,6 +225,8 @@ function enhDraw() {
   if (!cw || !ch) return;
   if (enh.canvas.width !== cw || enh.canvas.height !== ch) { enh.canvas.width = cw; enh.canvas.height = ch; }
   const r = enhRect(cw, ch);
+  const newScale = r.h / video.videoHeight;
+  if (Math.abs(newScale - (enh.scale || 0)) > 0.05) { enh.scale = newScale; if (enh.settings.preset === 'auto') setTimeout(enhApply); }
   // Zwischenbild höchstens so groß wie der sichtbare Teil (spart Leistung bei „Füllen“)
   const mw = Math.min(r.w, cw * 1.5 | 0), mh = Math.min(r.h, ch * 1.5 | 0);
 
@@ -301,7 +312,7 @@ function enhApply() {
   const s = enh.settings;
   store.set('enhance', s);
   document.querySelectorAll('#enhPresets button').forEach((b) => b.classList.toggle('active', b.dataset.preset === s.preset));
-  const values = s.preset === 'custom' ? s : ENH_PRESETS[s.preset] || ENH_PRESETS.natural;
+  const values = presetValues(s);
   for (const k of ['sharp', 'contrast', 'saturation', 'brightness']) {
     $('enh_' + k).value = values[k];
     $('enh_' + k + 'Val').textContent = `${values[k] > 0 && k !== 'sharp' ? '+' : ''}${values[k]}${k === 'sharp' ? ' %' : ''}`;
@@ -317,7 +328,7 @@ function enhApply() {
 function enhSetPreset(preset) {
   // Eigene Werte starten mit der gerade gewählten Stufe
   if (preset === 'custom' && enh.settings.preset !== 'custom') {
-    Object.assign(enh.settings, ENH_PRESETS[enh.settings.preset] || ENH_PRESETS.natural);
+    Object.assign(enh.settings, presetValues(enh.settings));
   }
   enh.settings.preset = preset;
   enhApply();
@@ -339,10 +350,10 @@ $('enh_deband').addEventListener('change', () => {
 $('enh_compare').addEventListener('change', () => { enh.settings.compare = $('enh_compare').checked; enhApply(); });
 
 // ✨ im Player: Stufen durchschalten
-const ENH_CYCLE = ['off', 'natural', 'sharp', 'max'];
+// ✨ im Player: bestes Bild (Auto) <-> Original – schaltet Browser-Verbesserung und HQ-Stream gemeinsam
 $('ovEnh').addEventListener('click', () => {
-  const i = ENH_CYCLE.indexOf(enh.settings.preset);
-  enhSetPreset(ENH_CYCLE[(i + 1) % ENH_CYCLE.length]);
+  const next = enh.settings.preset === 'off' ? 'auto' : 'off';
+  if (typeof setQualityMode === 'function') setQualityMode(next); else enhSetPreset(next);
   showOverlay();
 });
 
@@ -351,6 +362,8 @@ video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.
 window.addEventListener('resize', () => { enh.dirty = true; });
 
 Object.assign(enh.settings, store.get('enhance', {}));
+// Ab 1.2: einmalig auf „Auto“ umstellen (vorher war „Natürlich“ der Standard)
+if (!store.get('enhanceV2', false)) { enh.settings.preset = 'auto'; store.set('enhanceV2', true); }
 enh.ok = enhInit();
 enhApply();
 requestAnimationFrame(enhLoop);

@@ -104,6 +104,25 @@ async function addBluetoothDevice() {
       ? { acceptAllDevices: true, optionalServices: [SF_SERVICE] }
       : { filters: [{ namePrefix: 'SF ' }, { services: [SF_SERVICE] }], optionalServices: [SF_SERVICE] });
     if (bleDevices.some((d) => d.device.id === device.id)) return log(`${device.name} ist schon verbunden.`);
+    await attachBleDevice(device);
+  } catch (e) {
+    if (e.name === 'NotFoundError') {
+      log('Kein Gerät gewählt. Tipp: Satisfyer einschalten, Satisfyer-App schließen (nur eine Verbindung möglich), '
+        + 'ggf. „Alle Bluetooth-Geräte anzeigen“ aktivieren.');
+    } else if (e.name === 'NetworkError' || /GATT|service/i.test(e.message)) {
+      log(`Bluetooth: ${e.message}. Ist das Gerät noch mit der Satisfyer-App oder einem anderen Handy verbunden?`, true);
+    } else if (e.name === 'SecurityError') {
+      log('Bluetooth wurde vom Browser blockiert – HTTPS mit gültigem Zertifikat nötig.', true);
+    } else {
+      log('Bluetooth: ' + e.message, true);
+    }
+  }
+  renderVibe();
+}
+
+// Gerät verbinden und bei kurzen Abbrüchen automatisch wieder verbinden
+async function attachBleDevice(device) {
+  {
     const dev = new SatisfyerBle(device);
     log(`Verbinde mit ${dev.name} …`);
     await dev.connect();
@@ -131,19 +150,19 @@ async function addBluetoothDevice() {
       renderVibe();
     });
     log(`${dev.name} verbunden.`);
-  } catch (e) {
-    if (e.name === 'NotFoundError') {
-      log('Kein Gerät gewählt. Tipp: Satisfyer einschalten, Satisfyer-App schließen (nur eine Verbindung möglich), '
-        + 'ggf. „Alle Bluetooth-Geräte anzeigen“ aktivieren.');
-    } else if (e.name === 'NetworkError' || /GATT|service/i.test(e.message)) {
-      log(`Bluetooth: ${e.message}. Ist das Gerät noch mit der Satisfyer-App oder einem anderen Handy verbunden?`, true);
-    } else if (e.name === 'SecurityError') {
-      log('Bluetooth wurde vom Browser blockiert – HTTPS mit gültigem Zertifikat nötig.', true);
-    } else {
-      log('Bluetooth: ' + e.message, true);
-    }
   }
   renderVibe();
+}
+
+// Beim Start: schon einmal erlaubte Satisfyer wieder verbinden (Chrome kennt sie über getDevices)
+async function autoConnectBluetooth() {
+  if (!store.get('autoConnect', true) || !navigator.bluetooth?.getDevices || (await bluetoothProblem())) return;
+  try {
+    for (const device of await navigator.bluetooth.getDevices()) {
+      if (bleDevices.some((d) => d.device.id === device.id)) continue;
+      attachBleDevice(device).catch(() => { /* nicht in Reichweite – still ignorieren */ });
+    }
+  } catch { /* nicht unterstützt */ }
 }
 
 // ---------------------------------------------------------------------------
@@ -439,6 +458,7 @@ function scriptIntensity(actions, ms) {
 
 function targetLevel() {
   if (vibePaused) return 0;
+  if (typeof fin !== 'undefined' && fin.active) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
   // „Maximum“ ist auch die Sicherheitsgrenze für die manuelle Stärke
   if ($('vibeSource').value === 'manual') return Math.min(Number($('vibeLevel').value), Number($('vibeMax').value)) / 100;
 
@@ -490,3 +510,4 @@ window.addEventListener('pagehide', () => {
 });
 
 renderVibe();
+autoConnectBluetooth();

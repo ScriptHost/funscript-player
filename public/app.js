@@ -111,7 +111,7 @@ document.querySelectorAll('nav.subtabs').forEach((nav) => {
 
 // Ein anderer Bereich steuert jetzt die Handy -> Video anhalten
 document.addEventListener('handy-owner', (e) => {
-  if (e.detail !== 'video' && !video.paused && syncActive()) video.pause();
+  if (e.detail !== 'video' && e.detail !== 'finale' && !video.paused && syncActive()) video.pause();
 });
 
 // ---------------------------------------------------------------------------
@@ -126,6 +126,7 @@ function loadVideo(src, name, hqSrc = '') {
   Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
   // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
   if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
+  loadOffsetForVideo();
   $('videoName').textContent = name;
   $('ovTitle').textContent = name;
   $('dropHint').classList.add('hidden');
@@ -192,7 +193,7 @@ function resync() {
 }
 
 async function doSync() {
-  if (!handy.connected || !script) return;
+  if (!handy.connected || !script || (typeof fin !== 'undefined' && fin.active)) return;
   try {
     const playing = syncActive() && !video.paused && !video.ended && video.readyState >= 3;
     if (!playing) {
@@ -331,32 +332,89 @@ function updateOutputs() {
 }
 updateOutputs();
 
-$('connect').addEventListener('click', async () => {
+async function connectHandy(auto = false) {
   const key = $('key').value.trim();
-  if (!key) return log('Bitte Connection Key eingeben.', true);
+  if (!key) return auto ? undefined : log('Bitte Connection Key eingeben.', true);
   store.set('key', key);
   const btn = $('connect');
   btn.disabled = true;
-  setStatus('busy', 'verbinde …');
-  log('');
+  setStatus('busy', auto ? 'verbinde automatisch …' : 'verbinde …');
+  if (!auto) log('');
   try {
     claimHandy(null);
     await handy.connect(key);
     setStatus('on', 'verbunden');
-    log('Verbunden.');
+    log(auto ? 'Handy automatisch verbunden.' : 'Verbunden.');
     await applySlide();
     if (script) await preloadScript();
   } catch (e) {
-    setStatus('err', 'Fehler');
-    log(e, true);
+    setStatus(auto ? 'off' : 'err', auto ? 'getrennt' : 'Fehler');
+    log((auto ? 'Automatisches Verbinden fehlgeschlagen: ' : '') + (e.message || e), true);
   } finally {
     btn.disabled = false;
   }
-});
+}
+$('connect').addEventListener('click', () => connectHandy());
 
+// ---------------------------------------------------------------------------
+// Sync-Pflege: die Handy läuft nach ihrer eigenen Uhr. Kleine Abweichungen
+// (Puffern, Uhrdrift, Ruckler) werden regelmäßig still nachkorrigiert.
+// ---------------------------------------------------------------------------
+$('autoConnect').checked = store.get('autoConnect', true);
+$('autoSync').checked = store.get('autoSync', true);
+$('autoConnect').addEventListener('change', () => store.set('autoConnect', $('autoConnect').checked));
+$('autoSync').addEventListener('change', () => store.set('autoSync', $('autoSync').checked));
+
+async function manualResync() {
+  if (!handy.connected) return log('Handy ist nicht verbunden.', true);
+  setStatus('busy', 'synchronisiere …');
+  try {
+    await handy.syncTime();
+    resync();
+    setStatus('on', 'synchronisiert');
+    log('Handy neu synchronisiert.');
+  } catch (e) {
+    setStatus('err', 'Fehler');
+    log(e, true);
+  }
+}
+$('resyncBtn').addEventListener('click', manualResync);
+$('ovSync').addEventListener('click', manualResync);
+document.addEventListener('keydown', (e) => { if (e.key === 's' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) manualResync(); });
+
+// Alle 30 s die Position neu senden (ersetzt die Laufzeit der Handy durch die echte Videoposition)
+setInterval(() => {
+  if ($('autoSync').checked && handy.connected && handy.owner === 'video' && !video.paused && syncActive()) doSync();
+}, 30000);
+// Alle 5 min die Uhr mit dem Handy-Server neu abgleichen (Uhren driften auseinander)
+setInterval(() => {
+  if ($('autoSync').checked && handy.connected) handy.syncTime().catch(() => {});
+}, 300000);
+// Zurück in die App / Bildschirm wieder an: sofort neu ausrichten
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resync(); });
+
+// ---------------------------------------------------------------------------
+// Offset: wird pro Szene gemerkt (manche Scripts sind leicht versetzt)
+// ---------------------------------------------------------------------------
+function offsetKey() { return hq.src || ''; }
+function loadOffsetForVideo() {
+  const map = store.get('offsets', {});
+  const v = offsetKey() in map ? map[offsetKey()] : store.get('offset', 0);
+  $('offset').value = v;
+  updateOutputs();
+  $('offsetVal').textContent += offsetKey() in map ? ' · Szene' : '';
+}
 $('offset').addEventListener('input', updateOutputs);
 $('offset').addEventListener('change', () => {
-  store.set('offset', Number($('offset').value));
+  const v = Number($('offset').value);
+  if (offsetKey()) {
+    const map = store.get('offsets', {});
+    map[offsetKey()] = v;
+    store.set('offsets', map);
+    $('offsetVal').textContent += ' · Szene';
+  } else {
+    store.set('offset', v);
+  }
   resync();
 });
 
@@ -405,4 +463,6 @@ window.addEventListener('pagehide', () => {
 if (location.hash === '#player') history.replaceState(null, '', location.pathname + location.search);
 setMode(appMode);
 requestAnimationFrame(renderLoop);
+// Gespeicherten Key gleich beim Start verbinden
+if ($('autoConnect').checked && $('key').value.trim()) setTimeout(() => connectHandy(true), 300);
 fetch('/api/version').then((r) => r.json()).then((v) => { $('appVersion').textContent = 'v' + v.version; }).catch(() => {});

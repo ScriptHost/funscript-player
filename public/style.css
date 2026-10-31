@@ -473,6 +473,36 @@ aside { min-width: 0; }
 .meta { color: var(--muted); margin: 0 0 4px; font-size: 14px; }
 .chip.studios { background: #2d3a4f; }
 .chip.performers { background: #43304a; }
+/* 1.2: Finale, Qualitätsschalter, Spul-Vorschau, Weiterschauen */
+.finale-btn { background: #6d2a8c; color: #fff; }
+.finale-btn.running, .ov-row .finale-btn.running { background: #ff6d00; color: #fff; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { filter: brightness(1.35); } }
+#finaleBtn { margin-bottom: 10px; }
+.big-seg button { padding: 12px 10px !important; font-size: 15px; font-weight: 700; }
+#qualityAdvanced { margin-top: 6px; }
+#qualityAdvanced summary { color: var(--muted); }
+.seek-preview {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  border: 2px solid #fff;
+  border-radius: 6px;
+  background-color: #000;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 14px rgba(0,0,0,.6);
+  pointer-events: none;
+  max-width: 45vw;
+}
+.seek-preview span {
+  position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%);
+  background: rgba(0,0,0,.8); padding: 1px 6px; border-radius: 4px; font-size: 12px; white-space: nowrap;
+}
+.ov-bottom { position: absolute; }
+.ov-bottom > #ovBar { position: relative; }
+.continue { margin-bottom: 14px; }
+.continue h3 { font-size: 15px; margin: 4px 0 8px; }
+.continue-list { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 240px); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+@media (max-width: 600px) { .continue-list { grid-auto-columns: 46%; } }
+
 /* Einstellungen */
 #imageSettings .seg { flex-wrap: wrap; margin-bottom: 12px; }
 #imageSettings .seg button { flex: 1 1 auto; width: auto; padding: 7px 10px; }

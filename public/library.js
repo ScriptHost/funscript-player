@@ -85,6 +85,7 @@ function setBrowse(browse) {
 
 function refresh() {
   renderFilterChips();
+  renderContinue();
   if (lib.browse !== 'scenes') return renderFacets(true);
   if (lib.source === 'stash') fetchScenes(true);
   else renderFolder();
@@ -201,6 +202,21 @@ function sceneCard(s) {
   });
   card.addEventListener('pointerleave', () => thumb.querySelector('video.preview')?.remove());
   return card;
+}
+
+// „Weiterschauen“: angefangene Stash-Szenen, nur in der ungefilterten Startansicht
+async function renderContinue() {
+  const box = $('continueRow');
+  const plain = lib.source === 'stash' && lib.browse === 'scenes' && !lib.saved && !$('search').value.trim()
+    && !Object.values(lib.filters).some((l) => l.length);
+  if (!plain || !lib.stashStatus?.ok) { box.hidden = true; return; }
+  try {
+    const res = await fetch('/api/stash/scenes?' + new URLSearchParams({ continue: '1', per_page: 12, page: 1 }));
+    if (!res.ok) throw new Error();
+    const { scenes } = await res.json();
+    box.hidden = !scenes.length;
+    box.querySelector('.continue-list').replaceChildren(...scenes.map(sceneCard));
+  } catch { box.hidden = true; }
 }
 
 // ---------------------------------------------------------------------------
@@ -362,6 +378,7 @@ async function openStashScene(s) {
     .then((d) => {
       if (!d || stashSession !== session) return;
       session.markers = d.markers;
+      loadSprites(session);
       session.resume = d.resume;
       showSceneInfo(d);
       drawHeatmap();
@@ -418,6 +435,28 @@ video.addEventListener('error', () => {
   video.src = `/stash/scene/${m[1]}/stream.mp4`;
   video.play().catch(() => {});
 });
+
+// --- Vorschaubilder fürs Spulen (Sprites, die Stash beim Generieren erzeugt) ---
+// Die VTT-Datei sagt, welcher Bildausschnitt im Sprite zu welcher Zeit gehört.
+async function loadSprites(session) {
+  try {
+    const res = await fetch(`/stash/scene/${session.id}/vtt/thumbs`);
+    if (!res.ok) return;
+    const cues = [];
+    const toSec = (t) => t.split(':').reduce((s, v) => s * 60 + Number(v), 0);
+    const lines = (await res.text()).split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const m = /([\d:.]+)\s*-->\s*([\d:.]+)/.exec(lines[i]);
+      const xy = m && /#xywh=(\d+),(\d+),(\d+),(\d+)/.exec(lines[i + 1] || '');
+      if (xy) cues.push({ start: toSec(m[1]), end: toSec(m[2]), x: +xy[1], y: +xy[2], w: +xy[3], h: +xy[4] });
+    }
+
+    if (cues.length && stashSession === session) {
+      session.sprites = { url: `/stash/scene/${session.id}/vtt/sprite`, cues };
+      new Image().src = session.sprites.url; // vorladen
+    }
+  } catch { /* ohne Vorschaubilder */ }
+}
 
 // --- Weiterschauen + Play-Count an Stash -------------------------------------
 function resumeIfWanted(session) {

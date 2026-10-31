@@ -5,6 +5,30 @@
 // (Bild & Qualität steuern enhance.js und hq.js, Geräte die rechte Spalte.)
 // ===========================================================================
 
+// --- Bildqualität: ein Schalter für alles ----------------------------------------
+// „Automatisch“ = Browser-Verbesserung „Auto“ + HQ-Stream „Auto“, „Aus“ = beides aus.
+function setQualityMode(mode) {
+  enhSetPreset(mode);
+  hqState.preset = mode;
+  hqApply();
+  renderQualityMode();
+}
+
+function renderQualityMode() {
+  const mode = enh.settings.preset === 'auto' && hqState.preset === 'auto' ? 'auto'
+    : enh.settings.preset === 'off' && hqState.preset === 'off' ? 'off' : 'custom';
+  document.querySelectorAll('#qualityMode button').forEach((b) => b.classList.toggle('active', b.dataset.q === mode));
+  $('qualityInfo').textContent = mode === 'custom'
+    ? 'Eigene Einstellungen aktiv (siehe „Erweitert“). „Automatisch“ stellt wieder alles auf das beste Bild.'
+    : mode === 'off' ? 'Original ohne jede Bearbeitung.' : QUALITY_AUTO_TEXT;
+  if (mode === 'custom') $('qualityAdvanced').open = true;
+}
+const QUALITY_AUTO_TEXT = $('qualityInfo').textContent;
+document.querySelectorAll('#qualityMode button').forEach((b) => b.addEventListener('click', () => setQualityMode(b.dataset.q)));
+// Änderungen unter „Erweitert“ spiegeln
+$('imageSettings').addEventListener('click', () => setTimeout(renderQualityMode, 50));
+document.addEventListener('hq-ready', renderQualityMode);
+
 // --- HereSphere --------------------------------------------------------------
 $('hsUrl').value = `${location.origin}/heresphere`;
 $('hsCopy').addEventListener('click', async () => {

@@ -184,10 +184,33 @@ function seekFromBar(e) {
   drawOvBar();
   showOverlay();
 }
+// Vorschaubild aus dem Stash-Sprite über der Zeitleiste
+function showSeekPreview(e) {
+  const sp = stashSession?.sprites;
+  const box = $('seekPreview');
+  const total = duration();
+  if (!sp || !total) { box.hidden = true; return; }
+  const r = bar.getBoundingClientRect();
+  const frac = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+  const t = frac * total / 1000;
+  const cue = sp.cues.find((c) => t >= c.start && t < c.end) || sp.cues[sp.cues.length - 1];
+  box.hidden = false;
+  box.style.width = cue.w + 'px';
+  box.style.height = cue.h + 'px';
+  box.style.backgroundImage = `url("${sp.url}")`;
+  box.style.backgroundPosition = `-${cue.x}px -${cue.y}px`;
+  const pr = (box.offsetParent || bar).getBoundingClientRect();
+  box.style.left = (r.left - pr.left + Math.max(0, Math.min(r.width - cue.w, frac * r.width - cue.w / 2))) + 'px';
+  box.querySelector('span').textContent = fmtClock(t);
+}
+bar.addEventListener('pointermove', showSeekPreview);
+bar.addEventListener('pointerleave', () => { if (!seeking) $('seekPreview').hidden = true; });
+
 bar.addEventListener('pointerdown', (e) => { seeking = true; bar.setPointerCapture(e.pointerId); seekFromBar(e); });
 bar.addEventListener('pointermove', (e) => { if (seeking) seekFromBar(e); });
 bar.addEventListener('pointerup', () => {
   seeking = false;
+  $('seekPreview').hidden = true;
   if (seekPreview !== null) { const t = seekPreview; seekPreview = null; seekTo(t); }
 });
 
@@ -207,7 +230,7 @@ document.addEventListener('keydown', (e) => {
 // Läuft gerade etwas, das ein Gerät bewegt?
 function anyRunning() {
   const devices = handy.connected || allVibes().length > 0;
-  return devices && ((!video.paused && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0);
+  return devices && ((!video.paused && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active));
 }
 
 setInterval(() => { $('fabStop').hidden = !anyRunning(); }, 300);
