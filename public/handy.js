@@ -28,15 +28,23 @@ class Handy {
 
   get v3() { return !!this.appId; }
 
-  async req(method, path, body) {
+  // forceV2: Direkt-Position (HDSP) und Geräte-Infos laufen immer über die bewährte API v2
+  async req(method, path, body, forceV2 = false) {
+    const v3 = this.v3 && !forceV2;
     const headers = { 'X-Connection-Key': this.key, 'Content-Type': 'application/json', Accept: 'application/json' };
-    if (this.v3) headers['X-Api-Key'] = this.appId;
-    const res = await fetch((this.v3 ? HANDY_API_V3 : HANDY_API) + path, {
-      method, headers, body: body ? JSON.stringify(body) : undefined,
-    });
+    if (v3) headers['X-Api-Key'] = this.appId;
+    let res;
+    try {
+      res = await fetch((v3 ? HANDY_API_V3 : HANDY_API) + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    } catch {
+      throw Object.assign(new Error('Handy-Cloud nicht erreichbar – Internet?'), { kind: 'net' });
+    }
     const json = await res.json().catch(() => ({}));
-    if (!res.ok || json.error) throw new Error(json.error?.message || `Handy-API${this.v3 ? ' v3' : ''}: HTTP ${res.status}`);
-    return this.v3 && json.result !== undefined ? json.result : json; // v3 verpackt Antworten in „result“
+    if (!res.ok || json.error) {
+      const kind = res.status === 401 || res.status === 403 ? 'auth' : res.status === 429 ? 'limit' : '';
+      throw Object.assign(new Error(json.error?.message || `Handy-API${v3 ? ' v3' : ''}: HTTP ${res.status}`), { kind });
+    }
+    return v3 && json.result !== undefined ? json.result : json; // v3 verpackt Antworten in „result“
   }
 
   async connect(key, appId = '') {
@@ -47,9 +55,22 @@ class Handy {
     this.hsspUrl = null;
     this.uploadCache.clear(); // v2 und v3 nutzen verschiedene Script-Ablagen
     const { connected } = await this.req('GET', '/connected');
-    if (!connected) throw new Error('Handy ist nicht online (WLAN-Modus, LED blau?)');
+    if (!connected) throw Object.assign(new Error('Handy ist nicht online (WLAN-Modus, LED blau?)'), { kind: 'offline' });
     await this.syncTime();
     this.connected = true;
+    this.readInfo();
+  }
+
+  // Modell und Firmware (für das Höchsttempo). Fehler egal – dann gilt der Standard.
+  async readInfo() {
+    try {
+      const info = await this.req('GET', '/info', null, true);
+      this.model = String(info.model || '');
+      this.hwVersion = String(info.hwVersion || '');
+      this.fwVersion = String(info.fwVersion || '');
+    } catch { this.model = ''; }
+    this.modelName = handyModelName(this.model, this.hwVersion);
+    document.dispatchEvent(new Event('handy-info'));
   }
 
   // Schätzt die Abweichung zwischen lokaler Uhr und Handy-Serveruhr.
@@ -79,27 +100,58 @@ class Handy {
     this.hsspUrl = null;
   }
 
-  async upload(csv) {
-    const cached = this.uploadCache.get(csv);
+  // Schlüssel für die Merkliste auf dem Player-Server: API-Version + SHA-256 des CSV
+  async cacheKey(csv) {
+    if (!crypto.subtle) return '';
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(csv));
+    return `${this.v3 ? 'v3' : 'v2'}:${[...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
+  }
+
+  // fresh = Merkliste übergehen (gemerkte Adresse war nicht mehr gültig)
+  async upload(csv, fresh = false) {
+    const cached = !fresh && this.uploadCache.get(csv);
     if (cached) return cached;
+    const k = await this.cacheKey(csv).catch(() => '');
+    if (k && !fresh) {
+      // Schon einmal hochgeladen (auch auf einem anderen Gerät)? Dann sofort weiter
+      const hit = await fetch('/api/handycache?k=' + k).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (hit?.url) { this.uploadCache.set(csv, hit.url); return hit.url; }
+    }
     const form = new FormData();
     // Neutraler Dateiname, damit keine Videotitel an Handys Server gehen.
     form.append(this.v3 ? 'file' : 'syncFile', new Blob([csv], { type: 'text/csv' }), 'script.csv');
-    const res = await fetch(this.v3 ? HANDY_UPLOAD_V3 : HANDY_UPLOAD, { method: 'POST', body: form });
-    const json = await res.json().catch(() => ({}));
-    if (!json.url) throw new Error('Upload des Scripts fehlgeschlagen');
+    const res = await fetch(this.v3 ? HANDY_UPLOAD_V3 : HANDY_UPLOAD, { method: 'POST', body: form }).catch(() => null);
+    const json = res ? await res.json().catch(() => ({})) : {};
+    if (!json.url) throw Object.assign(new Error('Upload des Scripts fehlgeschlagen'), { kind: res ? '' : 'net' });
     this.uploadCache.set(csv, json.url);
+    if (k) fetch('/api/handycache', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ k, url: json.url }) }).catch(() => {});
     return json.url;
   }
 
   // Lädt ein Script per HSSP auf die Handy (nur wenn es nicht schon geladen ist).
   async prepare(csv) {
     await this.setMode(1);
-    const url = await this.upload(csv);
-    if (this.hsspUrl !== url) {
+    let url = await this.upload(csv);
+    if (this.hsspUrl === url) return;
+    try {
       await this.req('PUT', '/hssp/setup', { url });
-      this.hsspUrl = url;
+    } catch (e) {
+      // Gemerkte Adresse abgelaufen? Einmal frisch hochladen
+      if (e.kind === 'net') throw e;
+      url = await this.upload(csv, true);
+      await this.req('PUT', '/hssp/setup', { url });
     }
+    this.hsspUrl = url;
+  }
+
+  // Direkt-Position (HDSP, Modus 2): in duration ms auf Position 0–100 (innerhalb von Hub min/max)
+  async hdspMove(position, duration) {
+    if (this.mode !== 2) {
+      await this.req('PUT', '/mode', { mode: 2 }, true);
+      this.mode = 2;
+      this.hsspUrl = null;
+    }
+    await this.req('PUT', '/hdsp/xpt', { stopOnTarget: true, immediateResponse: true, position: Math.round(position), duration: Math.round(duration) }, true);
   }
 
   // rate = Wiedergabegeschwindigkeit des Videos (nur v3)
@@ -124,6 +176,34 @@ class Handy {
 
 const handy = new Handy();
 
+// Modell aus den Geräte-Infos (Handy 1 / 2 / 2 Pro); unbekannt = Handy 1
+function handyModelKey(model, hw) {
+  const s = `${model} ${hw}`.toLowerCase();
+  if (/pro/.test(s)) return 'h2pro';
+  if (/\b(h0?2|handy ?2|2\.\d)\b/.test(s)) return 'h2';
+  return 'h1';
+}
+function handyModelName(model, hw) {
+  if (!model && !hw) return '';
+  return { h1: 'Handy 1', h2: 'Handy 2', h2pro: 'Handy 2 Pro' }[handyModelKey(model, hw)] + (model ? ` (${model}${hw ? ' · HW ' + hw : ''})` : '');
+}
+// Höchsttempo pro Modell (%/s des vollen Hubs). Für Handy 2 / 2 Pro noch keine gemessenen Werte -> wie Handy 1.
+const HANDY_MAX_SPEED = { h1: 450, h2: 450, h2pro: 450 };
+function handyMaxSpeed() {
+  if (!store.get('handyMaxAuto', true)) return store.get('handyMax', 450);
+  return HANDY_MAX_SPEED[handyModelKey(handy.model || '', handy.hwVersion || '')] || 450;
+}
+
+// Kurzer Grund für die Status-Anzeige oben (ausführlich steht er im Geräte-Fenster)
+function handyErrText(e) {
+  const kind = e?.kind || '';
+  if (kind === 'net') return 'Cloud nicht erreichbar';
+  if (kind === 'offline') return 'Handy offline';
+  if (kind === 'auth') return 'Key / App-ID falsch';
+  if (kind === 'limit') return 'zu viele Anfragen';
+  return /key/i.test(e?.message || '') ? 'Key falsch?' : 'Fehler – antippen';
+}
+
 // Wer die Handy gerade benutzt. Die anderen Bereiche hören auf das Event und
 // setzen ihre Oberfläche zurück (z. B. pausiert das Video).
 function claimHandy(owner) {
@@ -143,7 +223,8 @@ const SHARED_PREFS = new Set([
   'key', 'appId', 'autoConnect', 'autoSync', 'invert', 'btLead', 'offset', 'offsets', 'min', 'max',
   'capSpeed', 'stopButton', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeSmooth', 'vibeMap2', 'vibeSource',
   'bleKnownNames', 'scriptTools', 'scriptPreset', 'scenePresets', 'finale', 'hud',
-  'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'touchRecPos', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts', 'showContinue',
+  'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts', 'showContinue',
+  'offset117', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
 ]);
 const isSharedPref = (k) => SHARED_PREFS.has(k) || k.startsWith('savedFilter.');
 let prefsPending = {}, prefsTimer = null;

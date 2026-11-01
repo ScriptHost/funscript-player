@@ -190,8 +190,21 @@ async function attachBleDevice(device) {
       }
       const i = bleDevices.indexOf(dev);
       if (i >= 0) bleDevices.splice(i, 1);
-      log(`${dev.name}: Verbindung verloren. Bitte neu verbinden.`, true);
+      log(`${dev.name}: Verbindung verloren – der Player versucht es im Hintergrund weiter (10 min).`, true);
       renderVibe();
+      // Weiter still versuchen (z. B. Satisfyer kurz außer Reichweite oder aus) – ohne neu koppeln
+      for (let n = 0; n < 40 && !dev.closed; n++) {
+        await new Promise((r) => setTimeout(r, 15000));
+        if (document.hidden || dev.closed || bleDevices.includes(dev)) continue;
+        try {
+          await dev.connect();
+          dev.level = -1;
+          bleDevices.push(dev);
+          log(`${dev.name} wieder verbunden.`);
+          renderVibe();
+          return;
+        } catch { /* weiter warten */ }
+      }
     });
     log(`${dev.name} verbunden.`);
   }
@@ -516,7 +529,7 @@ function scriptIntensity(actions, ms) {
 function targetLevel() {
   if (vibePaused) return 0;
   if (typeof finDetached === 'function' && finDetached()) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
-  // Touch-Fläche unter 🎮 Steuern (Beta): Finger-Höhe = Stärke, „Maximum“ gilt
+  // Touch-Fläche unter 🎮 Steuern: Finger-Höhe = Stärke, „Maximum“ gilt
   const touched = typeof touchVibeLevel === 'function' ? touchVibeLevel() : null;
   if (touched !== null) return Math.min(touched * 100, Number($('vibeMax').value)) / 100;
   // „Selbst steuern“ am Video (ohne Funscript): eigene Stärke, „Maximum“ gilt auch hier

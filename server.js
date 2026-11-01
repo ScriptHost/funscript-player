@@ -107,13 +107,40 @@ async function scanLibrary(dir, rel = '') {
 // Umgebung schaltet HereSphere fest ab – dann lässt es sich in der Oberfläche nicht einschalten.
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const HS_LOCKED_OFF = /^(0|off|false|nein)$/i.test(process.env.HERESPHERE || '');
-let serverSettings = { heresphere: true };
+// INTIFACE_LAN_ONLY=1: Intiface-Weiterleitung fest nur ins Heimnetz (192.168.x / 10.x)
+const LAN_LOCKED = /^(1|on|true|ja)$/i.test(process.env.INTIFACE_LAN_ONLY || '');
+// hsVrOnly: HereSphere zeigt nur VR-Videos; hsPass: Salz + Hash des optionalen HereSphere-Passworts
+let serverSettings = { heresphere: true, hsVrOnly: true, hsPass: null, intifaceLan: false };
 try { Object.assign(serverSettings, JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'))); } catch { /* Standard */ }
 const heresphereOn = () => !HS_LOCKED_OFF && serverSettings.heresphere !== false;
+const intifaceLanOnly = () => LAN_LOCKED || !!serverSettings.intifaceLan;
+
+const hsHash = (salt, pw) => crypto.createHash('sha256').update(`${salt}:${pw}`).digest('hex');
+// Anmelde-Token für HereSphere: hängt nur vom Passwort ab (übersteht Neustarts, neues Passwort = neues Token)
+const hsToken = () => (serverSettings.hsPass ? crypto.createHash('sha256').update('token:' + serverSettings.hsPass.hash).digest('hex') : '');
+function hsAuthorized(req, url) {
+  if (!serverSettings.hsPass) return true;
+  const given = String(req.headers['auth-token'] || url.searchParams.get('hs') || '');
+  const want = hsToken();
+  return given.length === want.length && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(want));
+}
+function publicSettings() {
+  return {
+    heresphere: heresphereOn(), heresphereLocked: HS_LOCKED_OFF, hsVrOnly: serverSettings.hsVrOnly !== false,
+    hsPassword: !!serverSettings.hsPass, intifaceLan: intifaceLanOnly(), intifaceLanLocked: LAN_LOCKED,
+  };
+}
 
 async function writeSettings(req) {
   const body = JSON.parse(await readBody(req, 10000) || '{}');
   if (typeof body.heresphere === 'boolean') serverSettings.heresphere = body.heresphere;
+  if (typeof body.hsVrOnly === 'boolean') serverSettings.hsVrOnly = body.hsVrOnly;
+  if (typeof body.intifaceLan === 'boolean') serverSettings.intifaceLan = body.intifaceLan;
+  if (typeof body.hsPassword === 'string') {
+    // Leer = Passwort entfernen; gespeichert wird nur der Hash
+    const salt = crypto.randomBytes(16).toString('hex');
+    serverSettings.hsPass = body.hsPassword ? { salt, hash: hsHash(salt, body.hsPassword.slice(0, 200)) } : null;
+  }
   await fsp.mkdir(DATA_DIR, { recursive: true });
   await fsp.writeFile(SETTINGS_FILE, JSON.stringify(serverSettings));
 }
@@ -198,7 +225,10 @@ async function saveUserScript(req) {
   const text = JSON.stringify(funscript);
   if (m[1] === 'media') {
     const video = safeJoin(MEDIA_DIR, m[2]);
-    if (!video || !fs.existsSync(video)) throw Object.assign(new Error('Video nicht gefunden'), { status: 404 });
+    // nur neben echten Videos ablegen, nicht neben beliebigen Dateien im Medienordner
+    if (!video || !VIDEO_EXT.has(path.extname(video).toLowerCase()) || !fs.existsSync(video)) {
+      throw Object.assign(new Error('Video nicht gefunden'), { status: 404 });
+    }
     const target = video.replace(/\.[^.]+$/, '.funscript');
     try {
       await fsp.writeFile(target, text, { flag: 'wx' }); // nie eine vorhandene Datei überschreiben
@@ -212,6 +242,26 @@ async function saveUserScript(req) {
   await fsp.mkdir(USER_SCRIPTS, { recursive: true });
   await fsp.writeFile(userScriptFile(src), text);
   return { where: 'server' };
+}
+
+// Schon zur Handy hochgeladene Scripts (Hash des CSV -> URL der Handy-Ablage): ein einmal gespieltes
+// Video startet danach ohne erneutes Hochladen – auch nach Neuladen und auf anderen Geräten.
+const HANDY_CACHE_FILE = path.join(DATA_DIR, 'handy-cache.json');
+let handyCache = null;
+async function handyCacheGet(k) {
+  if (!handyCache) handyCache = JSON.parse(await fsp.readFile(HANDY_CACHE_FILE, 'utf8').catch(() => '{}'));
+  return handyCache[k] || null;
+}
+async function handyCachePut(req) {
+  const { k, url } = JSON.parse(await readBody(req, 4000) || '{}');
+  if (!/^v[23]:[a-f0-9]{64}$/.test(k || '') || !/^https:\/\/[^\s]{1,500}$/.test(url || '')) throw Object.assign(new Error('Ungültige Daten'), { status: 400 });
+  await handyCacheGet(k);
+  handyCache[k] = { url, at: Date.now() };
+  // Nicht endlos wachsen lassen: die ältesten Einträge fallen weg
+  const keys = Object.keys(handyCache);
+  if (keys.length > 3000) keys.sort((a, b) => handyCache[a].at - handyCache[b].at).slice(0, keys.length - 3000).forEach((x) => delete handyCache[x]);
+  await fsp.mkdir(DATA_DIR, { recursive: true });
+  await fsp.writeFile(HANDY_CACHE_FILE, JSON.stringify(handyCache));
 }
 
 async function readStore() {
@@ -509,9 +559,23 @@ const HS_IDS_QUERY = `query($filter: FindFilterType, $scene_filter: SceneFilterT
 // HereSphere zeigt nur VR: Stash-Szenen mit mindestens einem VR-Tag, Ordner-Videos mit
 // VR-Kennung im Dateinamen (Ordner haben keine Tags). Leere Listen fallen weg.
 
+const hsVrOnly = () => serverSettings.hsVrOnly !== false;
+// Mit HereSphere-Passwort hängt an jeder Adresse das Token (Videos/Scripts lädt HereSphere ohne Kopfzeile)
+const hsQuery = () => (serverSettings.hsPass ? `?hs=${hsToken()}` : '');
+
+// Die Gesamtliste 60 s merken: HereSphere fragt sie beim Zurückblättern oft erneut an
+let hsIndexCache = { key: '', at: 0, data: null };
 async function heresphereIndex(req) {
+  const key = `${publicBase(req)}|${hsQuery()}|${hsVrOnly()}`;
+  if (hsIndexCache.key === key && Date.now() - hsIndexCache.at < 60000) return hsIndexCache.data;
+  const data = await heresphereIndexBuild(req);
+  hsIndexCache = { key, at: Date.now(), data };
+  return data;
+}
+async function heresphereIndexBuild(req) {
   const base = publicBase(req);
   const library = [];
+  const q = hsQuery();
   if (STASH_URL) {
     const lists = [{ name: 'Alle mit Script', filter: { interactive: true }, sort: 'created_at', direction: 'DESC' }];
     try {
@@ -523,8 +587,8 @@ async function heresphereIndex(req) {
           filter: { q: l.q || '', per_page: -1, sort: l.sort.startsWith('random') ? 'created_at' : l.sort, direction: l.direction },
           scene_filter: JSON.parse(JSON.stringify(l.filter)),
         }, [], HS_IDS_QUERY);
-        const list = data.findScenes.scenes.filter((s) => (s.tags || []).some((t) => isVrTag(t.name)))
-          .map((s) => `${base}/heresphere/stash/${s.id}`);
+        const list = data.findScenes.scenes.filter((s) => !hsVrOnly() || (s.tags || []).some((t) => isVrTag(t.name)))
+          .map((s) => `${base}/heresphere/stash/${s.id}${q}`);
         if (list.length) library.push({ name: l.name, list });
       } catch (e) {
         console.warn(`HereSphere: Liste „${l.name}“ übersprungen: ${e.message}`);
@@ -534,10 +598,10 @@ async function heresphereIndex(req) {
   const items = await scanLibrary(MEDIA_DIR);
   const roots = new Map();
   for (const it of items) {
-    if (vrFormat(path.basename(it.video).replace(/\.[^.]+$/, '')).projection === 'perspective') continue; // kein VR
+    if (hsVrOnly() && vrFormat(path.basename(it.video).replace(/\.[^.]+$/, '')).projection === 'perspective') continue; // kein VR
     const root = it.video.includes('/') ? it.video.split('/')[0] : 'Ordner';
     if (!roots.has(root)) roots.set(root, []);
-    roots.get(root).push(`${base}/heresphere/media/${encPath(it.video)}`);
+    roots.get(root).push(`${base}/heresphere/media/${encPath(it.video)}${q}`);
   }
   for (const [name, list] of roots) library.push({ name: `Ordner: ${name}`, list });
   return { access: 1, library };
@@ -553,6 +617,9 @@ function hsCommon() {
 async function heresphereStash(req, id) {
   const base = publicBase(req);
   const s = await stashScene(id);
+  // „nur VR“: andere Szenen gibt es auch über ihre Nummer nicht
+  if (hsVrOnly() && !s.tags.some((t) => isVrTag(t.name))) throw Object.assign(new Error('Nicht gefunden'), { status: 404 });
+  const q = hsQuery();
   const ms = (sec) => Math.round(sec * 1000);
   const tags = [
     ...(s.studio ? [{ name: `Studio:${s.studio.name}` }] : []),
@@ -569,36 +636,39 @@ async function heresphereStash(req, id) {
     writeFavorite: true,
     title: s.title,
     description: s.details,
-    thumbnailImage: `${base}/stash/scene/${id}/screenshot`,
-    thumbnailVideo: `${base}/stash/scene/${id}/preview`,
+    thumbnailImage: `${base}/stash/scene/${id}/screenshot${q}`,
+    thumbnailVideo: `${base}/stash/scene/${id}/preview${q}`,
     dateReleased: s.date || undefined,
     duration: ms(s.duration),
     ...vrFormat(s.basename || s.title, s.tags.map((t) => t.name)),
-    scripts: s.interactive ? [{ name: `${s.title}.funscript`, url: `${base}/stash/scene/${id}/funscript` }] : [],
+    scripts: s.interactive ? [{ name: `${s.title}.funscript`, url: `${base}/stash/scene/${id}/funscript${q}` }] : [],
     tags,
     media: [{
       name: 'Original',
-      sources: [{ resolution: s.height, height: s.height, width: s.width, url: `${base}/stash/scene/${id}/stream` }],
+      sources: [{ resolution: s.height, height: s.height, width: s.width, url: `${base}/stash/scene/${id}/stream${q}` }],
     }],
   };
 }
 
-async function heresphereMedia(req, rel) {
+// needsSource = false: HereSphere will nur Titel/Vorschau für die Liste -> kein ffprobe (schnelles Blättern)
+async function heresphereMedia(req, rel, needsSource = true) {
   const base = publicBase(req);
   const file = safeJoin(MEDIA_DIR, rel);
-  if (!file || !fs.existsSync(file)) throw Object.assign(new Error('Datei nicht gefunden'), { status: 404 });
+  if (!file || !VIDEO_EXT.has(path.extname(file).toLowerCase()) || !fs.existsSync(file)) throw Object.assign(new Error('Datei nicht gefunden'), { status: 404 });
   const name = path.basename(rel).replace(/\.[^.]+$/, '');
+  if (hsVrOnly() && vrFormat(name).projection === 'perspective') throw Object.assign(new Error('Nicht gefunden'), { status: 404 });
+  const q = hsQuery();
   const scriptRel = rel.replace(/\.[^.]+$/, '.funscript');
-  const info = await hqProbe('media:' + rel).catch(() => ({ width: 0, height: 0, duration: 0 }));
+  const info = (await hqProbe('media:' + rel, { cachedOnly: !needsSource }).catch(() => null)) || { width: 0, height: 0, duration: 0 };
   return {
     ...hsCommon(),
     title: cleanTitle(path.basename(rel)),
     description: '',
     duration: Math.round((info.duration || 0) * 1000),
     ...vrFormat(name),
-    scripts: fs.existsSync(safeJoin(MEDIA_DIR, scriptRel) || '') ? [{ name: path.basename(scriptRel), url: `${base}/media/${encPath(scriptRel)}` }] : [],
+    scripts: fs.existsSync(safeJoin(MEDIA_DIR, scriptRel) || '') ? [{ name: path.basename(scriptRel), url: `${base}/media/${encPath(scriptRel)}${q}` }] : [],
     tags: rel.includes('/') ? [{ name: `Ordner:${rel.split('/')[0]}` }] : [],
-    media: [{ name: 'Original', sources: [{ resolution: info.height, height: info.height, width: info.width, url: `${base}/media/${encPath(rel)}` }] }],
+    media: [{ name: 'Original', sources: [{ resolution: info.height, height: info.height, width: info.width, url: `${base}/media/${encPath(rel)}${q}` }] }],
   };
 }
 
@@ -774,14 +844,30 @@ function hqSource(src) {
   return { input: file, pre: [] };
 }
 
-async function hqProbe(src) {
+// Ergebnisse gemerkt: Ordner-Videos solange Größe/Datum gleich bleiben, Stash-Szenen 10 Minuten.
+// (HereSphere fragt beim Durchblättern jedes Video einzeln ab – ohne Merken startet jedes Mal ffprobe.)
+const probeCache = new Map();
+async function probeKey(src, input) {
+  if (src.startsWith('stash:')) return `${src}|${Math.floor(Date.now() / 600000)}`;
+  const st = await fsp.stat(input).catch(() => null);
+  return st ? `${src}|${st.size}|${st.mtimeMs}` : '';
+}
+async function hqProbe(src, { cachedOnly = false } = {}) {
   const { input, pre } = hqSource(src);
+  const key = await probeKey(src, input);
+  if (key && probeCache.has(key)) return probeCache.get(key);
+  if (cachedOnly) return null;
   const { err, stdout } = await run(FFPROBE, [...pre, '-v', 'error', '-select_streams', 'v:0',
     '-show_entries', 'stream=width,height,codec_name:format=duration', '-of', 'json', input]);
   if (err) throw Object.assign(new Error('Video konnte nicht gelesen werden'), { status: 502 });
   const j = JSON.parse(stdout);
   const s = j.streams?.[0] || {};
-  return { width: s.width || 0, height: s.height || 0, codec: s.codec_name || '', duration: Number(j.format?.duration) || 0 };
+  const info = { width: s.width || 0, height: s.height || 0, codec: s.codec_name || '', duration: Number(j.format?.duration) || 0 };
+  if (key) {
+    if (probeCache.size > 5000) probeCache.clear();
+    probeCache.set(key, info);
+  }
+  return info;
 }
 
 // Zielgröße: auf die gewünschte Höhe (Standard 1080p) skalieren, gerade Pixelzahlen
@@ -1014,6 +1100,25 @@ function tlsOptions() {
 }
 const tls = tlsOptions();
 
+// Nicht in fremde Seiten einbetten, Dateitypen nicht raten, Adresse nicht an fremde Seiten weitergeben
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Content-Security-Policy': "frame-ancestors 'self'",
+  'Referrer-Policy': 'same-origin',
+};
+// Kommt die Anfrage von dieser Seite? Ohne Origin (z. B. curl, Apps) gilt sie als eigene.
+function sameOrigin(req) {
+  const site = req.headers['sec-fetch-site'];
+  if (site && site !== 'same-origin' && site !== 'none') return false;
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  try {
+    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    return new URL(origin).host === host;
+  } catch { return false; }
+}
+
 const handler = async (req, res) => {
   try {
     if (req.url === '/healthz') return res.end('ok');
@@ -1024,6 +1129,12 @@ const handler = async (req, res) => {
     if (!checkAuth(req, res)) return;
     const url = new URL(req.url, 'http://localhost');
     const pathname = decodeURIComponent(url.pathname);
+    for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
+    // Änderungen nur von der eigenen Seite – fremde Webseiten im selben Browser dürfen nichts auslösen.
+    // HereSphere (eigene App, ohne Origin) hat dafür das optionale Passwort.
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !pathname.startsWith('/heresphere') && !sameOrigin(req)) {
+      throw Object.assign(new Error('Fremde Herkunft'), { status: 403 });
+    }
 
     if (pathname === '/api/store') {
       if (req.method === 'PUT') {
@@ -1088,7 +1199,17 @@ const handler = async (req, res) => {
     if (pathname === '/api/settings') {
       if (req.method === 'PUT') await writeSettings(req);
       res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify({ heresphere: heresphereOn(), heresphereLocked: HS_LOCKED_OFF }));
+      return res.end(JSON.stringify(publicSettings()));
+    }
+    if (pathname === '/api/handycache') {
+      if (req.method === 'PUT') {
+        await handyCachePut(req);
+        res.writeHead(204);
+        return res.end();
+      }
+      const hit = await handyCacheGet(url.searchParams.get('k') || '');
+      res.writeHead(hit ? 200 : 404, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(hit || {}));
     }
 
     // Abgeschaltet: keine Antwort unter /heresphere – die Ausnahme in der Proxy-Anmeldung kann dann weg
@@ -1099,14 +1220,28 @@ const handler = async (req, res) => {
       let body = {};
       try { body = JSON.parse((await readBody(req, 100000)) || '{}'); } catch { body = {}; }
       let data;
-      if (pathname === '/heresphere' || pathname === '/heresphere/') data = await heresphereIndex(req);
+      if (pathname === '/heresphere/auth') {
+        // Anmeldung aus HereSphere (Benutzername egal) -> Token, das HereSphere bei jeder Anfrage mitschickt
+        const p = serverSettings.hsPass;
+        const ok = !p || hsHash(p.salt, String(body.password || '')) === p.hash;
+        data = ok ? { 'auth-token': hsToken(), access: 1 } : { 'auth-token': '', access: -1 };
+      } else if (!hsAuthorized(req, url)) {
+        // -1 = Anmeldung nötig: HereSphere fragt dann nach Benutzer und Passwort
+        data = { access: -1, library: [] };
+      } else if (pathname === '/heresphere' || pathname === '/heresphere/') data = await heresphereIndex(req);
       else if (/^\/heresphere\/stash\/\d+$/.test(pathname)) {
         if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
         const id = pathname.split('/').pop();
-        if (typeof body.rating === 'number') await stashSetRating(id, body.rating * 20).catch((e) => console.warn('HereSphere-Bewertung:', e.message));
-        if (typeof body.isFavorite === 'boolean') await stashSetFavorite(id, body.isFavorite).catch((e) => console.warn('HereSphere-Favorit:', e.message));
-        data = await heresphereStash(req, id);
-      } else if (pathname.startsWith('/heresphere/media/')) data = await heresphereMedia(req, pathname.slice('/heresphere/media/'.length));
+        data = await heresphereStash(req, id); // prüft vorher „nur VR“
+        if (typeof body.rating === 'number') {
+          await stashSetRating(id, body.rating * 20).catch((e) => console.warn('HereSphere-Bewertung:', e.message));
+          data.rating = body.rating;
+        }
+        if (typeof body.isFavorite === 'boolean') {
+          await stashSetFavorite(id, body.isFavorite).catch((e) => console.warn('HereSphere-Favorit:', e.message));
+          data.isFavorite = body.isFavorite;
+        }
+      } else if (pathname.startsWith('/heresphere/media/')) data = await heresphereMedia(req, pathname.slice('/heresphere/media/'.length), body.needsMediaSource !== false);
       else throw Object.assign(new Error('Nicht gefunden'), { status: 404 });
       res.writeHead(200, HS_HEADERS);
       return res.end(JSON.stringify(data));
@@ -1165,6 +1300,7 @@ const handler = async (req, res) => {
       || /^\/stash\/(tag|performer|studio)\/(\d+)\/(image)$/.exec(pathname);
     if (sm) {
       if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
+      url.searchParams.delete('hs'); // HereSphere-Token bleibt hier
       return await proxyStash(req, res, sm[1], sm[2], sm[3], url.search);
     }
 
@@ -1196,8 +1332,10 @@ const server = tls ? https.createServer(tls, handler) : http.createServer(handle
 
 // WebSocket-Weiterleitung /intiface?target=IP:PORT -> ws://IP:PORT (Intiface Central auf dem Smartphone).
 // Nötig, weil eine HTTPS-Seite keine unverschlüsselte ws://-Verbindung öffnen darf.
-// Erlaubt sind nur private IPv4-Adressen im lokalen Netz.
+// Erlaubt sind nur private IPv4-Adressen; mit „nur Heimnetz“ (⚙️ → Geräte / INTIFACE_LAN_ONLY)
+// nur 192.168.x und 10.x – also keine Docker-Netze (172.x) und nichts im Container selbst (127.x).
 const PRIVATE_IP = /^(10\.\d+|192\.168|172\.(1[6-9]|2\d|3[01])|127\.\d+)\.\d+\.\d+$/;
+const LAN_IP = /^(10\.\d+|192\.168)\.\d+\.\d+$/;
 
 server.on('upgrade', (req, socket, head) => {
   const fail = (code, text) => socket.end(`HTTP/1.1 ${code} ${text}\r\nConnection: close\r\n\r\n`);
@@ -1205,8 +1343,9 @@ server.on('upgrade', (req, socket, head) => {
   const url = new URL(req.url, 'http://localhost');
   if (url.pathname !== '/intiface') return fail(404, 'Not Found');
   if (!authOk(req)) return fail(401, 'Unauthorized');
+  if (!sameOrigin(req)) return fail(403, 'Forbidden'); // keine Verbindung von fremden Webseiten
   const m = /^([\d.]+):(\d{1,5})$/.exec(url.searchParams.get('target') || '');
-  if (!m || !PRIVATE_IP.test(m[1]) || Number(m[2]) > 65535) return fail(400, 'Bad Request');
+  if (!m || !(intifaceLanOnly() ? LAN_IP : PRIVATE_IP).test(m[1]) || Number(m[2]) > 65535) return fail(400, 'Bad Request');
 
   const upstream = net.connect(Number(m[2]), m[1]);
   upstream.setTimeout(5000, () => upstream.destroy(new Error('timeout')));

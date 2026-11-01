@@ -67,6 +67,55 @@ test('Fernbedienung: Bildschirm sichtbar, Befehl kommt mit Namen an', async () =
   screen.close(); phone.close();
 });
 
+test('Eigenes Script nur neben Videos', async () => {
+  fs.writeFileSync(path.join(srv.media, 'Filme', 'notiz.txt'), 'x');
+  const r = await put('/api/userscript', { src: 'media:Filme/notiz.txt', funscript: { actions: [] } }, 'POST');
+  assert.strictEqual(r.status, 404);
+  assert.ok(!fs.existsSync(path.join(srv.media, 'Filme', 'notiz.funscript')));
+});
+
+test('Schutz-Header und Herkunftsprüfung', async () => {
+  const r = await fetch(srv.base + '/api/prefs');
+  assert.strictEqual(r.headers.get('x-frame-options'), 'SAMEORIGIN');
+  assert.strictEqual(r.headers.get('x-content-type-options'), 'nosniff');
+  const evil = await fetch(srv.base + '/api/prefs', { method: 'PUT', headers: { Origin: 'https://boese.example', 'Content-Type': 'text/plain' }, body: '{"key":"x"}' });
+  assert.strictEqual(evil.status, 403);
+  const cross = await fetch(srv.base + '/api/prefs', { method: 'PUT', headers: { 'Sec-Fetch-Site': 'cross-site' }, body: '{"key":"x"}' });
+  assert.strictEqual(cross.status, 403);
+  const own = await fetch(srv.base + '/api/prefs', { method: 'PUT', headers: { Origin: srv.base }, body: '{"own":1}' });
+  assert.strictEqual(own.status, 200);
+});
+
+test('Handy-Script-Merkliste', async () => {
+  const k = 'v2:' + 'a'.repeat(64);
+  assert.strictEqual((await fetch(srv.base + '/api/handycache?k=' + k)).status, 404);
+  assert.strictEqual((await put('/api/handycache', { k, url: 'https://example.com/s.csv' })).status, 204);
+  assert.strictEqual((await (await fetch(srv.base + '/api/handycache?k=' + k)).json()).url, 'https://example.com/s.csv');
+  assert.strictEqual((await put('/api/handycache', { k: 'v2:zz', url: 'https://x' })).status, 400);
+});
+
+test('HereSphere: nur VR, Passwort', async () => {
+  fs.writeFileSync(path.join(srv.media, 'Filme', 'szene_vr_180_sbs.mp4'), 'x');
+  const urls = async (h = {}) => (await (await fetch(srv.base + '/heresphere', { headers: h })).json()).library.flatMap((l) => l.list);
+  let list = await urls();
+  assert.ok(list.some((u) => u.includes('szene_vr_180_sbs')) && !list.some((u) => u.includes('clip.mp4')), 'Standard: nur VR');
+  assert.strictEqual((await fetch(srv.base + '/heresphere/media/Filme/clip.mp4', { method: 'POST' })).status, 404);
+  await put('/api/settings', { hsVrOnly: false });
+  assert.ok((await urls()).some((u) => u.includes('clip.mp4')), 'alle Videos');
+  await put('/api/settings', { hsVrOnly: true, hsPassword: 'geheim' });
+  assert.strictEqual((await (await fetch(srv.base + '/heresphere')).json()).access, -1);
+  const bad = await (await put('/heresphere/auth', { username: 'x', password: 'falsch' }, 'POST')).json();
+  assert.strictEqual(bad.access, -1);
+  const ok = await (await put('/heresphere/auth', { username: 'x', password: 'geheim' }, 'POST')).json();
+  assert.strictEqual(ok.access, 1);
+  list = await urls({ 'auth-token': ok['auth-token'] });
+  assert.ok(list.length && list.every((u) => u.endsWith('?hs=' + ok['auth-token'])));
+  const s = await (await fetch(srv.base + '/api/settings')).json();
+  assert.strictEqual(s.hsPassword, true);
+  await put('/api/settings', { hsPassword: '' });
+  assert.ok((await urls()).length);
+});
+
 test('HereSphere abschaltbar', async () => {
   assert.strictEqual((await fetch(srv.base + '/heresphere')).status, 200);
   await put('/api/settings', { heresphere: false });

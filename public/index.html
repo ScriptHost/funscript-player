@@ -111,7 +111,7 @@
           </div>
 
           <!-- Mini-Player beim Stöbern -->
-          <div id="miniCtl" class="mini-ctl"><button id="miniPlay" aria-label="Abspielen / Pause">❚❚</button><button id="miniOpen" aria-label="Zum Video">⤢</button></div>
+          <div id="miniCtl" class="mini-ctl"><button id="miniPlay" aria-label="Abspielen / Pause">❚❚</button><button id="miniOpen" aria-label="Zum Video">⤢</button><button id="miniClose" aria-label="Video schließen" title="Video schließen – Geräte halten an">✕</button></div>
           <!-- Bedienung im Vollbild -->
           <div id="ov" class="overlay">
             <div id="ovHit" class="ov-hit"></div>
@@ -178,13 +178,14 @@
               <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button></span>
             </div>
             <div id="selfCtl" class="self-ctl" hidden>
-              <div class="self-dev">
+              <p class="hint-text self-none">Kein Gerät verbunden – oben auf den Status tippen und verbinden.</p>
+              <div class="self-dev self-handy">
                 <div class="self-top"><button id="selfHandy" class="small">▶ Handy</button>
                   <label>Geschwindigkeit <output id="selfSpeedVal"></output></label></div>
                 <input id="selfSpeed" type="range" min="0" max="100" step="5" value="40" aria-label="Handy-Geschwindigkeit">
                 <div id="selfChips" class="chips"><button data-v="15">15</button><button data-v="30">30</button><button data-v="45">45</button><button data-v="60">60</button><button data-v="75">75</button><button data-v="90">90</button></div>
               </div>
-              <div class="self-dev">
+              <div class="self-dev self-vibe">
                 <label>〰 Satisfyer-Stärke <output id="selfVibeVal"></output>
                   <input id="selfVibe" type="range" min="0" max="100" step="5" value="0">
                 </label>
@@ -192,7 +193,7 @@
               </div>
               <div class="touchpad" data-touch="self">
             <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
-            <div class="tp-opts"><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
+            <div class="tp-opts"><span class="seg tp-mode" title="Wie die Handy dem Finger folgt"><button data-tpm="tempo" title="Finger-Höhe = Tempo der Stöße">Tempo</button><button data-tpm="pos" title="Finger-Höhe = Position: die Handy folgt dem Finger">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
             <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
           </div>
               <div class="self-rec"><button id="selfRec" class="small secondary">⏺ Mitschnitt zum Video</button>
@@ -261,8 +262,15 @@
               <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
             </label>
           </details>
-          <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein.</p>
-          <label class="check"><input id="touchRecPos" type="checkbox"> 🧪 <b>Beta: Touch-Aufnahme als Position</b> – Finger-Höhe = Position der Handy (statt Tempo der Stöße)</label>
+          <label>Höchsttempo der Handy <output id="handyMaxVal"></output>
+            <input id="handyMax" type="range" min="250" max="900" step="25" value="450">
+          </label>
+          <label class="check"><input id="handyMaxAuto" type="checkbox" checked> Automatisch nach Modell <small id="handyModelInfo" class="muted"></small></label>
+          <p class="hint-text">Was schneller ist, schafft der Motor nicht – solche Stellen passt die Script-Automatik an (⚙️ → Script).
+            Das Modell erkennt der Player beim Verbinden. Für Handy 2 / 2 Pro gibt es noch keine gemessenen Werte –
+            spürst du, dass deine mehr schafft, Automatik aus und höher stellen.</p>
+          <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein. Touch-Fläche:
+            <b>Tempo</b> = Finger-Höhe ist das Tempo der Stöße, <b>Position 🧪</b> = die Handy folgt deinem Finger (Beta).</p>
         </div>
 
         <div class="card">
@@ -303,6 +311,8 @@
             <label>IP des Smartphones<input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
             <button id="vibeConnect" class="secondary">Mit Intiface verbinden</button>
             <button id="vibeScan" class="secondary" hidden>In Intiface nach Geräten suchen</button>
+            <label class="check"><input id="intifaceLan" type="checkbox"> Nur Adressen im Heimnetz erlauben (192.168.x / 10.x) – gilt für alle Geräte</label>
+            <p id="intifaceLanHint" class="hint-text" hidden>Fest eingestellt über INTIFACE_LAN_ONLY in der docker-compose.yml.</p>
           </details>
         </div>
 
@@ -396,6 +406,12 @@
             <li><b>Original</b> – genau wie die Datei. <b>Eigene</b> – die Haken unten.</li>
           </ul>
           <p class="hint-text">Pro Szene änderst du die Anpassung unter dem Video (wird wie der Offset gemerkt).</p>
+          <label>Stellen, die für die Handy zu schnell sind
+            <select id="tooFast">
+              <option value="shorten">Hub kürzen – jeder Stoß bleibt, dafür etwas kürzer</option>
+              <option value="half">Voller Hub, halbes Tempo – jeder zweite Stoß fällt dort weg</option>
+            </select>
+          </label>
           <div id="toolCustom">
             <label class="check"><input id="tool_stretch" type="checkbox"> Auf vollen Hub strecken – Scripts, die nur einen Teil des Bereichs nutzen, wirken nicht mehr flach</label>
             <label class="check"><input id="tool_limit" type="checkbox"> Zu schnelle Stellen glätten – die Handy muss nicht selbst „abkürzen“</label>
@@ -440,6 +456,13 @@
           <label class="check"><input id="hsOn" type="checkbox" checked> HereSphere-Schnittstelle aktiv</label>
           <p id="hsOffHint" class="hint-text" hidden>Aus: Der Server antwortet unter <code>/heresphere</code> nicht mehr – die Ausnahme in deiner Proxy-Anmeldung kann weg. Gilt für alle Geräte.</p>
           <div id="hsBox">
+          <label class="check"><input id="hsVrOnly" type="checkbox" checked> Nur VR-Videos zeigen (aus = auch normale Videos, als flache Leinwand)</label>
+          <label>Passwort für HereSphere <small class="muted">(optional – HereSphere fragt dann einmal nach Benutzer und Passwort, der Benutzername ist egal)</small>
+            <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" placeholder="leer = frei erreichbar">
+              <button id="hsPassSave" class="small secondary">Speichern</button>
+              <button id="hsPassClear" class="small secondary" hidden>Entfernen</button></span>
+          </label>
+          <p id="hsPassInfo" class="hint-text"></p>
           <p>In HereSphere im Browser diese Adresse öffnen und als Lesezeichen speichern:</p>
           <div class="copyrow">
             <input id="hsUrl" type="text" readonly>
@@ -447,11 +470,11 @@
           </div>
           <ol class="steps-list">
             <li>HereSphere starten → Web-Browser öffnen → Adresse oben eingeben.</li>
-            <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner – nur VR-Videos.</li>
+            <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner.</li>
             <li>The Handy: in HereSphere unter <i>Einstellungen → Haptik</i> deinen Connection Key eintragen. HereSphere lädt das Funscript automatisch mit.</li>
             <li>Das VR-Format (180°/360°, SBS/TB, Fisheye/MKX) erkennt der Player an Dateinamen und VR-Tags.</li>
           </ol>
-          <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen.</p>
+          <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen. Das Passwort oben schützt die Schnittstelle dann trotzdem.</p>
           </div>
         </div>
 
@@ -482,6 +505,10 @@
             <label class="check"><input type="checkbox" data-hud="details"> Beschreibung</label>
             <label class="check"><input type="checkbox" data-hud="quality"> Zeile „Bild / HQ – Einstellungen“</label>
           </div>
+          <h3>Knöpfe in der Player-Leiste</h3>
+          <p class="hint-text">Gilt am Video und im Vollbild. Knöpfe, die gerade nichts tun können (z. B. ⟳ ohne Handy), blendet der Player selbst aus.</p>
+          <ul id="barOptions" class="bar-options"></ul>
+          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
           <h3>Beim Stöbern</h3>
           <label>Video, während du in Bibliothek oder Einstellungen bist
             <select id="browseMini">
@@ -504,6 +531,14 @@
           <label class="check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, über „📂 Datei“ geladene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
           <p class="hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
           <label class="check"><input id="setShowContinue" type="checkbox"> „Weiterschauen“-Reihe oben in der Stash-Bibliothek anzeigen</label>
+          <h3>Reiter in der Stash-Bibliothek</h3>
+          <div id="browseOptions" class="hud-options">
+            <label class="check"><input type="checkbox" data-browse-opt="tags"> Tags</label>
+            <label class="check"><input type="checkbox" data-browse-opt="performers"> Darsteller</label>
+            <label class="check"><input type="checkbox" data-browse-opt="studios"> Studios</label>
+          </div>
+          <h3>Gespeicherte Stash-Filter in der Leiste</h3>
+          <div id="setSavedFilters" class="hud-options"><p class="hint-text">Erscheinen, sobald Stash verbunden ist.</p></div>
           <h3>Eingebundene Ordner</h3>
           <ul id="setFolders" class="folders"></ul>
           <p class="hint-text">Weitere Ordner einbinden: in der <code>docker-compose.yml</code> pro Ordner eine Zeile unter <code>volumes</code>, z. B.
@@ -544,7 +579,7 @@
           <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Satisfyer</p>
           <div class="touchpad" data-touch="control">
             <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
-            <div class="tp-opts"><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
+            <div class="tp-opts"><span class="seg tp-mode" title="Wie die Handy dem Finger folgt"><button data-tpm="tempo" title="Finger-Höhe = Tempo der Stöße">Tempo</button><button data-tpm="pos" title="Finger-Höhe = Position: die Handy folgt dem Finger">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
             <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
           </div>
         </div>
@@ -630,7 +665,11 @@
           <label>Video-Offset <small class="muted">(Handy und Satisfyer)</small> <output id="offsetVal">0 ms</output>
             <input id="offset" type="range" min="-500" max="500" step="10" value="0">
           </label>
-          <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
+          <details class="dev-fine" data-fine="common">
+            <summary>Feineinstellung Offset</summary>
+            <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
+            <p class="hint-text">Nur nötig, wenn ein Script spürbar daneben liegt – Verzögerungen der Geräte gleicht der Player selbst aus.</p>
+          </details>
         </div>
 
         <div data-panel="dev:handy">
@@ -639,13 +678,16 @@
             <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key in <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
             <p id="handyLat" class="hint-text"></p>
           </div>
-          <button id="resyncBtn" class="small secondary wide">⟳ Neu synchronisieren</button>
-          <label>Hub min <output id="minVal">0 %</output>
-            <input id="slideMin" type="range" min="0" max="100" value="0">
-          </label>
-          <label>Hub max <output id="maxVal">100 %</output>
-            <input id="slideMax" type="range" min="0" max="100" value="100">
-          </label>
+          <details class="dev-fine" data-fine="handy">
+            <summary>Feineinstellung Handy <small id="hubSummary" class="muted"></small></summary>
+            <button id="resyncBtn" class="small secondary wide">⟳ Neu synchronisieren</button>
+            <label>Hub min <output id="minVal">0 %</output>
+              <input id="slideMin" type="range" min="0" max="100" value="0">
+            </label>
+            <label>Hub max <output id="maxVal">100 %</output>
+              <input id="slideMax" type="range" min="0" max="100" value="100">
+            </label>
+          </details>
           <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Key, Umkehren, Bluetooth … in den Einstellungen</a>
         </div>
 

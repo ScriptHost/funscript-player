@@ -237,8 +237,9 @@
             (API v3) bleibt sie auch bei 0,5× bis 2× Wiedergabe im Takt.</li>
           <li><b>Satisfyer</b>: Der Player rechnet daraus Vibration – im Rhythmus der Stöße, nach Tempo oder Position,
             mit einstellbarer Gleichmäßigkeit. Den Vorlauf misst er selbst.</li>
-          <li><b>Script-Automatik</b> prüft jedes Script: Zittern weg, flachen Hub strecken – und nur für die Handy kürzen,
-            was sie nicht schafft. Presets: Automatisch, Sanft, Intensiv, Original.</li>
+          <li><b>Script-Automatik</b> prüft jedes Script: Zittern weg, flachen Hub strecken – und nur für die Handy anpassen,
+            was sie nicht schafft: Hub kürzen oder <b>voller Hub, halbes Tempo</b>. Das Modell der Handy erkennt der Player
+            selbst. Presets: Automatisch, Sanft, Intensiv, Original.</li>
         </ul>
       </div>
       <div class="diagram" aria-label="Script vorher und nachher">
@@ -269,6 +270,7 @@
           Satisfyer-Stärke per Regler, Schnellwahl oder Finger-Fläche – wie in der Satisfyer-App.</p>
         <ul class="ticks">
           <li><b>Finger oben = stark</b>, unten = schwach, Loslassen = aus (oder halten).</li>
+          <li>🧪 <b>Position:</b> Die Handy folgt deinem Finger direkt – hoch, runter, so schnell du willst.</li>
           <li><b>⏺ Mitschnitt zum Video</b> zeichnet deine Steuerung an der Video-Zeit auf. Gespeichert wird daraus ein
             eigenes Funscript – beim nächsten Mal läuft es genau so synchron mit.</li>
           <li>Aufnahmen auch als <b>Pattern</b> unter 🎮 Steuern oder als <b>.funscript</b> zum Herunterladen.</li>
@@ -288,8 +290,9 @@
           <li><b>Eine Status-Anzeige</b> oben für beide Geräte, mit Akku. Antippen = verbinden und einstellen.</li>
           <li><b>Nur, was verbunden ist</b>, steht unter dem Video – ohne Reiter, ohne Ballast.</li>
           <li><b>Geräte folgen dem Video</b> ist Standard; einmalige Dinge stehen in den Einstellungen.</li>
-          <li><b>Mini-Player</b>: Beim Stöbern läuft das Video klein in der Ecke weiter, Geräte inklusive.
-            ⧉ schickt es als Bild-in-Bild über andere Apps.</li>
+          <li><b>Mini-Player</b>: Beim Stöbern läuft das Video klein in der Ecke weiter, Geräte inklusive – ✕ schließt es.
+            Verlässt du die App, läuft es als Bild-in-Bild weiter.</li>
+          <li><b>Deine Leiste:</b> Knöpfe ein- und ausblenden und umsortieren; ohne Script und Steuerung verschwinden die Geräte-Regler.</li>
           <li>Darsteller, Tags, Marker und Beschreibung stehen unter „Mehr zur Szene“.</li>
         </ul>
       </div>
@@ -394,8 +397,8 @@
     </div>
 
     <div class="grid">
-      <div class="card"><div class="icon">🥽</div><h3>VR mit HereSphere</h3><p>Nur VR-Videos als Mediathek, Formaterkennung, Bewertung aus der Brille zurück nach Stash. Abschaltbar – dann bleibt <code>/heresphere</code> zu.</p></div>
-      <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, „Geräte pausieren“, Stopp bei Bildschirmsperre, Grenzen für Tempo und Vibration.</p></div>
+      <div class="card"><div class="icon">🥽</div><h3>VR mit HereSphere</h3><p>VR-Videos als Mediathek (auf Wunsch alle), Formaterkennung, Bewertung aus der Brille zurück nach Stash, optional mit Passwort. Abschaltbar – dann bleibt <code>/heresphere</code> zu.</p></div>
+      <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, „Geräte pausieren“, Stopp bei Bildschirmsperre, Grenzen für Tempo und Vibration. Fremde Webseiten können nichts auslösen, der Container läuft nie als root.</p></div>
       <div class="card"><div class="icon">🔄</div><h3>Überall gleich</h3><p>Key, Offsets, Satisfyer-Übersetzung, Sicherheit und Presets liegen auf dem Server – auf jedem Gerät dieselben. Bild und Kopfzeile pro Gerät.</p></div>
       <div class="card"><div class="icon">🎮</div><h3>Steuern ohne Video</h3><p>Direktsteuerung, Finger-Fläche, Pattern-Editor und Script-Baukasten – abspielen oder als .funscript exportieren.</p></div>
       <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt.</p></div>
@@ -432,6 +435,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="timeline">
+      <div class="tl"><b>1.17</b><p>Handy folgt dem Finger (Touch „Position“), „voller Hub, halbes Tempo“, Modell-Erkennung, schneller Start durch gemerkte Scripts, anpassbare Player-Leiste, Bild-in-Bild beim App-Wechsel, HereSphere-Passwort und schneller auf der Brille, Herkunftsprüfung.</p></div>
       <div class="tl"><b>1.16</b><p>Eine Status-Anzeige, nur verbundene Geräte am Video, Sync als Standard, Mitschnitt zum Video, Touch mit Aufnahme, Mini-Player, Intensitäts-Filter, Satisfyer-Akku, gemessene Verzögerung, automatische Tests.</p></div>
       <div class="tl"><b>1.15</b><p>Handy-API v3 (0,5×–2×), Einstellungen auf allen Geräten gleich, Heatmap-Leiste auf den Kacheln.</p></div>
       <div class="tl"><b>1.14</b><p>Selbst steuern bei Videos ohne Funscript.</p></div>
@@ -474,14 +478,14 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-v1.16.0.zip</code> auf den Server kopieren und entpacken.</li>
+        <li>ZIP <code>handy-player-linux-v1.17.0.zip</code> auf den Server kopieren und entpacken.</li>
         <li>In der <code>docker-compose.yml</code> Medienordner, <code>STASH_URL</code> und Domain eintragen
           (Player unter <code>handy.${DOMAIN}</code>).</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
         <li>Bauen und starten – fertig unter <code>https://handy.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.16.0.zip
+<pre><code>unzip handy-player-linux-v1.17.0.zip
 cd handy-player
 docker compose up -d --build</code></pre>
         <p class="note">Bluetooth und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat (z. B. Traefik).
@@ -512,5 +516,7 @@ docker compose up -d --build</code></pre>
 </main>
 <script src="sync-demo.js"></script>
 <script src="try-demo.js"></script>
+<script src="i18n-en.js"></script>
+<script src="i18n.js"></script>
 </body>
 </html>

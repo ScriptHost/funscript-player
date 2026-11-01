@@ -20,7 +20,7 @@ const ENH_LABEL = { auto: 'Auto', off: 'Aus', natural: 'Natürlich', sharp: 'Sch
 // „Auto“: Schärfe nach Vergrößerungsfaktor (Anzeigehöhe / Videohöhe). Kleine Videos auf großem
 // Bildschirm brauchen mehr Schärfe, Videos in voller Auflösung nur einen Hauch.
 function enhAutoValues() {
-  const f = enh.scale || 1;
+  const f = enh.zoom || 1;
   const sharp = f >= 2 ? 75 : f >= 1.4 ? 55 : f > 1.05 ? 40 : 25;
   return { sharp, contrast: 3, saturation: 6, brightness: 0, deband: true };
 }
@@ -226,7 +226,8 @@ function enhDraw() {
   if (enh.canvas.width !== cw || enh.canvas.height !== ch) { enh.canvas.width = cw; enh.canvas.height = ch; }
   const r = enhRect(cw, ch);
   const newScale = r.h / video.videoHeight;
-  if (Math.abs(newScale - (enh.scale || 0)) > 0.05) { enh.scale = newScale; if (enh.settings.preset === 'auto') setTimeout(enhApply); }
+  // Vergrößerungsfaktor (eigener Name – enh.scale ist das Shader-Programm)
+  if (Math.abs(newScale - (enh.zoom || 0)) > 0.05) { enh.zoom = newScale; if (enh.settings.preset === 'auto') setTimeout(enhApply); }
   // Zwischenbild höchstens so groß wie der sichtbare Teil (spart Leistung bei „Füllen“)
   const mw = Math.min(r.w, cw * 1.5 | 0), mh = Math.min(r.h, ch * 1.5 | 0);
 
@@ -291,7 +292,47 @@ function enhDraw() {
   gl.uniform1f(u.u_frame, enh.frame++ % 64);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   gl.activeTexture(gl.TEXTURE0);
+  if (enh.checkDue) { enh.checkDue = false; enhBlackCheck(gl, r, ch); }
 }
+
+// Schutz gegen schwarzes Bild: Manche Android-Browser liefern nach dem Wechsel Vollbild <-> Mini-Player
+// nur noch schwarze Bilder an WebGL, obwohl das Video läuft. Alle 2 s wird verglichen: Video hell,
+// Ausgabe schwarz -> Bildverbesserung neu aufbauen; klappt das wiederholt nicht, normales Videobild.
+const enhProbe = document.createElement('canvas');
+enhProbe.width = enhProbe.height = 8;
+function enhBlackCheck(gl, r, ch) {
+  try {
+    const px = new Uint8Array(4);
+    gl.readPixels(r.x + (r.w >> 1), ch - r.y - (r.h >> 1), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const out = px[0] + px[1] + px[2];
+    const c = enhProbe.getContext('2d', { willReadFrequently: true });
+    c.drawImage(video, 0, 0, 8, 8);
+    const d = c.getImageData(0, 0, 8, 8).data;
+    let src = 0;
+    for (let i = 0; i < d.length; i += 4) src += d[i] + d[i + 1] + d[i + 2];
+    src /= 64;
+    enh.blackHits = src > 60 && out < 6 ? (enh.blackHits || 0) + 1 : 0;
+    if (enh.blackHits >= 2) enhRebuild();
+  } catch { /* fremde Quelle o. Ä. – nichts prüfen */ }
+}
+function enhRebuild() {
+  enh.blackHits = 0;
+  enh.rebuilds = (enh.rebuilds || 0) + 1;
+  if (enh.rebuilds > 2) {
+    video.dataset.noEnhance = '1'; // dieses Video ohne Verbesserung, Bild bleibt sichtbar
+    log('Bildverbesserung lieferte ein schwarzes Bild – für dieses Video aus.', true);
+    return;
+  }
+  // Neues Canvas = neuer WebGL-Kontext
+  const fresh = enh.canvas.cloneNode(false);
+  enh.canvas.replaceWith(fresh);
+  enh.canvas = fresh;
+  enh.midW = enh.midH = 0;
+  enh.ok = enhInit();
+  enh.dirty = true;
+}
+setInterval(() => { if (enhActive() && !video.paused) enh.checkDue = true; }, 2000);
+['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => { enh.dirty = true; setTimeout(() => { enh.checkDue = true; }, 800); }));
 
 // Neu zeichnen, sobald ein neues Videobild da ist (oder sich etwas geändert hat)
 function enhLoop() {
@@ -357,7 +398,7 @@ $('ovEnh').addEventListener('click', () => {
   showOverlay();
 });
 
-video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.dirty = true; });
+video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.dirty = true; enh.rebuilds = 0; });
 ['seeked', 'loadeddata', 'resize'].forEach((ev) => video.addEventListener(ev, () => { enh.dirty = true; }));
 window.addEventListener('resize', () => { enh.dirty = true; });
 

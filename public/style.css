@@ -769,7 +769,7 @@ body[data-view=player]:not(.hud-off-devices):not(.dev-open) .sheet-close { displ
 .heatstrip.on { opacity: 1; }
 body[data-mode=stream] .heatstrip { display: none; }
 
-/* 1.15 Beta: Touch-Steuerung */
+/* 1.15: Touch-Steuerung */
 .touchpad { grid-column: 1 / -1; margin-top: 10px; }
 body:not(.has-handy) .tpl-handy, body:not(.has-vibe) .tpl-vibe { display: none !important; }
 .tp-rec { width: auto; margin: 0 0 0 auto; }
@@ -850,3 +850,40 @@ body.remote-on #ovPip { display: none !important; }
 .rc-badge[hidden] { display: none; }
 .rc-badge button { width: auto; margin: 0; }
 body.fs-open .rc-badge { top: 12px; }
+
+/* 1.17: Mini-Player schließen */
+.mini-ctl #miniClose { background: rgba(160,20,40,.8); }
+
+/* 1.17: Spul-Vorschau ohne Bild = nur die Zeit (kein schwarzes Kästchen) */
+.seek-preview.time-only { width: auto !important; height: auto !important; border: 0; background: none !important; box-shadow: none; }
+.seek-preview.time-only span { position: static; transform: none; display: block; font-size: 13px; padding: 2px 8px; }
+
+/* 1.17: Video ohne Funscript + „Keine Steuerung“ -> Geräte-Regler und Geräte-Knöpfe weg */
+body.dev-idle[data-view=player]:not(.dev-open) #devices,
+body.dev-idle #ovSync, body.dev-idle #ovFinale, body.dev-idle #ovVibe { display: none !important; }
+/* Knöpfe ohne passendes Gerät */
+body:not(.has-handy) #ovSync, body:not(.has-dev) #ovVibe, body:not(.has-dev) #ovFinale { display: none !important; }
+/* Leiste: vom Nutzer ausgeblendete Knöpfe */
+.ov-row .bar-off { display: none !important; }
+.bar-options { list-style: none; padding: 0; margin: 0 0 12px; }
+.bar-options li { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.bar-options li .check { flex: 1; margin: 0; }
+.bar-options li button { width: auto; margin: 0; padding: 2px 10px; }
+
+/* 1.17: Selbst steuern zeigt nur verbundene Geräte */
+.self-none { display: none; }
+body:not(.has-dev) .self-none { display: block; }
+body:not(.has-handy) .self-handy, body:not(.has-vibe) .self-vibe { display: none !important; }
+
+/* 1.17: Feineinstellung im Geräte-Bereich */
+.dev-fine { margin: 6px 0 10px; }
+.dev-fine summary { font-size: 13px; }
+
+/* 1.17: Touch-Fläche Tempo | Position */
+.tp-mode { display: inline-flex; width: auto; margin: 0; }
+.tp-mode button { flex: 0 0 auto; width: auto; padding: 4px 10px; white-space: nowrap; }
+.tp-mode button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+body:not(.has-handy) .tp-mode { display: none; }
+
+/* 1.17: Reiter der Stash-Bibliothek ausblendbar */
+.browse button.tab-off { display: none; }

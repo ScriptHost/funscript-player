@@ -52,7 +52,7 @@ function oscillate(speed) {
 
 setInterval(() => {
   const list = strokers();
-  if (!list.length) return;
+  if (!list.length || touchPosActive()) return; // Touch „Position“ bewegt die Geräte gerade selbst
 
   let src = null, isVideo = false, osc = null;
   if (typeof finDetached === 'function' && finDetached()) osc = fin.speed / 100;

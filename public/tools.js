@@ -11,7 +11,8 @@
 // Ergebnis wird zwischengespeichert (Vibrator fragt ~16× pro Sekunde nach).
 // ===========================================================================
 
-const tools = Object.assign({ stretch: false, limit: false, maxSpeed: 400 }, store.get('scriptTools', {}));
+// tooFast: 'shorten' = Hub kürzen, 'half' = voller Hub, dort halbes Tempo
+const tools = Object.assign({ stretch: false, limit: false, maxSpeed: 400, tooFast: 'shorten' }, store.get('scriptTools', {}));
 let toolCache = { handy: null, vibe: null };
 
 const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv', custom: 'Eigene' };
@@ -67,31 +68,61 @@ function stretchRange(a, lo, hi) {
 // Erst wird jeder zu schnelle Punkt zur Mitte (50 %) hin verkleinert – so bleiben schnelle
 // Stöße mittig (z. B. 23–77 %) statt nach unten zu rutschen. Ein zweiter Durchgang
 // garantiert, dass danach keine Bewegung mehr zu schnell ist.
+// changed = Zahl der Stöße, die spürbar (≥ 3 %) kürzer werden – jeder Punkt zählt nur einmal.
 function limitSpeed(a, maxSpeed) {
-  let changed = 0;
   const scaled = a.map((x, i) => {
     let k = 1;
     for (const y of [a[i - 1], a[i + 1]]) {
       const d = y ? Math.abs(x.pos - y.pos) : 0;
       if (d > 0) k = Math.min(k, (maxSpeed * Math.max(1, Math.abs(x.at - y.at))) / 1000 / d);
     }
-    if (k >= 1) return x;
-    changed++;
-    return { at: x.at, pos: Math.round(50 + (x.pos - 50) * k) };
+    return k >= 1 ? x : { at: x.at, pos: Math.round(50 + (x.pos - 50) * k) };
   });
   const res = [scaled[0]];
   for (let i = 1; i < scaled.length; i++) {
     const prev = res[res.length - 1];
     const maxStep = (maxSpeed * Math.max(1, scaled[i].at - prev.at)) / 1000;
     const d = scaled[i].pos - prev.pos;
-    if (Math.abs(d) > maxStep) {
-      res.push({ at: scaled[i].at, pos: Math.round(prev.pos + Math.sign(d) * maxStep) });
-      changed++;
+    res.push(Math.abs(d) > maxStep ? { at: scaled[i].at, pos: Math.round(prev.pos + Math.sign(d) * maxStep) } : scaled[i]);
+  }
+  let changed = 0;
+  for (let i = 0; i < a.length; i++) if (Math.abs(res[i].pos - a[i].pos) >= 3) changed++;
+  return { actions: res, changed };
+}
+
+// „Voller Hub, halbes Tempo“: An Stellen, die zu schnell sind, fällt jeder zweite Stoß weg
+// (Hin- und Rückweg werden zu einem doppelt so langen) – der volle Hub bleibt, der Takt auch.
+// Was danach noch zu schnell ist, kürzt limitSpeed wie gewohnt.
+function halveFast(a, maxSpeed) {
+  const fast = (x, y) => (Math.abs(y.pos - x.pos) / Math.max(1, y.at - x.at)) * 1000 > maxSpeed;
+  const out = [a[0]];
+  let halved = 0;
+  for (let i = 1; i < a.length; i++) {
+    const p = out[out.length - 1];
+    if (i + 1 < a.length && fast(a[i - 1], a[i])) {
+      // Zwei Bewegungen werden eine über die doppelte Zeit: Ziel ist der weiter entfernte der beiden Punkte
+      const t = Math.abs(a[i].pos - p.pos) >= Math.abs(a[i + 1].pos - p.pos) ? a[i] : a[i + 1];
+      out.push({ at: a[i + 1].at, pos: t.pos });
+      i++;
+      halved++;
     } else {
-      res.push(scaled[i]);
+      out.push(a[i]);
     }
   }
-  return { actions: res, changed };
+  return { actions: out, halved };
+}
+
+const handyMaxSpeedSafe = () => (typeof handyMaxSpeed === 'function' ? handyMaxSpeed() : 450);
+// Zu schnelle Stellen: je nach ⚙️ → Script erst halbieren (voller Hub) oder gleich kürzen
+function fitHandy(out, maxSpeed, only) {
+  if (tools.tooFast === 'half') {
+    const h = halveFast(out, maxSpeed);
+    out = h.actions;
+    if (h.halved) only.push(`${h.halved}× halbes Tempo (voller Hub)`);
+  }
+  const r = limitSpeed(out, maxSpeed);
+  if (r.changed) only.push(`${r.changed} von ${out.length} Stößen etwas kürzer`);
+  return r.changed ? r.actions : out;
 }
 
 // target = 'handy' oder 'vibe': Die Handy bekommt Kürzungen auf das, was sie physisch schafft;
@@ -99,7 +130,7 @@ function limitSpeed(a, maxSpeed) {
 function processScript(actions, target = 'handy') {
   if (!actions) return actions;
   const preset = currentPreset();
-  const key = `${preset}|${tools.stretch}|${tools.limit}|${tools.maxSpeed}`;
+  const key = `${preset}|${tools.stretch}|${tools.limit}|${tools.maxSpeed}|${tools.tooFast}|${handyMaxSpeedSafe()}`;
   const hit = toolCache[target];
   if (hit && hit.src === actions && hit.key === key) return hit.actions;
   let out = actions;
@@ -116,11 +147,7 @@ function processScript(actions, target = 'handy') {
         notes.push(`Hub ${min}–${max} → 0–100 gestreckt`);
       }
     }
-    if (tools.limit && target === 'handy') {
-      const r = limitSpeed(out, tools.maxSpeed);
-      out = r.actions;
-      if (r.changed) only.push(`${r.changed} zu schnelle Stellen gekürzt`);
-    }
+    if (tools.limit && target === 'handy') out = fitHandy(out, tools.maxSpeed, only);
   } else if (preset !== 'original') {
     const st = analyzeScript(out);
     if (st) {
@@ -138,9 +165,10 @@ function processScript(actions, target = 'handy') {
         notes.push(`Hub ${st.lo}–${st.hi} → 15–85 %`);
       }
       if (target === 'handy') {
-        // Was die Handy nicht schafft, kürzen (nach dem Strecken – das macht Bewegungen schneller)
-        const r = limitSpeed(out, preset === 'soft' ? 300 : preset === 'intense' ? 500 : 450);
-        if (r.changed) { out = r.actions; only.push(`${r.changed} zu schnelle Stellen gekürzt`); }
+        // Was die Handy nicht schafft, anpassen (nach dem Strecken – das macht Bewegungen schneller).
+        // Grenze nach Modell / ⚙️ → Geräte; „Sanft“ bleibt darunter, „Intensiv“ etwas darüber.
+        const max = handyMaxSpeedSafe();
+        out = fitHandy(out, preset === 'soft' ? Math.min(300, max) : preset === 'intense' ? max + 50 : max, only);
       } else {
         even = preset === 'soft' ? 0.5 : preset === 'auto' && st.cv > 0.7 ? 0.3 : 0;
         if (even) only.push('ruhiger');
@@ -211,6 +239,28 @@ $('tool_stretch').addEventListener('change', () => { tools.stretch = $('tool_str
 $('tool_limit').addEventListener('change', () => { tools.limit = $('tool_limit').checked; toolsChanged(); });
 $('tool_maxSpeed').addEventListener('input', () => { tools.maxSpeed = Number($('tool_maxSpeed').value); $('tool_maxSpeedVal').textContent = `${tools.maxSpeed} %/s`; });
 $('tool_maxSpeed').addEventListener('change', toolsChanged);
+$('tooFast').value = tools.tooFast;
+$('tooFast').addEventListener('change', () => { tools.tooFast = $('tooFast').value; toolsChanged(); });
+
+// Höchsttempo der Handy (⚙️ → Geräte): automatisch nach erkanntem Modell oder von Hand
+function showHandyMax() {
+  const auto = store.get('handyMaxAuto', true);
+  $('handyMaxAuto').checked = auto;
+  $('handyMax').value = handyMaxSpeed();
+  $('handyMax').disabled = auto;
+  $('handyMaxVal').textContent = `${handyMaxSpeed()} %/s`;
+  $('handyModelInfo').textContent = handy.modelName ? `– erkannt: ${handy.modelName}` : '– Modell wird beim Verbinden erkannt';
+}
+$('handyMaxAuto').addEventListener('change', () => {
+  store.set('handyMaxAuto', $('handyMaxAuto').checked);
+  if (!$('handyMaxAuto').checked) store.set('handyMax', handyMaxSpeed());
+  showHandyMax();
+  toolsChanged();
+});
+$('handyMax').addEventListener('input', () => { $('handyMaxVal').textContent = `${$('handyMax').value} %/s`; });
+$('handyMax').addEventListener('change', () => { store.set('handyMax', Number($('handyMax').value)); showHandyMax(); toolsChanged(); });
+document.addEventListener('handy-info', () => { showHandyMax(); toolsChanged(); });
+showHandyMax();
 toolsChanged();
 
 // ---------------------------------------------------------------------------

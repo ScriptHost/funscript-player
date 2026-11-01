@@ -53,6 +53,12 @@ if (!store.get('syncDefault116', false)) {
   store.set('lastWatchMode', 'sync');
   store.set('syncDefault116', true);
 }
+// 1.17: Offset-Standard ist 0 – die Geräte-Verzögerung gleicht der Player selbst aus (Uhrabgleich der
+// Handy, gemessene Bluetooth-Laufzeit beim Satisfyer). Pro Szene gemerkte Offsets bleiben.
+if (!store.get('offset117', false)) {
+  if (store.get('offset', 0) !== 0) store.set('offset', 0);
+  store.set('offset117', true);
+}
 let appMode = store.get('mode', 'sync');
 const syncActive = () => appMode === 'sync';
 
@@ -213,6 +219,8 @@ document.addEventListener('handy-owner', (e) => {
 function loadVideo(src, name, hqSrc = '') {
   if (remote.on) remoteLeave(false); // hier abspielen = Fernbedienung beenden
   if (typeof saveStashActivity === 'function') saveStashActivity();
+  // Neues Video = Geräte wieder aktiv (auch nach „Geräte pausieren“ oder STOPP beim vorigen)
+  if (typeof setVibePaused === 'function' && vibePaused) setVibePaused(false);
   stashSession = null;
   nowPlaying = { kind: 'file', title: name };
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -228,6 +236,32 @@ function loadVideo(src, name, hqSrc = '') {
   if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
   loadOffsetForVideo();
   resetSceneInfo(name);
+}
+
+// Video schließen (✕ am Mini-Player): anhalten, Geräte stoppen, Mini-Player weg
+function closeVideo() {
+  if (remote.on) return remoteLeave(true);
+  if (typeof saveStashActivity === 'function') saveStashActivity();
+  video.pause();
+  if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
+  if (handy.connected) setStatus('on', 'verbunden');
+  if (typeof selfCtl !== 'undefined') selfCtl.handyOn = false;
+  stashSession = null;
+  nowPlaying = null;
+  script = null;
+  Object.assign(hq, { active: false, offset: 0, duration: 0, src: '', url: '' });
+  video.removeAttribute('poster');
+  video.removeAttribute('src');
+  video.load();
+  if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+  if (document.pictureInPictureElement) document.exitPictureInPicture().catch(() => {});
+  resetSceneInfo('Kein Video');
+  $('dropHint').classList.remove('hidden');
+  $('scriptName').textContent = 'Kein Script';
+  drawHeatmap();
+  if (typeof toolsChanged === 'function') toolsChanged();
+  if (document.body.dataset.view === 'player') backToLibrary();
+  updateNowBar();
 }
 
 // Titel setzen, Szenen-Infos leeren (auch für die Fernbedienung, die kein eigenes Video hat)
@@ -293,7 +327,7 @@ async function preloadScript() {
     log('Script geladen – Video starten.');
     resync();
   } catch (e) {
-    setStatus('err', 'Fehler');
+    setStatus('err', handyErrText(e));
     log(e, true);
   }
 }
@@ -330,7 +364,7 @@ async function doSync() {
     await handy.play(mediaTime() * 1000 + Number($('offset').value), rate);
     setStatus('on', 'Video läuft');
   } catch (e) {
-    setStatus('err', 'Fehler');
+    setStatus('err', handyErrText(e));
     log(e, true);
   }
 }
@@ -463,7 +497,13 @@ function updateOutputs() {
   $('offsetVal').textContent = `${$('offset').value} ms`;
   $('minVal').textContent = `${$('slideMin').value} %`;
   $('maxVal').textContent = `${$('slideMax').value} %`;
+  $('hubSummary').textContent = `· Hub ${$('slideMin').value}–${$('slideMax').value} %`;
 }
+// Feineinstellungen im Geräte-Bereich: auf/zu merken
+document.querySelectorAll('details.dev-fine').forEach((d) => {
+  d.open = store.get('fine.' + d.dataset.fine, false);
+  d.addEventListener('toggle', () => store.set('fine.' + d.dataset.fine, d.open));
+});
 updateOutputs();
 
 async function connectHandy(auto = false) {
@@ -483,8 +523,8 @@ async function connectHandy(auto = false) {
     await applySlide();
     if (script) await preloadScript();
   } catch (e) {
-    setStatus(auto ? 'off' : 'err', auto ? 'getrennt' : 'Fehler');
-    log((auto ? 'Automatisches Verbinden fehlgeschlagen: ' : '') + (e.message || e), true);
+    setStatus(auto ? 'off' : 'err', handyErrText(e));
+    log((auto ? 'Automatisches Verbinden fehlgeschlagen: ' : '') + (e.message || e) + ' – oben auf den Status tippen und „Verbinden“.', true);
   } finally {
     btn.disabled = false;
   }
@@ -531,7 +571,16 @@ function updateDevClasses() {
   document.body.classList.toggle('has-handy', h);
   document.body.classList.toggle('has-vibe', v);
   document.body.classList.toggle('has-dev', h || v);
-  $('handyLat').textContent = handy.connected && handy.rtt ? `Handy-Cloud: ${handy.rtt} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
+  $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}Handy-Cloud: ${handy.rtt} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
+  // Verbinden-Knopf zeigt den Zustand (verbunden = grau, „neu verbinden“)
+  const btn = $('connect');
+  if (!btn.disabled) {
+    btn.textContent = handy.connected ? '✓ Verbunden – neu verbinden' : 'Verbinden';
+    btn.classList.toggle('secondary', handy.connected);
+  }
+  // Video ohne Funscript und „Keine Steuerung“: Geräte-Regler und Geräte-Knöpfe sind nutzlos
+  const loaded = remote.on ? !!remote.state?.src : !!nowPlaying;
+  document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode === 'self'));
   // Hinweis im Player: Gerät da, Video mit Script, aber Sync aus
   $('syncHint').hidden = !(h || v) || !script || appMode !== 'stream' || document.body.dataset.view !== 'player';
 }
@@ -554,6 +603,7 @@ $('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNo
 $('nowOpen').addEventListener('click', () => openPlayer());
 $('miniPlay').addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); setTimeout(updateNowBar, 100); });
 $('miniOpen').addEventListener('click', (e) => { e.stopPropagation(); openPlayer(); });
+$('miniClose').addEventListener('click', (e) => { e.stopPropagation(); closeVideo(); });
 $('drop').addEventListener('click', (e) => {
   if (!document.body.classList.contains('mini-on') || e.target.closest('#miniCtl')) return;
   e.stopPropagation();
@@ -566,9 +616,23 @@ $('ovPip').hidden = !document.pictureInPictureEnabled;
 $('ovPip').addEventListener('click', () => {
   if (document.pictureInPictureElement) return document.exitPictureInPicture().catch(() => {});
   video.requestPictureInPicture().then(() => {
-    if ($('stopHidden').checked) log('Hinweis: „Alles stoppen bei App-Wechsel“ ist an – wechselst du die App, halten die Geräte an.');
   }).catch((e) => log('Bild-in-Bild: ' + e.message, true));
 });
+// App verlassen, während das Video läuft -> Bild-in-Bild (⚙️ → Anzeige, pro Gerät).
+// Chrome erlaubt das automatisch nur über die Media Session („enterpictureinpicture“);
+// Safari kennt dafür autoPictureInPicture. Ob der Browser es tut, entscheidet er selbst.
+$('autoPip').checked = store.get('autoPip', true);
+function applyAutoPip() {
+  const on = $('autoPip').checked;
+  video.autoPictureInPicture = on;
+  try {
+    navigator.mediaSession?.setActionHandler('enterpictureinpicture', on ? () => {
+      if (!document.pictureInPictureElement && videoPlaying() && !remote.on) video.requestPictureInPicture().catch(() => {});
+    } : null);
+  } catch { /* Browser kennt die Aktion nicht */ }
+}
+$('autoPip').addEventListener('change', () => { store.set('autoPip', $('autoPip').checked); applyAutoPip(); });
+applyAutoPip();
 
 // Kopfzeile kompakt um die Kamera herum (⚙️ → Anzeige)
 // Pixel-Smartphones haben die Kamera oben mittig -> dort standardmäßig an
@@ -605,7 +669,7 @@ async function manualResync() {
     setStatus('on', 'synchronisiert');
     log('Handy neu synchronisiert.');
   } catch (e) {
-    setStatus('err', 'Fehler');
+    setStatus('err', handyErrText(e));
     log(e, true);
   }
 }

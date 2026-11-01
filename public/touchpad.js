@@ -8,7 +8,8 @@
 //   (nur verbundene Geräte werden angeboten). Grenzen aus ⚙️ → Sicherheit gelten,
 //   STOPP setzt zurück.
 //   ⏺ Aufnehmen: Finger-Verlauf -> Pattern, .funscript oder neben das Video.
-//     Standard: Finger-Höhe = Tempo der Stöße. 🧪 Beta (⚙️ → Geräte): Finger-Höhe = Position.
+//   Umschalter an der Fläche: Tempo (Finger-Höhe = Tempo der Stöße) oder 🧪 Position (Beta:
+//   die Handy folgt dem Finger, live und in der Aufnahme).
 // ===========================================================================
 const touch = { vibe: null }; // Satisfyer-Stärke aus der Fläche unter 🎮 Steuern (0–1) oder null
 
@@ -35,6 +36,39 @@ const TOUCH_TARGETS = {
     vibeOff() { selfCtl.vibe = 0; selfUI(); },
   },
 };
+
+// ---------------------------------------------------------------------------
+// Modus „Position“ (Beta): die Handy folgt dem Finger direkt (WLAN: Direkt-Position HDSP,
+// Bluetooth/Intiface: Positionsbefehle). Höchstens alle 100 ms ein Befehl, immer der neueste Wert.
+// ---------------------------------------------------------------------------
+const tpos = { active: false, pending: null, last: null, timer: null, owner: null };
+const touchMode = () => store.get('touchMode', 'tempo');
+function touchPosActive() { return tpos.active; }
+
+function touchPosSend(v, owner) {
+  tpos.active = true;
+  tpos.pending = v;
+  tpos.owner = owner;
+  if (strokers().length) moveAll(mapPos(v), 100);
+  if (!handy.connected || tpos.timer) return;
+  const flush = async () => {
+    const want = tpos.pending;
+    if (want === null || !tpos.active) { tpos.timer = null; return; }
+    tpos.pending = null;
+    if (handy.owner !== tpos.owner) claimHandy(tpos.owner);
+    const pos = $('invert').checked ? 100 - want : want;
+    // Dauer passend zum Weg, nicht schneller als die Handy kann
+    const dur = Math.max(100, Math.min(800, (Math.abs(pos - (tpos.last ?? pos)) / handyMaxSpeed()) * 1000));
+    tpos.last = pos;
+    try { await handy.hdspMove(pos, dur); } catch (e) { log(e, true); }
+    tpos.timer = setTimeout(flush, 100);
+  };
+  tpos.timer = setTimeout(flush, 0);
+}
+function touchPosEnd() {
+  tpos.active = false;
+  tpos.pending = null;
+}
 
 // ---------------------------------------------------------------------------
 // Aufnahme -> Funscript-Aktionen
@@ -75,17 +109,25 @@ function setupTouchPad(pad) {
     q('.tp-fill').style.height = v === null ? '0' : `${v}%`;
     q('.tp-val').textContent = v === null ? '–' : `${v} %`;
   };
+  const isSelf = pad.dataset.touch === 'self';
   const apply = (e) => {
     const r = area.getBoundingClientRect();
     const v = Math.round(Math.max(0, Math.min(1, 1 - (e.clientY - r.top) / r.height)) * 100);
-    if (on('.tp-handy')) target.handy(v);
+    if (on('.tp-handy')) {
+      if (touchMode() === 'pos') {
+        // Am Video nur, solange es läuft (wie „Selbst steuern“ sonst auch)
+        if (isSelf) { selfCtl.handyOn = false; selfCtl.sent = 0; selfUI(); }
+        if (!isSelf || videoPlaying()) touchPosSend(v, isSelf ? 'self' : 'manual');
+      } else target.handy(v);
+    }
     if (on('.tp-vibe')) target.vibe(v);
     cur = v;
     show(v);
   };
   const release = () => {
+    touchPosEnd(); // Position: Handy bleibt, wo sie ist
     if (q('.tp-hold').checked) return;
-    target.handyOff();
+    if (touchMode() !== 'pos') target.handyOff();
     target.vibeOff();
     cur = null;
     show(null);
@@ -126,7 +168,7 @@ function setupTouchPad(pad) {
     }
     clearInterval(recTimer);
     const end = Math.round(performance.now() - rec.t0);
-    const asPos = $('touchRecPos').checked;
+    const asPos = touchMode() === 'pos';
     lastActions = asPos ? touchToPositionActions(rec.samples) : touchToTempoActions(rec.samples, end);
     rec = null;
     q('.tp-rec').textContent = '⏺ Aufnehmen';
@@ -152,5 +194,23 @@ function setupTouchPad(pad) {
 }
 
 document.querySelectorAll('.touchpad').forEach(setupTouchPad);
-$('touchRecPos').checked = store.get('touchRecPos', false);
-$('touchRecPos').addEventListener('change', () => store.set('touchRecPos', $('touchRecPos').checked));
+
+// Umschalter Tempo | Position (gilt für alle Flächen und auch für ⏺ Aufnahmen)
+function showTouchMode() {
+  document.querySelectorAll('.tp-mode button').forEach((b) => b.classList.toggle('active', b.dataset.tpm === touchMode()));
+  document.querySelectorAll('.tp-hint').forEach((h) => {
+    h.textContent = touchMode() === 'pos' ? 'Finger auflegen – die Handy folgt dem Finger' : 'Finger auflegen – oben stark, unten schwach';
+  });
+}
+document.querySelectorAll('.tp-mode button').forEach((b) => b.addEventListener('click', () => {
+  if (touchMode() === b.dataset.tpm) return;
+  store.set('touchMode', b.dataset.tpm);
+  touchPosEnd();
+  // Wechsel: laufende Bewegung beenden, damit nichts im alten Modus weiterläuft
+  if (hampOn) toggleHamp();
+  selfCtl.handyOn = false;
+  selfUI();
+  showTouchMode();
+  if (b.dataset.tpm === 'pos') log('🧪 Position: Die Handy folgt deinem Finger. Hub min/max gelten.');
+}));
+showTouchMode();

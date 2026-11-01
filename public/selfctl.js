@@ -40,8 +40,10 @@ function selfRunning() {
 }
 
 function selfUI() {
+  // Nur mit verbundenem Gerät – oder wenn „Selbst steuern“ gewählt ist (dann mit Hinweis zum Verbinden).
+  // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
   $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
-    || !(typeof hasHandy === 'function' && (hasHandy() || hasVibe())); // nur mit verbundenem Gerät
+    || !(selfCtl.mode === 'self' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
@@ -57,7 +59,7 @@ async function selfTick() {
   selfUI();
   if (!handy.connected || selfCtl.busy) return;
   const want = selfHampLevel() !== null ? selfSpeed() : 0;
-  if (want === selfCtl.sent) return;
+  if (want === selfCtl.sent || touchPosActive()) return; // Touch „Position“ steuert die Handy gerade direkt
   selfCtl.busy = true;
   try {
     if (want && !selfCtl.sent) {

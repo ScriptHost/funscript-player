@@ -7,6 +7,10 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Optional eigener Benutzer (Standard: „node“ = 1000:1000, nie root). Bei einem schon
+    # vorhandenen Datenordner vorher einmal anpassen (Volume-Name mit „docker volume ls“ prüfen):
+    #   docker run --rm -v <projekt>_handy-data:/d alpine chown -R 1234:1234 /d
+    # user: "1234:1234"
     # Erreichbar unter http://<server>:8080 – für HTTPS einen Reverse Proxy davor setzen
     ports:
       - "8080:8080"
@@ -29,6 +33,9 @@ services:
       HQ_MAX: "3"
       # HereSphere-Schnittstelle: leer = an (in der Oberfläche schaltbar), "off" = fest aus
       HERESPHERE: ""
+      # Intiface-Weiterleitung: leer = alle privaten Adressen (in der Oberfläche einschränkbar),
+      # "1" = fest nur Heimnetz (192.168.x / 10.x)
+      INTIFACE_LAN_ONLY: ""
     volumes:
       # Videoordner (+ gleichnamige .funscript) – jeder Ordner unter /media/<Name> wird eine
       # eigene Quelle in der Bibliothek und in HereSphere. Beliebig viele Zeilen möglich:

@@ -312,7 +312,9 @@ function renderSavedFilters() {
   const bar = $('savedFilters');
   bar.hidden = !lib.savedList.length || lib.source !== 'stash';
   bar.replaceChildren(el('span', { className: 'label' }, 'Filter:'));
-  for (const f of [{ id: '', name: 'Alle' }, ...lib.savedList]) {
+  // In ⚙️ → Bibliothek ausgeblendete Filter fehlen (außer dem gerade gewählten)
+  const hidden = store.get('hiddenFilters', []);
+  for (const f of [{ id: '', name: 'Alle' }, ...lib.savedList.filter((x) => !hidden.includes(x.id) || x.id === lib.saved)]) {
     const b = el('button', { className: f.id === lib.saved ? 'active' : '' }, f.name);
     b.addEventListener('click', () => selectSavedFilter(f.id));
     bar.append(b);
@@ -680,8 +682,12 @@ async function loadSprites(session) {
     }
 
     if (cues.length && stashSession === session) {
-      session.sprites = { url: `/stash/scene/${session.id}/vtt/sprite`, cues };
-      new Image().src = session.sprites.url; // vorladen
+      const sprites = { url: `/stash/scene/${session.id}/vtt/sprite`, cues, ready: false };
+      session.sprites = sprites;
+      // vorladen; erst nach dem Laden gibt es Vorschaubilder (vorher nur die Zeit)
+      const img = new Image();
+      img.onload = () => { sprites.ready = img.naturalWidth > 0; };
+      img.src = sprites.url;
     }
   } catch { /* ohne Vorschaubilder */ }
 }

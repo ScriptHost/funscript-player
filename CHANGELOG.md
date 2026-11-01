@@ -1,5 +1,23 @@
 # Änderungen
 
+## 1.17.0 – 01.11.2026
+
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.17.0.md](RELEASE-NOTES-1.17.0.md)
+
+- Mini-Player schließen (✕); App verlassen = Bild-in-Bild (abschaltbar); Schwarzbild nach Vollbild behoben
+- Player-Leiste anpassbar (ein-/ausblenden, Reihenfolge); nutzlose Knöpfe blenden sich selbst aus
+- Ohne Funscript + „Keine Steuerung“ keine Geräte-Regler; „Selbst steuern“ nur mit verbundenen Geräten;
+  Feineinstellung eingeklappt; Offset-Standard 0
+- Verbinden-Knopf mit Zustand, klare Fehlermeldungen, Satisfyer verbindet sich länger neu
+- Schneller Start: hochgeladene Scripts merkt sich der Server
+- Handy-Modell erkennen, Höchsttempo einstellbar; zu schnelle Stellen: „Hub kürzen“ oder „voller Hub, halbes Tempo“;
+  Zählung korrigiert
+- 🧪 Touch-Fläche: Tempo | Position (Handy folgt dem Finger)
+- Bibliothek: Reiter und gespeicherte Stash-Filter ausblendbar (Studios standardmäßig aus); Spul-Vorschau ohne schwarzes Kästchen
+- HereSphere: optionales Passwort, „nur VR“ als Einstellung (auch für einzelne Szenen), schneller auf der Brille
+- Sicherheit: Herkunftsprüfung, Schutz-Header, Intiface optional nur Heimnetz, Scripts nur neben Videos;
+  optional eigener Docker-Benutzer
+
 ## 1.16.0 – 31.10.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.16.0.md](RELEASE-NOTES-1.16.0.md)

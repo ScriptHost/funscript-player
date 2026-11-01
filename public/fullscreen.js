@@ -191,24 +191,32 @@ function showSeekPreview(e) {
   const sp = stashSession?.sprites;
   const box = $('seekPreview');
   const total = duration();
-  if (!sp || !total) { box.hidden = true; return; }
+  // Nur beim Spulen (Finger/Maus auf der Leiste) bzw. mit Maus darüber
+  if (!total || (!seeking && e.pointerType !== 'mouse')) { box.hidden = true; return; }
   const r = bar.getBoundingClientRect();
   const frac = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
   const t = frac * total / 1000;
-  const cue = sp.cues.find((c) => t >= c.start && t < c.end) || sp.cues[sp.cues.length - 1];
+  // Bild erst zeigen, wenn das Sprite wirklich geladen ist – sonst nur die Zeit (kein schwarzes Kästchen)
+  const cue = sp?.ready ? sp.cues.find((c) => t >= c.start && t < c.end) || sp.cues[sp.cues.length - 1] : null;
   box.hidden = false;
-  box.style.width = cue.w + 'px';
-  box.style.height = cue.h + 'px';
-  box.style.backgroundImage = `url("${sp.url}")`;
-  box.style.backgroundPosition = `-${cue.x}px -${cue.y}px`;
+  box.classList.toggle('time-only', !cue);
+  const w = cue ? cue.w : 60;
+  if (cue) {
+    box.style.width = cue.w + 'px';
+    box.style.height = cue.h + 'px';
+    box.style.backgroundImage = `url("${sp.url}")`;
+    box.style.backgroundPosition = `-${cue.x}px -${cue.y}px`;
+  } else {
+    box.style.backgroundImage = 'none';
+  }
   const pr = (box.offsetParent || bar).getBoundingClientRect();
-  box.style.left = (r.left - pr.left + Math.max(0, Math.min(r.width - cue.w, frac * r.width - cue.w / 2))) + 'px';
+  box.style.left = (r.left - pr.left + Math.max(0, Math.min(r.width - w, frac * r.width - w / 2))) + 'px';
   box.querySelector('span').textContent = fmtClock(t);
 }
 bar.addEventListener('pointermove', showSeekPreview);
 bar.addEventListener('pointerleave', () => { if (!seeking) $('seekPreview').hidden = true; });
 
-bar.addEventListener('pointerdown', (e) => { seeking = true; bar.setPointerCapture(e.pointerId); seekFromBar(e); });
+bar.addEventListener('pointerdown', (e) => { seeking = true; bar.setPointerCapture(e.pointerId); seekFromBar(e); showSeekPreview(e); });
 bar.addEventListener('pointermove', (e) => { if (seeking) seekFromBar(e); });
 bar.addEventListener('pointerup', () => {
   seeking = false;
@@ -252,9 +260,14 @@ document.addEventListener('keydown', (e) => {
 $('stopHidden').checked = store.get('stopHidden', true);
 $('stopHidden').addEventListener('change', () => store.set('stopHidden', $('stopHidden').checked));
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && $('stopHidden').checked && anyRunning()) {
-    emergencyStop('Bildschirm gesperrt / App gewechselt');
-  }
+  if (document.visibilityState !== 'hidden' || !$('stopHidden').checked || !anyRunning()) return;
+  // Läuft das Video als Bild-in-Bild weiter, schaut man noch zu -> nicht stoppen.
+  // Kurz warten: das kleine Fenster öffnet sich erst nach dem Verlassen der App.
+  setTimeout(() => {
+    if (document.visibilityState === 'hidden' && !document.pictureInPictureElement && anyRunning()) {
+      emergencyStop('Bildschirm gesperrt / App gewechselt');
+    }
+  }, 700);
 });
 
 // ---------------------------------------------------------------------------

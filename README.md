@@ -31,8 +31,15 @@ Oben stehen nur eine Status-Anzeige für beide Geräte und das Menü ☰:
 - **Handy-API v3:** unter ⚙️ → Geräte eine *Application ID* eintragen (handyfeeling.com → Application IDs) – dann läuft
   die Handy auch bei anderer Wiedergabegeschwindigkeit mit. Den geheimen *Application Key* braucht der Player nicht.
 - **Bibliothek:** Kacheln mit Funscript zeigen unten eine Heatmap-Leiste – Intensität auf einen Blick.
-- **Touch-Steuerung:** Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ – oben stark, unten schwach; ⏺ nimmt auf.
-- **Bibliothek:** nach Intensität filtern/sortieren; beim Stöbern läuft das Video als Mini-Player weiter.
+- **Touch-Steuerung:** Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ – Umschalter **Tempo** (oben stark,
+  unten schwach) oder 🧪 **Position** (die Handy folgt dem Finger); ⏺ nimmt im gewählten Modus auf.
+- **Bibliothek:** nach Intensität filtern/sortieren; beim Stöbern läuft das Video als Mini-Player weiter (✕ schließt es).
+  Reiter Tags/Darsteller/Studios und gespeicherte Stash-Filter lassen sich unter ⚙️ → Bibliothek ausblenden.
+- **Player-Leiste** anpassbar unter ⚙️ → Anzeige (Knöpfe ein/aus, Reihenfolge). App verlassen, während das Video
+  läuft = kleines Fenster (Bild-in-Bild).
+- **Script-Automatik:** Stellen, die schneller sind als die Handy kann (Modell wird erkannt, Höchsttempo unter
+  ⚙️ → Geräte), werden gekürzt – oder wahlweise mit vollem Hub und halbem Tempo gespielt (⚙️ → Script).
+- **Schneller Start:** Einmal hochgeladene Scripts merkt sich der Server (`data/handy-cache.json`).
 - **Tests:** `node --test "test/*.test.js"` (ohne zusätzliche Pakete).
 - **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
 - **Im Player** stehen die Regler fürs Schauen fest am Video (am Smartphone darunter, am PC rechts daneben);
@@ -51,12 +58,14 @@ in der `docker-compose.yml` einfach weitere Zeilen unter `volumes` ergänzen, z.
 
 ## VR-Brille (HereSphere)
 
-In HereSphere im Browser `https://handy.<domain>/heresphere` öffnen. Es erscheinen **nur VR-Videos**: Stash-Szenen mit
+In HereSphere im Browser `https://handy.<domain>/heresphere` öffnen. Standardmäßig erscheinen **nur VR-Videos**
+(abschaltbar unter ⚙️ → VR-Brille): Stash-Szenen mit
 mindestens einem VR-Tag (z. B. „VR“, „180°“, „360°“), Ordner-Videos mit VR-Kennung im Dateinamen. Kategorien: *Alle mit Script*,
 deine gespeicherten Stash-Filter und die eingebundenen Ordner – mit Vorschau, Tags, Markern und Funscript.
 Die Handy steuert HereSphere selbst (Connection Key in HereSphere eintragen). Das VR-Format wird an
 Dateinamen (`_180`, `_LR`, `_TB`, `_360`, `MKX200`, `fisheye` …) und VR-Tags erkannt.
-Eine Anmeldung im Reverse Proxy muss für `/heresphere` ausgenommen sein.
+Eine Anmeldung im Reverse Proxy muss für `/heresphere` ausgenommen sein. Optional schützt ein **Passwort**
+(⚙️ → VR-Brille) die Schnittstelle – HereSphere fragt dann einmal nach Benutzer (egal) und Passwort.
 Wer HereSphere nicht nutzt, schaltet es unter ⚙️ → VR-Brille ab (oder fest mit `HERESPHERE=off` in der
 `docker-compose.yml`) – dann antwortet der Server dort nicht mehr und die Ausnahme kann weg.
 
@@ -248,13 +257,25 @@ Mit `AUTH_USER`/`AUTH_PASS` schützt der Container sich selbst per HTTP Basic Au
 Übernimmt dein Proxy bereits die Anmeldung (Authelia, Authentik …), beide Variablen leer lassen.
 Ohne irgendeine Anmeldung bitte nicht ins Internet stellen.
 
+Unabhängig davon nimmt der Server Änderungen nur von der eigenen Seite an (Herkunftsprüfung) und lässt sich
+nicht in fremde Seiten einbetten – eine andere Webseite im selben Browser kann also nichts auslösen.
+
+## Sicherheit im Container
+
+- Der Player läuft als Benutzer `node` (1000), **nie als root**. Optional ein eigener Benutzer per
+  `user: "1234:1234"` in der `docker-compose.yml`; ein schon vorhandener Datenordner muss dann einmal umgestellt werden
+  (`docker run --rm -v <projekt>_handy-data:/d alpine chown -R 1234:1234 /d`).
+- `INTIFACE_LAN_ONLY=1` erlaubt die Intiface-Weiterleitung nur ins Heimnetz (192.168.x / 10.x) – keine Docker-Netze,
+  nichts im Container. Ohne die Variable lässt es sich unter ⚙️ → Geräte einschalten.
+
 ## Bedienung
 
 1. Seite öffnen, unter **⚙️ Einstellungen → Geräte** den Connection Key eingeben – der Player verbindet sofort
    (die Handy muss im WLAN-Modus und online sein).
 2. Video aus der Bibliothek wählen oder Video + Funscript in den Player ziehen.
 3. Abspielen. Pause, Spulen und Puffern werden automatisch nachsynchronisiert.
-4. Läuft die Handy vor oder nach: **Offset** verschieben (positiv = Handy früher).
+4. Läuft die Handy vor oder nach: **Offset** verschieben (positiv = Handy früher). Standard ist 0 – die
+   Verzögerung der Geräte gleicht der Player selbst aus; „🎯 Einmessen“ steht unter „Feineinstellung“.
 
 ## Hinweise
 

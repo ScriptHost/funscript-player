@@ -10,7 +10,8 @@ RUN sed -i 's/^Components: main$/Components: main non-free non-free-firmware/' /
 WORKDIR /app
 COPY server.js VERSION ./
 COPY public ./public
-RUN mkdir -p /app/data && chown node:node /app/data
+# Datenordner für jeden Benutzer beschreibbar: so geht auch ein eigener Benutzer per „user:“ in der docker-compose.yml
+RUN mkdir -p /app/data && chown node:node /app/data && chmod 0777 /app/data
 
 ENV PORT=8080 \
     MEDIA_DIR=/media \

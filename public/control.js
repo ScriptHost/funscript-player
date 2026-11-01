@@ -136,7 +136,7 @@ async function startPlayback(kind, actions, duration, loop, cycle = 0) {
       setStatus('on', kind === 'pattern' ? 'Pattern läuft' : 'Script läuft');
       log('');
     } catch (e) {
-      setStatus('err', 'Fehler');
+      setStatus('err', handyErrText(e));
       log(e, true);
       updateButtons();
       return;
@@ -674,7 +674,8 @@ async function emergencyStop(reason = 'Not-Aus') {
   if (handy.connected) {
     try {
       if (handy.mode === 0) await handy.hampStop();
-      else await handy.stop();
+      else if (handy.mode === 1) await handy.stop();
+      // Modus 2 (Direkt-Position): jede Bewegung endet von selbst am Ziel
       setStatus('on', 'verbunden');
     } catch (e) {
       log(e, true);
