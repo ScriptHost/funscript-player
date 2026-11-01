@@ -42,6 +42,10 @@ document.querySelectorAll('#hudOptions input').forEach((cb) => {
 });
 applyHud();
 
+// --- Sprache (pro Gerät): Englisch / Deutsch – Standard nach Gerätesprache, Wechsel lädt neu ---------
+$('langSel').value = I18N.lang;
+$('langSel').addEventListener('change', () => { store.set('lang', $('langSel').value); location.reload(); });
+
 // --- Erweiterte Einstellungen (pro Gerät): standardmäßig nur das Nötige ------------------------
 function setAdvMode(on) {
   document.body.classList.toggle('adv-on', on);

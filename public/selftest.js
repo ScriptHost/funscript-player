@@ -25,7 +25,7 @@
     await wait(1500);
     await handy.connect('selbsttest', 'app-id');
     updateDevClasses();
-    check('Handy verbinden (simuliert)', handy.connected && $('connect').textContent.includes('Verbunden'), $('connect').textContent);
+    check('Handy verbinden (simuliert)', handy.connected && /Verbunden|Connected/.test($('connect').textContent), $('connect').textContent);
 
     // Video ohne Funscript: Geräte-Regler weg, „Selbst steuern“ zeigt nur die Handy
     if ($('onlyScripts').checked) { $('onlyScripts').click(); await wait(800); }

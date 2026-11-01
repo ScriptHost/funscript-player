@@ -534,6 +534,9 @@
           <label>Springen mit −/+ und Doppeltippen links/rechts
             <select id="skipSec"><option value="10">10 Sekunden</option><option value="5">5 Sekunden</option></select>
           </label>
+          <label>Sprache
+            <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
+          </label>
           <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
           <h3 class="adv">Beim Stöbern</h3>
           <label class="adv">Video, während du in Bibliothek oder Einstellungen bist
@@ -782,6 +785,8 @@
     <button id="nowOpen" class="now-open" title="Zurück zum Video"><span id="nowTitle"></span><small>Zum Video ↑</small></button>
   </div>
 
+  <script src="i18n-en.js"></script>
+  <script src="i18n.js"></script>
   <script src="handy.js"></script>
   <script src="app.js"></script>
   <script src="library.js"></script>
@@ -797,6 +802,7 @@
   <script src="touchpad.js"></script>
   <script src="settings.js"></script>
   <script src="remote.js"></script>
+  <script>I18N.start();</script>
   <script>if (/[?&]selbsttest\b/.test(location.search)) document.write('<script src="selftest.js"><\/script>');</script>
 </body>
 </html>
