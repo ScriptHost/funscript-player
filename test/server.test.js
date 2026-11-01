@@ -18,8 +18,12 @@ test.after(() => srv.stop());
 
 const put = (url, body, method = 'PUT') => fetch(srv.base + url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
-test('Version und Bibliothek', async () => {
-  assert.ok((await (await fetch(srv.base + '/api/version')).json()).version);
+test('Startseite, Version und Bibliothek', async () => {
+  const home = await fetch(srv.base + '/');
+  assert.strictEqual(home.status, 200, 'Startseite wird ausgeliefert');
+  assert.ok((await home.text()).includes('<title>'));
+  const v = (await (await fetch(srv.base + '/api/version')).json()).version;
+  assert.ok(v && v !== 'dev', `echte Versionsnummer (${v})`);
   const lib = await (await fetch(srv.base + '/api/library')).json();
   assert.ok(lib.some((it) => it.video === 'Filme/mit.mp4' && it.script === 'Filme/mit.funscript'));
 });

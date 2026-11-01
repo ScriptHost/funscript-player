@@ -1,5 +1,11 @@
 # Änderungen
 
+## 1.18.1 – 01.11.2026
+
+- Korrektur: Startseite „Nicht gefunden“ und Version „dev“ (Pfade nach dem Aufteilen des Servers)
+- Korrektur: Stash „https is not defined“ (fehlende Einbindung in lib/stash.js)
+- Test für Startseite und Versionsnummer ergänzt
+
 ## 1.18.0 – 01.11.2026
 
 - Handy standardmäßig „Original + Takt-Schutz“ (Vibrationen bleiben, nur Unschaffbares angepasst), Satisfyer „Automatisch“ – Anpassung je Gerät, angepasste Stellen in der Heatmap
