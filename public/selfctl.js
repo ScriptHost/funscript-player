@@ -44,6 +44,7 @@ function selfUI() {
   // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
   $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
     || !(selfCtl.mode === 'self' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
+  document.querySelector('.self-head > span').textContent = typeof suspended !== 'undefined' && suspended ? 'Script angehalten' : 'Kein Funscript';
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
@@ -97,15 +98,21 @@ document.querySelectorAll('#selfSeg button').forEach((b) => b.addEventListener('
 $('selfHandy').addEventListener('click', () => {
   if (!selfCtl.handyOn && !handy.connected && !strokers().length) log('Handy ist nicht verbunden – Satisfyer läuft trotzdem.', true);
   selfCtl.handyOn = !selfCtl.handyOn;
+  touchSync('self', selfCtl.handyOn ? selfCtl.speed : null);
   selfTick();
 });
-const setSelfSpeed = (v) => { selfCtl.speed = Number(v); store.set('selfSpeed', selfCtl.speed); selfTick(); };
+const setSelfSpeed = (v) => {
+  selfCtl.speed = Number(v);
+  store.set('selfSpeed', selfCtl.speed);
+  if (selfCtl.handyOn) touchSync('self', selfCtl.speed);
+  selfTick();
+};
 const setSelfVibe = (v) => { selfCtl.vibe = Number(v); store.set('selfVibe', selfCtl.vibe); selfUI(); };
 $('selfSpeed').addEventListener('input', () => setSelfSpeed($('selfSpeed').value));
 $('selfVibe').addEventListener('input', () => setSelfVibe($('selfVibe').value));
 document.querySelectorAll('#selfChips button').forEach((b) => b.addEventListener('click', () => {
+  if (!selfCtl.handyOn) selfCtl.handyOn = true;
   setSelfSpeed(b.dataset.v);
-  if (!selfCtl.handyOn) { selfCtl.handyOn = true; selfTick(); }
 }));
 document.querySelectorAll('#selfVibeChips button').forEach((b) => b.addEventListener('click', () => setSelfVibe(b.dataset.v)));
 selfUI();
@@ -125,7 +132,7 @@ $('selfRec').addEventListener('click', () => {
     selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
     $('selfRec').textContent = '■ Mitschnitt beenden';
     $('selfRec').classList.add('recording');
-    $('selfRecSave').hidden = $('selfRecFile').hidden = true;
+    $('selfRecSave').hidden = $('selfRecFile').hidden = $('selfRecSection').hidden = true;
     $('selfRecInfo').textContent = 'läuft – steuere wie gewohnt';
     return;
   }
@@ -145,6 +152,10 @@ $('selfRec').addEventListener('click', () => {
   selfRecActions = touchToTempoActions(withGaps, end, start);
   $('selfRecInfo').textContent = `${Math.round((end - start) / 1000)} s · ${selfRecActions.length} Punkte`;
   $('selfRecSave').hidden = $('selfRecFile').hidden = false;
+  // Gibt es schon ein eigenes Script: ganz ersetzen oder nur den aufgenommenen Abschnitt
+  $('selfRecSection').hidden = !scriptMeta.hasOwn;
+  $('selfRecSave').textContent = scriptMeta.hasOwn ? '💾 Eigenes Script ganz ersetzen' : '💾 Als Script zu diesem Video speichern';
 });
-$('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions));
+$('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'all'));
+$('selfRecSection').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'section'));
 $('selfRecFile').addEventListener('click', () => downloadFunscript(selfRecActions, nowPlaying?.title || nowPlaying?.name || 'mitschnitt'));

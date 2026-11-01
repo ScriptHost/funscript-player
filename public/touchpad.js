@@ -18,6 +18,9 @@ function touchVibeLevel() {
   return document.body.dataset.view === 'control' ? touch.vibe : null;
 }
 
+// Regler, Schnellwahl und Start/Stopp melden ihren Wert, damit die Fläche dasselbe zeigt
+const touchSync = (pad, v) => document.dispatchEvent(new CustomEvent('tp-value', { detail: { pad, v } }));
+
 // Was die Flächen mit dem Wert (0–100) machen
 const TOUCH_TARGETS = {
   control: {
@@ -187,6 +190,13 @@ function setupTouchPad(pad) {
   });
   q('.tp-save-file').addEventListener('click', () => downloadFunscript(lastActions, 'touch-aufnahme'));
   q('.tp-save-lib').addEventListener('click', () => saveScriptToLibrary(lastActions));
+
+  // Regler/Schnellwahl geändert -> Fläche zeigt denselben Wert (nur Tempo; null = Handy steht)
+  document.addEventListener('tp-value', (e) => {
+    if (e.detail.pad !== pad.dataset.touch || down || touchMode() !== 'tempo') return;
+    cur = e.detail.v;
+    show(cur);
+  });
 
   // STOPP: Fläche zurücksetzen (die Geräte hält emergencyStop selbst an)
   document.addEventListener('handy-owner', (e) => { if (e.detail === 'none') { touch.vibe = null; cur = null; show(null); } });

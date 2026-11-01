@@ -38,17 +38,30 @@ test('Intensität eines Ordner-Scripts', async () => {
   assert.strictEqual((await fetch(srv.base + '/api/heat?src=media:../../etc/passwd')).status, 400);
 });
 
-test('Eigenes Script: neben das Video, nie überschreiben, Stash auf den Server', async () => {
+test('Eigenes Script: neben das Video, eigenes ersetzen, Original nie anfassen, löschen', async () => {
   const funscript = { actions: [{ at: 0, pos: 10 }, { at: 500, pos: 90 }] };
+  const neu = { actions: [{ at: 0, pos: 20 }, { at: 400, pos: 80 }] };
   let r = await put('/api/userscript', { src: 'media:Filme/clip.mp4', funscript }, 'POST');
   assert.strictEqual((await r.json()).where, 'folder');
   assert.ok(fs.existsSync(path.join(srv.media, 'Filme', 'clip.funscript')));
-  r = await put('/api/userscript', { src: 'media:Filme/clip.mp4', funscript }, 'POST');
-  assert.strictEqual(r.status, 409, 'vorhandene Datei bleibt');
+  r = await (await put('/api/userscript', { src: 'media:Filme/clip.mp4', funscript: neu }, 'POST')).json();
+  assert.ok(r.replaced, 'eigenes Script wird ersetzt');
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(path.join(srv.media, 'Filme', 'clip.funscript'), 'utf8')).actions, neu.actions);
+  // Original daneben (nicht vom Player) bleibt unverändert, eigenes kommt auf den Server
+  const orig = fs.readFileSync(path.join(srv.media, 'Filme', 'mit.funscript'), 'utf8');
+  r = await (await put('/api/userscript', { src: 'media:Filme/mit.mp4', funscript }, 'POST')).json();
+  assert.strictEqual(r.where, 'server');
+  assert.strictEqual(fs.readFileSync(path.join(srv.media, 'Filme', 'mit.funscript'), 'utf8'), orig);
   r = await put('/api/userscript', { src: 'stash:42', funscript }, 'POST');
   assert.strictEqual((await r.json()).where, 'server');
   const back = await (await fetch(srv.base + '/api/userscript?src=stash:42')).json();
   assert.deepStrictEqual(back.actions, funscript.actions);
+  const own = await (await fetch(srv.base + '/api/userscripts')).json();
+  assert.deepStrictEqual(Object.keys(own).sort(), ['media:Filme/clip.mp4', 'media:Filme/mit.mp4', 'stash:42']);
+  // Löschen: nur eigene
+  assert.strictEqual((await fetch(srv.base + '/api/userscript?src=media:Filme/mit.mp4', { method: 'DELETE' })).status, 204);
+  assert.ok(fs.existsSync(path.join(srv.media, 'Filme', 'mit.funscript')), 'Original bleibt');
+  assert.strictEqual((await fetch(srv.base + '/api/userscript?src=media:Filme/mit.mp4', { method: 'DELETE' })).status, 404);
 });
 
 test('Fernbedienung: Bildschirm sichtbar, Befehl kommt mit Namen an', async () => {
@@ -114,6 +127,16 @@ test('HereSphere: nur VR, Passwort', async () => {
   assert.strictEqual(s.hsPassword, true);
   await put('/api/settings', { hsPassword: '' });
   assert.ok((await urls()).length);
+});
+
+test('Sicherung: herunterladen und wieder einspielen', async () => {
+  const b = await (await fetch(srv.base + '/api/backup')).json();
+  assert.strictEqual(b.app, 'funscript-player');
+  assert.ok(b.scripts['stash:42'], 'eigenes Script ist dabei');
+  await put('/api/prefs', { offset: 999 });
+  assert.strictEqual((await put('/api/backup', b)).status, 204);
+  assert.strictEqual((await (await fetch(srv.base + '/api/prefs')).json()).offset, b.prefs.offset);
+  assert.strictEqual((await put('/api/backup', { foo: 1 })).status, 400);
 });
 
 test('HereSphere abschaltbar', async () => {

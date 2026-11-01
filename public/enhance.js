@@ -193,9 +193,15 @@ function enhInit() {
   }
 }
 
+// Im Hintergrund und im kleinen Fenster (Bild-in-Bild) nie: Der Browser zeichnet dann nicht weiter,
+// das kleine Fenster bliebe schwarz – dort läuft das Video selbst.
+const enhBackground = () => document.hidden || !!document.pictureInPictureElement;
 function enhActive() {
-  return enh.ok && enh.settings.preset !== 'off' && video.videoWidth > 0 && !video.dataset.noEnhance;
+  return enh.ok && enh.settings.preset !== 'off' && video.videoWidth > 0 && !video.dataset.noEnhance && !enhBackground();
 }
+// Sofort umschalten (die Zeichen-Schleife läuft im Hintergrund nicht mehr)
+['visibilitychange', 'enterpictureinpicture', 'leavepictureinpicture'].forEach((ev) => (ev === 'visibilitychange' ? document : video)
+  .addEventListener(ev, () => { stage.classList.toggle('enhanced', enhActive()); enh.dirty = true; }));
 
 function enhParams() {
   const s = enh.settings;

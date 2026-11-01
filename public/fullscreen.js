@@ -102,7 +102,7 @@ function seekBy(s) {
   showOverlay();
 }
 
-// Einfach tippen = Bedienung ein/aus, doppelt tippen links/rechts = ±10 s, Mitte = Vollbild
+// Einfach tippen = Bedienung ein/aus, doppelt tippen links/rechts = ±5/10 s (⚙️ → Anzeige), Mitte = Vollbild
 let lastTap = 0, tapTimer;
 $('ovHit').addEventListener('click', (e) => {
   const now = Date.now();
@@ -111,7 +111,7 @@ $('ovHit').addEventListener('click', (e) => {
   if (now - lastTap < 300) {
     clearTimeout(tapTimer);
     lastTap = 0;
-    if (side) seekBy(side * 10);
+    if (side) seekBy(side * skipSec());
     else toggleFullscreen();
     return;
   }
@@ -126,8 +126,17 @@ $('ovHit').addEventListener('click', (e) => {
 stage.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') showOverlay(); });
 
 $('ovPlay').addEventListener('click', () => { togglePlay(); showOverlay(); });
-$('ovBack').addEventListener('click', () => seekBy(-10));
-$('ovFwd').addEventListener('click', () => seekBy(10));
+// Sprungweite für −/+ und Doppeltippen: 5 oder 10 s (⚙️ → Anzeige)
+const skipSec = () => (store.get('skipSec', 10) === 5 ? 5 : 10);
+function applySkip() {
+  $('ovBack').textContent = `−${skipSec()}`;
+  $('ovFwd').textContent = `+${skipSec()}`;
+  $('skipSec').value = String(skipSec());
+}
+$('skipSec').addEventListener('change', () => { store.set('skipSec', Number($('skipSec').value)); applySkip(); });
+applySkip();
+$('ovBack').addEventListener('click', () => seekBy(-skipSec()));
+$('ovFwd').addEventListener('click', () => seekBy(skipSec()));
 $('ovVibe').addEventListener('click', () => { setVibePaused(!vibePaused); showOverlay(); });
 $('ovStop').addEventListener('click', () => emergencyStop());
 

@@ -580,10 +580,6 @@ body.fs-open .now-bar { display: none; }
 
 
 /* 1.11: Script-Anpassung pro Szene */
-.preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: -4px 0 8px; font-size: 13px; color: var(--muted); }
-.preset-row[hidden] { display: none; }
-.preset-row label { display: flex; align-items: center; gap: 6px; margin: 0; }
-.preset-row select { width: auto; margin: 0; padding: 3px 6px; font-size: 13px; }
 .preset-info { min-width: 0; }
 .preset-help { margin: 6px 0; padding-left: 18px; }
 .preset-help li { margin-bottom: 3px; }
@@ -887,3 +883,38 @@ body:not(.has-handy) .tp-mode { display: none; }
 
 /* 1.17: Reiter der Stash-Bibliothek ausblendbar */
 .browse button.tab-off { display: none; }
+/* 1.18: Finale nicht im Geräte-Fenster (Popup) – nur am Video */
+body.dev-open #finaleBtn { display: none !important; }
+/* 1.18: Script-Bereich im Geräte-Kasten (welches Script, Anpassung je Gerät, eigenes Script) */
+.script-box { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.script-box[hidden], body.dev-open .script-box { display: none !important; }
+.sb-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+.sb-name { font-weight: 600; font-size: 14px; }
+.sb-choice { display: inline-flex; width: auto; margin: 0; }
+.sb-choice button { flex: 0 0 auto; width: auto; padding: 4px 10px; }
+.sb-choice button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sb-choice[hidden] { display: none; }
+.sb-presets { display: grid; gap: 6px; }
+.sb-dev { display: grid; grid-template-columns: 88px 1fr; align-items: center; gap: 2px 8px; margin: 0; font-size: 13px; color: var(--muted); }
+.sb-dev select { margin: 0; padding: 4px 6px; font-size: 13px; }
+.sb-info { grid-column: 2; font-size: 12px; color: var(--muted); }
+body.has-dev:not(.has-handy) .sb-handy, body.has-dev:not(.has-vibe) .sb-vibe { display: none; }
+.sb-own { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.sb-own button { width: auto; margin: 0; }
+.sb-own button[hidden] { display: none; }
+/* Meldungszeile im Geräte-Kasten entfällt – Rückmeldungen als Einblendung bzw. am Regler */
+#log { display: none !important; }
+
+/* 1.18: Erweiterte Einstellungen – standardmäßig ausgeblendet */
+.adv-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 0 0 12px; }
+.adv-bar .check { margin: 0; }
+body:not(.adv-on) #view-settings .adv { display: none !important; }
+/* Hinweis „Neu in 1.18“ */
+.whatsnew { position: fixed; z-index: 1800; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  width: min(560px, calc(100% - 24px)); padding: 14px 16px; border-radius: 14px; background: var(--card); border: 1px solid var(--accent);
+  box-shadow: 0 10px 30px rgba(0,0,0,.5); font-size: 14px; }
+.whatsnew[hidden] { display: none; }
+.whatsnew h3 { margin: 0 0 6px; }
+.whatsnew ul { margin: 0 0 10px; padding-left: 18px; }
+.whatsnew .actions { display: flex; gap: 8px; }
+.whatsnew button { width: auto; margin: 0; }

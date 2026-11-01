@@ -71,6 +71,32 @@ function safeJoin(base, rel) {
   return p === base || p.startsWith(base + path.sep) ? p : null;
 }
 
+// Bibliothek gemerkt: Antwort sofort aus dem Speicher, im Hintergrund neu einlesen, wenn älter als 30 s
+// (große Ordner oder Netzlaufwerke brauchen sonst bei jedem Öffnen Sekunden).
+let libCache = { at: 0, items: null, scanning: null, sig: '' };
+// Kennung der Ordner (Änderungszeit von /media und den Ordnern darin): neue/gelöschte Dateien ändern sie
+async function librarySignature() {
+  const dirs = [MEDIA_DIR, ...(await fsp.readdir(MEDIA_DIR, { withFileTypes: true }).catch(() => []))
+    .filter((e) => e.isDirectory()).map((e) => path.join(MEDIA_DIR, e.name))];
+  const times = await Promise.all(dirs.map((d) => fsp.stat(d).then((st) => st.mtimeMs, () => 0)));
+  return times.join(',');
+}
+function libraryRescan() {
+  if (!libCache.scanning) {
+    const t0 = Date.now();
+    libCache.scanning = Promise.all([scanLibrary(MEDIA_DIR), librarySignature()]).then(([items, sig]) => {
+      libCache = { at: Date.now(), items, scanning: null, ms: Date.now() - t0, sig };
+      return items;
+    }, (e) => { libCache.scanning = null; throw e; });
+  }
+  return libCache.scanning;
+}
+async function libraryItems() {
+  if (!libCache.items || (await librarySignature()) !== libCache.sig) return libraryRescan();
+  if (Date.now() - libCache.at > 30000) libraryRescan().catch(() => {}); // Unterordner: im Hintergrund auffrischen
+  return libCache.items;
+}
+
 async function scanLibrary(dir, rel = '') {
   let entries;
   try {
@@ -218,11 +244,53 @@ async function scriptHeat(src) {
 //   sonst und bei Stash-Szenen -> data/scripts/ auf dem Player-Server (Stash selbst bleibt unverändert).
 const USER_SCRIPTS = path.join(DATA_DIR, 'scripts');
 const userScriptFile = (src) => path.join(USER_SCRIPTS, src.replace(/[^\w.-]+/g, '_').slice(0, 180) + '.funscript');
+// Verzeichnis der eigenen Scripts (data/userscripts.json): src -> { where: 'folder'|'server', at }.
+// Nur was hier steht, darf der Player überschreiben oder löschen – Original-Funscripts nie.
+const OWN_FILE = path.join(DATA_DIR, 'userscripts.json');
+let ownIndex = null;
+async function ownScripts() {
+  if (!ownIndex) ownIndex = JSON.parse(await fsp.readFile(OWN_FILE, 'utf8').catch(() => '{}'));
+  return ownIndex;
+}
+async function saveOwnIndex() {
+  await fsp.mkdir(DATA_DIR, { recursive: true });
+  await fsp.writeFile(OWN_FILE, JSON.stringify(ownIndex));
+}
+const folderScript = (src) => {
+  const video = safeJoin(MEDIA_DIR, src.slice('media:'.length));
+  return video ? video.replace(/\.[^.]+$/, '.funscript') : null;
+};
+// Datei eines eigenen Scripts (oder null)
+async function ownScriptFile(src) {
+  const own = (await ownScripts())[src];
+  if (!own) return fs.existsSync(userScriptFile(src)) ? userScriptFile(src) : null; // vor 1.18 gespeichert
+  return own.where === 'folder' ? folderScript(src) : userScriptFile(src);
+}
+async function deleteUserScript(src) {
+  const index = await ownScripts();
+  const file = await ownScriptFile(src);
+  if (!file) throw Object.assign(new Error('Kein eigenes Script'), { status: 404 });
+  await fsp.unlink(file).catch(() => {});
+  delete index[src];
+  heatCache.clear();
+  libCache.sig = '';
+  await saveOwnIndex();
+}
 async function saveUserScript(req) {
   const { src, funscript } = JSON.parse(await readBody(req, 20 * 1024 * 1024) || '{}');
   const m = /^(stash|media):(.+)$/.exec(src || '');
   if (!m || !funscript || !Array.isArray(funscript.actions)) throw Object.assign(new Error('Ungültige Daten'), { status: 400 });
   const text = JSON.stringify(funscript);
+  const index = await ownScripts();
+  // Schon ein eigenes Script? Dann genau dieses ersetzen (das gehört dem Nutzer, kein Original)
+  const existing = index[src] ? await ownScriptFile(src) : null;
+  if (existing) {
+    await fsp.writeFile(existing, text);
+    index[src].at = Date.now();
+    heatCache.clear();
+    await saveOwnIndex();
+    return { where: index[src].where, file: path.basename(existing), replaced: true };
+  }
   if (m[1] === 'media') {
     const video = safeJoin(MEDIA_DIR, m[2]);
     // nur neben echten Videos ablegen, nicht neben beliebigen Dateien im Medienordner
@@ -233,14 +301,19 @@ async function saveUserScript(req) {
     try {
       await fsp.writeFile(target, text, { flag: 'wx' }); // nie eine vorhandene Datei überschreiben
       heatCache.delete('media:' + path.relative(MEDIA_DIR, target).split(path.sep).join('/'));
+      index[src] = { where: 'folder', at: Date.now() };
+      libCache.sig = ''; // Bibliothek neu einlesen: das Video hat jetzt ein Script
+      await saveOwnIndex();
       return { where: 'folder', file: path.basename(target) };
-    } catch (e) {
-      if (e.code === 'EEXIST') throw Object.assign(new Error('Neben dem Video liegt schon ein Funscript – nichts überschrieben.'), { status: 409 });
-      // Schreibgeschützt (z. B. „:ro“ in der docker-compose.yml) -> auf dem Player-Server ablegen
+    } catch {
+      // Original-Funscript daneben (bleibt unangetastet) oder schreibgeschützt („:ro“)
+      // -> eigenes Script auf dem Player-Server, das Original bleibt wählbar
     }
   }
   await fsp.mkdir(USER_SCRIPTS, { recursive: true });
   await fsp.writeFile(userScriptFile(src), text);
+  index[src] = { where: 'server', at: Date.now() };
+  await saveOwnIndex();
   return { where: 'server' };
 }
 
@@ -262,6 +335,43 @@ async function handyCachePut(req) {
   if (keys.length > 3000) keys.sort((a, b) => handyCache[a].at - handyCache[b].at).slice(0, keys.length - 3000).forEach((x) => delete handyCache[x]);
   await fsp.mkdir(DATA_DIR, { recursive: true });
   await fsp.writeFile(HANDY_CACHE_FILE, JSON.stringify(handyCache));
+}
+
+// Sicherung: alles, was der Player selbst anlegt – Einstellungen, Patterns, eigene Scripts samt Inhalt.
+// Original-Funscripts und Videos gehören nicht dazu. Das HereSphere-Passwort bleibt als Hash.
+async function backupGet() {
+  const scripts = {};
+  for (const src of Object.keys(await ownScripts())) {
+    const file = await ownScriptFile(src);
+    if (file) scripts[src] = JSON.parse(await fsp.readFile(file, 'utf8').catch(() => 'null'));
+  }
+  return {
+    app: 'funscript-player', version: VERSION, at: new Date().toISOString(),
+    prefs: await readPrefs(), store: await readStore(), settings: serverSettings, scripts,
+  };
+}
+async function backupPut(req) {
+  const data = JSON.parse(await readBody(req, 100 * 1024 * 1024) || '{}');
+  if (data.app !== 'funscript-player') throw Object.assign(new Error('Keine Sicherung des Funscript Players'), { status: 400 });
+  await fsp.mkdir(DATA_DIR, { recursive: true });
+  if (data.prefs && typeof data.prefs === 'object') await fsp.writeFile(PREFS_FILE, JSON.stringify(data.prefs));
+  if (Array.isArray(data.store?.patterns)) await fsp.writeFile(STORE_FILE, JSON.stringify({ patterns: data.store.patterns, sequences: data.store.sequences || [] }));
+  if (data.settings && typeof data.settings === 'object') {
+    for (const k of ['heresphere', 'hsVrOnly', 'intifaceLan']) if (typeof data.settings[k] === 'boolean') serverSettings[k] = data.settings[k];
+    if (data.settings.hsPass === null || (data.settings.hsPass?.salt && data.settings.hsPass?.hash)) serverSettings.hsPass = data.settings.hsPass;
+    await fsp.writeFile(SETTINGS_FILE, JSON.stringify(serverSettings));
+  }
+  // Eigene Scripts zurück – auf den Player-Server (Originale neben den Videos werden nie angefasst)
+  const index = await ownScripts();
+  for (const [src, fun] of Object.entries(data.scripts || {})) {
+    if (!/^(stash|media):.+$/.test(src) || !Array.isArray(fun?.actions)) continue;
+    if (index[src]?.where === 'folder') { await fsp.writeFile(folderScript(src), JSON.stringify(fun)).catch(() => {}); continue; }
+    await fsp.mkdir(USER_SCRIPTS, { recursive: true });
+    await fsp.writeFile(userScriptFile(src), JSON.stringify(fun));
+    index[src] = { where: 'server', at: index[src]?.at || Date.now() };
+  }
+  heatCache.clear();
+  await saveOwnIndex();
 }
 
 async function readStore() {
@@ -595,7 +705,7 @@ async function heresphereIndexBuild(req) {
       }
     }
   }
-  const items = await scanLibrary(MEDIA_DIR);
+  const items = await libraryItems();
   const roots = new Map();
   for (const it of items) {
     if (hsVrOnly() && vrFormat(path.basename(it.video).replace(/\.[^.]+$/, '')).projection === 'perspective') continue; // kein VR
@@ -1119,7 +1229,16 @@ function sameOrigin(req) {
   } catch { return false; }
 }
 
+// LOG_LEVEL=debug: jede Anfrage; sonst nur langsame (> 1 s) API-Anfragen – Videos/Streams nicht
+const LOG_DEBUG = /^debug$/i.test(process.env.LOG_LEVEL || '');
 const handler = async (req, res) => {
+  const t0 = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - t0;
+    if (LOG_DEBUG || (ms > 1000 && /^\/(api|heresphere)/.test(req.url) && !req.url.startsWith('/api/remote/events'))) {
+      logLine(`${ms > 1000 ? 'langsam' : 'Anfrage'}: ${req.method} ${req.url.split('?')[0]} → ${res.statusCode} in ${ms} ms`);
+    }
+  });
   try {
     if (req.url === '/healthz') return res.end('ok');
     if (req.url === '/api/version') {
@@ -1188,7 +1307,26 @@ const handler = async (req, res) => {
       }
       const src = url.searchParams.get('src') || '';
       if (!/^(stash|media):/.test(src)) throw Object.assign(new Error('Ungültige Quelle'), { status: 400 });
-      return sendFile(req, res, userScriptFile(src));
+      if (req.method === 'DELETE') {
+        await deleteUserScript(src);
+        res.writeHead(204);
+        return res.end();
+      }
+      return sendFile(req, res, (await ownScriptFile(src)) || userScriptFile(src));
+    }
+    if (pathname === '/api/backup') {
+      if (req.method === 'PUT') {
+        await backupPut(req);
+        res.writeHead(204);
+        return res.end();
+      }
+      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(await backupGet()));
+    }
+    if (pathname === '/api/userscripts') {
+      // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
+      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(await ownScripts()));
     }
     if (pathname === '/api/heat') {
       const heat = await scriptHeat(url.searchParams.get('src'));
@@ -1276,7 +1414,7 @@ const handler = async (req, res) => {
     }
 
     if (pathname === '/api/library') {
-      const items = await scanLibrary(MEDIA_DIR);
+      const items = await libraryItems();
       items.sort((a, b) => a.video.localeCompare(b.video, 'de', { numeric: true }));
       res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
       return res.end(JSON.stringify(items));
@@ -1369,8 +1507,21 @@ server.on('upgrade', (req, socket, head) => {
   socket.on('close', () => upstream.destroy());
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`Funscript Player ${VERSION} läuft auf ${tls ? 'https' : 'http'}://${HOST}:${PORT}, Bibliothek: ${MEDIA_DIR}`);
-  if (STASH_URL) console.log(`Stash: ${STASH_URL}${STASH_API_KEY ? ' (mit API-Key)' : ''}`);
-  if (!AUTH_USER) console.warn('WARNUNG: Keine Anmeldung gesetzt (AUTH_USER/AUTH_PASS). Nur hinter einem geschützten Proxy betreiben!');
+// Start-Übersicht in „docker logs“: was gefunden wurde, was erreichbar ist – und wann der Player bereit ist
+const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${msg}`);
+server.listen(PORT, HOST, async () => {
+  logLine(`Funscript Player ${VERSION} – lauscht auf ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
+  if (!AUTH_USER) logLine('Hinweis: keine Anmeldung gesetzt (AUTH_USER/AUTH_PASS) – nur hinter einem geschützten Proxy oder im Heimnetz betreiben.');
+  logLine(`Bibliothek: lese ${MEDIA_DIR} …`);
+  const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashStatus() : null, hqStatus()]);
+  if (lib.status === 'fulfilled') {
+    const roots = new Set(lib.value.map((it) => it.root || '(Hauptordner)'));
+    logLine(`Bibliothek: ${lib.value.length} Videos, ${lib.value.filter((it) => it.script).length} mit Funscript, ${roots.size} Ordner – eingelesen in ${libCache.ms} ms`);
+  } else logLine(`Bibliothek: Fehler – ${lib.reason?.message}`);
+  if (!STASH_URL) logLine('Stash: nicht eingerichtet');
+  else if (stash.value?.ok) logLine(`Stash: verbunden (${STASH_URL}, Version ${stash.value.version || '?'})`);
+  else logLine(`Stash: NICHT erreichbar (${STASH_URL}) – ${stash.value?.error || stash.reason?.message || 'unbekannt'}`);
+  logLine(`HQ-Stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel-Grafik (VAAPI)' : 'CPU') : 'nicht verfügbar (kein ffmpeg)'}`);
+  logLine(`HereSphere: ${heresphereOn() ? (serverSettings.hsPass ? 'an, mit Passwort' : 'an') : 'aus'} · Intiface: ${intifaceLanOnly() ? 'nur Heimnetz' : 'private Adressen'}`);
+  logLine('✓ bereit');
 });

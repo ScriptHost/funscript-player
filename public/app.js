@@ -76,6 +76,8 @@ function showView(view) {
 // zurück geht es über die „Läuft gerade“-Leiste unten oder die Modus-Knöpfe.
 function openSettings(section) {
   showView('settings');
+  // Ziel liegt bei den erweiterten Einstellungen -> diese einblenden
+  if (section && $(section)?.closest('.adv') && typeof setAdvMode === 'function') setAdvMode(true);
   if (section) $(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   else window.scrollTo(0, 0);
 }
@@ -456,6 +458,11 @@ function drawHeatmap() {
   if (total > 0) {
     b.fillStyle = '#ffd54f';
     for (const m of currentMarkers()) b.fillRect((m.seconds * 1000 / total) * w - dpr, 0, 2 * dpr, h * 0.35);
+    // Für die Handy angepasste Stellen (Takt-Schutz): feine türkise Striche unten
+    if (typeof adaptedMarks === 'function') {
+      b.fillStyle = 'rgba(0, 229, 255, .95)';
+      for (const at of adaptedMarks()) b.fillRect((at / total) * w - dpr / 2, h * 0.78, Math.max(1, dpr), h * 0.22);
+    }
   }
 }
 
@@ -523,7 +530,9 @@ async function connectHandy(auto = false) {
     await applySlide();
     if (script) await preloadScript();
   } catch (e) {
-    setStatus(auto ? 'off' : 'err', handyErrText(e));
+    // Beim Start einfach ausgeschaltet = kein Fehler, nur „aus“
+    if (auto && e.kind === 'offline') setStatus('off', 'aus');
+    else setStatus(auto ? 'off' : 'err', handyErrText(e));
     log((auto ? 'Automatisches Verbinden fehlgeschlagen: ' : '') + (e.message || e) + ' – oben auf den Status tippen und „Verbinden“.', true);
   } finally {
     btn.disabled = false;
@@ -550,7 +559,9 @@ function updateNowBar() {
   const loaded = remote.on ? !!remote.state?.src : !!video.currentSrc && !!nowPlaying;
   // Beim Stöbern: Mini-Player in der Ecke (Standard) oder nur die Leiste
   const corner = store.get('browseMini', 'left');
-  const mini = loaded && document.body.dataset.view !== 'player' && corner !== 'bar' && !$('drop').classList.contains('fs');
+  // Läuft es schon im System-Fenster (Bild-in-Bild), kein zweites Fenster – nur die Leiste
+  const mini = loaded && document.body.dataset.view !== 'player' && corner !== 'bar' && !$('drop').classList.contains('fs')
+    && !document.pictureInPictureElement;
   document.body.classList.toggle('mini-on', mini);
   document.body.classList.toggle('mini-right', corner === 'right');
   $('miniPlay').textContent = videoPlaying() ? '❚❚' : '▶';
@@ -633,6 +644,23 @@ function applyAutoPip() {
 }
 $('autoPip').addEventListener('change', () => { store.set('autoPip', $('autoPip').checked); applyAutoPip(); });
 applyAutoPip();
+// Zurück aus dem kleinen Fenster: Android schließt es und hält das Video dabei an – lief es, weiterspielen.
+// (Im kleinen Fenster selbst pausiert = bleibt pausiert: dann war es schon vorher angehalten.)
+let pipWasPlaying = false;
+video.addEventListener('enterpictureinpicture', () => { pipWasPlaying = !video.paused; updateNowBar(); });
+video.addEventListener('pause', () => { if (document.pictureInPictureElement && document.visibilityState === 'hidden') pipWasPlaying = false; });
+video.addEventListener('leavepictureinpicture', () => {
+  const resume = pipWasPlaying;
+  setTimeout(() => { if (resume && video.paused && video.currentSrc) video.play().catch(() => {}); updateNowBar(); }, 300);
+});
+// Aus dem Vollbild in den Hintergrund: das Video selbst ins kleine Fenster
+// (sonst nimmt Android den ganzen Vollbild-Bereich – der bleibt im Hintergrund schwarz)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'hidden' || !$('autoPip').checked || !videoPlaying() || remote.on) return;
+  if (!document.pictureInPictureElement && document.fullscreenElement) {
+    video.requestPictureInPicture().catch(() => {});
+  }
+});
 
 // Kopfzeile kompakt um die Kamera herum (⚙️ → Anzeige)
 // Pixel-Smartphones haben die Kamera oben mittig -> dort standardmäßig an
@@ -711,25 +739,50 @@ $('vibeScene').addEventListener('input', () => {
   store.set('sceneDev', map);
 });
 
+// Offset pro Szene + woher er kommt (offsetInfo: { how: 'calib' | 'hand', at }) – steht neben dem Regler
+let offsetSource = 'hand';
+function showOffsetInfo() {
+  updateOutputs();
+  const k = offsetKey();
+  const scene = k && k in store.get('offsets', {});
+  const info = scene ? store.get('offsetInfo', {})[k] : null;
+  const date = info?.at ? ' ' + new Date(info.at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) : '';
+  $('offsetVal').textContent += scene ? (info?.how === 'calib' ? ` · Szene · 🎯 eingemessen${date}` : ' · Szene') : '';
+  $('offsetReset').hidden = !scene;
+}
 function loadOffsetForVideo() {
   loadSceneDev();
   const map = store.get('offsets', {});
-  const v = offsetKey() in map ? map[offsetKey()] : store.get('offset', 0);
-  $('offset').value = v;
-  updateOutputs();
-  $('offsetVal').textContent += offsetKey() in map ? ' · Szene' : '';
+  $('offset').value = offsetKey() in map ? map[offsetKey()] : store.get('offset', 0);
+  showOffsetInfo();
 }
 $('offset').addEventListener('input', updateOutputs);
 $('offset').addEventListener('change', () => {
   const v = Number($('offset').value);
-  if (offsetKey()) {
+  const k = offsetKey();
+  if (k) {
     const map = store.get('offsets', {});
-    map[offsetKey()] = v;
+    map[k] = v;
     store.set('offsets', map);
-    $('offsetVal').textContent += ' · Szene';
+    const info = store.get('offsetInfo', {});
+    info[k] = { how: offsetSource, at: Date.now() };
+    store.set('offsetInfo', info);
   } else {
     store.set('offset', v);
   }
+  offsetSource = 'hand';
+  showOffsetInfo();
+  resync();
+});
+// ↺ Szenen-Offset verwerfen -> wieder der allgemeine Wert
+$('offsetReset').addEventListener('click', () => {
+  const k = offsetKey();
+  const map = store.get('offsets', {}), info = store.get('offsetInfo', {});
+  delete map[k];
+  delete info[k];
+  store.set('offsets', map);
+  store.set('offsetInfo', info);
+  loadOffsetForVideo();
   resync();
 });
 

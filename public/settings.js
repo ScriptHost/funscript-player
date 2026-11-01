@@ -42,9 +42,63 @@ document.querySelectorAll('#hudOptions input').forEach((cb) => {
 });
 applyHud();
 
-// --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−10/+10 bleibt vorn) ----------
+// --- Erweiterte Einstellungen (pro Gerät): standardmäßig nur das Nötige ------------------------
+function setAdvMode(on) {
+  document.body.classList.toggle('adv-on', on);
+  $('advMode').checked = on;
+  store.set('advMode', on);
+  updateAdvHint();
+}
+// Hinweis, solange die erweiterten Einstellungen ausgeblendet sind (sie gelten trotzdem)
+function updateAdvHint() {
+  $('advHint').textContent = document.body.classList.contains('adv-on') ? ''
+    : 'Ausgeblendet: Feinheiten zu Handy, Satisfyer, Bild, Finale, Anzeige – sie gelten trotzdem.';
+}
+$('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
+setAdvMode(store.get('advMode', false));
+
+// --- Sicherung: Server-Daten (Einstellungen, Patterns, eigene Scripts …) + Einstellungen dieses Geräts ----
+$('backupGet').addEventListener('click', async () => {
+  try {
+    const data = await (await fetch('/api/backup')).json();
+    data.local = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith('hp.') && !isSharedPref(k.slice(3))) data.local[k] = localStorage.getItem(k);
+    }
+    const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `funscript-player-sicherung-${new Date().toISOString().slice(0, 10)}.json` });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    log(`⬇ Sicherung erstellt (${Object.keys(data.scripts || {}).length} eigene Scripts).`);
+  } catch (e) { log('Sicherung: ' + e.message, true); }
+});
+$('backupPut').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file || !confirm('Sicherung einspielen? Einstellungen, Patterns und eigene Scripts werden durch die aus der Datei ersetzt.')) return;
+  try {
+    const data = JSON.parse(await file.text());
+    const res = await fetch('/api/backup', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    if (!res.ok) throw new Error(await res.text());
+    for (const [k, v] of Object.entries(data.local || {})) if (k.startsWith('hp.')) localStorage.setItem(k, v);
+    alert('Sicherung eingespielt – der Player lädt neu.');
+    location.reload();
+  } catch (err) { log('Sicherung einspielen: ' + err.message, true); }
+});
+
+// --- Einmal nach dem Update auf 1.18: Hinweis auf geänderte Standards --------------------------
+if (!store.get('seen118', false)) {
+  $('whatsNew').hidden = false;
+  const done = () => { $('whatsNew').hidden = true; store.set('seen118', true); };
+  $('whatsNewOk').addEventListener('click', done);
+  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setScript'); });
+}
+
+// --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------
 const BAR_BTNS = [
-  ['skip', '−10 / +10 Sekunden', ['ovBack', 'ovFwd']],
+  ['skip', '−/+ Sekunden springen', ['ovBack', 'ovFwd']],
   ['mute', '🔊 Ton an/aus', ['ovMute']],
   ['sync', '⟳ Handy neu synchronisieren', ['ovSync']],
   ['finale', '🔥 Finale', ['ovFinale']],
@@ -229,7 +283,7 @@ async function renderSysInfo() {
 }
 
 $('resetLocal').addEventListener('click', () => {
-  if (!confirm('Alle Einstellungen auf diesem Gerät zurücksetzen (Connection Key, Bild, Vibrator, Ansicht)?\nPatterns und Scripts auf dem Server bleiben erhalten.')) return;
+  if (!confirm('Alle Einstellungen auf diesem Gerät zurücksetzen (Connection Key, Bild, Satisfyer, Ansicht)?\nPatterns und Scripts auf dem Server bleiben erhalten.')) return;
   try {
     Object.keys(localStorage).filter((k) => k.startsWith('hp.')).forEach((k) => localStorage.removeItem(k));
   } catch { /* egal */ }
@@ -238,5 +292,5 @@ $('resetLocal').addEventListener('click', () => {
 
 // Infos frisch laden, sobald die Seite geöffnet wird
 new MutationObserver(() => {
-  if (!$('view-settings').hidden) { renderSysInfo(); renderLibrarySettings(); renderSavedFilterOptions(); }
+  if (!$('view-settings').hidden) { renderSysInfo(); renderLibrarySettings(); renderSavedFilterOptions(); updateAdvHint(); }
 }).observe($('view-settings'), { attributes: true, attributeFilter: ['hidden'] });

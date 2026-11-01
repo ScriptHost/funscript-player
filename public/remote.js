@@ -359,6 +359,8 @@ function renderCast() {
   const st = remote.on && remote.state?.src ? remote.state : null;
   $('castNow').textContent = st ? `Läuft dort: ${st.src.title || st.src.name || 'Video'}` : remote.on ? 'Szene antippen, um sie dort zu öffnen' : '';
   $('castOpen').hidden = !st;
+  // Hinweis in ⚙️ → Fernbedienung, solange kein Bildschirm gefunden ist
+  $('rcNoScreen').hidden = opts.length > 1;
 }
 $('castTarget').addEventListener('change', () => setCastTarget($('castTarget').value));
 $('castOpen').addEventListener('click', () => openPlayer());
@@ -367,7 +369,8 @@ $('remoteLeave').addEventListener('click', () => remoteLeave());
 // ---------------------------------------------------------------------------
 // Einstellungen + Start
 // ---------------------------------------------------------------------------
-$('rcScreen').checked = store.get('rcScreen', true);
+// Standard aus: ein Gerät lässt sich erst fernsteuern, wenn man es dort bewusst einschaltet (seit 1.18)
+$('rcScreen').checked = store.get('rcScreen', false);
 $('rcName').value = store.get('rcName', '');
 $('rcName').placeholder = defaultDeviceName();
 $('rcScreen').addEventListener('change', () => { store.set('rcScreen', $('rcScreen').checked); rcConnect(); });

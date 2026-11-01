@@ -10,7 +10,8 @@
 // geht es zurück zum normalen Video-Sync.
 // ===========================================================================
 
-const fin = { active: false, timer: null, mode: 'detach', speed: 30, vibe: 50, min: 40, max: 70, time: 0, half: true };
+// Standard seit 1.18: Script weiter, sanfter, halbes Tempo, Hub 15–85 %, nach 210 s zurück zum Sync
+const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 50, min: 15, max: 85, time: 210, half: true };
 const FIN_KEYS = ['speed', 'vibe', 'min', 'max', 'time'];
 
 // Komplett gelöst? (dann darf der Video-Sync die Handy nicht zurückholen)
@@ -72,8 +73,8 @@ function finOutputs() {
   $('fin_half').checked = fin.half;
   $('finVibeLabel').textContent = soft ? 'Vibration (Anteil)' : 'Vibration';
   $('finModeInfo').textContent = soft
-    ? 'Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich unten – kleiner Bereich = sanfter. Der Vibrator folgt dem Script mit dem eingestellten Anteil.'
-    : 'Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich unten. Der Vibrator läuft mit fester Stärke.';
+    ? 'Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich unten – kleiner Bereich = sanfter. Der Satisfyer folgt dem Script mit dem eingestellten Anteil.'
+    : 'Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich unten. Der Satisfyer läuft mit fester Stärke.';
   document.querySelectorAll('#finMode button').forEach((b) => b.classList.toggle('active', b.dataset.fin === fin.mode));
 }
 
@@ -121,7 +122,7 @@ function finUI() {
 }
 
 async function finaleStart() {
-  if (!handy.connected && !allVibes().length) return log('Bitte zuerst die Handy oder einen Vibrator verbinden.', true);
+  if (!handy.connected && !allVibes().length) return log('Bitte zuerst die Handy oder den Satisfyer verbinden.', true);
   fin.active = true;
   finUI();
   if (fin.mode === 'detach') {

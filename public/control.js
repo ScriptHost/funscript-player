@@ -120,7 +120,7 @@ let active = null; // { kind, actions, duration, loop, start, cycle }
 // Handy und/oder Vibrator – mindestens eins muss verbunden sein
 function requireDevice() {
   if (handy.connected || allVibes().length) return true;
-  log('Bitte zuerst rechts die Handy oder einen Vibrator verbinden.', true);
+  log('Bitte zuerst oben die Handy oder den Satisfyer verbinden.', true);
   return false;
 }
 
@@ -219,6 +219,7 @@ async function toggleHamp() {
   } finally {
     btn.disabled = false;
     updateButtons();
+    if (typeof touchSync === 'function') touchSync('control', hampOn ? Number($('speed').value) : null);
   }
 }
 
@@ -228,6 +229,7 @@ function setSpeed(v, send = true) {
   $('speed').value = v;
   $('speedVal').textContent = `${v} %`;
   store.set('speed', v);
+  if (hampOn && typeof touchSync === 'function') touchSync('control', v);
   if (!send || !hampOn || !handy.connected) return;
   // Höchstens alle 150 ms an die Handy senden
   speedPending = true;

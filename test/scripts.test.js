@@ -6,7 +6,7 @@ const assert = require('node:assert');
 const { loadFunctions } = require('./helpers');
 
 const { parseFunscript } = loadFunctions('public/app.js', ['parseFunscript']);
-const { analyzeScript, removeJitter, stretchRange, limitSpeed, halveFast } = loadFunctions('public/tools.js', ['analyzeScript', 'removeJitter', 'stretchRange', 'limitSpeed', 'halveFast']);
+const { analyzeScript, removeJitter, stretchRange, limitSpeed, halveFast } = loadFunctions('public/tools.js', ['analyzeScript', 'removeJitter', 'stretchRange', 'limitSpeed', 'halveFast'], 'const VIB_AMP = 20;');
 const { handyModelKey } = loadFunctions('public/handy.js', ['handyModelKey']);
 const { touchToTempoActions, touchToPositionActions } = loadFunctions('public/touchpad.js', ['touchToTempoActions', 'touchToPositionActions']);
 const { heatSummary } = loadFunctions('server.js', ['heatSummary'], 'const HEAT_BINS = 48;');
@@ -61,6 +61,16 @@ test('Voller Hub, halbes Tempo: jeder zweite Stoß fällt weg, Hub bleibt 0–10
   for (let i = 1; i < h.actions.length; i++) assert.notStrictEqual(h.actions[i].pos, h.actions[i - 1].pos, 'keine Halte-Stellen');
   const slow = strokes(20, 400, 0, 100);
   assert.deepStrictEqual(halveFast(slow, 450).actions, slow, 'langsame Stellen bleiben');
+});
+
+test('Takt-Schutz: Vibrationen bleiben, große Stöße um ihre eigene Mitte gekürzt', () => {
+  const vib = Array.from({ length: 40 }, (_, i) => ({ at: i * 30, pos: i % 2 ? 95 : 85 })); // 10 % Hub, sehr schnell
+  assert.deepStrictEqual(limitSpeed(vib, 450).actions, vib, 'Vibration oben bleibt unverändert');
+  const high = strokes(40, 80, 60, 100); // 40 % Hub oben, zu schnell
+  const r = limitSpeed(high, 450);
+  const pos = r.actions.map((a) => a.pos);
+  assert.ok(Math.min(...pos) >= 60 && Math.max(...pos) <= 100, 'bleibt oben');
+  assert.ok(r.marks.length === r.changed);
 });
 
 test('Handy-Modell erkennen', () => {

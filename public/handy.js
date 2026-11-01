@@ -151,7 +151,10 @@ class Handy {
       this.mode = 2;
       this.hsspUrl = null;
     }
-    await this.req('PUT', '/hdsp/xpt', { stopOnTarget: true, immediateResponse: true, position: Math.round(position), duration: Math.round(duration) }, true);
+    // Mit Application ID (Firmware/Konto auf API v3) erwartet die Handy die Position als 0–1 –
+    // getestet: 0–100 ließ sie ab 1 % ganz nach oben fahren. Ohne Application ID wie dokumentiert 0–100.
+    const pos = this.v3 ? Math.round(position) / 100 : Math.round(position);
+    await this.req('PUT', '/hdsp/xpt', { stopOnTarget: true, immediateResponse: true, position: pos, duration: Math.round(duration) }, true);
   }
 
   // rate = Wiedergabegeschwindigkeit des Videos (nur v3)
@@ -197,8 +200,9 @@ function handyMaxSpeed() {
 // Kurzer Grund für die Status-Anzeige oben (ausführlich steht er im Geräte-Fenster)
 function handyErrText(e) {
   const kind = e?.kind || '';
+  // Ohne Gerätenamen – das ↕ davor sagt schon, um welches Gerät es geht
   if (kind === 'net') return 'Cloud nicht erreichbar';
-  if (kind === 'offline') return 'Handy offline';
+  if (kind === 'offline') return 'offline';
   if (kind === 'auth') return 'Key / App-ID falsch';
   if (kind === 'limit') return 'zu viele Anfragen';
   return /key/i.test(e?.message || '') ? 'Key falsch?' : 'Fehler – antippen';
@@ -224,7 +228,7 @@ const SHARED_PREFS = new Set([
   'capSpeed', 'stopButton', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeSmooth', 'vibeMap2', 'vibeSource',
   'bleKnownNames', 'scriptTools', 'scriptPreset', 'scenePresets', 'finale', 'hud',
   'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts', 'showContinue',
-  'offset117', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
+  'offset117', 'offsetInfo', 'scriptChoice', 'scriptPresetHandy', 'scriptPresetVibe', 'skipSec', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
 ]);
 const isSharedPref = (k) => SHARED_PREFS.has(k) || k.startsWith('savedFilter.');
 let prefsPending = {}, prefsTimer = null;
@@ -292,8 +296,9 @@ function log(msg, isError = false) {
   el.textContent = text;
   el.className = 'log' + (isError ? ' err' : '');
   if (isError) console.error(msg);
+  // Die Meldungszeile im Geräte-Kasten gibt es nicht mehr (1.18) – Meldungen immer als Einblendung
   const t = $('toast');
-  if (!t || !text || document.body.classList.contains('dev-open')) return;
+  if (!t || !text) return;
   t.textContent = text;
   t.className = 'toast' + (isError ? ' err' : '');
   t.hidden = false;

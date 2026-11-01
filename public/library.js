@@ -262,7 +262,7 @@ function sceneCard(s) {
   const img = el('img', { src: `/stash/scene/${s.id}/screenshot`, loading: 'lazy', alt: '' });
   const thumb = el('div', { className: 'thumb' }, img,
     s.duration ? el('span', { className: 'dur' }, fmtDuration(s.duration)) : null,
-    s.interactive ? el('span', { className: 'badge', title: 'Mit Funscript' }, '⚡') : null,
+    tileBadge('stash:' + s.id, s.interactive),
     s.interactive ? heatStrip('stash:' + s.id) : null);
   const sub = [s.studio?.name, s.date, s.performers?.slice(0, 2).map((p) => p.name).join(', ')].filter(Boolean).join(' · ');
   const card = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, s.title), el('div', { className: 'tile-sub' }, sub));
@@ -438,7 +438,7 @@ function renderFolder() {
   const weekAgo = Date.now() - 7 * 864e5;
   for (const it of items) {
     const thumb = el('div', { className: 'thumb' }, el('div', { className: 'noimg' }, '🎬'),
-      it.script ? el('span', { className: 'badge' }, '⚡') : null,
+      tileBadge('media:' + it.video, !!it.script),
       it.mtime > weekAgo ? el('span', { className: 'new' }, 'Neu') : null,
       it.script ? heatStrip('media:' + it.script) : null);
     const sub = [it.folder.split('/').slice(1).join('/'), it.mtime ? new Date(it.mtime).toLocaleDateString('de-DE') : ''].filter(Boolean).join(' · ');
@@ -454,14 +454,7 @@ async function openFolderItem(it) {
   loadVideo(mediaUrl(it.video), it.name, 'media:' + it.video);
   nowPlaying = { kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder };
   $('sceneMeta').textContent = it.folder ? `Ordner: ${it.folder}` : 'Bibliotheksordner';
-  if (!it.script) { clearScript(); return loadUserScript('media:' + it.video); }
-  try {
-    const res = await fetch(mediaUrl(it.script));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    loadScript(await res.text(), it.script.split('/').pop());
-  } catch (e) {
-    log('Script konnte nicht geladen werden: ' + e.message, true);
-  }
+  loadSceneScript('media:' + it.video, it.script ? it.script.split('/').pop() : '', it.script ? mediaUrl(it.script) : '');
 }
 
 // ---------------------------------------------------------------------------
@@ -489,29 +482,123 @@ async function openStashScene(s) {
     })
     .catch(() => {});
 
-  if (s.interactive === false) { clearScript(); return loadUserScript('stash:' + s.id); }
-  try {
-    const res = await fetch(`/stash/scene/${s.id}/funscript`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    loadScript(await res.text(), 'Funscript');
-  } catch (e) {
-    clearScript();
-    if (s.interactive) log('Funscript konnte nicht geladen werden: ' + e.message, true);
-  }
+  loadSceneScript('stash:' + s.id, 'Funscript', s.interactive === false ? '' : `/stash/scene/${s.id}/funscript`);
 }
 
-// --- Eigene Scripts zu einem Video (Touch-Aufnahme, Mitschnitt, über „📂 Datei“ geladen) ---------
+// --- Eigene Scripts (Touch-Aufnahme, Mitschnitt, über „📂 Datei“ geladen) ---------------------------
+// Der Server führt ein Verzeichnis (/api/userscripts): nur diese Scripts darf der Player ersetzen oder
+// löschen. Hat eine Szene Original UND eigenes Script, ist wählbar, welches läuft (gemerkt pro Szene).
 const nowKey = () => (nowPlaying?.kind === 'stash' ? 'stash:' + nowPlaying.id : nowPlaying?.kind === 'media' ? 'media:' + nowPlaying.video : '');
-async function loadUserScript(src) {
-  try {
-    const res = await fetch('/api/userscript?src=' + encodeURIComponent(src));
-    if (!res.ok || nowKey() !== src) return;
-    loadScript(await res.text(), 'Eigenes Script');
-  } catch { /* keins vorhanden */ }
+let ownList = {};
+async function refreshOwn() {
+  try { ownList = await (await fetch('/api/userscripts')).json(); } catch { /* ohne Liste */ }
 }
-// Speichert ein Script dauerhaft zum laufenden Video (abschaltbar unter ⚙️ → Bibliothek)
-async function saveScriptToLibrary(actions) {
+refreshOwn();
+
+// Kachel-Symbole: ⚡ Funscript, ✋ eigenes Script, 🎯 Offset eingemessen
+function tileBadge(src, hasScript) {
+  const calib = store.get('offsetInfo', {})[src]?.how === 'calib';
+  const text = (hasScript ? '⚡' : '') + (ownList[src] ? '✋' : '') + (calib ? '🎯' : '');
+  const title = [hasScript && 'Mit Funscript', ownList[src] && 'Eigenes Script', calib && 'Offset eingemessen'].filter(Boolean).join(' · ');
+  return text ? el('span', { className: 'badge', title }, text) : null;
+}
+
+let scriptMeta = { src: '', hasOrig: false, hasOwn: false, own: false, origName: '', origUrl: '' };
+let suspended = null; // Script, das für „Selbst steuern / neu aufnehmen“ angehalten ist
+
+async function loadSceneScript(src, origName, origUrl) {
+  suspended = null;
+  const own = ownList[src];
+  const ownInFolder = own?.where === 'folder'; // dann IST die Datei neben dem Video das eigene Script
+  scriptMeta = { src, hasOrig: !!origUrl && !ownInFolder, hasOwn: !!own, own: false, ownAt: own?.at || 0, origName, origUrl };
+  const useOwn = scriptMeta.hasOwn && (!scriptMeta.hasOrig || store.get('scriptChoice', {})[src] !== 'orig');
+  if (!useOwn && !origUrl) { clearScript(); return renderScriptBox(); }
+  try {
+    const res = await fetch(useOwn ? '/api/userscript?src=' + encodeURIComponent(src) : origUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    if (nowKey() !== src) return;
+    scriptMeta.own = useOwn;
+    loadScript(text, useOwn ? '✋ Eigenes Script' : origName);
+  } catch (e) {
+    if (nowKey() !== src) return;
+    clearScript();
+    log('Script konnte nicht geladen werden: ' + e.message, true);
+  }
+  renderScriptBox();
+}
+
+// Script-Bereich im Geräte-Kasten
+function renderScriptBox() {
+  const show = !!(script || suspended || scriptMeta.hasOwn) && !!nowKey() && !remote.on;
+  $('scriptBox').hidden = !show;
+  $('selfResume').hidden = !suspended;
+  if (!show) return;
+  const date = scriptMeta.ownAt ? new Date(scriptMeta.ownAt).toLocaleDateString('de-DE') : '';
+  $('sbName').textContent = suspended ? '✋ Selbst steuern – Script angehalten'
+    : script ? (scriptMeta.own ? `✋ Eigenes Script${date ? ' vom ' + date : ''}` : `⚡ ${script.name}`) + ` · ${script.actions.length} Punkte`
+      : 'Kein Script';
+  $('sbChoice').hidden = !(scriptMeta.hasOrig && scriptMeta.hasOwn) || !!suspended;
+  document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', (b.dataset.choice === 'own') === scriptMeta.own));
+  document.querySelector('.sb-presets').hidden = !script;
+  $('sbSelf').hidden = !script;
+  $('sbDelete').hidden = !scriptMeta.hasOwn;
+}
+document.querySelectorAll('#sbChoice button').forEach((b) => b.addEventListener('click', () => {
+  const map = store.get('scriptChoice', {});
+  map[scriptMeta.src] = b.dataset.choice;
+  store.set('scriptChoice', map);
+  loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl);
+}));
+
+// Script anhalten -> „Selbst steuern“ mit ⏺ Mitschnitt; ↩ spielt es wieder
+$('sbSelf').addEventListener('click', () => {
+  if (!script) return;
+  suspended = { name: script.name, actions: script.actions };
+  clearScript();
+  selfCtl.mode = 'self';
+  store.set('selfMode', 'self');
+  selfUI();
+  renderScriptBox();
+  log('✋ Script angehalten – steuere selbst. ⏺ Mitschnitt nimmt neu auf, ↩ spielt das Script wieder.');
+});
+function resumeScript() {
+  if (!suspended) return;
+  const s = suspended;
+  suspended = null;
+  loadScript(JSON.stringify({ actions: s.actions }), s.name);
+  renderScriptBox();
+}
+$('selfResume').addEventListener('click', resumeScript);
+
+$('sbDelete').addEventListener('click', async () => {
+  if (!confirm('Dein eigenes Script zu diesem Video löschen? Ein Original-Funscript bleibt erhalten.')) return;
+  try {
+    const res = await fetch('/api/userscript?src=' + encodeURIComponent(scriptMeta.src), { method: 'DELETE' });
+    if (!res.ok) throw new Error(await res.text());
+    await refreshOwn();
+    log('🗑 Eigenes Script gelöscht.');
+    loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl);
+  } catch (e) { log('Löschen: ' + e.message, true); }
+});
+
+// Neuer Mitschnitt nur über einen Zeitabschnitt: das alte eigene Script davor und danach bleibt
+function mergeSection(old, neu) {
+  if (!neu.length) return old;
+  const start = neu[0].at, end = neu[neu.length - 1].at;
+  return [...old.filter((a) => a.at < start), ...neu, ...old.filter((a) => a.at > end)];
+}
+
+// Speichert ein Script dauerhaft zum laufenden Video (abschaltbar unter ⚙️ → Bibliothek).
+// mode 'section' = nur den aufgenommenen Abschnitt im eigenen Script ersetzen.
+async function saveScriptToLibrary(actions, mode = 'all') {
   const src = nowKey();
+  if (mode === 'section' && scriptMeta.hasOwn) {
+    try {
+      const old = JSON.parse(await (await fetch('/api/userscript?src=' + encodeURIComponent(src))).text()).actions || [];
+      actions = mergeSection(old, actions);
+    } catch { /* ohne altes Script: ganz speichern */ }
+  }
   const funscript = { version: '1.0', inverted: false, range: 100, actions: actions.map((a) => ({ at: Math.round(a.at), pos: a.pos })) };
   if (!src || !store.get('saveScripts', true)) {
     downloadFunscript(funscript.actions, nowPlaying?.title || nowPlaying?.name || 'script');
@@ -521,8 +608,18 @@ async function saveScriptToLibrary(actions) {
     const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, funscript }) });
     if (!res.ok) throw new Error(await res.text());
     const r = await res.json();
-    loadScript(JSON.stringify(funscript), 'Eigenes Script');
-    log(r.where === 'folder' ? `💾 Als ${r.file} neben dem Video gespeichert – läuft ab jetzt synchron mit.` : '💾 Auf dem Player-Server zu diesem Video gespeichert – läuft ab jetzt synchron mit.');
+    await refreshOwn();
+    // Das gespeicherte eigene Script läuft ab jetzt
+    const map = store.get('scriptChoice', {});
+    map[src] = 'own';
+    store.set('scriptChoice', map);
+    suspended = null;
+    scriptMeta = { ...scriptMeta, src, hasOwn: true, own: true, ownAt: Date.now() };
+    loadScript(JSON.stringify(funscript), '✋ Eigenes Script');
+    renderScriptBox();
+    log(r.replaced ? '💾 Eigenes Script ersetzt – läuft ab jetzt synchron mit.'
+      : r.where === 'folder' ? `💾 Als ${r.file} neben dem Video gespeichert – läuft ab jetzt synchron mit.`
+        : '💾 Auf dem Player-Server zu diesem Video gespeichert – läuft ab jetzt synchron mit.');
   } catch (e) { log('Speichern: ' + e.message, true); }
 }
 
