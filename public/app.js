@@ -46,19 +46,7 @@ function videoPlaying() {
 // ---------------------------------------------------------------------------
 // Modi und Seiten
 // ---------------------------------------------------------------------------
-// 1.16: „Geräte folgen dem Video“ ist Standard. Alte, unbemerkt gespeicherte „nur schauen“-Zustände
-// einmal zurücksetzen; danach gilt nur noch, was unter ⚙️ → Geräte bewusst ausgeschaltet wurde.
-if (!store.get('syncDefault116', false)) {
-  if (store.get('mode', 'sync') === 'stream') store.set('mode', 'sync');
-  store.set('lastWatchMode', 'sync');
-  store.set('syncDefault116', true);
-}
-// 1.17: Offset-Standard ist 0 – die Geräte-Verzögerung gleicht der Player selbst aus (Uhrabgleich der
-// Handy, gemessene Bluetooth-Laufzeit beim Satisfyer). Pro Szene gemerkte Offsets bleiben.
-if (!store.get('offset117', false)) {
-  if (store.get('offset', 0) !== 0) store.set('offset', 0);
-  store.set('offset117', true);
-}
+// (Einmal-Umstellungen aus 1.2, 1.16 und 1.17 sind seit 1.18 entfernt – alle Geräte haben sie durchlaufen.)
 let appMode = store.get('mode', 'sync');
 const syncActive = () => appMode === 'sync';
 

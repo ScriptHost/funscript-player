@@ -918,3 +918,8 @@ body:not(.adv-on) #view-settings .adv { display: none !important; }
 .whatsnew ul { margin: 0 0 10px; padding-left: 18px; }
 .whatsnew .actions { display: flex; gap: 8px; }
 .whatsnew button { width: auto; margin: 0; }
+/* 1.18: Selbsttest (?selbsttest) */
+.selftest { position: fixed; z-index: 3000; inset: 10% 5% auto; max-height: 80vh; overflow: auto; padding: 16px; border-radius: 12px;
+  background: var(--card); border: 2px solid var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,.6); font-size: 14px; }
+.selftest ul { padding-left: 4px; list-style: none; }
+.selftest li { margin: 4px 0; }

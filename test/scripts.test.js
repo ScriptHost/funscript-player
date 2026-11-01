@@ -9,7 +9,7 @@ const { parseFunscript } = loadFunctions('public/app.js', ['parseFunscript']);
 const { analyzeScript, removeJitter, stretchRange, limitSpeed, halveFast } = loadFunctions('public/tools.js', ['analyzeScript', 'removeJitter', 'stretchRange', 'limitSpeed', 'halveFast'], 'const VIB_AMP = 20;');
 const { handyModelKey } = loadFunctions('public/handy.js', ['handyModelKey']);
 const { touchToTempoActions, touchToPositionActions } = loadFunctions('public/touchpad.js', ['touchToTempoActions', 'touchToPositionActions']);
-const { heatSummary } = loadFunctions('server.js', ['heatSummary'], 'const HEAT_BINS = 48;');
+const { heatSummary } = loadFunctions('lib/data.js', ['heatSummary'], 'const HEAT_BINS = 48;');
 
 const strokes = (n, step, lo, hi) => Array.from({ length: n }, (_, i) => ({ at: i * step, pos: i % 2 ? hi : lo }));
 const maxSpeed = (a) => Math.max(...a.slice(1).map((x, i) => (Math.abs(x.pos - a[i].pos) / (x.at - a[i].at)) * 1000));

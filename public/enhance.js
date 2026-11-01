@@ -409,8 +409,6 @@ video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.
 window.addEventListener('resize', () => { enh.dirty = true; });
 
 Object.assign(enh.settings, store.get('enhance', {}));
-// Ab 1.2: einmalig auf „Auto“ umstellen (vorher war „Natürlich“ der Standard)
-if (!store.get('enhanceV2', false)) { enh.settings.preset = 'auto'; store.set('enhanceV2', true); }
 enh.ok = enhInit();
 enhApply();
 requestAnimationFrame(enhLoop);

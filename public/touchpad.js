@@ -203,7 +203,11 @@ function setupTouchPad(pad) {
   show(null);
 }
 
-document.querySelectorAll('.touchpad').forEach(setupTouchPad);
+// Beide Flächen kommen aus derselben Vorlage (index.html, #tpTemplate)
+document.querySelectorAll('.touchpad').forEach((pad) => {
+  pad.replaceChildren($('tpTemplate').content.cloneNode(true));
+  setupTouchPad(pad);
+});
 
 // Umschalter Tempo | Position (gilt für alle Flächen und auch für ⏺ Aufnahmen)
 function showTouchMode() {

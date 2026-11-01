@@ -34,6 +34,12 @@
   </header>
   <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
   <div id="toast" class="toast" hidden></div>
+  <!-- Vorlage der Touch-Fläche (für „Selbst steuern“ und 🎮 Steuern, eingesetzt von touchpad.js) -->
+  <template id="tpTemplate">
+    <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
+    <div class="tp-opts"><span class="seg tp-mode" title="Wie die Handy dem Finger folgt"><button data-tpm="tempo" title="Finger-Höhe = Tempo der Stöße">Tempo</button><button data-tpm="pos" title="Finger-Höhe = Position: die Handy folgt dem Finger">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
+    <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
+  </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
     <h3>✨ Neu in 1.18</h3>
@@ -204,9 +210,6 @@
                 <div id="selfVibeChips" class="chips"><button data-v="0">Aus</button><button data-v="20">20</button><button data-v="40">40</button><button data-v="60">60</button><button data-v="80">80</button></div>
               </div>
               <div class="touchpad" data-touch="self">
-            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
-            <div class="tp-opts"><span class="seg tp-mode" title="Wie die Handy dem Finger folgt"><button data-tpm="tempo" title="Finger-Höhe = Tempo der Stöße">Tempo</button><button data-tpm="pos" title="Finger-Höhe = Position: die Handy folgt dem Finger">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
-            <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
           </div>
               <div class="self-rec"><button id="selfRec" class="small secondary">⏺ Mitschnitt zum Video</button>
                 <span id="selfRecInfo" class="hint-text"></span>
@@ -608,9 +611,6 @@
           </div>
           <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Satisfyer</p>
           <div class="touchpad" data-touch="control">
-            <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
-            <div class="tp-opts"><span class="seg tp-mode" title="Wie die Handy dem Finger folgt"><button data-tpm="tempo" title="Finger-Höhe = Tempo der Stöße">Tempo</button><button data-tpm="pos" title="Finger-Höhe = Position: die Handy folgt dem Finger">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
-            <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
           </div>
         </div>
 
@@ -797,5 +797,6 @@
   <script src="touchpad.js"></script>
   <script src="settings.js"></script>
   <script src="remote.js"></script>
+  <script>if (/[?&]selbsttest\b/.test(location.search)) document.write('<script src="selftest.js"><\/script>');</script>
 </body>
 </html>
