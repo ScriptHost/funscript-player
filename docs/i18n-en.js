@@ -8,6 +8,11 @@ window.FSP_EN = {
   '1m4ub48': 'One Funscript.<br>Every device.<br>In sync.',
   upyxc6: 'Funscript Player plays your videos and drives <b>The Handy</b> and the <b>Satisfyer</b> at the same time – both from the same script, no separate vibration script needed. Your library comes from <b>Stash</b> or your own folders; watch on PC, phone, TV or in a VR headset. Scripts are improved automatically, the Satisfyer works with plain Handy scripts – and videos can be upscaled for a sharper picture.',
   n0rw84: '↕ The Handy · API v3 · 0.5×–2×',
+  // 1.19 Einstieg
+  dace9v: 'Self-hosted',
+  '6cd1l7': 'Your video. Your devices.<br><span class="grad">Perfectly in sync.</span>',
+  zuxwxl: 'A Funscript player that drives <b>The Handy</b> and the <b>Satisfyer</b> at the same time – from any script, right from your Stash library.',
+  '1v3p9p4': 'See it in action ↓',
   // 1.18
   bhxbka: 'A heavily simplified version for a first taste: pick a video and its <code>.funscript</code> from your device – or play the example script without a video. Switch between original and ⚡ automation and see what the script automation changes. Handy and Satisfyer are shown as animations. Nothing is uploaded, everything stays with you.',
   '88oi0': '⚡ Original + beat guard', smzh4: '⚡ Original – and still in time',

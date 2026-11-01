@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.19.1 – 01.11.2026
+
+- Webseite: neuer Einstieg – kurz & groß („Dein Video. Deine Geräte. Perfekt im Takt.“), Animation als eigener Abschnitt darunter
+
 ## 1.19.0 – 01.11.2026
 
 Ausführlich: [RELEASE-NOTES-1.19.0.md](RELEASE-NOTES-1.19.0.md)
