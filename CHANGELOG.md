@@ -19,7 +19,7 @@
 
 ## 1.19.0 – 01.11.2026
 
-Ausführlich: [RELEASE-NOTES-1.19.0.md](RELEASE-NOTES-1.19.0.md)
+Ausführlich: [RELEASE-NOTES-1.19.0.md](release-notes/RELEASE-NOTES-1.19.0.md)
 
 - Behoben: Mitschnitt im Positions-Modus, altes Standbild beim Videowechsel, Mini-Player beim Scrollen, Script-Infos trotz Ausblenden; Option „Vollbild nur mit dem Video“ für automatisches Bild-in-Bild
 - Steuerung: Finger-Position flüssiger, Hublänge im Tempo-Modus, „Zurück zum Script“, gedrückt halten zum Spulen, Vib-Zustand, Hub live, Bluetooth als Rückfall
@@ -53,7 +53,7 @@ Ausführlich: [RELEASE-NOTES-1.19.0.md](RELEASE-NOTES-1.19.0.md)
 
 ## 1.17.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.17.0.md](RELEASE-NOTES-1.17.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.17.0.md](release-notes/RELEASE-NOTES-1.17.0.md)
 
 - Mini-Player schließen (✕); App verlassen = Bild-in-Bild (abschaltbar); Schwarzbild nach Vollbild behoben
 - Player-Leiste anpassbar (ein-/ausblenden, Reihenfolge); nutzlose Knöpfe blenden sich selbst aus
@@ -71,7 +71,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.17.0.md](RELEASE-NOTES-1.17.0.m
 
 ## 1.16.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.16.0.md](RELEASE-NOTES-1.16.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.16.0.md](release-notes/RELEASE-NOTES-1.16.0.md)
 
 - Eine Status-Anzeige für beide Geräte; Verbinden nur im Geräte-Fenster oben
 - Unter dem Video ein gemeinsamer Bereich ohne Reiter – nur für verbundene Geräte; Offset gilt auch für den Satisfyer
@@ -87,7 +87,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.16.0.md](RELEASE-NOTES-1.16.0.m
 
 ## 1.15.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.15.0.md](RELEASE-NOTES-1.15.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.15.0.md](release-notes/RELEASE-NOTES-1.15.0.md)
 
 - **Handy-API v3:** mit Application ID (⚙️ → Geräte) läuft die Handy auch bei 0,5× … 2× im Takt; ohne ID wie bisher v2
 - **Einstellungen für alle Geräte gleich** (Key, Offsets, Satisfyer-Übersetzung, Sicherheit …) – auf dem Server;
@@ -98,7 +98,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.15.0.md](RELEASE-NOTES-1.15.0.m
 
 ## 1.14.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.14.0.md](RELEASE-NOTES-1.14.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.14.0.md](release-notes/RELEASE-NOTES-1.14.0.md)
 
 - Neu: **Selbst steuern** für Videos ohne Funscript – unter dem Video „Aus · Selbst steuern“,
   dann Handy-Geschwindigkeit (Start/Stopp, Schnellwahl) und Satisfyer-Stärke, solange das Video läuft.
@@ -122,7 +122,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.14.0.md](RELEASE-NOTES-1.14.0.m
 
 ## 1.12.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.12.0.md](RELEASE-NOTES-1.12.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.12.0.md](release-notes/RELEASE-NOTES-1.12.0.md)
 
 - **Ruhigere Oberfläche:** oben nur noch Handy-/Satisfyer-Status und Menü ☰
   - Status antippen öffnet das Geräte-Fenster (Verbinden, Offset, Hub, Stärke, Finale, Alles stoppen) –
@@ -156,7 +156,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.12.0.md](RELEASE-NOTES-1.12.0.m
 
 ## 1.9.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.9.0.md](RELEASE-NOTES-1.9.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.9.0.md](release-notes/RELEASE-NOTES-1.9.0.md)
 
 - **Einstellungen neu geordnet** mit Bereichs-Leiste oben (Geräte, Sicherheit, Bild, Script, Fernbedienung,
   Anzeige, Bibliothek, System). Connection Key, Script umkehren, Bluetooth, Satisfyer-Übersetzung,
@@ -173,7 +173,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.9.0.md](RELEASE-NOTES-1.9.0.md)
 
 ## 1.8.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.8.0.md](RELEASE-NOTES-1.8.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.8.0.md](release-notes/RELEASE-NOTES-1.8.0.md)
 
 - Neu: **Fernbedienung** – Video am TV/PC, Bedienung und Satisfyer am Smartphone.
   In der Bibliothek „📺 Abspielen auf“ den Bildschirm wählen; Abgleich über den Server
@@ -209,7 +209,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.8.0.md](RELEASE-NOTES-1.8.0.md)
 
 ## 1.5.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.5.0.md](RELEASE-NOTES-1.5.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.5.0.md](release-notes/RELEASE-NOTES-1.5.0.md)
 
 - Handy per Bluetooth über Intiface als Offline-Weg (Bewegungsgeräte mit Positionssteuerung)
 - Funktioniert mit Video-Sync, Patterns, Direktsteuerung, Finale, Hub, Offset, Not-Aus
@@ -217,7 +217,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.5.0.md](RELEASE-NOTES-1.5.0.md)
 
 ## 1.4.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.4.0.md](RELEASE-NOTES-1.4.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.4.0.md](release-notes/RELEASE-NOTES-1.4.0.md)
 
 - Zurückschreiben in Stash: Sterne, Favorit (Tag), O-Zähler, Marker setzen (Taste P)
 - HereSphere: Bewertung und Favorit werden nach Stash geschrieben
@@ -236,7 +236,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.4.0.md](RELEASE-NOTES-1.4.0.md)
 
 ## 1.3.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.3.0.md](RELEASE-NOTES-1.3.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.3.0.md](release-notes/RELEASE-NOTES-1.3.0.md)
 
 - 🔥 Finale mit zwei Varianten: „Komplett lösen“ oder „Script weiter, sanfter“
 - „Sanfter“: kleinerer Hub, Vibration als einstellbarer Anteil, optional halbes Tempo (bleibt im Takt)
@@ -244,7 +244,7 @@ Ausführlich mit Begründungen: [RELEASE-NOTES-1.3.0.md](RELEASE-NOTES-1.3.0.md)
 
 ## 1.2.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.2.0.md](RELEASE-NOTES-1.2.0.md)
+Ausführlich mit Begründungen: [RELEASE-NOTES-1.2.0.md](release-notes/RELEASE-NOTES-1.2.0.md)
 
 - Sync-Auto-Korrektur (30 s Position, 5 min Uhrabgleich, nach App-Wechsel) + ⟳-Knopf (Taste S)
 - Vorschaubilder beim Spulen aus Stash-Sprites

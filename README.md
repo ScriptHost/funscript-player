@@ -1,28 +1,51 @@
-# Funscript Player
+<p align="center">
+  <img src="docs/img/banner.svg" alt="Funscript Player – Your video. Your devices. Perfectly in sync." width="100%">
+</p>
 
-> 🇩🇪 Deutsch: [README.de.md](README.de.md)
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.2-ff4f9a?style=flat-square">
+  <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
+  <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
+  <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-22d3ee?style=flat-square">
+  <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-7c5cff?style=flat-square">
+  <img alt="Stash" src="https://img.shields.io/badge/Stash-integrated-444?style=flat-square">
+  <img alt="Languages" src="https://img.shields.io/badge/UI-English%20%7C%20Deutsch-555?style=flat-square">
+</p>
 
-Self-hosted web player that plays your videos and drives **The Handy** and the **Satisfyer** in sync – both from the
-same Funscript, no separate vibration script needed. Library from **Stash** and/or your own folders, watch on PC,
-phone, TV or in a VR headset (HereSphere). No external dependencies, one small container.
+<p align="center">
+  <a href="https://funscript-player.de"><b>Website</b></a> ·
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="CHANGELOG.md"><b>Changelog</b></a> ·
+  <a href="https://funscript-player.de/dev.html"><b>Developer docs</b></a> ·
+  <a href="README.de.md"><b>🇩🇪 Deutsch</b></a>
+</p>
 
-## Highlights
+---
 
-- **One script for every device.** By default both devices play the Funscript **Automatic**: what the Handy's motor can't
-  manage is adapted (shorter, or full stroke at half tempo) and scripts with a small stroke are stretched; pick
-  **original + beat guard** to keep every fine movement unchanged. The Satisfyer turns the same stroke script into
-  vibration live (rhythm, speed or position).
-- **Sync that stays in time:** Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× speed.
-- **Own scripts (✋):** control the devices yourself while watching (slider, quick picks or touch pad), record it as a
-  script for the video, later replace just a section or delete it. Originals are never overwritten.
-- **Library:** Stash scenes and folder videos with heatmap and intensity filter, saved Stash filters, continue
-  watching, mini player while browsing, picture-in-picture.
-- **Picture:** upscaling on the server (Intel Quick Sync / VAAPI) plus sharpening in the browser.
-- **Remote:** video on the TV, controls and Satisfyer on the phone.
-- **VR:** HereSphere API (VR videos, optional password, ratings back to Stash).
-- **English and German** interface (follows the device language, switch under ⚙️ → Display).
+**Funscript Player** is a self-hosted web player that plays your videos and drives **The Handy** and the **Satisfyer**
+in sync – both from the *same* Funscript, no separate vibration script needed. Your library comes from **Stash**
+and/or your own folders; watch on PC, phone, TV or in a VR headset. One small container, zero npm dependencies.
 
-## Installation (Docker)
+<p align="center">
+  <img src="docs/img/preview.svg" alt="Player with heatmap timeline, The Handy and Satisfyer in sync" width="100%">
+</p>
+
+## ✨ Highlights
+
+| | |
+|---|---|
+| ⚡ **One script, every device** | Scripts play **Automatic** by default: what the Handy's motor can't manage is adapted (shorter, or full stroke at half tempo), small strokes are stretched. Prefer it untouched? Pick **original + beat guard**. |
+| 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. |
+| ⏱️ **Sync that stays in time** | Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× playback. |
+| ✋ **Your own scripts** | Control the devices yourself while watching (slider, quick picks, touch pad), record it as a script, replace just a section later. Originals are never overwritten. |
+| 📚 **Library** | Stash scenes and folder videos with heatmap, intensity filter, 🔥 hottest spots, saved Stash filters, continue watching, 2D-only mode, mini player, picture-in-picture. |
+| ✨ **Sharper picture** | Server-side upscaling (Intel Quick Sync / VAAPI) plus sharpening in the browser. |
+| 📱 **Remote & VR** | Video on the TV, controls on the phone; HereSphere API for VR headsets. |
+| 🛡️ **Safety first** | STOP button everywhere, Esc as emergency stop, devices pause when the screen locks. |
+
+## 🚀 Quick start
+
+Grab `handy-player-linux-vX.Y.Z.zip` from the [latest release](../../releases/latest) (or clone this repo), then:
 
 ```bash
 unzip handy-player-linux-vX.Y.Z.zip && cd handy-player
@@ -32,7 +55,10 @@ docker compose up -d --build
 docker logs Handy-Player  # startup summary ends with “✓ bereit” (ready)
 ```
 
-- All settings live in **`.env`**; `docker-compose.yml` only reads them. Updates never overwrite your `.env`.
+- All server settings live in **`.env`**; `docker-compose.yml` only reads them. Updates never overwrite your `.env`.
+- Player settings shared by all your devices (Handy connection key, Application ID, offsets, own scripts …) are stored
+  on the server in the Docker volume **`handy-data`** (`/app/data/prefs.json`, `store.json`) – that is why they are in sync
+  everywhere and survive updates. Back them up via ⚙️ → System → Backup.
 - The compose file is prepared for **Traefik** (add your own labels and networks); the player runs at `https://${PLAYER_HOST}.${DOMAIN}`.
 - **Media folders** are commented out by default (Stash only). To use folders, enable the volume line in
   `docker-compose.yml` and set `MEDIA_FILME` in `.env`. Every folder under `/media/<name>` becomes a source; a video and
@@ -66,7 +92,7 @@ node --test "test/*.test.js"                           # automated tests, no pac
 ```
 
 Open the player with `?selbsttest` for an in-browser self-test with a simulated Handy. Technical details:
-`docs/dev.html` (English/German switch). Release history: `CHANGELOG.md` and `RELEASE-NOTES-*.md` (German).
+`docs/dev.html` (English/German switch). Release history: [CHANGELOG.md](CHANGELOG.md) and [release-notes/](release-notes) (German).
 
 ## Notes
 

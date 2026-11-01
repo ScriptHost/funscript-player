@@ -1,6 +1,8 @@
-# Funscript Player
+<p align="center"><img src="docs/img/banner.svg" alt="Funscript Player" width="100%"></p>
 
-> 🇬🇧 English: [README.md](README.md)
+<p align="center"><a href="https://funscript-player.de"><b>Webseite</b></a> · <a href="CHANGELOG.md"><b>Änderungen</b></a> · <a href="https://funscript-player.de/dev.html"><b>Entwickler-Doku</b></a> · <a href="README.md"><b>🇬🇧 English</b></a></p>
+
+# Funscript Player
 
 Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per Funscript steuert.
 
@@ -127,7 +129,7 @@ Containername, z. B. `http://Stash:9999`).
 Video am TV/PC, Bedienung und Satisfyer am Smartphone: Player auf beiden Geräten öffnen, am Smartphone in
 der Bibliothek oben **„📺 Abspielen auf“** den Bildschirm wählen und eine Szene antippen. Das Smartphone zeigt
 die Player-Leiste (Play, Spulen, Heatmap, ★/💦/📍, STOPP) und lässt den Satisfyer im Takt des Bildschirms
-laufen. Die Handy steuert der Bildschirm, wenn sie dort verbunden ist. Details: `RELEASE-NOTES-1.8.0.md`.
+laufen. Die Handy steuert der Bildschirm, wenn sie dort verbunden ist. Details: `release-notes/RELEASE-NOTES-1.8.0.md`.
 
 ## Stash
 

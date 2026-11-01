@@ -1,0 +1,37 @@
+# Release je Versions-Tag: ZIP (wie handy-player-linux-vX.Y.Z.zip) + Abschnitt aus CHANGELOG.md.
+# Neuer Tag -> nur dieser. Manuell starten (Actions -> Release -> Run workflow) -> alle Tags ohne Release nachholen.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          newest=$(git tag --sort=v:refname | tail -1)
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then tags="$GITHUB_REF_NAME"; else tags=$(git tag --sort=v:refname); fi
+          for t in $tags; do
+            if gh release view "$t" >/dev/null 2>&1; then echo "$t: Release gibt es schon"; continue; fi
+            v="${t#v}"
+            { git show "$t:CHANGELOG.md" 2>/dev/null || true; } \
+              | awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' > notes.md
+            [ -s notes.md ] || echo "Version $v" > notes.md
+            zip="handy-player-linux-$t.zip"
+            git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github'
+            if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
+            gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest
+          done
