@@ -19,7 +19,7 @@ for (const f of ['hero.js', 'i18n-en.js', 'i18n.js']) {
 }
 // Entwickler-Seite ist nicht dabei -> Links entfernen
 swap('      <a href="dev.html">Entwickler</a>\n', '');
-swap('<span><a href="dev.html">Entwickler-Doku →</a></span>', '<span>Selbst gehostet · Docker</span>');
+swap('<span><a href="https://github.com/ScriptHost/funscript-player">GitHub</a> · <a href="dev.html">Entwickler-Doku →</a></span>', '<span><a href="https://github.com/ScriptHost/funscript-player">GitHub</a></span>');
 if (/href="(?!#|https?:)[^"]+"|src="(?!data:)[^"]+"/.test(html)) throw new Error('still has external references');
 fs.writeFileSync(process.argv[2], html);
 console.log('ok', Math.round(html.length / 1024) + ' KB');

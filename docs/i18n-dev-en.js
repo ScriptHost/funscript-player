@@ -2,6 +2,8 @@
 // Englische Texte der Entwickler-Seite (Schlüssel = Hash des deutschen Texts, siehe i18n.js).
 // Neue/geänderte Texte: in der Konsole fspTexts() aufrufen und Schlüssel ergänzen.
 window.FSP_EN = {
+  // GitHub-Links
+  '8fg252': '<a href=\x22https://github.com/ScriptHost/funscript-player\x22>GitHub</a> · <a href=\x22index.html\x22>← back to the features</a>',
   // 1.19.2
   '1ncg1lj': "Touch pad for 🎮 Control and “Control yourself”, switch Tempo | 🧪 Position (<code>touchPosSend()</code> → <code>handy.hdspMove()</code>, HDSP via API v2, the latest value every 100 ms without waiting for the reply – at most 2 commands in flight, travel time from 150 ms, slower on HTTP 429; Bluetooth via <code>moveAll()</code>), ⏺ recording in the chosen mode.",
   '1r66xq9': "Scene list (search, sort, filters, pages, <code>continue=1</code>, <code>only2d=1</code> = only with Stash tag “2D”)",
