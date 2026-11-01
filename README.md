@@ -27,7 +27,7 @@ in sync – both from the *same* Funscript, no separate vibration script needed.
 and/or your own folders; watch on PC, phone, TV or in a VR headset. One small container, zero npm dependencies.
 
 <p align="center">
-  <img src="docs/img/preview.svg" alt="Player with heatmap timeline, The Handy and Satisfyer in sync" width="100%">
+  <img src="docs/img/player-1.19.2.svg" alt="Player with heatmap timeline, The Handy and Satisfyer in sync" width="100%">
 </p>
 
 ## ✨ Highlights
