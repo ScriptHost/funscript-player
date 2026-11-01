@@ -482,7 +482,7 @@ updateVibeOutputs();
 let vibePaused = false;
 function setVibePaused(paused) {
   vibePaused = paused;
-  $('vibePause').textContent = paused ? '▶ Geräte fortsetzen' : '❚❚ Geräte pausieren';
+  $('vibePause').textContent = paused ? '▶ Fortsetzen' : '❚❚ Pausieren';
   $('ovVibe').textContent = paused ? 'Vib ▶' : 'Vib ❚❚';
   $('ovVibe').classList.toggle('off', paused);
   $('ovVibe').title = paused ? 'Geräte pausiert – antippen zum Fortsetzen' : 'Vibration pausieren';

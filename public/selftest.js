@@ -58,6 +58,13 @@
       document.querySelector('#selfChips [data-v="90"]').click();
       await wait(200);
       check('Schnellwahl 90 -> Touch-Fläche zeigt 90 %', document.querySelector('#selfRow .tp-val').textContent.trim() === '90 %', document.querySelector('#selfRow .tp-val').textContent);
+      // Hub unten/oben (1.19.2): Teilbereich des eingestellten Hubs – Werte danach wiederherstellen
+      const keep = [selfCtl.lo, selfCtl.hi];
+      selfCtl.lo = 50; selfCtl.hi = 100;
+      const rng = selfStrokeRange(true);
+      selfCtl.lo = keep[0]; selfCtl.hi = keep[1];
+      const full = [Number($('slideMin').value), Number($('slideMax').value)];
+      check('Hub unten 50 / oben 100 -> obere Hälfte des Hubs', rng[0] === Math.round(full[0] + (full[1] - full[0]) / 2) && rng[1] === full[1], `${rng.join('–')} von ${full.join('–')}`);
       $('selfHandy').click();
       video.pause();
     } else check('Video ohne Funscript vorhanden', false, 'in /media fehlt ein Video ohne .funscript');
@@ -70,10 +77,16 @@
       withScript.click();
       await wait(1800);
       check('Script-Bereich am Video sichtbar', !$('scriptBox').hidden, $('sbName').textContent);
-      check('Standard: Handy „Original + Takt-Schutz“, Satisfyer „Automatisch“',
-        $('scenePresetHandy').value === (store.get('scriptPresetHandy', 'protect')) && $('scenePresetVibe').value === store.get('scriptPresetVibe', 'auto'),
+      check('Standard: Handy und Satisfyer „Automatisch“',
+        $('scenePresetHandy').value === (store.get('scriptPresetHandy', 'auto')) && $('scenePresetVibe').value === store.get('scriptPresetVibe', 'auto'),
         `${$('scenePresetHandy').value} / ${$('scenePresetVibe').value}`);
       check('Finale-Knopf nicht im Geräte-Fenster', (() => { openDevices(); const v = getComputedStyle($('finaleBtn')).display === 'none'; closeDevices(); return v; })());
+      const fine = document.querySelector('.dev-fine[data-fine="handy"]');
+      check('Feineinstellung Handy nur im Geräte-Fenster (Status oben), nicht am Video', (() => {
+        const atVideo = getComputedStyle(fine).display === 'none';
+        openDevices(); const inSheet = getComputedStyle(fine).display !== 'none'; closeDevices();
+        return atVideo && inSheet;
+      })());
       // Mini-Player schließen
       video.muted = true;
       await video.play().catch(() => {});

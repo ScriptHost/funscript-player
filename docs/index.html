@@ -221,9 +221,9 @@
             (API v3) bleibt sie auch bei 0,5× bis 2× Wiedergabe im Takt.</li>
           <li><b>Satisfyer</b>: Der Player rechnet daraus Vibration – im Rhythmus der Stöße, nach Tempo oder Position,
             mit einstellbarer Gleichmäßigkeit. Den Vorlauf misst er selbst.</li>
-          <li><b>Pro Gerät eingestellt:</b> Handy standardmäßig <b>Original + Takt-Schutz</b> – nur, was der Motor nicht schafft,
-            wird angepasst (Hub kürzen oder <b>voller Hub, halbes Tempo</b>), feine Vibrationen bleiben. Satisfyer
-            <b>Automatisch</b>. Das Handy-Modell erkennt der Player selbst; angepasste Stellen zeigt die Heatmap.</li>
+          <li><b>Pro Gerät eingestellt:</b> Standard für Handy und Satisfyer ist <b>Automatisch</b> – was der Motor nicht schafft,
+            wird angepasst (Hub kürzen oder <b>voller Hub, halbes Tempo</b>), Scripts mit kleinem Hub werden gestreckt. Wer jede
+            Feinheit original will, wählt „Original + Takt-Schutz“. Das Handy-Modell erkennt der Player selbst; angepasste Stellen zeigt die Heatmap.</li>
         </ul>
       </div>
       <div class="diagram" aria-label="Script vorher und nachher">
@@ -424,6 +424,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="timeline">
+      <div class="tl"><b>1.19.2</b><p>Script-Standard „Automatisch“, aufgeräumter Script-Kasten, Feineinstellung im Geräte-Fenster, Hub unten/oben beim Selbststeuern, direktere Finger-Steuerung, gedrückt halten = 2× vor/zurück, nur 2D-Videos, neue Finale-Standards.</p></div>
       <div class="tl"><b>1.19</b><p>Flüssigere Finger-Steuerung, Hublänge, Abschnitt eines Scripts anpassen, zur intensivsten Stelle springen, gemeinsames Preset für Handy und Satisfyer, Bild-Popup, eigene Links, Demo-Modus.</p></div>
       <div class="tl"><b>1.18</b><p>Handy original mit Takt-Schutz, eigene Scripts (neu aufnehmen, Abschnitt ersetzen, löschen), Offset mit „🎯 eingemessen“, Erweiterte Einstellungen, Sicherung, Englisch, schneller Container-Start mit klaren Logs, Einstellungen in der <code>.env</code>.</p></div>
       <div class="tl"><b>1.17</b><p>Handy folgt dem Finger (Touch „Position“), „voller Hub, halbes Tempo“, Modell-Erkennung, schneller Start durch gemerkte Scripts, anpassbare Player-Leiste, Bild-in-Bild beim App-Wechsel, HereSphere-Passwort und schneller auf der Brille, Herkunftsprüfung.</p></div>
@@ -469,14 +470,14 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-v1.19.1.zip</code> auf den Server kopieren und entpacken.</li>
+        <li>ZIP <code>handy-player-linux-v1.19.2.zip</code> auf den Server kopieren und entpacken.</li>
         <li><code>.env.example</code> nach <code>.env</code> kopieren und Domain, <code>STASH_URL</code> und ggf. Medienordner eintragen
           (Player unter <code>handy.${DOMAIN}</code>).</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
         <li>Bauen und starten – fertig unter <code>https://handy.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.19.1.zip
+<pre><code>unzip handy-player-linux-v1.19.2.zip
 cd handy-player
 cp .env.example .env   # einmal, dann anpassen
 docker compose up -d --build</code></pre>
@@ -493,7 +494,7 @@ docker compose up -d --build</code></pre>
     <h2>Fragen &amp; Begriffe</h2>
     <div class="faq">
       <details><summary>Brauche ich ein eigenes Script für den Satisfyer?</summary><p>Nein. Der Satisfyer nutzt dasselbe Funscript wie die Handy; der Player rechnet daraus die Vibration.</p></details>
-      <details><summary>Warum spielt die Handy das Script original?</summary><p>Damit jede feine Bewegung und Vibration ankommt. Nur Stöße, die schneller sind als der Motor, passt der Takt-Schutz an – so bleibt die Handy exakt im Takt. Wer mehr Glättung will, stellt unter ⚙️ → Script „Automatisch“ ein.</p></details>
+      <details><summary>Warum „Automatisch“ statt original?</summary><p>„Automatisch“ spielt das Script wie das Original, passt nur an, was der Motor nicht schafft, und streckt Scripts mit kleinem Hub auf den vollen Weg – das fühlt sich kräftiger an. Wer jede Feinheit unverändert will, wählt unter ⚙️ → Script „Original + Takt-Schutz“.</p></details>
       <details><summary>Application ID oder Application Key?</summary><p>Die <b>Application ID</b> (handyfeeling.com → Application IDs) unter ⚙️ → Geräte eintragen – dann nutzt der Player die Handy-API v3. Den geheimen Application Key braucht er nicht.</p></details>
       <details><summary>Warum folgen die Geräte dem Video nicht?</summary><p>Dann ist „Geräte folgen dem Video“ aus (⚙️ → Geräte). Der Player zeigt dafür einen Hinweis mit „Einschalten“ unter dem Video.</p></details>
       <details><summary>Was bedeuten „1 842 Punkte“?</summary><p>Ein Funscript ist eine Liste „zur Zeit X auf Position Y“ – das ist die Anzahl dieser Bewegungspunkte. Mehr Punkte = feinere Bewegung.</p></details>

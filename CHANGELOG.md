@@ -1,5 +1,18 @@
 # Änderungen
 
+## 1.19.2 – 01.11.2026
+
+- Standards: Scripts laufen auch bei der Handy **Automatisch** (änderbar unter ⚙️ → Script); 🔥 Finale neu: Hub 10–80 %, Vibration 50 %, halbes Tempo, nach 240 s zurück – alte Standardwerte werden einmalig umgestellt, Hinweis „Neu in 1.19.2“
+- Behoben: **Hub max sprang auf 90 zurück** (wurde nur je Szene gespeichert) – gilt jetzt allgemein, einmalig 90 → 100
+- Selbst steuern: **Hub unten / Hub oben** statt „Hublänge“ um die Mitte
+- Finger-Steuerung direkter: Position wartet nicht mehr auf die Handy-Cloud (alle 100 ms der neueste Wert, Fahrzeit ab 150 ms, nur echtes Zittern geglättet), Tempo-Änderungen gehen sofort raus
+- Gedrückt halten am Video: rechts **2× schneller**, links **rückwärts** im selben Tempo (beim HQ-Stream: Sprung beim Loslassen)
+- Script-Kasten am Video aufgeräumt: „Script“ + Auswahl in einer Zeile, ✋ Selbst · 🔥 Intensiv · ✂ Abschnitt als gleich große Knöpfe, Offset mit −/+ (Schieber unter „Erweitert“), Pause neben STOPP
+- „Feineinstellung Handy“ (Neu synchronisieren, Hub min/max) nur noch im Geräte-Fenster (Status oben antippen)
+- ⚙️ → Bibliothek: **Nur 2D-Videos zeigen** (Stash-Tag „2D“, je Gerät)
+- Einstellungen am Smartphone ließen sich seitlich verschieben (Knopfreihe zu breit) – behoben; Hilfetext zu „Automatisch“ und Finale korrigiert
+- Selbsttest: 11 Prüfungen (Hub unten/oben, Feineinstellung im Geräte-Fenster)
+
 ## 1.19.1 – 01.11.2026
 
 - Webseite: neuer Einstieg – kurz & groß („Dein Video. Deine Geräte. Perfekt im Takt.“), Animation als eigener Abschnitt darunter

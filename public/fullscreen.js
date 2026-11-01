@@ -120,8 +120,11 @@ function seekBy(s) {
 
 // Einfach tippen = Bedienung ein/aus, doppelt tippen links/rechts = ±5/10 s (⚙️ → Anzeige), Mitte = Vollbild
 let lastTap = 0, tapTimer;
-// Gedrückt halten links/rechts = spulen (alle 0,35 s 5 s weiter), Loslassen beendet
-let holdTimer = null, holdRepeat = null, held = false;
+// Gedrückt halten (1.19.2): rechts = doppelte Geschwindigkeit, links = im selben Tempo rückwärts; Loslassen = normal.
+// Rückwärts kann der Browser nicht abspielen: angehalten alle 0,1 s 0,2 s zurück. Beim HQ-Stream würde jeder
+// Sprung den Stream neu starten – dort läuft nur die Zielzeit mit, gesprungen wird einmal beim Loslassen.
+// Als Fernbedienung wie bisher in 5-s-Schritten.
+let holdTimer = null, holdRepeat = null, held = false, holdState = null;
 $('ovHit').addEventListener('pointerdown', (e) => {
   const r = stage.getBoundingClientRect();
   const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;
@@ -129,11 +132,44 @@ $('ovHit').addEventListener('pointerdown', (e) => {
   if (!side) return;
   holdTimer = setTimeout(() => {
     held = true;
-    seekBy(side * 5);
-    holdRepeat = setInterval(() => seekBy(side * 5), 350);
+    showOverlay();
+    if (remote.on) {
+      seekBy(side * 5);
+      holdRepeat = setInterval(() => seekBy(side * 5), 350);
+      return;
+    }
+    holdState = { paused: video.paused, rate: video.playbackRate, target: null };
+    if (side > 0) {
+      video.playbackRate = 2;
+      if (video.paused) video.play().catch(() => {});
+      ov.classList.add('fast');
+    } else {
+      video.pause();
+      ov.classList.add('rewind');
+      holdState.target = mediaTime();
+      const step = () => {
+        holdState.target = Math.max(0, holdState.target - 0.2);
+        ov.dataset.t = fmtClock(holdState.target);
+        if (!hq.active) seekTo(holdState.target);
+        showOverlay();
+      };
+      step();
+      holdRepeat = setInterval(step, 100);
+    }
   }, 450);
 });
-const endHold = () => { clearTimeout(holdTimer); clearInterval(holdRepeat); holdTimer = holdRepeat = null; };
+const endHold = () => {
+  clearTimeout(holdTimer);
+  clearInterval(holdRepeat);
+  holdTimer = holdRepeat = null;
+  if (!holdState) return;
+  if (hq.active && holdState.target !== null) seekTo(holdState.target);
+  video.playbackRate = holdState.rate;
+  if (holdState.paused) video.pause(); else video.play().catch(() => {});
+  ov.classList.remove('fast', 'rewind');
+  delete ov.dataset.t;
+  holdState = null;
+};
 ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => $('ovHit').addEventListener(ev, endHold));
 $('ovHit').addEventListener('click', (e) => {
   if (held) { held = false; return; } // war gedrückt halten, kein Tippen

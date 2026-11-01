@@ -33,7 +33,7 @@ const TOUCH_TARGETS = {
     vibeOff() { touch.vibe = null; },
   },
   self: {
-    handy(v) { selfCtl.speed = v; selfCtl.handyOn = true; selfUI(); },
+    handy(v) { selfCtl.speed = v; selfCtl.handyOn = true; selfTick(); }, // sofort senden, nicht erst im 250-ms-Takt
     handyOff() { selfCtl.handyOn = false; selfUI(); },
     vibe(v) { selfCtl.vibe = v; selfUI(); },
     vibeOff() { selfCtl.vibe = 0; selfUI(); },
@@ -42,9 +42,10 @@ const TOUCH_TARGETS = {
 
 // ---------------------------------------------------------------------------
 // Modus „Position“ (Beta): die Handy folgt dem Finger direkt (WLAN: Direkt-Position HDSP,
-// Bluetooth/Intiface: Positionsbefehle). Höchstens alle 100 ms ein Befehl, immer der neueste Wert.
+// Bluetooth/Intiface: Positionsbefehle). Höchstens alle TP_GAP ms ein Befehl, immer der neueste Wert.
 // ---------------------------------------------------------------------------
-const tpos = { active: false, pending: null, last: null, timer: null, owner: null, cur: null };
+const TP_GAP = 100;
+const tpos = { active: false, pending: null, last: null, timer: null, owner: null, cur: null, inflight: 0, gap: TP_GAP };
 const touchMode = () => store.get('touchMode', 'tempo');
 function touchPosActive() { return tpos.active; }
 
@@ -55,19 +56,26 @@ function touchPosSend(v, owner) {
   tpos.owner = owner;
   if (strokers().length) moveAll(mapPos(v), 100);
   if (!handy.connected || tpos.timer) return;
-  const flush = async () => {
+  // 1.19.2: nicht mehr auf die Antwort der Cloud warten (kostete je Befehl die volle Laufzeit),
+  // sondern alle TP_GAP ms den neuesten Wert schicken – höchstens 2 Befehle gleichzeitig unterwegs
+  const flush = () => {
     const want = tpos.pending;
     if (want === null || !tpos.active) { tpos.timer = null; return; }
+    if (tpos.inflight >= 2) { tpos.timer = setTimeout(flush, 25); return; }
     tpos.pending = null;
     if (handy.owner !== tpos.owner) claimHandy(tpos.owner);
-    const raw = $('invert').checked ? 100 - want : want;
-    // Glätten: kleine Zitterbewegungen des Fingers fallen weg, große Bewegungen kommen sofort
-    const pos = tpos.last === null || Math.abs(raw - tpos.last) > 25 ? raw : Math.round(tpos.last * 0.35 + raw * 0.65);
-    // Fahrzeit ≥ 2,5 × Befehlsabstand: die Handy ist noch unterwegs, wenn der nächste Befehl kommt
-    const dur = Math.max(250, Math.min(800, (Math.abs(pos - (tpos.last ?? pos)) / handyMaxSpeed()) * 1000));
+    const pos = $('invert').checked ? 100 - want : want;
+    // Nur echtes Zittern (≤ 2 %) fällt weg, alles andere geht sofort raus
+    if (tpos.last !== null && Math.abs(pos - tpos.last) <= 2) { tpos.timer = setTimeout(flush, tpos.gap); return; }
+    // Fahrzeit etwas länger als der Befehlsabstand: die Handy ist noch unterwegs, wenn der nächste Befehl kommt
+    const dur = Math.max(TP_GAP * 1.5, Math.min(600, (Math.abs(pos - (tpos.last ?? pos)) / handyMaxSpeed()) * 1000));
     tpos.last = pos;
-    try { await handy.hdspMove(pos, dur); } catch (e) { log(e, true); }
-    tpos.timer = setTimeout(flush, 90);
+    tpos.inflight++;
+    handy.hdspMove(pos, dur)
+      .then(() => { tpos.gap = TP_GAP; })
+      .catch((e) => { if (e.kind === 'limit') tpos.gap = 300; else log(e, true); }) // zu viele Anfragen -> langsamer
+      .finally(() => { tpos.inflight--; });
+    tpos.timer = setTimeout(flush, tpos.gap);
   };
   tpos.timer = setTimeout(flush, 0);
 }

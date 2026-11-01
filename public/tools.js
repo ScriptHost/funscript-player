@@ -16,9 +16,12 @@ const tools = Object.assign({ stretch: false, limit: false, jitter: false, maxSp
 let toolCache = { handy: null, vibe: null };
 
 const SCRIPT_PRESETS = { protect: 'Original + Takt-Schutz', original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv', custom: 'Eigene' };
-// Seit 1.18 je Gerät: Handy „Original + Takt-Schutz“ (alle Feinheiten, nur Unschaffbares angepasst),
-// Satisfyer „Automatisch“ (geglättet).
-const presetDefault = { handy: store.get('scriptPresetHandy', 'protect'), vibe: store.get('scriptPresetVibe', 'auto') };
+// Seit 1.19.2 für beide Geräte „Automatisch“ (vorher Handy „Original + Takt-Schutz“) – einmalig umgestellt
+if (!store.get('presetFix1192', false)) {
+  if (store.get('scriptPresetHandy', 'protect') === 'protect') store.set('scriptPresetHandy', 'auto');
+  store.set('presetFix1192', true);
+}
+const presetDefault = { handy: store.get('scriptPresetHandy', 'auto'), vibe: store.get('scriptPresetVibe', 'auto') };
 let localPreset = {}; // Szene ohne festen Schlüssel (lokale Datei): nur bis zum nächsten Video
 
 // Preset dieser Szene für ein Gerät. Ältere Einträge (nur ein Text) galten für beide – jetzt für die Handy.
@@ -253,9 +256,9 @@ function toolsChanged() {
 }
 
 // Gemeinsam einstellen (Standard): eine Auswahl gilt für beide Geräte – passend übersetzt
-// (für die Handy heißt „Automatisch“ beim Satisfyer „Original + Takt-Schutz“, „Original“ bleibt „Original“ usw.)
+// („Original + Takt-Schutz“ gibt es nur für die Handy – beim Satisfyer wird daraus „Automatisch“)
 const presetLinked = () => store.get('presetLink', true);
-const linkedPreset = (dev, p) => (dev === 'vibe' ? (p === 'protect' ? 'auto' : p) : (p === 'auto' ? 'protect' : p));
+const linkedPreset = (dev, p) => (dev === 'vibe' && p === 'protect' ? 'auto' : p);
 // Standard-Preset je Gerät (Einstellungen) und Preset dieser Szene je Gerät (Script-Bereich am Video)
 document.querySelectorAll('.preset-default').forEach((seg) => seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
   const dev = seg.dataset.dev;
@@ -289,7 +292,7 @@ video.addEventListener('emptied', () => { localPreset = {}; });
 // Gemeinsam / getrennt: im Script-Bereich dann nur eine Auswahl
 function applyPresetLink() {
   document.body.classList.toggle('preset-linked', presetLinked());
-  document.querySelector('.sb-handy .sb-lbl').textContent = presetLinked() ? '↕〰 Anpassung' : '↕ Handy';
+  document.querySelector('.sb-handy .sb-lbl').textContent = presetLinked() ? 'Script' : '↕ Handy';
 }
 $('presetLink').checked = presetLinked();
 $('presetLink').addEventListener('change', () => { store.set('presetLink', $('presetLink').checked); applyPresetLink(); });

@@ -44,12 +44,12 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.18</h3>
+    <h3>✨ Neu in 1.19.2</h3>
     <ul>
-      <li>Handy: Scripts laufen <b>original</b> – nur was sie nicht schafft, passt der Takt-Schutz an. Satisfyer: weiter <b>Automatisch</b>.</li>
-      <li>Eigene Scripts (✋): neu aufnehmen, nur einen Abschnitt ersetzen oder löschen – im Script-Bereich am Video.</li>
-      <li>Offset zeigt „🎯 eingemessen“; Finale startet „sanfter, halbes Tempo“; ein Gerät lässt sich erst fernsteuern, wenn du es dort erlaubst.</li>
-      <li>Selten Gebrauchtes steckt jetzt unter „Erweiterte Einstellungen“.</li>
+      <li>Scripts laufen jetzt auch bei der Handy standardmäßig <b>Automatisch</b> (Standard änderbar unter ⚙️ → Script).</li>
+      <li>🔥 Finale: neue Standardwerte – Hub 10–80 %, Vibration 50 %, nach 240 s zurück zum Sync.</li>
+      <li>Hub max steht wieder auf 100 % und bleibt dort; „Selbst steuern“ mit Hub unten/oben; Steuerung mit dem Finger direkter.</li>
+      <li>Gedrückt halten: rechts doppelt so schnell, links rückwärts.</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -210,8 +210,10 @@
                 <div class="self-top"><button id="selfHandy" class="small">▶ Handy</button>
                   <label>Geschwindigkeit <output id="selfSpeedVal"></output></label></div>
                 <input id="selfSpeed" type="range" min="0" max="100" step="5" value="40" aria-label="Handy-Geschwindigkeit">
-                <label class="self-stroke">Hublänge <output id="selfStrokeVal">100 %</output>
-                  <input id="selfStroke" type="range" min="20" max="100" step="10" value="100" aria-label="Hublänge"></label>
+                <label class="self-stroke">Hub unten <output id="selfLoVal">0 %</output>
+                  <input id="selfLo" type="range" min="0" max="100" step="5" value="0" aria-label="Hub unten"></label>
+                <label class="self-stroke">Hub oben <output id="selfHiVal">100 %</output>
+                  <input id="selfHi" type="range" min="0" max="100" step="5" value="100" aria-label="Hub oben"></label>
                 <div id="selfChips" class="chips"><button data-v="15">15</button><button data-v="30">30</button><button data-v="45">45</button><button data-v="60">60</button><button data-v="75">75</button><button data-v="90">90</button></div>
               </div>
               <div class="self-dev self-vibe">
@@ -431,8 +433,8 @@
           <ul class="hint-text preset-help">
             <li><b>Original + Takt-Schutz</b> (Handy) – alles wie in der Datei, auch kleine Vibrationen. Nur große Stöße, die die Handy
               nicht schafft, werden angepasst (siehe unten), damit sie exakt im Takt bleibt.</li>
-            <li><b>Automatisch</b> – prüft jedes Script: zu kleinen Hub (&lt; 70 %) strecken, was die Handy nicht schafft anpassen;
-              beim Satisfyer zusätzlich Zittern glätten und bei sehr wechselndem Tempo beruhigen.</li>
+            <li><b>Automatisch</b> (Standard) – wie „Original + Takt-Schutz“, streckt aber zusätzlich Scripts mit kleinem Hub (&lt; 70 %)
+              auf den vollen Weg; beim Satisfyer zusätzlich Zittern glätten.</li>
             <li><b>Sanft</b> – Hub 15–85 %, langsamer (max. 300 %/s), Satisfyer ruhig.</li>
             <li><b>Intensiv</b> – voller Hub, nur das physisch Nötige gekürzt, Satisfyer im vollen Rhythmus.</li>
             <li><b>Original</b> – genau wie die Datei. <b>Eigene</b> – die Haken unten.</li>
@@ -573,6 +575,8 @@
           <label class="adv check"><input id="setHoverPreview" type="checkbox" checked> Vorschauvideo beim Drüberfahren mit der Maus</label>
           <label class="adv check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, über „📂 Datei“ geladene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
           <p class="adv hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
+          <label class="check"><input id="only2d" type="checkbox"> Nur 2D-Videos zeigen</label>
+          <p class="hint-text">Bibliothek, Zufall und Weiterschauen zeigen nur Szenen mit dem Stash-Tag „2D“. Gilt nur für dieses Gerät – z. B. am Smartphone an, in der VR-Brille aus.</p>
           <label class="check"><input id="setShowContinue" type="checkbox"> „Weiterschauen“-Reihe oben in der Stash-Bibliothek anzeigen</label>
           <h3>Knöpfe in der Bibliothek</h3>
           <div id="libBtnOptions" class="hud-options">
@@ -728,7 +732,7 @@
                 <option value="protect">Original + Takt-Schutz</option><option value="original">Original</option><option value="auto">Automatisch</option>
                 <option value="soft">Sanft</option><option value="intense">Intensiv</option><option value="custom">Eigene</option>
               </select><small id="sbInfoHandy" class="sb-info"></small></label>
-            <label class="sb-dev sb-vibe">〰 Satisfyer
+            <label class="sb-dev sb-vibe"><span class="sb-lbl">〰 Satisfyer</span>
               <select id="scenePresetVibe" title="Gilt für diese Szene – Standard unter ⚙️ → Script">
                 <option value="original">Original</option><option value="auto">Automatisch</option>
                 <option value="soft">Sanft</option><option value="intense">Intensiv</option><option value="custom">Eigene</option>
@@ -736,10 +740,10 @@
           </div>
           <div class="sb-own">
             <button id="sbResume" class="small" hidden>↩ Zurück zum Script</button>
-            <button id="sbSelf" class="small secondary" title="Script anhalten und selbst steuern – mit ⏺ neu aufnehmen">✋ Selbst steuern / neu aufnehmen</button>
+            <button id="sbSelf" class="small secondary sb-tool" title="Script anhalten und selbst steuern – mit ⏺ neu aufnehmen"><span class="ic">✋</span>Selbst</button>
             <button id="sbDelete" class="small secondary" hidden>🗑 Eigenes Script löschen</button>
-            <button id="sbHot" class="small secondary" title="Springt der Reihe nach zu den 3 intensivsten Stellen">🔥 Intensivste Stelle</button>
-            <button id="sbCut" class="small secondary" title="Einen Zeitbereich sanfter, intensiver, langsamer, verschoben oder stumm machen">✂ Abschnitt anpassen</button>
+            <button id="sbHot" class="small secondary sb-tool" title="Springt der Reihe nach zu den 3 intensivsten Stellen"><span class="ic">🔥</span>Intensiv</button>
+            <button id="sbCut" class="small secondary sb-tool" title="Einen Zeitbereich sanfter, intensiver, langsamer, verschoben oder stumm machen"><span class="ic">✂</span>Abschnitt</button>
           </div>
           <div id="sbCutBox" class="sb-cut" hidden>
             <div class="sb-cut-row"><button id="cutFrom" class="small secondary">⇤ ab hier</button><span id="cutRange" class="hint-text">–</span><button id="cutTo" class="small secondary">bis hier ⇥</button></div>
@@ -754,11 +758,15 @@
 
         <!-- Für alle verbundenen Geräte -->
         <div id="devCommon" class="dev-common">
-          <button id="vibePause" class="secondary">❚❚ Geräte pausieren</button>
-          <label>Video-Offset <small class="muted">(Handy und Satisfyer)</small> <output id="offsetVal">0 ms</output>
-            <input id="offset" type="range" min="-500" max="500" step="10" value="0">
-          </label>
-          <button id="offsetReset" class="small secondary offset-reset" hidden title="Offset dieser Szene verwerfen – wieder der allgemeine Wert">↺ Szenen-Offset zurücksetzen</button>
+          <!-- 1.19.2: Offset kompakt mit −/+ (10 ms); Schieber nur mit „Erweiterte Einstellungen“ -->
+          <div class="offset-row" title="Video-Offset für Handy und Satisfyer">
+            <span>Offset</span>
+            <button id="offMinus" class="small secondary" aria-label="Offset −10 ms">−</button>
+            <output id="offsetVal">0 ms</output>
+            <button id="offPlus" class="small secondary" aria-label="Offset +10 ms">+</button>
+            <button id="offsetReset" class="small secondary offset-reset" hidden title="Offset dieser Szene verwerfen – wieder der allgemeine Wert">↺</button>
+          </div>
+          <input id="offset" class="offset-slider" type="range" min="-500" max="500" step="10" value="0" aria-label="Video-Offset">
           <details class="dev-fine" data-fine="common">
             <summary>Feineinstellung Offset</summary>
             <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
@@ -811,7 +819,10 @@
         </div>
 
         <button id="finaleBtn" class="finale-btn wide">🔥 Finale</button>
-        <button id="stopAll" class="estop wide">■ Alles stoppen</button>
+        <div class="dev-stop-row">
+          <button id="vibePause" class="secondary">❚❚ Pausieren</button>
+          <button id="stopAll" class="estop">■ Alles stoppen</button>
+        </div>
         <p id="log" class="log"></p>
       </div>
     </aside>

@@ -43,7 +43,7 @@ const P = [
 [`〰 Die Geräte folgen dem Video gerade nicht.`, `〰 The devices are not following the video right now.`], [`Einschalten`, `Turn on`], [`Kein Script`, `No script`], [`Kein Funscript`, `No Funscript`],
 [`Script angehalten`, `Script paused`], [`Keine Steuerung`, `No control`], [`Selbst steuern`, `Control myself`], [`↩ Script wieder abspielen`, `↩ Play script again`],
 [`Kein Gerät verbunden – oben auf den Status tippen und verbinden.`, `No device connected – tap the status at the top and connect.`], [`▶ Handy`, `▶ Handy`], [`■ Handy`, `■ Handy`],
-[`Geschwindigkeit`, `Speed`], [`Hublänge`, `Stroke length`], [`Handy-Geschwindigkeit`, `Handy speed`], [`〰 Satisfyer-Stärke`, `〰 Satisfyer strength`],
+[`Geschwindigkeit`, `Speed`], [`Hublänge`, `Stroke length`], [`Hub unten`, `Stroke bottom`], [`Hub oben`, `Stroke top`], [`Handy-Geschwindigkeit`, `Handy speed`], [`〰 Satisfyer-Stärke`, `〰 Satisfyer strength`],
 [`Touch-Steuerung: Finger oben = stark`, `Touch control: finger up = strong`], [`Finger auflegen – oben stark, unten schwach`, `Place your finger – up strong, down weak`],
 [`Finger auflegen – die Handy folgt dem Finger`, `Place your finger – the Handy follows it`], [`Wie die Handy dem Finger folgt`, `How the Handy follows your finger`],
 [`Finger-Höhe = Tempo der Stöße`, `Finger height = stroke tempo`], [`Finger-Höhe = Position: die Handy folgt dem Finger`, `Finger height = position: the Handy follows your finger`],
@@ -119,8 +119,14 @@ const P = [
 [`🎯 Offset per Takt einmessen: Knopf in der Handy-Karte (rechts) oder Taste T während das Video läuft.`, `🎯 Calibrate offset by tapping the beat: button in the devices panel or key T while the video plays.`],
 [`🔥 Finale`, `🔥 Finale`], [`Der 🔥-Knopf im Player (oder Taste O) schaltet auf ruhiger. Nochmal drücken = zurück zum normalen Video-Sync.`, `The 🔥 button in the player (or key O) switches to calmer. Press again = back to normal video sync.`],
 [`Komplett lösen`, `Detach completely`], [`Script weiter, sanfter`, `Keep script, gentler`],
-[`Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich unten – kleiner Bereich = sanfter. Der Satisfyer folgt dem Script mit dem eingestellten Anteil.`, `The Handy stays in time with the video but only moves within the stroke range below – smaller range = gentler. The Satisfyer follows the script at the set share.`],
-[`Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich unten. Der Satisfyer läuft mit fester Stärke.`, `The Handy is detached from the script and moves evenly at its own speed within the stroke range below. The Satisfyer runs at a fixed strength.`],
+[`Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich (Hub von/bis) – kleiner Bereich = sanfter. Der Satisfyer folgt dem Script mit dem eingestellten Anteil.`, `The Handy stays in time with the video but only moves within the stroke range (stroke from/to) – smaller range = gentler. The Satisfyer follows the script at the set share.`],
+[`Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich (Hub von/bis). Der Satisfyer läuft mit fester Stärke.`, `The Handy is detached from the script and moves evenly at its own speed within the stroke range (stroke from/to). The Satisfyer runs at a fixed strength.`],
+[`✨ Neu in 1.19.2`, `✨ New in 1.19.2`],
+[`Scripts laufen jetzt auch bei der Handy standardmäßig <b>Automatisch</b> (Standard änderbar unter ⚙️ → Script).`, `Scripts now play <b>Automatic</b> by default on the Handy too (change the default under ⚙️ → Script).`],
+[`🔥 Finale: neue Standardwerte – Hub 10–80 %, Vibration 50 %, nach 240 s zurück zum Sync.`, `🔥 Finale: new defaults – stroke 10–80 %, vibration 50 %, back to sync after 240 s.`],
+[`Hub max steht wieder auf 100 % und bleibt dort; „Selbst steuern“ mit Hub unten/oben; Steuerung mit dem Finger direkter.`, `Stroke max is back at 100 % and stays there; “Control yourself” with stroke bottom/top; finger control is more direct.`],
+[`Gedrückt halten: rechts doppelt so schnell, links rückwärts.`, `Press and hold: right plays at double speed, left rewinds.`],
+[`<b>Automatisch</b> (Standard) – wie „Original + Takt-Schutz“, streckt aber zusätzlich Scripts mit kleinem Hub (&lt; 70 %) auf den vollen Weg; beim Satisfyer zusätzlich Zittern glätten.`, `<b>Automatic</b> (default) – like “Original + beat guard”, but also stretches scripts with a small stroke (&lt; 70 %) to the full range; on the Satisfyer it also smooths jitter.`],
 [`Halbes Tempo – aus zwei Stößen wird einer, bleibt im Takt des Videos`, `Half tempo – two strokes become one, stays in time with the video`], [`Vibration (Anteil)`, `Vibration (share)`], [`Vibration`, `Vibration`],
 [`Hub von`, `Stroke from`], [`Hub bis`, `Stroke to`], [`Automatisch zurück zum Sync nach`, `Back to sync automatically after`], [`gelöst`, `detached`], [`sanfter`, `gentler`],
 [`Finale beendet – zurück zum normalen Sync.`, `Finale ended – back to normal sync.`],
@@ -283,6 +289,12 @@ const RX = [
   [/^Script-Anpassung für diese Szene: (.*)\.$/, 'Script adjustment for this scene: $1.'], [/^Handy-API( v3)?: HTTP (\d+)$/, 'Handy API$1: HTTP $2'],
   [/^(\d+) % vom Script$/, '$1 % of script'],
 ];
+// 1.19.2
+P.push([`Selbst`, `Yourself`], [`Abschnitt`, `Section`], [`Offset`, `Offset`], [`Script`, `Script`],
+  [`❚❚ Pausieren`, `❚❚ Pause`], [`▶ Fortsetzen`, `▶ Resume`], [`Video-Offset für Handy und Satisfyer`, `Video offset for Handy and Satisfyer`],
+  [`Offset dieser Szene verwerfen – wieder der allgemeine Wert`, `Discard this scene's offset – back to the general value`],
+  [`Nur 2D-Videos zeigen`, `Show 2D videos only`],
+  [`Bibliothek, Zufall und Weiterschauen zeigen nur Szenen mit dem Stash-Tag „2D“. Gilt nur für dieses Gerät – z. B. am Smartphone an, in der VR-Brille aus.`, `Library, random and continue watching only show scenes with the Stash tag “2D”. Applies to this device only – e.g. on for the phone, off for the VR headset.`]);
 const table = {};
 for (const [de, en] of P) table[de.replace(/\s+/g, ' ').trim()] = en;
 window.I18N_EN = table;

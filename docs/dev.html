@@ -114,7 +114,7 @@
       <tr><td><code>finale.js</code> · <code>tools.js</code></td><td>Finale (lösen / sanfter) · Script-Automatik: Analyse, Presets, pro Szene (<code>processScript</code>), Offset einmessen.</td></tr>
       <tr><td><code>stroker.js</code></td><td>Bewegungsgeräte über Intiface (z. B. Handy per Bluetooth).</td></tr>
       <tr><td><code>selfctl.js</code></td><td>„Selbst steuern“ für Videos ohne Funscript: Handy per HAMP (Besitzer <code>'self'</code>) bzw. <code>hampLevel()</code> für Bluetooth, Satisfyer über <code>selfVibeLevel()</code>.</td></tr>
-      <tr><td><code>touchpad.js</code></td><td>Touch-Fläche für 🎮 Steuern und „Selbst steuern“, Umschalter Tempo | 🧪 Position (<code>touchPosSend()</code> → <code>handy.hdspMove()</code>, HDSP über API v2, höchstens alle 100 ms; Bluetooth über <code>moveAll()</code>), ⏺ Aufnahme im gewählten Modus.</td></tr>
+      <tr><td><code>touchpad.js</code></td><td>Touch-Fläche für 🎮 Steuern und „Selbst steuern“, Umschalter Tempo | 🧪 Position (<code>touchPosSend()</code> → <code>handy.hdspMove()</code>, HDSP über API v2, alle 100 ms der neueste Wert ohne auf die Antwort zu warten – höchstens 2 Befehle unterwegs, Fahrzeit ab 150 ms, bei HTTP 429 langsamer; Bluetooth über <code>moveAll()</code>), ⏺ Aufnahme im gewählten Modus.</td></tr>
       <tr><td><code>test/</code></td><td>Automatische Tests mit Node-Bordmitteln: <code>node --test "test/*.test.js"</code> (Script-Logik direkt aus den Dateien, Server mit Testordnern).</td></tr>
       <tr><td><code>settings.js</code></td><td>Einstellungsseite: Bild/HQ-Modus, Anzeige im Player, System, Zurücksetzen.</td></tr>
       <tr><td><code>remote.js</code></td><td>Fernbedienung: Bildschirm-Seite (Zustand melden, Befehle ausführen) und Fernbedienungs-Seite.</td></tr>
@@ -222,7 +222,7 @@
       <tr><td><span class="m get">GET</span></td><td><code>/media/&lt;pfad&gt;</code></td><td>Datei aus <code>/media</code> mit Range-Support</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/store</code></td><td>Patterns und Script-Baukasten (<code>{ patterns, sequences }</code>)</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/stash/status</code> · <code>/api/stash/saved-filters</code> · <code>/api/stash/filters</code></td><td>Stash erreichbar? · gespeicherte Filter · Tags/Darsteller/Studios</td></tr>
-      <tr><td><span class="m get">GET</span></td><td><code>/api/stash/scenes?…</code></td><td>Szenenliste (Suche, Sortierung, Filter, Seiten, <code>continue=1</code>)</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/stash/scenes?…</code></td><td>Szenenliste (Suche, Sortierung, Filter, Seiten, <code>continue=1</code>, <code>only2d=1</code> = nur mit Stash-Tag „2D“)</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/stash/scene/&lt;id&gt;</code></td><td>Szenen-Details inkl. Marker, Bewertung, O, Position</td></tr>
       <tr><td><span class="m post">POST</span></td><td><code>/api/stash/scene/&lt;id&gt;/rating</code> · <code>favorite</code> · <code>o</code> · <code>o-undo</code> · <code>marker</code> · <code>activity</code> · <code>play</code></td><td>Zurückschreiben, z. B. <code>{ rating100 }</code>, <code>{ favorite }</code>, <code>{ seconds, title }</code>, <code>{ resume, played }</code></td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/stash/scene/&lt;id&gt;/stream|funscript|screenshot|preview|webp|vtt/thumbs|vtt/sprite</code></td><td>Durchgereichte Stash-Dateien (nur diese)</td></tr>

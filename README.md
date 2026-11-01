@@ -8,9 +8,10 @@ phone, TV or in a VR headset (HereSphere). No external dependencies, one small c
 
 ## Highlights
 
-- **One script for every device.** The Handy plays the Funscript **original + beat guard**: every fine movement and
-  vibration stays, only strokes faster than its motor are adapted (shorter, or full stroke at half tempo). The Satisfyer
-  turns the same stroke script into vibration live (rhythm, speed or position).
+- **One script for every device.** By default both devices play the Funscript **Automatic**: what the Handy's motor can't
+  manage is adapted (shorter, or full stroke at half tempo) and scripts with a small stroke are stretched; pick
+  **original + beat guard** to keep every fine movement unchanged. The Satisfyer turns the same stroke script into
+  vibration live (rhythm, speed or position).
 - **Sync that stays in time:** Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× speed.
 - **Own scripts (✋):** control the devices yourself while watching (slider, quick picks or touch pad), record it as a
   script for the video, later replace just a section or delete it. Originals are never overwritten.

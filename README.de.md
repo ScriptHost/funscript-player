@@ -22,7 +22,8 @@ Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per
 Oben stehen nur eine Status-Anzeige für beide Geräte und das Menü ☰:
 
 - **Status antippen** öffnet das Geräte-Fenster – dort wird verbunden (Handy, Satisfyer per Bluetooth, Geräteliste).
-- **Unter dem Video** stehen nur die Regler der verbundenen Geräte (Pause, Offset, Hub, Stärke, Finale, Alles stoppen).
+- **Unter dem Video** stehen nur die Regler der verbundenen Geräte (Script, Offset −/+, Stärke, Finale, Pause und Alles stoppen).
+  Hub min/max und „Neu synchronisieren“ stehen im Geräte-Fenster (Status antippen → Feineinstellung Handy).
 - **🔄 Geräte folgen dem Video** ist Standard (an); ausschalten nur unter ⚙️ → Geräte.
 - **Videos ohne Funscript:** unter dem Video „Selbst steuern“ – Handy-Geschwindigkeit und Satisfyer-Stärke
   von Hand, solange das Video läuft. Pause hält an, STOPP wie immer. **⏺ Mitschnitt zum Video** speichert das als

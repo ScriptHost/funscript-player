@@ -8,6 +8,11 @@ window.FSP_EN = {
   '1m4ub48': 'One Funscript.<br>Every device.<br>In sync.',
   upyxc6: 'Funscript Player plays your videos and drives <b>The Handy</b> and the <b>Satisfyer</b> at the same time – both from the same script, no separate vibration script needed. Your library comes from <b>Stash</b> or your own folders; watch on PC, phone, TV or in a VR headset. Scripts are improved automatically, the Satisfyer works with plain Handy scripts – and videos can be upscaled for a sharper picture.',
   n0rw84: '↕ The Handy · API v3 · 0.5×–2×',
+  // 1.19.2
+  ld03ss: "<b>Set per device:</b> the default for Handy and Satisfyer is <b>Automatic</b> – what the motor can’t manage is adapted (shorter stroke or <b>full stroke, half tempo</b>), scripts with a small stroke are stretched. If you want every detail original, pick “Original + beat guard”. The player detects the Handy model itself; the heatmap shows adapted spots.",
+  c8laqp: "Script default “Automatic”, tidier script box, fine-tuning in the device window, stroke bottom/top when controlling yourself, more direct finger control, press and hold = 2× forward/back, 2D videos only, new Finale defaults.",
+  '1egj18x': "Why “Automatic” instead of original?",
+  t3ja1r: "“Automatic” plays the script like the original, only adapts what the motor can’t manage and stretches scripts with a small stroke to the full range – it feels stronger. If you want every detail unchanged, pick “Original + beat guard” under ⚙️ → Script.",
   // 1.19 Einstieg
   dace9v: 'Self-hosted',
   '6cd1l7': 'Your video. Your devices.<br><span class="grad">Perfectly in sync.</span>',

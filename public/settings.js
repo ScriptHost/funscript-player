@@ -101,10 +101,10 @@ $('backupPut').addEventListener('change', async (e) => {
 // --- Selbsttest (lädt die Seite mit ?selbsttest neu) --------------------------------------------
 $('selfTestRun').addEventListener('click', () => { location.href = location.pathname + '?selbsttest'; });
 
-// --- Einmal nach dem Update auf 1.18: Hinweis auf geänderte Standards --------------------------
-if (!store.get('seen118', false)) {
+// --- Einmal nach dem Update auf 1.19.2: Hinweis auf geänderte Standards ------------------------
+if (!store.get('seen1192', false)) {
   $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen118', true); };
+  const done = () => { $('whatsNew').hidden = true; store.set('seen1192', true); };
   $('whatsNewOk').addEventListener('click', done);
   $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setScript'); });
 }

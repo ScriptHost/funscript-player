@@ -13,13 +13,24 @@ const selfCtl = {
   mode: store.get('selfMode', 'off'),
   handyOn: false,
   speed: store.get('selfSpeed', 40),
-  stroke: store.get('selfStroke', 100), // Hublänge in % des Hubs (um dessen Mitte)
+  // Hub unten/oben in % des eingestellten Hubs (Hub min/max) – frei wählbar, z. B. nur oben
+  lo: store.get('selfLo', null),
+  hi: store.get('selfHi', null),
   vibe: store.get('selfVibe', 0),
   sent: 0,       // an die Handy gesendete Geschwindigkeit (0 = steht)
+  again: false,  // Änderung kam, während ein Befehl lief
   busy: false,
 };
 
-const selfVideoLoaded = () => (remote.on ? !!remote.state?.src : !!nowPlaying);
+// Bis 1.19.1 gab es nur „Hublänge“ um die Mitte – einmalig in unten/oben umrechnen
+if (selfCtl.lo === null || selfCtl.hi === null) {
+  const s = store.get('selfStroke', 100);
+  selfCtl.lo = Math.round((100 - s) / 2);
+  selfCtl.hi = 100 - selfCtl.lo;
+}
+const SELF_GAP = 10; // kleinster Abstand unten–oben in %
+
+const selfVideoLoaded =() => (remote.on ? !!remote.state?.src : !!nowPlaying);
 // Läuft „Selbst steuern“ gerade? (Sync an, Video ohne Script, Video läuft)
 function selfActive() {
   // Bewusste Wahl -> gilt in jedem Modus, auch bei „nur schauen“
@@ -49,8 +60,10 @@ function selfUI() {
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
-  $('selfStroke').value = selfCtl.stroke;
-  $('selfStrokeVal').textContent = `${selfCtl.stroke} %`;
+  $('selfLo').value = selfCtl.lo;
+  $('selfHi').value = selfCtl.hi;
+  $('selfLoVal').textContent = `${selfCtl.lo} %`;
+  $('selfHiVal').textContent = `${selfCtl.hi} %`;
   $('selfSpeedVal').textContent = `${selfSpeed()} %${selfSpeed() < selfCtl.speed ? ' (Grenze)' : ''}`;
   $('selfVibe').value = selfCtl.vibe;
   $('selfVibeVal').textContent = `${selfCtl.vibe} %`;
@@ -59,19 +72,20 @@ function selfUI() {
 }
 
 // Handy per WLAN nachführen: starten, Tempo ändern, anhalten
-// Hublänge: kürzerer Weg um die Mitte des eingestellten Hubs (Hub min/max); beim Stopp wieder voller Hub
+// Hub unten/oben: Teilbereich des eingestellten Hubs (Hub min/max); beim Stopp wieder voller Hub
 function selfStrokeRange(on = true) {
   const lo = Number($('slideMin').value), hi = Number($('slideMax').value);
-  if (!on || selfCtl.stroke >= 100) return [lo, hi];
-  const mid = (lo + hi) / 2, half = ((hi - lo) * selfCtl.stroke) / 200;
-  return [Math.round(mid - half), Math.round(mid + half)];
+  if (!on || (selfCtl.lo <= 0 && selfCtl.hi >= 100)) return [lo, hi];
+  return [Math.round(lo + ((hi - lo) * selfCtl.lo) / 100), Math.round(lo + ((hi - lo) * selfCtl.hi) / 100)];
 }
 function selfApplyStroke(on = true) {
   if (handy.connected) handy.slide(...selfStrokeRange(on)).catch(() => {});
 }
 async function selfTick() {
   selfUI();
-  if (!handy.connected || selfCtl.busy) return;
+  if (!handy.connected) return;
+  // Läuft noch ein Befehl: direkt danach nachsenden statt auf den nächsten Takt zu warten
+  if (selfCtl.busy) { selfCtl.again = true; return; }
   const want = selfHampLevel() !== null ? selfSpeed() : 0;
   if (want === selfCtl.sent || touchPosActive()) return; // Touch „Position“ steuert die Handy gerade direkt
   selfCtl.busy = true;
@@ -91,6 +105,7 @@ async function selfTick() {
     log(e, true);
   } finally {
     selfCtl.busy = false;
+    if (selfCtl.again) { selfCtl.again = false; selfTick(); }
   }
 }
 setInterval(selfTick, 250);
@@ -124,8 +139,20 @@ const setSelfSpeed = (v) => {
 };
 const setSelfVibe = (v) => { selfCtl.vibe = Number(v); store.set('selfVibe', selfCtl.vibe); selfUI(); };
 $('selfSpeed').addEventListener('input', () => setSelfSpeed($('selfSpeed').value));
-$('selfStroke').addEventListener('input', () => { selfCtl.stroke = Number($('selfStroke').value); selfUI(); });
-$('selfStroke').addEventListener('change', () => { store.set('selfStroke', selfCtl.stroke); if (selfCtl.sent) selfApplyStroke(true); });
+// Unten/oben schieben sich gegenseitig, damit immer ein Hub von mindestens SELF_GAP bleibt
+['selfLo', 'selfHi'].forEach((id) => {
+  $(id).addEventListener('input', () => {
+    const v = Number($(id).value);
+    if (id === 'selfLo') { selfCtl.lo = Math.min(v, 100 - SELF_GAP); selfCtl.hi = Math.max(selfCtl.hi, selfCtl.lo + SELF_GAP); }
+    else { selfCtl.hi = Math.max(v, SELF_GAP); selfCtl.lo = Math.min(selfCtl.lo, selfCtl.hi - SELF_GAP); }
+    selfUI();
+  });
+  $(id).addEventListener('change', () => {
+    store.set('selfLo', selfCtl.lo);
+    store.set('selfHi', selfCtl.hi);
+    if (selfCtl.sent) selfApplyStroke(true);
+  });
+});
 $('selfVibe').addEventListener('input', () => setSelfVibe($('selfVibe').value));
 document.querySelectorAll('#selfChips button').forEach((b) => b.addEventListener('click', () => {
   if (!selfCtl.handyOn) selfCtl.handyOn = true;

@@ -134,6 +134,7 @@ function stashParams(extra = {}) {
     performer: lib.filters.performers.map((x) => x.id).join(','),
     studio: lib.filters.studios.map((x) => x.id).join(','),
     saved: lib.saved,
+    only2d: store.get('only2d', false) ? '1' : '0',
     per_page: 40,
     ...extra,
   });
@@ -287,7 +288,7 @@ async function renderContinue() {
     && !Object.values(lib.filters).some((l) => l.length);
   if (!plain || !lib.stashStatus?.ok) { box.hidden = true; return; }
   try {
-    const res = await fetch('/api/stash/scenes?' + new URLSearchParams({ continue: '1', per_page: 12, page: 1 }));
+    const res = await fetch('/api/stash/scenes?' + new URLSearchParams({ continue: '1', per_page: 12, page: 1, only2d: store.get('only2d', false) ? '1' : '0' }));
     if (!res.ok) throw new Error();
     const { scenes } = await res.json();
     box.hidden = !scenes.length;
@@ -884,6 +885,9 @@ function saveStashActivity(beacon = false) {
 document.querySelectorAll('#browseTabs button').forEach((b) => b.addEventListener('click', () => { $('search').value = ''; setBrowse(b.dataset.browse); }));
 $('stashSort').addEventListener('change', () => { store.set('stashSort', $('stashSort').value); refresh(); });
 $('onlyScripts').addEventListener('change', () => { store.set('onlyScripts', $('onlyScripts').checked); refresh(); });
+// „Nur 2D“ (⚙️ → Bibliothek): nur auf diesem Gerät gemerkt, nicht mit dem Server geteilt
+$('only2d').checked = store.get('only2d', false);
+$('only2d').addEventListener('change', () => { store.set('only2d', $('only2d').checked); refresh(); });
 
 let searchTimer;
 $('search').addEventListener('input', () => {

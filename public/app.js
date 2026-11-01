@@ -509,6 +509,15 @@ new ResizeObserver(() => { if (canvas.clientWidth) drawHeatmap(); }).observe(can
 // ---------------------------------------------------------------------------
 $('key').value = store.get('key', '');
 $('offset').value = store.get('offset', 0);
+// Einmalig (1.19.2): alter Standard „Hub max 90“ -> 100, auch in den je Szene gemerkten Werten
+if (!store.get('hubFix1192', false)) {
+  if (store.get('max', 100) === 90) store.set('max', 100);
+  const dev = store.get('sceneDev', {});
+  let changed = false;
+  Object.values(dev).forEach((d) => { if (d && d.max === 90) { d.max = 100; changed = true; } });
+  if (changed) store.set('sceneDev', dev);
+  store.set('hubFix1192', true);
+}
 $('slideMin').value = store.get('min', 0);
 $('slideMax').value = store.get('max', 100);
 $('invert').checked = store.get('invert', false);
@@ -777,6 +786,11 @@ function loadOffsetForVideo() {
   showOffsetInfo();
 }
 $('offset').addEventListener('input', updateOutputs);
+// −/+ wie den Schieber bewegen (gleiche Speicherung je Szene)
+[['offMinus', -10], ['offPlus', 10]].forEach(([id, d]) => $(id).addEventListener('click', () => {
+  $('offset').value = Number($('offset').value) + d;
+  $('offset').dispatchEvent(new Event('change'));
+}));
 $('offset').addEventListener('change', () => {
   const v = Number($('offset').value);
   const k = offsetKey();
@@ -816,14 +830,15 @@ async function applySlide() {
     $('slideMax').value = max;
     updateOutputs();
   }
+  // Gilt ab jetzt allgemein (bis 1.19.1 nur für die geladene Szene – andere Szenen zeigten den alten Wert)
+  // und zusätzlich für diese Szene, damit ein dort gemerkter Hub nicht wieder greift
+  store.set('min', min);
+  store.set('max', max);
   const k = offsetKey();
   if (k) {
     const map = store.get('sceneDev', {});
     map[k] = { ...map[k], min, max };
     store.set('sceneDev', map);
-  } else {
-    store.set('min', min);
-    store.set('max', max);
   }
   if (handy.connected) {
     try { await handy.slide(min, max); } catch (e) { log(e, true); }

@@ -342,6 +342,11 @@ body.fs-open { overflow: hidden; }
 .hq select { width: auto; margin: 0; }
 #hqPresets button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .ov-hit { position: absolute; inset: 0; }
+/* 1.19.2: Anzeige beim Gedrückt-Halten (doppelt schnell vor / zurück) */
+#ov.fast::after, #ov.rewind::after { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px;
+  background: rgba(0,0,0,.6); color: #fff; font-weight: 700; pointer-events: none; }
+#ov.fast::after { content: "2× ▶▶"; }
+#ov.rewind::after { content: "◀◀ 2× " attr(data-t); }
 .ov-top, .ov-bottom {
   position: absolute;
   left: 0;
@@ -640,6 +645,9 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .seg { display: flex; gap: 4px; margin-bottom: 8px; }
 .seg button { flex: 1; margin: 0; padding: 6px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 .seg button.active { background: var(--line); color: var(--text); }
+/* 1.19.2: viele Knöpfe (Standard je Gerät) brechen um statt die Seite seitlich verschiebbar zu machen */
+.seg.preset-default { flex-wrap: wrap; }
+.seg.preset-default button { flex: 1 1 auto; white-space: nowrap; }
 .libopts { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
 .libopts label.check { margin: 0; }
 .libopts select { width: auto; margin: 0; padding: 4px 6px; font-size: 13px; }
@@ -792,7 +800,8 @@ body:not(.has-vibe) #devices [data-panel="dev:vibe"] > :not(.conn) { display: no
 body:not(.has-dev) #devCommon, body:not(.has-dev) #finaleBtn { display: none; }
 body:not(.has-dev):not(.dev-open) #stopAll, body.no-stop-btn:not(.dev-open) #stopAll { display: none; }
 .dev-common { margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
-.dev-common #vibePause { margin-bottom: 10px; }
+body:not(.has-dev) #vibePause { display: none; }
+body:not(.has-dev) .dev-stop-row, body.no-stop-btn:not(.dev-open) .dev-stop-row { grid-template-columns: 1fr; }
 .sync-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 8px 12px; border: 1px solid #ffb74d; border-radius: 10px; color: #ffb74d; font-size: 14px; }
 .sync-hint[hidden] { display: none; }
 .sync-hint button { width: auto; margin: 0; }
@@ -901,9 +910,26 @@ body.dev-open #finaleBtn { display: none !important; }
 .sb-dev select { margin: 0; padding: 4px 6px; font-size: 13px; }
 .sb-info { grid-column: 2; font-size: 12px; color: var(--muted); }
 body.has-dev:not(.has-handy) .sb-handy, body.has-dev:not(.has-vibe) .sb-vibe { display: none; }
-.sb-own { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+/* 1.19.2: drei gleich breite Werkzeug-Knöpfe, Symbol über kurzem Text; Zurück/Löschen über die ganze Breite */
+.sb-own { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
 .sb-own button { width: auto; margin: 0; }
+.sb-own button:not(.sb-tool) { grid-column: 1 / -1; }
+.sb-own .sb-tool { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; font-size: 13px; }
+.sb-own .sb-tool .ic { font-size: 18px; line-height: 1; }
 .sb-own button[hidden] { display: none; }
+.sb-lbl { white-space: nowrap; }
+/* Offset kompakt */
+.offset-row { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; color: var(--muted); }
+.offset-row > span { flex: 1; }
+.offset-row button { width: 38px; height: 34px; margin: 0; padding: 0; flex: 0 0 auto; }
+.offset-row output { min-width: 56px; text-align: center; color: var(--text); font-variant-numeric: tabular-nums; }
+.offset-row .offset-reset[hidden] { display: none; }
+body:not(.adv-on) .offset-slider { display: none; }
+/* Pause und STOPP nebeneinander */
+.dev-stop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.dev-stop-row button { width: 100%; margin: 0; }
+/* 1.19.2: Feineinstellung Handy (Neu synchronisieren, Hub) nur im Geräte-Fenster über den Status oben, nicht am Video */
+body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices .dev-fine[data-fine="handy"] { display: none; }
 /* Meldungszeile im Geräte-Kasten entfällt – Rückmeldungen als Einblendung bzw. am Regler */
 #log { display: none !important; }
 

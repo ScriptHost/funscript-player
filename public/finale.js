@@ -10,8 +10,8 @@
 // geht es zurück zum normalen Video-Sync.
 // ===========================================================================
 
-// Standard seit 1.18: Script weiter, sanfter, halbes Tempo, Hub 15–85 %, nach 210 s zurück zum Sync
-const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 50, min: 15, max: 85, time: 210, half: true };
+// Standard seit 1.19.2: Script weiter, sanfter, halbes Tempo, Vibration 50 %, Hub 10–80 %, nach 240 s zurück zum Sync
+const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 50, min: 10, max: 80, time: 240, half: true };
 const FIN_KEYS = ['speed', 'vibe', 'min', 'max', 'time'];
 
 // Komplett gelöst? (dann darf der Video-Sync die Handy nicht zurückholen)
@@ -56,6 +56,17 @@ function finSave() {
 }
 
 function finLoad() {
+  // Einmalig (1.19.2): noch gespeicherte alte Standardwerte (Hub 15–85 %, 210 s) auf die neuen setzen
+  if (!store.get('finFix1192', false)) {
+    const s = store.get('finale', null);
+    if (s) {
+      if (s.min === 15) s.min = fin.min;
+      if (s.max === 85) s.max = fin.max;
+      if (s.time === 210) s.time = fin.time;
+      store.set('finale', s);
+    }
+    store.set('finFix1192', true);
+  }
   Object.assign(fin, store.get('finale', {}));
   for (const k of FIN_KEYS) $('fin_' + k).value = fin[k];
   finOutputs();
@@ -73,8 +84,8 @@ function finOutputs() {
   $('fin_half').checked = fin.half;
   $('finVibeLabel').textContent = soft ? 'Vibration (Anteil)' : 'Vibration';
   $('finModeInfo').textContent = soft
-    ? 'Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich unten – kleiner Bereich = sanfter. Der Satisfyer folgt dem Script mit dem eingestellten Anteil.'
-    : 'Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich unten. Der Satisfyer läuft mit fester Stärke.';
+    ? 'Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich (Hub von/bis) – kleiner Bereich = sanfter. Der Satisfyer folgt dem Script mit dem eingestellten Anteil.'
+    : 'Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich (Hub von/bis). Der Satisfyer läuft mit fester Stärke.';
   document.querySelectorAll('#finMode button').forEach((b) => b.classList.toggle('active', b.dataset.fin === fin.mode));
 }
 
