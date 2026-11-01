@@ -46,6 +46,12 @@ applyHud();
 $('langSel').value = I18N.lang;
 $('langSel').addEventListener('change', () => { store.set('lang', $('langSel').value); location.reload(); });
 
+// --- Demo-Modus (pro Gerät) ------------------------------------------------------------------
+$('demoMode').checked = store.get('demoMode', false);
+const applyDemo = () => document.body.classList.toggle('demo-mode', $('demoMode').checked);
+$('demoMode').addEventListener('change', () => { store.set('demoMode', $('demoMode').checked); applyDemo(); });
+applyDemo();
+
 // --- Erweiterte Einstellungen (pro Gerät): standardmäßig nur das Nötige ------------------------
 function setAdvMode(on) {
   document.body.classList.toggle('adv-on', on);
@@ -91,6 +97,9 @@ $('backupPut').addEventListener('change', async (e) => {
     location.reload();
   } catch (err) { log('Sicherung einspielen: ' + err.message, true); }
 });
+
+// --- Selbsttest (lädt die Seite mit ?selbsttest neu) --------------------------------------------
+$('selfTestRun').addEventListener('click', () => { location.href = location.pathname + '?selbsttest'; });
 
 // --- Einmal nach dem Update auf 1.18: Hinweis auf geänderte Standards --------------------------
 if (!store.get('seen118', false)) {
@@ -156,6 +165,38 @@ function renderBarOptions() {
 function saveBar() { store.set('barBtns', barCfg); applyBar(); renderBarOptions(); }
 applyBar();
 renderBarOptions();
+
+// --- Knöpfe der Bibliothek: vorhandene ein/aus, eigene Links (für alle Geräte) -----------------
+const libLinks = Object.assign({ hide: [], custom: [] }, store.get('libLinks', {}));
+function applyLibLinks() {
+  document.querySelectorAll('[data-libbtn]').forEach((b) => b.classList.toggle('tab-off', libLinks.hide.includes(b.dataset.libbtn)));
+  $('libCustomLinks').replaceChildren(...libLinks.custom.map((l) => Object.assign(document.createElement('a'), {
+    className: 'small secondary btn', href: l.url, target: '_blank', rel: 'noopener noreferrer', textContent: l.name + ' ↗',
+  })));
+  $('libLinkList').replaceChildren(...libLinks.custom.map((l, i) => {
+    const li = document.createElement('li');
+    const del = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '✕', title: 'Entfernen' });
+    del.addEventListener('click', () => { libLinks.custom.splice(i, 1); saveLibLinks(); });
+    li.append(Object.assign(document.createElement('span'), { className: 'check', textContent: `${l.name} – ${l.url}` }), del);
+    return li;
+  }));
+}
+function saveLibLinks() { store.set('libLinks', libLinks); applyLibLinks(); }
+document.querySelectorAll('#libBtnOptions input').forEach((cb) => {
+  cb.checked = !libLinks.hide.includes(cb.dataset.libopt);
+  cb.addEventListener('change', () => {
+    libLinks.hide = cb.checked ? libLinks.hide.filter((x) => x !== cb.dataset.libopt) : [...libLinks.hide, cb.dataset.libopt];
+    saveLibLinks();
+  });
+});
+$('libLinkAdd').addEventListener('click', () => {
+  const name = $('libLinkName').value.trim(), url = $('libLinkUrl').value.trim();
+  if (!name || !/^https?:\/\//i.test(url)) return log('Bitte Name und eine Adresse mit https:// eingeben.', true);
+  libLinks.custom.push({ name: name.slice(0, 30), url });
+  $('libLinkName').value = $('libLinkUrl').value = '';
+  saveLibLinks();
+});
+applyLibLinks();
 
 // --- Reiter der Stash-Bibliothek (Tags / Darsteller / Studios) ------------------------------
 const browseTabs = Object.assign({ tags: true, performers: true, studios: false }, store.get('browseTabs', {}));

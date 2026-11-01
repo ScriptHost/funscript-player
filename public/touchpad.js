@@ -44,13 +44,14 @@ const TOUCH_TARGETS = {
 // Modus „Position“ (Beta): die Handy folgt dem Finger direkt (WLAN: Direkt-Position HDSP,
 // Bluetooth/Intiface: Positionsbefehle). Höchstens alle 100 ms ein Befehl, immer der neueste Wert.
 // ---------------------------------------------------------------------------
-const tpos = { active: false, pending: null, last: null, timer: null, owner: null };
+const tpos = { active: false, pending: null, last: null, timer: null, owner: null, cur: null };
 const touchMode = () => store.get('touchMode', 'tempo');
 function touchPosActive() { return tpos.active; }
 
 function touchPosSend(v, owner) {
   tpos.active = true;
   tpos.pending = v;
+  tpos.cur = v;
   tpos.owner = owner;
   if (strokers().length) moveAll(mapPos(v), 100);
   if (!handy.connected || tpos.timer) return;
@@ -59,12 +60,14 @@ function touchPosSend(v, owner) {
     if (want === null || !tpos.active) { tpos.timer = null; return; }
     tpos.pending = null;
     if (handy.owner !== tpos.owner) claimHandy(tpos.owner);
-    const pos = $('invert').checked ? 100 - want : want;
-    // Dauer passend zum Weg, nicht schneller als die Handy kann
-    const dur = Math.max(100, Math.min(800, (Math.abs(pos - (tpos.last ?? pos)) / handyMaxSpeed()) * 1000));
+    const raw = $('invert').checked ? 100 - want : want;
+    // Glätten: kleine Zitterbewegungen des Fingers fallen weg, große Bewegungen kommen sofort
+    const pos = tpos.last === null || Math.abs(raw - tpos.last) > 25 ? raw : Math.round(tpos.last * 0.35 + raw * 0.65);
+    // Fahrzeit ≥ 2,5 × Befehlsabstand: die Handy ist noch unterwegs, wenn der nächste Befehl kommt
+    const dur = Math.max(250, Math.min(800, (Math.abs(pos - (tpos.last ?? pos)) / handyMaxSpeed()) * 1000));
     tpos.last = pos;
     try { await handy.hdspMove(pos, dur); } catch (e) { log(e, true); }
-    tpos.timer = setTimeout(flush, 100);
+    tpos.timer = setTimeout(flush, 90);
   };
   tpos.timer = setTimeout(flush, 0);
 }
@@ -130,6 +133,7 @@ function setupTouchPad(pad) {
   const release = () => {
     touchPosEnd(); // Position: Handy bleibt, wo sie ist
     if (q('.tp-hold').checked) return;
+    tpos.cur = null; // losgelassen: Mitschnitt nimmt hier nichts auf
     if (touchMode() !== 'pos') target.handyOff();
     target.vibeOff();
     cur = null;

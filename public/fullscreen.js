@@ -27,8 +27,21 @@ video.addEventListener('emptied', () => { if (!remote.on) stage.classList.remove
 // ---------------------------------------------------------------------------
 // Vollbild an/aus
 // ---------------------------------------------------------------------------
+// Option „Vollbild nur mit dem Video“: Android schickt beim Verlassen der App nur ein Video, das
+// selbst im Vollbild ist, automatisch ins kleine Fenster (der ganze Player-Bereich bliebe schwarz).
+// Dafür gibt es dann die Bedienleiste des Browsers statt der eigenen.
+let nativeFs = false;
+async function enterNativeFullscreen() {
+  try {
+    video.controls = true;
+    await video.requestFullscreen({ navigationUI: 'hide' });
+    nativeFs = true;
+    try { await screen.orientation.lock(video.videoHeight > video.videoWidth ? 'portrait' : 'landscape'); } catch { /* egal */ }
+  } catch { video.controls = false; nativeFs = false; }
+}
 async function enterFullscreen() {
-  if (isFs()) return;
+  if (isFs() || nativeFs) return;
+  if (store.get('fsVideoOnly', false) && video.requestFullscreen && !remote.on) return enterNativeFullscreen();
   stage.classList.add('fs');
   document.body.classList.add('fs-open');
   $('ovFs').textContent = '✕';
@@ -61,9 +74,12 @@ function exitFullscreen() {
 }
 // Als Fernbedienung schaltet ⛶ das Vollbild am Bildschirm
 const toggleFullscreen = () => (remote.on ? remoteCmd('fs') : isFs() ? exitFullscreen() : enterFullscreen());
+$('fsVideoOnly').checked = store.get('fsVideoOnly', false);
+$('fsVideoOnly').addEventListener('change', () => store.set('fsVideoOnly', $('fsVideoOnly').checked));
 
 // Zurück-Geste / Esc beendet das echte Fullscreen -> auch unseren Modus
 ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
+  if (nativeFs && document.fullscreenElement !== video) { nativeFs = false; video.controls = false; try { screen.orientation.unlock(); } catch { /* egal */ } }
   if (realFullscreen && !document.fullscreenElement && !document.webkitFullscreenElement) exitFullscreen();
 }));
 
@@ -104,7 +120,23 @@ function seekBy(s) {
 
 // Einfach tippen = Bedienung ein/aus, doppelt tippen links/rechts = ±5/10 s (⚙️ → Anzeige), Mitte = Vollbild
 let lastTap = 0, tapTimer;
+// Gedrückt halten links/rechts = spulen (alle 0,35 s 5 s weiter), Loslassen beendet
+let holdTimer = null, holdRepeat = null, held = false;
+$('ovHit').addEventListener('pointerdown', (e) => {
+  const r = stage.getBoundingClientRect();
+  const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;
+  held = false;
+  if (!side) return;
+  holdTimer = setTimeout(() => {
+    held = true;
+    seekBy(side * 5);
+    holdRepeat = setInterval(() => seekBy(side * 5), 350);
+  }, 450);
+});
+const endHold = () => { clearTimeout(holdTimer); clearInterval(holdRepeat); holdTimer = holdRepeat = null; };
+['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => $('ovHit').addEventListener(ev, endHold));
 $('ovHit').addEventListener('click', (e) => {
+  if (held) { held = false; return; } // war gedrückt halten, kein Tippen
   const now = Date.now();
   const r = stage.getBoundingClientRect();
   const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;

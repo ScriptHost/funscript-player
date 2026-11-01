@@ -20,6 +20,7 @@ $('btLead').addEventListener('input', () => { store.set('btLead', Number($('btLe
 // Hub-Bereich: im Finale dessen Bereich, sonst Hub min/max aus der Handy-Karte
 function strokeRange() {
   if (typeof fin !== 'undefined' && fin.active) return [fin.min, fin.max];
+  if (typeof selfHampLevel === 'function' && selfHampLevel() !== null) return selfStrokeRange(true); // „Selbst steuern“ mit Hublänge
   return [Number($('slideMin').value), Number($('slideMax').value)];
 }
 function mapPos(pos) {

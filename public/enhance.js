@@ -196,6 +196,16 @@ function enhInit() {
 // Im Hintergrund und im kleinen Fenster (Bild-in-Bild) nie: Der Browser zeichnet dann nicht weiter,
 // das kleine Fenster bliebe schwarz – dort läuft das Video selbst.
 const enhBackground = () => document.hidden || !!document.pictureInPictureElement;
+// Beim Videowechsel: Zeichenfläche schwarz, bis das neue Video sein erstes Bild hat
+function enhClear() {
+  if (!enh.ok || !enh.gl) return;
+  const gl = enh.gl;
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  enh.lastTime = -1;
+  enh.dirty = true;
+}
 function enhActive() {
   return enh.ok && enh.settings.preset !== 'off' && video.videoWidth > 0 && !video.dataset.noEnhance && !enhBackground();
 }

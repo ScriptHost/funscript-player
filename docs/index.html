@@ -189,7 +189,7 @@
     <h2>Mini-Player – direkt hier</h2>
     <p class="sub">Eine stark vereinfachte Fassung zum Reinschnuppern: Wähle ein Video und das passende
       <code>.funscript</code> von deinem Gerät – oder spiel das Beispiel-Script ohne Video ab. Schalte zwischen Original und ⚡ Automatik
-      um und sieh, was die Script-Automatik ändert. Handy und Satisfyer laufen als Anzeige mit; echte Geräte kannst du optional verbinden. Nichts wird hochgeladen, alles bleibt bei dir.</p>
+      um und sieh, was die Script-Automatik ändert. Handy und Satisfyer laufen als Anzeige mit. Nichts wird hochgeladen, alles bleibt bei dir.</p>
     <div id="tryDemo" class="try">
       <div class="tr-pick">
         <label class="btn tr-filebtn">📂 Video + Funscript wählen<input class="tr-files" type="file" multiple accept="video/*,.funscript,application/json" hidden></label>
@@ -212,13 +212,6 @@
           <div class="tr-dev"><div class="sd-rail"><div class="sd-carriage tr-carriage"></div></div><div class="sd-cap">↕ The Handy <b class="tr-hpos">–</b></div></div>
           <div class="tr-dev"><div class="sd-orb tr-orb"><span></span></div><div class="sd-cap">〰 Satisfyer <b class="tr-vlvl">0 %</b></div></div>
         </div>
-        <details class="tr-real">
-          <summary>Echte Geräte verbinden (optional, zum Ausprobieren)</summary>
-          <p class="muted">Satisfyer: Chrome oder Edge mit Bluetooth, Satisfyer-App vorher schließen. Handy: WLAN-Modus und Connection Key.
-            Je nach Browser klappt das aus einer lokal geöffneten Datei nicht – der volle Player läuft dafür auf einem Server.</p>
-          <div class="tr-row"><button class="btn ghost tr-ble">〰 Satisfyer verbinden</button></div>
-          <div class="tr-row"><input class="tr-key" type="password" placeholder="Handy Connection Key" autocomplete="off"><button class="btn ghost tr-handy">↕ Handy verbinden</button></div>
-        </details>
       </div>
     </div>
   </section>
@@ -443,6 +436,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="timeline">
+      <div class="tl"><b>1.19</b><p>Flüssigere Finger-Steuerung, Hublänge, Abschnitt eines Scripts anpassen, zur intensivsten Stelle springen, gemeinsames Preset für Handy und Satisfyer, Bild-Popup, eigene Links, Demo-Modus.</p></div>
       <div class="tl"><b>1.18</b><p>Handy original mit Takt-Schutz, eigene Scripts (neu aufnehmen, Abschnitt ersetzen, löschen), Offset mit „🎯 eingemessen“, Erweiterte Einstellungen, Sicherung, Englisch, schneller Container-Start mit klaren Logs, Einstellungen in der <code>.env</code>.</p></div>
       <div class="tl"><b>1.17</b><p>Handy folgt dem Finger (Touch „Position“), „voller Hub, halbes Tempo“, Modell-Erkennung, schneller Start durch gemerkte Scripts, anpassbare Player-Leiste, Bild-in-Bild beim App-Wechsel, HereSphere-Passwort und schneller auf der Brille, Herkunftsprüfung.</p></div>
       <div class="tl"><b>1.16</b><p>Eine Status-Anzeige, nur verbundene Geräte am Video, Sync als Standard, Mitschnitt zum Video, Touch mit Aufnahme, Mini-Player, Intensitäts-Filter, Satisfyer-Akku, gemessene Verzögerung, automatische Tests.</p></div>
@@ -487,14 +481,14 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-v1.18.0.zip</code> auf den Server kopieren und entpacken.</li>
+        <li>ZIP <code>handy-player-linux-v1.19.0.zip</code> auf den Server kopieren und entpacken.</li>
         <li><code>.env.example</code> nach <code>.env</code> kopieren und Domain, <code>STASH_URL</code> und ggf. Medienordner eintragen
           (Player unter <code>handy.${DOMAIN}</code>).</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
         <li>Bauen und starten – fertig unter <code>https://handy.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.18.0.zip
+<pre><code>unzip handy-player-linux-v1.19.0.zip
 cd handy-player
 cp .env.example .env   # einmal, dann anpassen
 docker compose up -d --build</code></pre>

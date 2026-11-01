@@ -24,6 +24,8 @@
       <span id="status" class="pill off"><span class="ic">↕ </span><span class="lbl">Handy: </span>getrennt</span>
       <span class="sep">·</span>
       <span id="vibeStatus" class="pill off"><span class="ic">〰 </span><span class="lbl">Satisfyer: </span>getrennt</span>
+      <!-- 1.19: oben nur noch ein Wort für alle Geräte; die Einzel-Anzeigen bleiben für die Logik im DOM -->
+      <span id="devState" class="pill off">getrennt</span>
     </button>
     <button id="menuBtn" class="menu-btn" aria-label="Menü" aria-expanded="false">☰</button>
     <nav id="menu" class="menu" aria-label="Menü" hidden>
@@ -82,10 +84,11 @@
             <option value="asc">sortiert: ruhig → intensiv</option>
             <option value="desc">sortiert: intensiv → ruhig</option>
           </select>
-          <button id="stashRandom" class="small secondary">🎲 Zufall</button>
-          <a class="small secondary btn sync-only" href="https://faptap.net/videos" target="_blank" rel="noopener noreferrer" title="Neue Scripts auf FapTap finden">FapTap ↗</a>
-          <a class="small secondary btn stream-only" href="https://www.pornhub.com/" target="_blank" rel="noopener noreferrer" title="Pornhub öffnen">Pornhub ↗</a>
-          <label class="small secondary btn" title="Lokale Dateien abspielen">📂 Datei
+          <button id="stashRandom" class="small secondary" data-libbtn="random">🎲 Zufall</button>
+          <a class="small secondary btn sync-only" data-libbtn="faptap" href="https://faptap.net/videos" target="_blank" rel="noopener noreferrer" title="Neue Scripts auf FapTap finden">FapTap ↗</a>
+          <a class="small secondary btn stream-only" data-libbtn="pornhub" href="https://www.pornhub.com/" target="_blank" rel="noopener noreferrer" title="Pornhub öffnen">Pornhub ↗</a>
+          <span id="libCustomLinks" class="lib-custom"></span>
+          <label class="small secondary btn" data-libbtn="file" title="Lokale Dateien abspielen">📂 Datei
             <input id="fileInput" type="file" multiple accept="video/*,.funscript,application/json" hidden>
           </label>
         </div>
@@ -172,6 +175,12 @@
         </div>
         <canvas id="heatmap" class="sync-only" title="Klicken zum Springen"></canvas>
 
+        <!-- 1.19: Bild schnell einstellen, ohne die Einstellungen zu öffnen -->
+        <div id="imgPop" class="img-pop" hidden>
+          <div class="seg"><button data-q="auto">Automatisch – bestes Bild</button><button data-q="off">Aus – Original</button></div>
+          <div class="seg"><button data-preset="natural">Natürlich</button><button data-preset="sharp">Schärfer</button><button data-preset="max">Maximal</button></div>
+          <a href="#" data-settings="imageSettings">Alle Bild-Einstellungen …</a>
+        </div>
         <button id="openImageSettings" class="small secondary quality-link">✨ Bild: <b id="enhState">Natürlich</b> · HQ: <b id="hqLabel">Auto</b> – Einstellungen</button>
 
         <div class="sceneinfo">
@@ -201,6 +210,8 @@
                 <div class="self-top"><button id="selfHandy" class="small">▶ Handy</button>
                   <label>Geschwindigkeit <output id="selfSpeedVal"></output></label></div>
                 <input id="selfSpeed" type="range" min="0" max="100" step="5" value="40" aria-label="Handy-Geschwindigkeit">
+                <label class="self-stroke">Hublänge <output id="selfStrokeVal">100 %</output>
+                  <input id="selfStroke" type="range" min="20" max="100" step="10" value="100" aria-label="Hublänge"></label>
                 <div id="selfChips" class="chips"><button data-v="15">15</button><button data-v="30">30</button><button data-v="45">45</button><button data-v="60">60</button><button data-v="75">75</button><button data-v="90">90</button></div>
               </div>
               <div class="self-dev self-vibe">
@@ -300,13 +311,13 @@
             Für ganz gleichmäßig: „Nach Geschwindigkeit“ plus Gleichmäßigkeit 40–60 %.</p>
           <div class="adv grid2">
             <label>Minimum <output id="vibeMinVal"></output>
-              <input id="vibeMin" type="range" min="0" max="100" value="10">
+              <input id="vibeMin" type="range" min="0" max="100" value="0">
             </label>
             <label>Maximum <output id="vibeMaxVal"></output>
               <input id="vibeMax" type="range" min="0" max="100" value="100">
             </label>
             <label>Volle Stärke ab <output id="vibeFullVal"></output>
-              <input id="vibeFull" type="range" min="50" max="600" step="10" value="300">
+              <input id="vibeFull" type="range" min="50" max="600" step="10" value="200">
             </label>
             <label class="check"><input id="vibeLeadAuto" type="checkbox" checked> Vorlauf automatisch (Bluetooth-Laufzeit messen) <small id="vibeLeadAutoInfo" class="muted"></small></label>
             <label>Vorlauf von Hand <output id="vibeLeadVal"></output>
@@ -399,6 +410,7 @@
         <div id="setScript" class="card">
           <h2>🛠️ Script-Werkzeuge</h2>
           <p class="hint-text">Rechnen das Script nur beim Abspielen um – deine Dateien bleiben unverändert. Die Heatmap zeigt, was an die Geräte geht.</p>
+          <label class="check"><input id="presetLink" type="checkbox" checked> Handy und Satisfyer gemeinsam einstellen (eine Auswahl für beide)</label>
           <h3>Standard für alle Szenen – ↕ Handy</h3>
           <div class="seg preset-default" data-dev="handy">
             <button data-preset="protect">Original + Takt-Schutz</button>
@@ -537,6 +549,8 @@
           <label>Sprache
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
+          <label class="check adv"><input id="fsVideoOnly" type="checkbox"> Vollbild nur mit dem Video – dann geht beim Verlassen der App automatisch das kleine Fenster auf (Android); im Vollbild gibt es die Browser-Bedienung statt der Player-Leiste</label>
+          <label class="check"><input id="demoMode" type="checkbox"> Demo-Modus: Vorschaubilder, Video und Titel unkenntlich – zum Vorzeigen und für Screenshots (nur auf diesem Gerät)</label>
           <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
           <h3 class="adv">Beim Stöbern</h3>
           <label class="adv">Video, während du in Bibliothek oder Einstellungen bist
@@ -560,6 +574,17 @@
           <label class="adv check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, über „📂 Datei“ geladene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
           <p class="adv hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
           <label class="check"><input id="setShowContinue" type="checkbox"> „Weiterschauen“-Reihe oben in der Stash-Bibliothek anzeigen</label>
+          <h3>Knöpfe in der Bibliothek</h3>
+          <div id="libBtnOptions" class="hud-options">
+            <label class="check"><input type="checkbox" data-libopt="random"> 🎲 Zufall</label>
+            <label class="check"><input type="checkbox" data-libopt="faptap"> FapTap ↗</label>
+            <label class="check"><input type="checkbox" data-libopt="pornhub"> Pornhub ↗</label>
+            <label class="check"><input type="checkbox" data-libopt="file"> 📂 Datei</label>
+          </div>
+          <p class="hint-text">Eigene Links (öffnen in einem neuen Tab):</p>
+          <ul id="libLinkList" class="bar-options"></ul>
+          <div class="copyrow"><input id="libLinkName" type="text" placeholder="Name, z. B. Scripts" maxlength="30">
+            <input id="libLinkUrl" type="url" placeholder="https://…"><button id="libLinkAdd" class="small secondary">＋ Hinzufügen</button></div>
           <h3 class="adv">Reiter in der Stash-Bibliothek</h3>
           <div id="browseOptions" class="adv hud-options">
             <label class="check"><input type="checkbox" data-browse-opt="tags"> Tags</label>
@@ -578,6 +603,9 @@
           <h2>ℹ️ System</h2>
           <p class="hint-text">Funscript Player</p>
           <dl id="sysInfo" class="sysinfo"></dl>
+          <h3>Selbsttest</h3>
+          <p class="hint-text">Spielt die wichtigsten Abläufe mit einer simulierten Handy durch (an deine Geräte geht nichts) und zeigt das Ergebnis – mit Bericht zum Herunterladen.</p>
+          <button id="selfTestRun" class="small secondary">🧪 Selbsttest starten</button>
           <h3>Sicherung</h3>
           <p class="hint-text">Eigene Scripts, eingemessene Offsets, Patterns, Script-Baukasten und alle Einstellungen in einer Datei –
             zum Aufheben oder für einen neuen Server. Original-Funscripts und Videos sind nicht dabei.</p>
@@ -695,7 +723,7 @@
           <div class="sb-head"><span id="sbName" class="sb-name"></span>
             <span id="sbChoice" class="seg sb-choice" hidden><button data-choice="orig">⚡ Original</button><button data-choice="own">✋ Eigenes</button></span></div>
           <div class="sb-presets">
-            <label class="sb-dev sb-handy">↕ Handy
+            <label class="sb-dev sb-handy"><span class="sb-lbl">↕ Handy</span>
               <select id="scenePresetHandy" title="Gilt für diese Szene – Standard unter ⚙️ → Script">
                 <option value="protect">Original + Takt-Schutz</option><option value="original">Original</option><option value="auto">Automatisch</option>
                 <option value="soft">Sanft</option><option value="intense">Intensiv</option><option value="custom">Eigene</option>
@@ -707,8 +735,19 @@
               </select><small id="sbInfoVibe" class="sb-info"></small></label>
           </div>
           <div class="sb-own">
+            <button id="sbResume" class="small" hidden>↩ Zurück zum Script</button>
             <button id="sbSelf" class="small secondary" title="Script anhalten und selbst steuern – mit ⏺ neu aufnehmen">✋ Selbst steuern / neu aufnehmen</button>
             <button id="sbDelete" class="small secondary" hidden>🗑 Eigenes Script löschen</button>
+            <button id="sbHot" class="small secondary" title="Springt der Reihe nach zu den 3 intensivsten Stellen">🔥 Intensivste Stelle</button>
+            <button id="sbCut" class="small secondary" title="Einen Zeitbereich sanfter, intensiver, langsamer, verschoben oder stumm machen">✂ Abschnitt anpassen</button>
+          </div>
+          <div id="sbCutBox" class="sb-cut" hidden>
+            <div class="sb-cut-row"><button id="cutFrom" class="small secondary">⇤ ab hier</button><span id="cutRange" class="hint-text">–</span><button id="cutTo" class="small secondary">bis hier ⇥</button></div>
+            <div class="sb-cut-row"><select id="cutAction">
+              <option value="soft">sanfter (kleinerer Hub)</option><option value="hard">intensiver (größerer Hub)</option>
+              <option value="half">halbes Tempo</option><option value="mute">stumm (Handy ruht)</option>
+              <option value="later">Offset +100 ms (später)</option><option value="earlier">Offset −100 ms (früher)</option>
+            </select><button id="cutApply" class="small">✓ Als eigenes Script speichern</button></div>
           </div>
         </div>
         <p id="devNone" class="hint-text dev-none">Kein Gerät verbunden – oben auf <b>↕</b> (Handy) oder <b>〰</b> (Satisfyer) tippen.</p>

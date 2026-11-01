@@ -101,7 +101,18 @@
   }
   const close = Object.assign(document.createElement('button'), { className: 'small', textContent: 'Schließen (Seite neu laden)' });
   close.addEventListener('click', () => { location.href = location.pathname; });
-  box.append(ul, close);
+  // Bericht zum Weitergeben (Version, Browser, Ergebnis)
+  const dl = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '⬇ Bericht herunterladen' });
+  dl.addEventListener('click', async () => {
+    const version = await fetch('/api/version').then((r) => r.json()).then((v) => v.version).catch(() => '?');
+    const text = [`Funscript Player ${version} – Selbsttest ${new Date().toLocaleString('de-DE')}`, navigator.userAgent, '',
+      ...results.map((r) => `${r.ok ? 'OK ' : 'FEHLER'} ${r.name}${r.info ? ' – ' + r.info : ''}`)].join('\n');
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'text/plain' })), download: 'selbsttest.txt' });
+    document.body.append(a);
+    a.click();
+    a.remove();
+  });
+  box.append(ul, close, ' ', dl);
   document.body.append(box);
   window.selfTestResults = results;
 })();

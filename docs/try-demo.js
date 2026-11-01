@@ -192,7 +192,7 @@
   // --- Optional: Satisfyer per Web Bluetooth ------------------------------------
   const SF = '51361500-c5e7-47c7-8a6e-47ebc99d80e8';
   let tx = null, lastSent = -1, sending = false;
-  $('.tr-ble').addEventListener('click', async () => {
+  $('.tr-ble')?.addEventListener('click', async () => {
     try {
       if (!navigator.bluetooth) throw new Error('Bluetooth geht nur in Chrome oder Edge (Android/PC).');
       const dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [SF] });
@@ -219,7 +219,7 @@
     if (!r.ok || j.error) throw new Error(j.error?.message || `HTTP ${r.status}`);
     return j;
   };
-  $('.tr-handy').addEventListener('click', async () => {
+  $('.tr-handy')?.addEventListener('click', async () => {
     handy.key = $('.tr-key').value.trim();
     try {
       if (!handy.key) throw new Error('Connection Key eingeben.');

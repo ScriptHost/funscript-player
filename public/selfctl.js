@@ -13,6 +13,7 @@ const selfCtl = {
   mode: store.get('selfMode', 'off'),
   handyOn: false,
   speed: store.get('selfSpeed', 40),
+  stroke: store.get('selfStroke', 100), // Hublänge in % des Hubs (um dessen Mitte)
   vibe: store.get('selfVibe', 0),
   sent: 0,       // an die Handy gesendete Geschwindigkeit (0 = steht)
   busy: false,
@@ -48,6 +49,8 @@ function selfUI() {
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
+  $('selfStroke').value = selfCtl.stroke;
+  $('selfStrokeVal').textContent = `${selfCtl.stroke} %`;
   $('selfSpeedVal').textContent = `${selfSpeed()} %${selfSpeed() < selfCtl.speed ? ' (Grenze)' : ''}`;
   $('selfVibe').value = selfCtl.vibe;
   $('selfVibeVal').textContent = `${selfCtl.vibe} %`;
@@ -56,6 +59,16 @@ function selfUI() {
 }
 
 // Handy per WLAN nachführen: starten, Tempo ändern, anhalten
+// Hublänge: kürzerer Weg um die Mitte des eingestellten Hubs (Hub min/max); beim Stopp wieder voller Hub
+function selfStrokeRange(on = true) {
+  const lo = Number($('slideMin').value), hi = Number($('slideMax').value);
+  if (!on || selfCtl.stroke >= 100) return [lo, hi];
+  const mid = (lo + hi) / 2, half = ((hi - lo) * selfCtl.stroke) / 200;
+  return [Math.round(mid - half), Math.round(mid + half)];
+}
+function selfApplyStroke(on = true) {
+  if (handy.connected) handy.slide(...selfStrokeRange(on)).catch(() => {});
+}
 async function selfTick() {
   selfUI();
   if (!handy.connected || selfCtl.busy) return;
@@ -65,11 +78,13 @@ async function selfTick() {
   try {
     if (want && !selfCtl.sent) {
       claimHandy('self');
+      selfApplyStroke(true);
       await handy.hampStart(want);
     } else if (want) {
       await handy.hampVelocity(want);
     } else if (handy.owner === 'self') {
       await handy.hampStop();
+      selfApplyStroke(false);
     }
     selfCtl.sent = want;
   } catch (e) {
@@ -109,6 +124,8 @@ const setSelfSpeed = (v) => {
 };
 const setSelfVibe = (v) => { selfCtl.vibe = Number(v); store.set('selfVibe', selfCtl.vibe); selfUI(); };
 $('selfSpeed').addEventListener('input', () => setSelfSpeed($('selfSpeed').value));
+$('selfStroke').addEventListener('input', () => { selfCtl.stroke = Number($('selfStroke').value); selfUI(); });
+$('selfStroke').addEventListener('change', () => { store.set('selfStroke', selfCtl.stroke); if (selfCtl.sent) selfApplyStroke(true); });
 $('selfVibe').addEventListener('input', () => setSelfVibe($('selfVibe').value));
 document.querySelectorAll('#selfChips button').forEach((b) => b.addEventListener('click', () => {
   if (!selfCtl.handyOn) selfCtl.handyOn = true;
@@ -121,14 +138,17 @@ selfUI();
 // ⏺ Mitschnitt zum Video: zeichnet die Steuerung (Regler, Schnellwahl, Touch) an der
 // Video-Zeit auf -> wird ein Funscript zu diesem Video (Tempo der Stöße = Stärke).
 // ---------------------------------------------------------------------------
-let selfRec = null, selfRecTimer = null, selfRecActions = null;
+let selfRec = null, selfRecTimer = null, selfRecActions = null, selfRecPos = false;
+// Touch „Position“: aufgenommen wird die Finger-Position (wird ein Positions-Script), sonst das Tempo
 const selfRecValue = () => {
+  if (touchMode() === 'pos') return videoPlaying() && tpos.cur !== null ? tpos.cur : null;
   const v = Math.max(selfCtl.handyOn ? selfSpeed() : 0, selfCtl.vibe);
   return selfActive() && v > 0 ? v : null;
 };
 $('selfRec').addEventListener('click', () => {
   if (!selfRec) {
     selfRec = [];
+    selfRecPos = touchMode() === 'pos';
     selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
     $('selfRec').textContent = '■ Mitschnitt beenden';
     $('selfRec').classList.add('recording');
@@ -149,7 +169,7 @@ $('selfRec').addEventListener('click', () => {
   }
   if (!withGaps.some((x) => x[1])) { $('selfRecInfo').textContent = 'nichts aufgenommen – Video abspielen und steuern'; return; }
   const start = withGaps[0][0], end = withGaps[withGaps.length - 1][0];
-  selfRecActions = touchToTempoActions(withGaps, end, start);
+  selfRecActions = selfRecPos ? touchToPositionActions(samples.filter((x) => x[1] !== null)) : touchToTempoActions(withGaps, end, start);
   $('selfRecInfo').textContent = `${Math.round((end - start) / 1000)} s · ${selfRecActions.length} Punkte`;
   $('selfRecSave').hidden = $('selfRecFile').hidden = false;
   // Gibt es schon ein eigenes Script: ganz ersetzen oder nur den aufgenommenen Abschnitt

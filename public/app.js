@@ -78,7 +78,24 @@ document.addEventListener('click', (e) => {
   openSettings(a.dataset.settings || a.getAttribute('href').slice(1));
 });
 $('navSettings').addEventListener('click', () => (document.body.dataset.view === 'settings' ? setMode(appMode) : openSettings()));
-$('openImageSettings').addEventListener('click', () => openSettings('imageSettings'));
+// Bild-Popup unter dem Video (alle Einstellungen über den Link darin)
+function renderImgPop() {
+  const q = enh.settings.preset === 'off' ? 'off' : 'auto';
+  document.querySelectorAll('#imgPop [data-q]').forEach((b) => b.classList.toggle('active', b.dataset.q === q && ['auto', 'off'].includes(enh.settings.preset)));
+  document.querySelectorAll('#imgPop [data-preset]').forEach((b) => b.classList.toggle('active', b.dataset.preset === enh.settings.preset));
+}
+$('openImageSettings').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('imgPop').hidden = !$('imgPop').hidden;
+  renderImgPop();
+});
+$('imgPop').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.q) setQualityMode(b.dataset.q); else enhSetPreset(b.dataset.preset);
+  renderImgPop();
+});
+document.addEventListener('click', (e) => { if (!$('imgPop').hidden && !e.target.closest('#imgPop, #openImageSettings')) $('imgPop').hidden = true; });
 
 function setMode(mode) {
   appMode = mode;
@@ -220,6 +237,7 @@ function loadVideo(src, name, hqSrc = '') {
   video.removeAttribute('poster');
   video.removeAttribute('src');
   video.load();
+  if (typeof enhClear === 'function') enhClear(); // altes Bild der Bildverbesserung weg (sonst kurz Standbild des vorigen Videos)
   $('drop').classList.add('loading');
   Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
   // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
@@ -354,6 +372,13 @@ async function doSync() {
     await handy.play(mediaTime() * 1000 + Number($('offset').value), rate);
     setStatus('on', 'Video läuft');
   } catch (e) {
+    // Cloud weg, aber die Handy hängt per Bluetooth an Intiface: dorthin wechseln (stroker.js übernimmt)
+    if (e.kind === 'net' && typeof strokers === 'function' && strokers().length) {
+      handy.connected = false;
+      log('Handy-Cloud nicht erreichbar – steuere die Handy per Bluetooth (Intiface).', true);
+      setTimeout(() => connectHandy(true), 60000); // später wieder die Cloud versuchen
+      return;
+    }
     setStatus('err', handyErrText(e));
     log(e, true);
   }
@@ -570,6 +595,9 @@ function updateDevClasses() {
   document.body.classList.toggle('has-handy', h);
   document.body.classList.toggle('has-vibe', v);
   document.body.classList.toggle('has-dev', h || v);
+  // Status oben: ein Wort für alle Geräte
+  $('devState').textContent = h || v ? 'verbunden' : 'getrennt';
+  $('devState').className = 'pill ' + (h || v ? 'on' : 'off');
   $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}Handy-Cloud: ${handy.rtt} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
   // Verbinden-Knopf zeigt den Zustand (verbunden = grau, „neu verbinden“)
   const btn = $('connect');
@@ -595,7 +623,11 @@ $('syncHintOn').addEventListener('click', () => {
 // „Mehr zur Szene“ nur zeigen, wenn darin etwas steht (und es nicht unter ⚙️ → Anzeige ausgeblendet ist)
 function updateSceneMore() {
   const parts = ['scenePeople', 'sceneTags', 'sceneMarkers', 'sceneDetails'].map($);
-  $('sceneMore').hidden = !parts.some((p) => p.textContent.trim() && getComputedStyle(p).display !== 'none');
+  const shown = parts.filter((p) => p.textContent.trim() && getComputedStyle(p).display !== 'none');
+  $('sceneMore').hidden = !shown.length;
+  const single = shown.length === 1;
+  $('sceneMore').classList.toggle('single', single);
+  if (single) $('sceneMore').open = true;
 }
 setInterval(updateSceneMore, 1000);
 $('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNowBar, 100); });
@@ -797,8 +829,16 @@ async function applySlide() {
     try { await handy.slide(min, max); } catch (e) { log(e, true); }
   }
 }
+let hubPreviewAt = 0;
+function hubPreview(id) {
+  if (!handy.connected || (handy.owner && handy.owner !== 'video') || videoPlaying() || Date.now() - hubPreviewAt < 250) return;
+  hubPreviewAt = Date.now();
+  // Hub vorübergehend 0–100, dann die Grenze anfahren; „change“ setzt den Hub wieder richtig
+  handy.slide(0, 100).then(() => handy.hdspMove(Number($(id).value), 300)).catch(() => {});
+}
 ['slideMin', 'slideMax'].forEach((id) => {
   $(id).addEventListener('input', updateOutputs);
+  $(id).addEventListener('input', () => hubPreview(id));
   $(id).addEventListener('change', applySlide);
 });
 
@@ -809,7 +849,8 @@ $('invert').addEventListener('change', () => {
 
 // Drag & Drop + Dateiauswahl
 const drop = $('drop');
-['loadeddata', 'error'].forEach((ev) => video.addEventListener(ev, () => drop.classList.remove('loading')));
+// Erst mit dem neuen Video „geladen“ – das Leeren (load() ohne Quelle) zählt nicht
+['loadeddata', 'error'].forEach((ev) => video.addEventListener(ev, () => { if (video.currentSrc) drop.classList.remove('loading'); }));
 ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, () => drop.classList.remove('over')));
 drop.addEventListener('drop', (e) => { e.preventDefault(); e.stopPropagation(); handleFiles(e.dataTransfer.files); });

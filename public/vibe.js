@@ -483,6 +483,9 @@ let vibePaused = false;
 function setVibePaused(paused) {
   vibePaused = paused;
   $('vibePause').textContent = paused ? '▶ Geräte fortsetzen' : '❚❚ Geräte pausieren';
+  $('ovVibe').textContent = paused ? 'Vib ▶' : 'Vib ❚❚';
+  $('ovVibe').classList.toggle('off', paused);
+  $('ovVibe').title = paused ? 'Geräte pausiert – antippen zum Fortsetzen' : 'Vibration pausieren';
   if (typeof resync === 'function') resync(); // Handy hält mit an bzw. läuft wieder
 }
 $('vibePause').addEventListener('click', () => setVibePaused(!vibePaused));
@@ -522,12 +525,26 @@ function scriptIntensity(actions, ms) {
   const tempo = Math.min(1, speedAt(actions, ms) / Number($('vibeFull').value));
   if (mode === 'speed') return tempo;
   if (tempo === 0) return 0;
-  const depth = 1 - pos / 100;
-  return Math.max(0.12, depth) * (0.35 + 0.65 * tempo);
+  // 1.19: kräftiger und deutlicher pulsierend (vorher 0,12 / 0,35 + 0,65 – wirkte zu gleichmäßig)
+  const depth = Math.pow(1 - pos / 100, 0.7);
+  return Math.max(0.15, depth) * (0.55 + 0.45 * tempo);
 }
 
+// „Probe“: nach einer Änderung an der Übersetzung 2 s spürbar machen (Beispiel-Stöße, 300 ms)
+const PROBE_ACTIONS = Array.from({ length: 16 }, (_, i) => ({ at: i * 300, pos: i % 2 ? 100 : 0 }));
+let probe = { until: 0, start: 0 };
+function vibeProbe() {
+  if (!allVibes().length || scriptSource()) return;
+  probe = { start: performance.now(), until: performance.now() + 2000 };
+}
+['vibeMap', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeScene', 'vibeSmooth'].forEach((id) => $(id).addEventListener('change', vibeProbe));
 function targetLevel() {
   if (vibePaused) return 0;
+  if (performance.now() < probe.until) {
+    const raw = scriptIntensity(PROBE_ACTIONS, performance.now() - probe.start + 150);
+    const min = Number($('vibeMin').value) / 100, max = Number($('vibeMax').value) / 100;
+    return raw > 0.01 ? (min + (max - min) * raw) * Number($('vibeScene').value) / 100 : 0;
+  }
   if (typeof finDetached === 'function' && finDetached()) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
   // Touch-Fläche unter 🎮 Steuern: Finger-Höhe = Stärke, „Maximum“ gilt
   const touched = typeof touchVibeLevel === 'function' ? touchVibeLevel() : null;

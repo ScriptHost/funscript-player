@@ -822,6 +822,8 @@ body.mini-on #view-player { display: block !important; }
 body.mini-on #view-player > :not(#drop) { display: none !important; }
 body.mini-on #drop {
   position: fixed; z-index: 1600; left: calc(12px + env(safe-area-inset-left)); bottom: calc(12px + env(safe-area-inset-bottom));
+  /* 1.19: oben an der kleinen Bildschirmhöhe (svh) verankert – springt beim Scrollen nicht mit der Browserleiste */
+  top: calc(100svh - 12px - env(safe-area-inset-bottom) - min(44vw, 340px) * 9 / 16); bottom: auto;
   width: min(44vw, 340px); height: auto; aspect-ratio: 16 / 9; margin: 0; border-radius: 12px; overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,.55); cursor: pointer;
 }
@@ -923,3 +925,44 @@ body:not(.adv-on) #view-settings .adv { display: none !important; }
   background: var(--card); border: 2px solid var(--accent); box-shadow: 0 10px 40px rgba(0,0,0,.6); font-size: 14px; }
 .selftest ul { padding-left: 4px; list-style: none; }
 .selftest li { margin: 4px 0; }
+
+/* 1.19: „Zeile Scriptname (Punkte)“ aus (⚙️ → Anzeige) gilt auch für den Script-Bereich */
+body.hud-off-script #sbName, body.hud-off-script .sb-info { display: none !important; }
+/* Vib-Knopf zeigt, dass die Geräte pausiert sind */
+.ov-row #ovVibe.off { background: #c62828; color: #fff; }
+/* Zurück zum Script: deutlich im Script-Bereich */
+#sbResume { width: auto; margin: 0; }
+#sbResume[hidden] { display: none; }
+.self-stroke { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 6px 0; font-size: 14px; color: var(--muted); }
+.self-stroke input { flex: 1 1 100%; margin: 0; }
+
+/* 1.19: ein gemeinsamer Status oben (verbunden / getrennt) */
+#devChip #status, #devChip #vibeStatus, #devChip .sep { display: none; }
+#devChip #devState { border: 0; padding: 0; }
+/* Bild-Popup */
+.img-pop { margin: 6px 0; padding: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.img-pop[hidden] { display: none; }
+.img-pop .seg { flex-wrap: wrap; margin-bottom: 8px; }
+.img-pop .seg button { flex: 1 1 auto; width: auto; padding: 6px 10px; }
+.img-pop .seg button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.img-pop a { font-size: 13px; }
+/* Bibliothek: ausgeblendete Knöpfe und eigene Links */
+.libbar .tab-off { display: none !important; }
+.lib-custom { display: contents; }
+/* 1.19: Szenentitel kleiner; „Mehr zur Szene“ ohne Aufklappen, wenn nur ein Teil an ist */
+.sceneinfo h2 { font-size: 17px; line-height: 1.3; }
+.scene-more.single > summary { display: none; }
+/* 1.19: Handy und Satisfyer gemeinsam eingestellt -> eine Auswahl, Infos beider Geräte darunter */
+body.preset-linked .sb-vibe .sb-lbl, body.preset-linked .sb-vibe select { display: none; }
+body.preset-linked .sb-vibe { grid-template-columns: 88px 1fr; margin-top: -4px; }
+
+/* ✂ Abschnitt anpassen */
+.sb-cut { margin-top: 8px; padding: 8px; border: 1px dashed var(--line); border-radius: 8px; display: grid; gap: 6px; }
+.sb-cut[hidden] { display: none; }
+.sb-cut-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sb-cut-row button, .sb-cut-row select { width: auto; margin: 0; }
+
+/* 1.19: Demo-Modus – Inhalte unkenntlich, Bedienung bleibt sichtbar */
+body.demo-mode .thumb img, body.demo-mode .thumb video, body.demo-mode #video, body.demo-mode #enh,
+body.demo-mode .tile-title, body.demo-mode .tile-sub, body.demo-mode #videoName, body.demo-mode #ovTitle,
+body.demo-mode #nowTitle, body.demo-mode .chips-row, body.demo-mode #sceneMeta, body.demo-mode .continue-list { filter: blur(14px); }

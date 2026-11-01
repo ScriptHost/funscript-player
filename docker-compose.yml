@@ -1,43 +1,40 @@
-# Alle Einstellungen stehen in der .env daneben (Vorlage: .env.example -> einmal kopieren nach .env).
+# Funscript Player – alle Werte stehen in der .env (Vorlage: .env.example, einmal kopieren).
 services:
-
   Handy-Player:
     build: .
     image: handy-player:local
     container_name: Handy-Player
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    # Benutzer im Container (Standard 1000:1000 = „node“, nie root) – über PUID/PGID in der .env
-    user: "${PUID:-1000}:${PGID:-1000}"
+    user: "${PUID:-1000}:${PGID:-1000}"          # nie root
+    security_opt: [no-new-privileges:true]
+
     # Erreichbar unter http://<server>:8080 – für HTTPS einen Reverse Proxy davor setzen
     ports:
       - "8080:8080"
-    # Intel-Grafik für den HQ-Stream (wie bei Immich); RENDER_GID = Gruppe „render“ auf dem Host
-    devices:
-      - /dev/dri:/dev/dri
-    group_add:
-      - "${RENDER_GID:-992}"
+
+    # Intel-Grafik für den HQ-Stream
+    devices: [/dev/dri:/dev/dri]
+    group_add: ["${RENDER_GID:-992}"]
+
     environment:
-      AUTH_USER: "${AUTH_USER:-}"
-      AUTH_PASS: "${AUTH_PASS:-}"
-      STASH_URL: "${STASH_URL:-}"
-      STASH_API_KEY: "${STASH_API_KEY:-}"
-      STASH_INSECURE: "${STASH_INSECURE:-}"
-      HQ_ACCEL: "${HQ_ACCEL:-}"
-      HQ_MAX: "${HQ_MAX:-3}"
-      HERESPHERE: "${HERESPHERE:-}"
-      INTIFACE_LAN_ONLY: "${INTIFACE_LAN_ONLY:-}"
-      LOG_LEVEL: "${LOG_LEVEL:-}"
-      TZ: "${TZ:-Europe/Berlin}"
+      AUTH_USER: ${AUTH_USER:-}
+      AUTH_PASS: ${AUTH_PASS:-}
+      STASH_URL: ${STASH_URL:-}
+      STASH_API_KEY: ${STASH_API_KEY:-}
+      STASH_INSECURE: ${STASH_INSECURE:-}
+      HQ_ACCEL: ${HQ_ACCEL:-}
+      HQ_MAX: ${HQ_MAX:-3}
+      HERESPHERE: ${HERESPHERE:-}
+      INTIFACE_LAN_ONLY: ${INTIFACE_LAN_ONLY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-}
+      TZ: ${TZ:-Europe/Berlin}
+
     volumes:
-      # Videoordner (+ gleichnamige .funscript) – jeder Ordner unter /media/<Name> wird eine eigene Quelle
-      # in der Bibliothek und in HereSphere. Zum Einschalten „#“ entfernen und den Pfad in der .env setzen:
+      - handy-data:/app/data                    # Einstellungen, Patterns, eigene Scripts
+      # Videoordner (optional, sonst nur Stash) – „#“ entfernen, Pfad in der .env:
       # - ${MEDIA_FILME}:/media/Filme:ro
       # - ${MEDIA_DOWNLOADS}:/media/Downloads:ro
       # - ${MEDIA_VR}:/media/VR:ro
-      # Eigene Patterns, Scripts und Einstellungen
-      - handy-data:/app/data
 
 volumes:
   handy-data:

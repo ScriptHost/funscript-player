@@ -195,7 +195,8 @@ function processScript(actions, target = 'handy') {
         const max = handyMaxSpeedSafe();
         out = fitHandy(out, preset === 'soft' ? Math.min(300, max) : preset === 'intense' ? max + 50 : max, only, res);
       } else {
-        even = preset === 'soft' ? 0.5 : preset === 'auto' && st.cv > 0.7 ? 0.3 : 0;
+        // 1.19: „Automatisch“ glättet den Satisfyer nicht mehr (wirkte zu gleichmäßig) – nur „Sanft“
+        even = preset === 'soft' ? 0.5 : 0;
         if (even) only.push('ruhiger');
       }
     }
@@ -251,22 +252,32 @@ function toolsChanged() {
   if (handy.owner === 'video') resync(); // geändertes Script sofort an die Handy
 }
 
+// Gemeinsam einstellen (Standard): eine Auswahl gilt für beide Geräte – passend übersetzt
+// (für die Handy heißt „Automatisch“ beim Satisfyer „Original + Takt-Schutz“, „Original“ bleibt „Original“ usw.)
+const presetLinked = () => store.get('presetLink', true);
+const linkedPreset = (dev, p) => (dev === 'vibe' ? (p === 'protect' ? 'auto' : p) : (p === 'auto' ? 'protect' : p));
 // Standard-Preset je Gerät (Einstellungen) und Preset dieser Szene je Gerät (Script-Bereich am Video)
 document.querySelectorAll('.preset-default').forEach((seg) => seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
   const dev = seg.dataset.dev;
-  presetDefault[dev] = b.dataset.preset;
-  store.set(dev === 'handy' ? 'scriptPresetHandy' : 'scriptPresetVibe', b.dataset.preset);
+  const devs = presetLinked() ? ['handy', 'vibe'] : [dev];
+  for (const d of devs) {
+    presetDefault[d] = d === dev ? b.dataset.preset : linkedPreset(d, b.dataset.preset);
+    store.set(d === 'handy' ? 'scriptPresetHandy' : 'scriptPresetVibe', presetDefault[d]);
+  }
   toolsChanged();
 })));
 for (const [id, dev] of [['scenePresetHandy', 'handy'], ['scenePresetVibe', 'vibe']]) {
   $(id).addEventListener('change', () => {
-    const v = $(id).value;
+    const chosen = $(id).value;
     const k = offsetKey();
-    if (!k) localPreset[dev] = v;
-    else {
-      const map = store.get('scenePresets', {});
-      const cur = typeof map[k] === 'string' ? { handy: map[k] } : { ...map[k] };
-      if (v === presetDefault[dev]) delete cur[dev]; else cur[dev] = v;
+    const map = store.get('scenePresets', {});
+    const cur = typeof map[k] === 'string' ? { handy: map[k] } : { ...map[k] };
+    for (const d of presetLinked() ? ['handy', 'vibe'] : [dev]) {
+      const v = d === dev ? chosen : linkedPreset(d, chosen);
+      if (!k) localPreset[d] = v;
+      else if (v === presetDefault[d]) delete cur[d]; else cur[d] = v;
+    }
+    if (k) {
       if (Object.keys(cur).length) map[k] = cur; else delete map[k];
       store.set('scenePresets', map);
     }
@@ -275,6 +286,14 @@ for (const [id, dev] of [['scenePresetHandy', 'handy'], ['scenePresetVibe', 'vib
 }
 video.addEventListener('emptied', () => { localPreset = {}; });
 
+// Gemeinsam / getrennt: im Script-Bereich dann nur eine Auswahl
+function applyPresetLink() {
+  document.body.classList.toggle('preset-linked', presetLinked());
+  document.querySelector('.sb-handy .sb-lbl').textContent = presetLinked() ? '↕〰 Anpassung' : '↕ Handy';
+}
+$('presetLink').checked = presetLinked();
+$('presetLink').addEventListener('change', () => { store.set('presetLink', $('presetLink').checked); applyPresetLink(); });
+applyPresetLink();
 $('tool_stretch').checked = tools.stretch;
 $('tool_limit').checked = tools.limit;
 $('tool_jitter').checked = tools.jitter;

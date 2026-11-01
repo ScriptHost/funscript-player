@@ -532,7 +532,7 @@ async function loadSceneScript(src, origName, origUrl) {
 function renderScriptBox() {
   const show = !!(script || suspended || scriptMeta.hasOwn) && !!nowKey() && !remote.on;
   $('scriptBox').hidden = !show;
-  $('selfResume').hidden = !suspended;
+  $('selfResume').hidden = $('sbResume').hidden = !suspended;
   if (!show) return;
   const date = scriptMeta.ownAt ? new Date(scriptMeta.ownAt).toLocaleDateString('de-DE') : '';
   $('sbName').textContent = suspended ? '✋ Selbst steuern – Script angehalten'
@@ -541,7 +541,7 @@ function renderScriptBox() {
   $('sbChoice').hidden = !(scriptMeta.hasOrig && scriptMeta.hasOwn) || !!suspended;
   document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', (b.dataset.choice === 'own') === scriptMeta.own));
   document.querySelector('.sb-presets').hidden = !script;
-  $('sbSelf').hidden = !script;
+  $('sbSelf').hidden = $('sbHot').hidden = $('sbCut').hidden = !script;
   $('sbDelete').hidden = !scriptMeta.hasOwn;
 }
 document.querySelectorAll('#sbChoice button').forEach((b) => b.addEventListener('click', () => {
@@ -570,6 +570,7 @@ function resumeScript() {
   renderScriptBox();
 }
 $('selfResume').addEventListener('click', resumeScript);
+$('sbResume').addEventListener('click', resumeScript);
 
 $('sbDelete').addEventListener('click', async () => {
   if (!confirm('Dein eigenes Script zu diesem Video löschen? Ein Original-Funscript bleibt erhalten.')) return;
@@ -580,6 +581,56 @@ $('sbDelete').addEventListener('click', async () => {
     log('🗑 Eigenes Script gelöscht.');
     loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl);
   } catch (e) { log('Löschen: ' + e.message, true); }
+});
+
+// 🔥 Die drei intensivsten Stellen (10-s-Abschnitte mit dem meisten Weg) der Reihe nach anspringen
+let hotIdx = 0;
+function hotSpots(actions) {
+  const bins = new Map();
+  for (let i = 1; i < actions.length; i++) {
+    if (actions[i].at <= actions[i - 1].at) continue;
+    const b = Math.floor(actions[i - 1].at / 10000);
+    bins.set(b, (bins.get(b) || 0) + Math.abs(actions[i].pos - actions[i - 1].pos));
+  }
+  return [...bins.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([b]) => b * 10).sort((a, b) => a - b);
+}
+$('sbHot').addEventListener('click', () => {
+  if (!script) return;
+  const spots = hotSpots(script.actions);
+  if (!spots.length) return;
+  const n = hotIdx++ % spots.length;
+  seekTo(spots[n]);
+  log(`🔥 Intensive Stelle ${n + 1}/${spots.length} bei ${fmtDuration(spots[n])}`);
+});
+
+// ✂ Abschnitt anpassen: Bereich wählen, Änderung nur dort, Ergebnis als eigenes Script (Original bleibt)
+const cut = { from: null, to: null };
+function cutShow() {
+  $('cutRange').textContent = `${cut.from === null ? '–' : fmtDuration(cut.from)} … ${cut.to === null ? '–' : fmtDuration(cut.to)}`;
+}
+$('sbCut').addEventListener('click', () => { $('sbCutBox').hidden = !$('sbCutBox').hidden; cutShow(); });
+$('cutFrom').addEventListener('click', () => { cut.from = mediaTime(); cutShow(); });
+$('cutTo').addEventListener('click', () => { cut.to = mediaTime(); cutShow(); });
+function cutApplyTo(actions, from, to, action) {
+  const inside = (a) => a.at >= from && a.at <= to;
+  if (action === 'later' || action === 'earlier') {
+    const d = action === 'later' ? 100 : -100;
+    return actions.map((a) => (inside(a) ? { at: Math.max(0, a.at + d), pos: a.pos } : a)).sort((x, y) => x.at - y.at);
+  }
+  if (action === 'mute') {
+    return [...actions.filter((a) => !inside(a)), { at: from, pos: 50 }, { at: to, pos: 50 }].sort((x, y) => x.at - y.at);
+  }
+  if (action === 'half') {
+    const halved = actions.filter(inside).filter((_, i) => i % 2 === 0); // jeder zweite Umkehrpunkt fällt weg
+    return [...actions.filter((a) => !inside(a)), ...halved].sort((x, y) => x.at - y.at);
+  }
+  const k = action === 'soft' ? 0.6 : 1.35;
+  return actions.map((a) => (inside(a) ? { at: a.at, pos: Math.max(0, Math.min(100, Math.round(50 + (a.pos - 50) * k))) } : a));
+}
+$('cutApply').addEventListener('click', () => {
+  if (!script || cut.from === null || cut.to === null || cut.to <= cut.from) return log('Bitte erst „ab hier“ und „bis hier“ setzen (Ende nach dem Anfang).', true);
+  saveScriptToLibrary(cutApplyTo(script.actions, Math.round(cut.from * 1000), Math.round(cut.to * 1000), $('cutAction').value), 'all');
+  $('sbCutBox').hidden = true;
 });
 
 // Neuer Mitschnitt nur über einen Zeitabschnitt: das alte eigene Script davor und danach bleibt
@@ -890,7 +941,12 @@ $('stashRandom').addEventListener('click', async () => {
 
 // Intensitäts-Filter (Wahl wird gemerkt)
 $('heatFilter').value = store.get('heatFilter', '');
-$('heatFilter').addEventListener('change', () => { store.set('heatFilter', $('heatFilter').value); applyHeatFilter(); });
+$('heatFilter').addEventListener('change', () => {
+  store.set('heatFilter', $('heatFilter').value);
+  // Intensität gibt es nur mit Funscript -> „nur mit Funscript“ mit einschalten (lädt die Liste neu)
+  if ($('heatFilter').value && !$('onlyScripts').checked) $('onlyScripts').click();
+  applyHeatFilter();
+});
 gridObserver.observe($('sceneGrid'), { childList: true });
 
 // Eigene Scripts speichern an/aus (⚙️ → Bibliothek)

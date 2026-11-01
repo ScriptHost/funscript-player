@@ -1,5 +1,16 @@
 # Änderungen
 
+## 1.19.0 – 01.11.2026
+
+Ausführlich: [RELEASE-NOTES-1.19.0.md](RELEASE-NOTES-1.19.0.md)
+
+- Behoben: Mitschnitt im Positions-Modus, altes Standbild beim Videowechsel, Mini-Player beim Scrollen, Script-Infos trotz Ausblenden; Option „Vollbild nur mit dem Video“ für automatisches Bild-in-Bild
+- Steuerung: Finger-Position flüssiger, Hublänge im Tempo-Modus, „Zurück zum Script“, gedrückt halten zum Spulen, Vib-Zustand, Hub live, Bluetooth als Rückfall
+- Oberfläche: ein Status (verbunden/getrennt), Bild-Popup, Bibliothek-Knöpfe und eigene Links, Intensitäts-Filter mit „nur Funscript“, Szeneninfos direkt, kleinerer Titel, Selbsttest-Knopf mit Bericht, Demo-Modus
+- Scripts: gemeinsames Preset für Handy + Satisfyer, 🔥 intensivste Stelle, ✂ Abschnitt anpassen
+- Satisfyer kräftiger, Probe-Vibration, Standards 0/100 %
+- docker-compose.yml aufgeräumt; Vorstellung ohne echtes Geräte-Verbinden
+
 ## 1.18.2 – 01.11.2026
 
 - Entwickler-Seite mit DE/EN-Schalter (docs/i18n-dev-en.js)

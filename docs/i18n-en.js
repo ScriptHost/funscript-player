@@ -9,6 +9,7 @@ window.FSP_EN = {
   upyxc6: 'Funscript Player plays your videos and drives <b>The Handy</b> and the <b>Satisfyer</b> at the same time – both from the same script, no separate vibration script needed. Your library comes from <b>Stash</b> or your own folders; watch on PC, phone, TV or in a VR headset. Scripts are improved automatically, the Satisfyer works with plain Handy scripts – and videos can be upscaled for a sharper picture.',
   n0rw84: '↕ The Handy · API v3 · 0.5×–2×',
   // 1.18
+  bhxbka: 'A heavily simplified version for a first taste: pick a video and its <code>.funscript</code> from your device – or play the example script without a video. Switch between original and ⚡ automation and see what the script automation changes. Handy and Satisfyer are shown as animations. Nothing is uploaded, everything stays with you.',
   '88oi0': '⚡ Original + beat guard', smzh4: '⚡ Original – and still in time',
   '16zvi0n': 'The Handy plays every Funscript original, with all its fine vibrations. Only strokes its motor can’t manage are adapted by the beat guard – shorter, or full stroke at half tempo, your choice. The Satisfyer gets its own smoothed version. No clicks needed, your files stay untouched.',
   j7l1vq: 'Show all features',
