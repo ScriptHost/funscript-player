@@ -18,14 +18,13 @@ Direktsteuerung. Nur im Modus „Geräte folgen dem Video“.
 - Zeile „⚡ Scriptname (N Punkte)“ unter ⚙️ → Anzeige schaltbar, **Standard aus**.
 - „🔄 Geräte folgen dem Video“ steht jetzt in ⚙️ → Geräte ganz oben (und weiter im Menü ☰),
   nicht mehr im Geräte-Bereich am Video.
-- In ⚙️ → System: „“.
 
 ## Doku-Webseite
 - Ausdrücklich: **Kein eigenes Vibrations-Script nötig** – der Satisfyer nutzt dasselbe Funscript wie die Handy
   (Funktionsübersicht, Satisfyer-Abschnitt, Sync-Animation).
 - Sync-Animation mit Umschalter **Original / Automatisch**: Das Beispielscript hat Zittern, zu schnelle Stöße
   und einen flachen Teil; „Automatisch“ zeigt die Korrektur, das Original gestrichelt daneben.
-- „Selbst steuern“ in der Funktionsübersicht, Version 1.14 unter „Neu“, „“ in der Fußzeile.
+- „Selbst steuern“ in der Funktionsübersicht, Version 1.14 unter „Neu“.
 
 ## Getestet
 Im Browser mit simulierter Handy (Befehle mitgeschrieben): nichts vor dem Play, Start mit gewählter

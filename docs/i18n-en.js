@@ -4,7 +4,6 @@
 window.FSP_EN = {
   // Navigation, Kopf
   uh2r8: 'Try it', ngsrja: 'Features', h9kd12: 'Controls', '376mul': 'New', '1ds9tp4': 'FAQ', camdnh: 'Developers',
-  '1ck2at0': 'Self-hosted · in the browser',
   '1m4ub48': 'One Funscript.<br>Every device.<br>In sync.',
   upyxc6: 'Funscript Player plays your videos and drives <b>The Handy</b> and the <b>Satisfyer</b> at the same time – both from the same script, no separate vibration script needed. Your library comes from <b>Stash</b> or your own folders; watch on PC, phone, TV or in a VR headset. Scripts are improved automatically, the Satisfyer works with plain Handy scripts – and videos can be upscaled for a sharper picture.',
   n0rw84: '↕ The Handy · API v3 · 0.5×–2×',
@@ -14,7 +13,7 @@ window.FSP_EN = {
   '1egj18x': "Why “Automatic” instead of original?",
   t3ja1r: "“Automatic” plays the script like the original, only adapts what the motor can’t manage and stretches scripts with a small stroke to the full range – it feels stronger. If you want every detail unchanged, pick “Original + beat guard” under ⚙️ → Script.",
   // 1.19 Einstieg
-  dace9v: 'Self-hosted',
+  '13kvpom': 'Self-hosted · in the browser',
   '6cd1l7': 'Your video. Your devices.<br><span class="grad">Perfectly in sync.</span>',
   zuxwxl: 'A Funscript player that drives <b>The Handy</b> and the <b>Satisfyer</b> at the same time – from any script, right from your Stash library.',
   '1v3p9p4': 'See it in action ↓',
@@ -167,7 +166,7 @@ window.FSP_EN = {
   '1poew4h': '<b>Offset</b> shifts the script against the video (remembered per scene, for both devices). <b>Lead</b> compensates the Bluetooth latency – the player measures it itself. <b>Stroke</b> is the range the Handy moves in.',
   '1yz5cg2': 'The Satisfyer doesn’t show up in the Bluetooth search',
   zl3oc3: 'Close the Satisfyer app (only one connection possible). If nothing is found, the player offers “Show all Bluetooth devices” – once connected that way, it finds it every time.',
-  '1ivld40': 'Funscript Player',
+  w9fyqf: 'Funscript Player · self-hosted',
   // \x22 statt ", damit build-single.js darin keinen externen Verweis sieht (die Einzeldatei hat den Link nicht)
   ckso3g: '<a href=\x22dev.html\x22>Developer docs (German) →</a>',
   q86nok: 'Self-hosted · Docker', // Fußzeile der Einzeldatei

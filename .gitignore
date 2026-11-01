@@ -5,3 +5,4 @@ windows/logs/
 *.zip
 node_modules/
 .env
+HANDOFF.md

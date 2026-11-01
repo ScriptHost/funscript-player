@@ -99,5 +99,5 @@ window.FSP_EN = {
   '3g404f': 'No extra packages, Node built-ins only. Run before every release:',
   '14ibidg': 'Reading Funscripts, script automation (analysis, jitter, stroke, speed limit), touch recording as tempo/position, intensity summary, beat guard with vibration exception, half tempo, model detection. The functions are read straight from the browser files (<code>loadFunctions</code> in <code>test/helpers.js</code>).',
   '1ymg6of': 'Starts <code>server.js</code> with test folders: start page, library, shared settings, intensity, own scripts (replace own, never originals, delete), backup, remote relay via server-sent events, HereSphere switch, “VR only” and password, origin check and security headers, upload cache.',
-  '1oxix10': 'Funscript Player · developer docs', hc3yj1: '<a href=\x22index.html\x22>← back to the features</a>',
+  '241c8v': 'Funscript Player · developer docs', hc3yj1: '<a href=\x22index.html\x22>← back to the features</a>',
 };
