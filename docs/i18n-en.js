@@ -3,6 +3,7 @@
 // Neue/geänderte deutsche Texte: in der Konsole fspTexts() aufrufen und Schlüssel ergänzen.
 window.FSP_EN = {
   // GitHub-Links
+  '4bdj8m': 'View on GitHub',
   '1207v7o': 'Download the ZIP <code>handy-player-linux-v1.19.2.zip</code> from <a href=\x22https://github.com/ScriptHost/funscript-player/releases/latest\x22>GitHub (Releases)</a>, copy it to the server and unpack it.',
   '1q3fq3p': '<a href=\x22https://github.com/ScriptHost/funscript-player\x22>GitHub</a> · <a href=\x22dev.html\x22>Developer docs →</a>',
   // Navigation, Kopf
