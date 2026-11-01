@@ -1,73 +1,134 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 620" width="1280" height="620" role="img" aria-label="Player with heatmap, The Handy and Satisfyer in sync">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" width="1280" height="760" role="img" aria-label="Funscript Player 1.19.2 on a phone: player with script box and library">
+  <!-- Nachbau der echten Oberfläche 1.19.2 (Farben aus public/style.css) – Player und Bibliothek am Smartphone -->
   <defs>
-    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#121022"/><stop offset="1" stop-color="#07060c"/></linearGradient>
-    <radialGradient id="vid" cx="30%" cy="30%" r="90%"><stop offset="0" stop-color="#8a2b6a"/><stop offset=".5" stop-color="#261447"/><stop offset="1" stop-color="#07060c"/></radialGradient>
     <linearGradient id="heat" x1="0" x2="1">
-      <stop offset="0" stop-color="#22d3ee"/><stop offset=".12" stop-color="#22d3ee"/><stop offset=".13" stop-color="#7c5cff"/><stop offset=".3" stop-color="#7c5cff"/>
-      <stop offset=".31" stop-color="#ff4f9a"/><stop offset=".38" stop-color="#ff4f9a"/><stop offset=".39" stop-color="#ffb020"/><stop offset=".46" stop-color="#ffb020"/>
-      <stop offset=".47" stop-color="#7c5cff"/><stop offset=".62" stop-color="#7c5cff"/><stop offset=".63" stop-color="#ff4f9a"/><stop offset=".78" stop-color="#ff4f9a"/>
-      <stop offset=".79" stop-color="#ffb020"/><stop offset=".84" stop-color="#ffb020"/><stop offset=".85" stop-color="#22d3ee"/><stop offset="1" stop-color="#22d3ee"/>
+      <stop offset="0" stop-color="#1e90ff"/><stop offset=".16" stop-color="#28c864"/><stop offset=".3" stop-color="#f0d228"/>
+      <stop offset=".42" stop-color="#fa821e"/><stop offset=".52" stop-color="#e62832"/><stop offset=".62" stop-color="#fa821e"/>
+      <stop offset=".74" stop-color="#28c864"/><stop offset=".86" stop-color="#e62832"/><stop offset="1" stop-color="#1e90ff"/>
     </linearGradient>
-    <linearGradient id="btn" x1="0" x2="1"><stop offset="0" stop-color="#ff4f9a"/><stop offset="1" stop-color="#7c5cff"/></linearGradient>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <clipPath id="screen"><rect x="0" y="0" width="760" height="428" rx="14"/></clipPath>
+    <linearGradient id="vid" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3f4b"/><stop offset=".55" stop-color="#1f232b"/><stop offset="1" stop-color="#0c0d10"/></linearGradient>
+    <linearGradient id="t1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a5368"/><stop offset="1" stop-color="#1b1e24"/></linearGradient>
+    <linearGradient id="t2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a4a52"/><stop offset="1" stop-color="#1b1e24"/></linearGradient>
+    <linearGradient id="t3" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#2f4a4a"/><stop offset="1" stop-color="#1b1e24"/></linearGradient>
+    <clipPath id="scr"><rect width="330" height="680" rx="26"/></clipPath>
   </defs>
-  <rect width="1280" height="620" rx="24" fill="url(#page)"/>
-  <g font-family="Segoe UI, Inter, system-ui, -apple-system, sans-serif" fill="#f3f1fa">
-    <!-- Video -->
-    <g transform="translate(48 48)">
-      <rect width="760" height="428" rx="14" fill="url(#vid)"/>
-      <g clip-path="url(#screen)">
-        <rect x="16" y="312" width="728" height="100" rx="16" fill="#ffffff" fill-opacity=".07" stroke="#ffffff" stroke-opacity=".13"/>
-        <rect x="36" y="336" width="688" height="8" rx="4" fill="url(#heat)"/>
-        <rect x="36" y="336" width="282" height="8" rx="4" fill="#ffffff" fill-opacity=".25"/>
-        <circle cx="318" cy="340" r="9" fill="#fff" filter="url(#glow)"/>
-        <text x="248" y="326" font-size="13">🔥</text><text x="460" y="326" font-size="13">🔥</text><text x="566" y="326" font-size="13">🔥</text>
-        <text x="36" y="390" font-size="16" fill="#c9c4e0">12:40 / 31:05</text>
-        <g font-size="15" fill="#f3f1fa">
-          <rect x="520" y="370" width="30" height="30" rx="9" fill="#ffffff" fill-opacity=".1"/><text x="527" y="391">☆</text>
-          <rect x="556" y="370" width="30" height="30" rx="9" fill="#ffffff" fill-opacity=".1"/><text x="562" y="391">📍</text>
-          <rect x="592" y="370" width="30" height="30" rx="9" fill="#ffffff" fill-opacity=".1"/><text x="598" y="391">🔥</text>
-          <rect x="628" y="370" width="30" height="30" rx="9" fill="#ffffff" fill-opacity=".1"/><text x="634" y="391">✨</text>
-          <rect x="664" y="370" width="30" height="30" rx="9" fill="#ffffff" fill-opacity=".1"/><text x="671" y="391">⧉</text>
-          <rect x="700" y="370" width="30" height="30" rx="9" fill="#ffffff" fill-opacity=".1"/><text x="707" y="391">⛶</text>
-        </g>
-        <circle cx="380" cy="170" r="38" fill="#ffffff" fill-opacity=".08" stroke="#ffffff" stroke-opacity=".2"/>
-        <rect x="368" y="154" width="8" height="32" rx="2" fill="#fff"/><rect x="384" y="154" width="8" height="32" rx="2" fill="#fff"/>
-      </g>
-      <text x="0" y="472" font-size="22" font-weight="700">Lakeside scene</text>
-      <text x="0" y="500" font-size="15" fill="#9a97ab">31 min · ⚡ Funscript · Automatic</text>
+  <rect width="1280" height="760" rx="24" fill="#0b0c0f"/>
+
+  <g font-family="Segoe UI, Inter, system-ui, -apple-system, Roboto, sans-serif" fill="#e6e8eb">
+    <!-- Text links -->
+    <text x="72" y="150" font-size="44" font-weight="800">Funscript <tspan fill="#e0457b">Player</tspan></text>
+    <text x="74" y="190" font-size="20" fill="#8b929c">Version 1.19.2 – as it looks today</text>
+    <g font-size="19">
+      <text x="74" y="262">↕ The Handy + 〰 Satisfyer from one script</text>
+      <text x="74" y="302">⚡ Script automation, per device</text>
+      <text x="74" y="342">✋ Control yourself, record, cut sections</text>
+      <text x="74" y="382">🔥 Heatmap, hottest spots, Finale</text>
+      <text x="74" y="422">📚 Stash + folders, 2D-only, continue watching</text>
+      <text x="74" y="462">■ STOP always within reach</text>
     </g>
-    <!-- Geräte -->
-    <g transform="translate(848 48)">
-      <rect width="384" height="524" rx="18" fill="#13121b" stroke="#2a2738"/>
-      <rect x="24" y="24" width="120" height="30" rx="15" fill="#34d399" fill-opacity=".12" stroke="#34d399" stroke-opacity=".5"/>
-      <circle cx="42" cy="39" r="5" fill="#34d399" filter="url(#glow)"/><text x="54" y="45" font-size="15" fill="#34d399">connected</text>
-      <!-- Handy-Schiene -->
-      <rect x="70" y="84" width="34" height="140" rx="17" fill="#ffffff" fill-opacity=".07" stroke="#2a2738"/>
-      <rect x="75" y="128" width="24" height="34" rx="11" fill="#22d3ee" filter="url(#glow)"/>
-      <text x="87" y="252" font-size="15" fill="#9a97ab" text-anchor="middle">↕ Handy</text>
-      <!-- Satisfyer-Ring -->
-      <g transform="translate(262 154)" filter="url(#glow)">
-        <circle r="64" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="12"/>
-        <circle r="64" fill="none" stroke="#ff4f9a" stroke-width="12" stroke-linecap="round" stroke-dasharray="249 402" transform="rotate(-90)"/>
+
+    <!-- ================= Telefon 1: Player ================= -->
+    <g transform="translate(520 40)">
+      <rect x="-10" y="-10" width="350" height="700" rx="34" fill="#000" stroke="#2c313a"/>
+      <g clip-path="url(#scr)">
+        <rect width="330" height="680" fill="#111317"/>
+        <!-- Kopf -->
+        <rect x="12" y="14" width="96" height="26" rx="13" fill="none" stroke="#2c313a"/>
+        <text x="24" y="32" font-size="13" fill="#3fb950">connected ▾</text>
+        <rect x="290" y="12" width="28" height="28" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="297" y="32" font-size="16">☰</text>
+        <line x1="0" y1="52" x2="330" y2="52" stroke="#2c313a"/>
+        <rect x="10" y="62" width="88" height="28" rx="7" fill="none" stroke="#2c313a"/><text x="20" y="81" font-size="13" font-weight="600" fill="#8b929c">← Library</text>
+        <!-- Video mit Leiste -->
+        <rect x="0" y="100" width="330" height="186" fill="url(#vid)"/>
+        <rect x="0" y="206" width="330" height="80" fill="#000" fill-opacity=".45"/>
+        <rect x="10" y="214" width="310" height="20" rx="3" fill="url(#heat)" opacity=".85"/>
+        <rect x="10" y="238" width="310" height="3" fill="#2c313a"/><rect x="10" y="238" width="118" height="3" fill="#e0457b"/>
+        <g font-size="11">
+          <rect x="10" y="250" width="28" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="14" y="266">−10</text>
+          <rect x="42" y="250" width="28" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="45" y="266">+10</text>
+          <text x="78" y="266">0:23 / 1:00</text>
+          <rect x="176" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="181" y="266">🔊</text>
+          <rect x="202" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="207" y="266">⟳</text>
+          <rect x="228" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="232" y="266">🔥</text>
+          <rect x="254" y="250" width="38" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="259" y="266">Vib ❚❚</text>
+          <rect x="296" y="250" width="24" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="302" y="266">⛶</text>
+        </g>
+        <!-- unter dem Video -->
+        <rect x="10" y="294" width="196" height="24" rx="6" fill="#1b1e24" stroke="#2c313a"/><text x="18" y="311" font-size="11" fill="#e6e8eb">✨ Picture: <tspan font-weight="700">Auto</tspan> · HQ: <tspan font-weight="700">Auto</tspan> – Settings</text>
+        <text x="10" y="344" font-size="16" font-weight="700">Lakeside scene</text>
+        <text x="10" y="362" font-size="11" fill="#8b929c">Library folder</text>
+        <!-- Geräte-Kasten -->
+        <rect x="8" y="374" width="314" height="292" rx="12" fill="#1b1e24" stroke="#2c313a"/>
+        <text x="20" y="404" font-size="12" fill="#8b929c">Script</text>
+        <rect x="88" y="388" width="222" height="24" rx="6" fill="#111317" stroke="#2c313a"/><text x="96" y="405" font-size="12">Automatic</text><text x="296" y="405" font-size="10" fill="#8b929c">▾</text>
+        <g font-size="11" text-anchor="middle">
+          <rect x="20" y="420" width="92" height="44" rx="7" fill="#2a2e36"/><text x="66" y="440" font-size="14">✋</text><text x="66" y="457">Yourself</text>
+          <rect x="119" y="420" width="92" height="44" rx="7" fill="#2a2e36"/><text x="165" y="440" font-size="14">🔥</text><text x="165" y="457">Intense</text>
+          <rect x="218" y="420" width="92" height="44" rx="7" fill="#2a2e36"/><text x="264" y="440" font-size="14">✂</text><text x="264" y="457">Section</text>
+        </g>
+        <line x1="20" y1="476" x2="310" y2="476" stroke="#2c313a"/>
+        <text x="20" y="504" font-size="12" fill="#8b929c">Offset</text>
+        <rect x="182" y="488" width="30" height="26" rx="6" fill="#2a2e36"/><text x="197" y="506" font-size="13" text-anchor="middle">−</text>
+        <text x="245" y="506" font-size="12" text-anchor="middle">+40 ms</text>
+        <rect x="280" y="488" width="30" height="26" rx="6" fill="#2a2e36"/><text x="295" y="506" font-size="13" text-anchor="middle">+</text>
+        <text x="20" y="534" font-size="11" fill="#8b929c">▸ Fine-tune offset</text>
+        <line x1="20" y1="550" x2="310" y2="550" stroke="#2c313a"/>
+        <rect x="20" y="560" width="290" height="30" rx="7" fill="#6d2a8c"/><text x="165" y="580" font-size="12" font-weight="600" text-anchor="middle">🔥 Finale (gentler)</text>
+        <rect x="20" y="600" width="140" height="32" rx="7" fill="#2a2e36"/><text x="90" y="621" font-size="12" font-weight="600" text-anchor="middle">❚❚ Pause</text>
+        <rect x="170" y="600" width="140" height="32" rx="7" fill="#c62828"/><text x="240" y="621" font-size="12" font-weight="700" text-anchor="middle">■ Stop everything</text>
       </g>
-      <text x="262" y="160" font-size="26" font-weight="700" text-anchor="middle">62 %</text>
-      <text x="262" y="252" font-size="15" fill="#9a97ab" text-anchor="middle">〰 Satisfyer</text>
-      <!-- Script -->
-      <text x="24" y="300" font-size="15" fill="#9a97ab">Script</text>
-      <rect x="104" y="280" width="256" height="32" rx="9" fill="#1c1a27" stroke="#2a2738"/><text x="118" y="302" font-size="15">Automatic</text><text x="340" y="302" font-size="13" fill="#9a97ab">▾</text>
-      <g font-size="14" text-anchor="middle">
-        <rect x="24" y="326" width="106" height="54" rx="12" fill="#1c1a27"/><text x="77" y="350">✋</text><text x="77" y="370">Yourself</text>
-        <rect x="139" y="326" width="106" height="54" rx="12" fill="#1c1a27"/><text x="192" y="350">🔥</text><text x="192" y="370">Intense</text>
-        <rect x="254" y="326" width="106" height="54" rx="12" fill="#1c1a27"/><text x="307" y="350">✂</text><text x="307" y="370">Section</text>
+    </g>
+
+    <!-- ================= Telefon 2: Bibliothek ================= -->
+    <g transform="translate(900 40)">
+      <rect x="-10" y="-10" width="350" height="700" rx="34" fill="#000" stroke="#2c313a"/>
+      <g clip-path="url(#scr)">
+        <rect width="330" height="680" fill="#111317"/>
+        <text x="12" y="33" font-size="14" font-weight="700">Funscript Player <tspan font-size="10" font-weight="400" fill="#8b929c">v1.19.2</tspan></text>
+        <rect x="216" y="14" width="66" height="26" rx="13" fill="none" stroke="#2c313a"/><text x="226" y="32" font-size="12" fill="#3fb950">connected</text>
+        <rect x="290" y="12" width="28" height="28" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="297" y="32" font-size="16">☰</text>
+        <line x1="0" y1="52" x2="330" y2="52" stroke="#2c313a"/>
+        <rect x="10" y="64" width="310" height="32" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="20" y="85" font-size="12" fill="#8b929c">Search scenes, titles, files …</text>
+        <rect x="10" y="104" width="148" height="28" rx="14" fill="#1b1e24" stroke="#e0457b"/><text x="22" y="123" font-size="11">☑ ⚡ only with Funscript</text>
+        <rect x="166" y="104" width="154" height="28" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="176" y="123" font-size="11">Intensity: all ▾</text>
+        <text x="10" y="152" font-size="11" fill="#8b929c">CONTINUE WATCHING</text>
+        <g font-size="11">
+          <rect x="10" y="160" width="150" height="94" rx="8" fill="url(#t2)"/><rect x="10" y="250" width="150" height="4" fill="url(#heat)"/><rect x="10" y="246" width="70" height="3" fill="#e0457b"/>
+          <text x="10" y="270" font-weight="600">Lakeside scene</text>
+          <rect x="170" y="160" width="150" height="94" rx="8" fill="url(#t1)"/><rect x="170" y="250" width="150" height="4" fill="url(#heat)"/><rect x="170" y="246" width="40" height="3" fill="#e0457b"/>
+          <text x="170" y="270" font-weight="600">Rooftop</text>
+        </g>
+        <line x1="10" y1="288" x2="320" y2="288" stroke="#2c313a"/>
+        <g font-size="11">
+          <g transform="translate(10 300)">
+            <rect width="150" height="94" rx="8" fill="url(#t3)"/><rect y="90" width="150" height="4" fill="url(#heat)"/>
+            <rect x="6" y="6" width="22" height="16" rx="4" fill="#e0457b"/><text x="11" y="18" font-size="10">⚡</text>
+            <rect x="32" y="6" width="22" height="16" rx="4" fill="#000" fill-opacity=".6"/><text x="37" y="18" font-size="10">✋</text>
+            <text x="0" y="112" font-weight="600">After work</text><text x="0" y="128" fill="#8b929c">31 min · intense</text>
+          </g>
+          <g transform="translate(170 300)">
+            <rect width="150" height="94" rx="8" fill="url(#t1)"/><rect y="90" width="150" height="4" fill="#1e90ff"/>
+            <rect x="6" y="6" width="22" height="16" rx="4" fill="#e0457b"/><text x="11" y="18" font-size="10">⚡</text>
+            <rect x="112" y="6" width="32" height="16" rx="4" fill="#3fb950"/><text x="116" y="18" font-size="10">New</text>
+            <text x="0" y="112" font-weight="600">Hotel room</text><text x="0" y="128" fill="#8b929c">18 min · gentle</text>
+          </g>
+          <g transform="translate(10 448)">
+            <rect width="150" height="94" rx="8" fill="url(#t2)"/><rect y="90" width="150" height="4" fill="url(#heat)"/>
+            <rect x="6" y="6" width="22" height="16" rx="4" fill="#e0457b"/><text x="11" y="18" font-size="10">⚡</text>
+            <rect x="32" y="6" width="22" height="16" rx="4" fill="#000" fill-opacity=".6"/><text x="37" y="18" font-size="10">🎯</text>
+            <text x="0" y="112" font-weight="600">Night train</text><text x="0" y="128" fill="#8b929c">22 min · medium</text>
+          </g>
+          <g transform="translate(170 448)">
+            <rect width="150" height="94" rx="8" fill="url(#t3)"/><rect y="90" width="150" height="4" fill="url(#heat)"/>
+            <rect x="6" y="6" width="22" height="16" rx="4" fill="#e0457b"/><text x="11" y="18" font-size="10">⚡</text>
+            <text x="0" y="112" font-weight="600">Summer house</text><text x="0" y="128" fill="#8b929c">12 min · intense</text>
+          </g>
+        </g>
+        <!-- Mini-Player -->
+        <rect x="10" y="610" width="310" height="52" rx="10" fill="#1b1e24" stroke="#2c313a"/>
+        <rect x="20" y="620" width="32" height="32" rx="16" fill="#e0457b"/><text x="31" y="641" font-size="12">❚❚</text>
+        <text x="62" y="634" font-size="12" font-weight="600">Lakeside scene</text><text x="62" y="650" font-size="10" fill="#8b929c">Back to the video ↑</text>
       </g>
-      <text x="24" y="420" font-size="15" fill="#9a97ab">Offset</text>
-      <rect x="206" y="400" width="36" height="32" rx="9" fill="#1c1a27"/><text x="224" y="422" font-size="16" text-anchor="middle">−</text>
-      <text x="280" y="422" font-size="15" text-anchor="middle">+40 ms</text>
-      <rect x="324" y="400" width="36" height="32" rx="9" fill="#1c1a27"/><text x="342" y="422" font-size="16" text-anchor="middle">+</text>
-      <rect x="24" y="452" width="164" height="44" rx="13" fill="#1c1a27"/><text x="106" y="480" font-size="15" text-anchor="middle" font-weight="600">❚❚ Pause</text>
-      <rect x="196" y="452" width="164" height="44" rx="13" fill="#e5484d"/><text x="278" y="480" font-size="15" text-anchor="middle" font-weight="700">■ STOP</text>
     </g>
   </g>
 </svg>

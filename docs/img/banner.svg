@@ -25,7 +25,7 @@
   <!-- Funscript als Welle -->
   <polyline filter="url(#glow)" fill="none" stroke="url(#wave)" stroke-width="4" stroke-linejoin="round"
     points="0,330 60,300 110,350 170,280 220,345 280,270 330,350 390,250 440,350 500,262 560,340 620,240 680,352 740,256 800,338 860,270 920,350 980,282 1040,340 1100,295 1160,345 1220,310 1280,330"/>
-  <text x="80" y="150" font-family="Segoe UI, Inter, system-ui, -apple-system, sans-serif" font-size="78" font-weight="800" fill="#f5f3ff">Funscript <tspan fill="url(#acc)">Player</tspan></text>
+  <text x="80" y="150" font-family="Segoe UI, Inter, system-ui, -apple-system, sans-serif" font-size="78" font-weight="800" fill="#f5f3ff">Funscript <tspan fill="#e0457b">Player</tspan></text>
   <text x="84" y="205" font-family="Segoe UI, Inter, system-ui, -apple-system, sans-serif" font-size="30" fill="#c9c4e0">Your video. Your devices. Perfectly in sync.</text>
   <g font-family="Segoe UI, Inter, system-ui, -apple-system, sans-serif" font-size="18" fill="#f5f3ff">
     <rect x="84" y="232" width="162" height="36" rx="18" fill="#ffffff" fill-opacity=".08" stroke="#ffffff" stroke-opacity=".18"/>
@@ -40,7 +40,7 @@
   <!-- Geräte-Ringe -->
   <g transform="translate(1040 150)" filter="url(#glow)">
     <circle r="78" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="12"/>
-    <circle r="78" fill="none" stroke="#ff4f9a" stroke-width="12" stroke-linecap="round" stroke-dasharray="304 490" transform="rotate(-90)"/>
+    <circle r="78" fill="none" stroke="#e0457b" stroke-width="12" stroke-linecap="round" stroke-dasharray="304 490" transform="rotate(-90)"/>
     <circle r="56" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="10"/>
     <circle r="56" fill="none" stroke="#22d3ee" stroke-width="10" stroke-linecap="round" stroke-dasharray="270 352" transform="rotate(-90)"/>
   </g>
