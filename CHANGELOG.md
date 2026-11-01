@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.18.2 – 01.11.2026
+
+- Entwickler-Seite mit DE/EN-Schalter (docs/i18n-dev-en.js)
+- README auf Englisch (README.md), deutsche Fassung als README.de.md; Release-Notes 1.18 auf Englisch
+
 ## 1.18.1 – 01.11.2026
 
 - Korrektur: Startseite „Nicht gefunden“ und Version „dev“ (Pfade nach dem Aufteilen des Servers)
