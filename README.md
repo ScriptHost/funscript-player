@@ -96,6 +96,9 @@ per CPU (hqdn3d → Lanczos → unsharp → x264). Die Browser-Verbesserung komm
 
 ## Docker mit Traefik
 
+Einstellungen stehen in der `.env`: einmal `cp .env.example .env` und Domain, `STASH_URL`, ggf. Medienordner eintragen.
+Updates überschreiben die `.env` nie. Medienordner sind in der `docker-compose.yml` standardmäßig auskommentiert.
+
 Die `docker-compose.yml` ist für ein Traefik-Setup
 vorbereitet (Labels und Netze selbst ergänzen); erreichbar unter `https://handy.${DOMAIN}`
 (`DOMAIN` aus deiner `.env`). Anzupassen: Videoordner und ggf. `STASH_URL` (am besten der interne

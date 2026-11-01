@@ -7,7 +7,7 @@
 // ===========================================================================
 (function () {
   const SEL = 'nav a, .kicker, h1, h2, h3, p, li, summary, .chip, a.btn, label.btn, th, td, .legend div, footer span, svg text, .cmp-tag, .cmp-steps span, .scale span';
-  const SKIP = '#syncDemo, #tryDemo, .phone, .sheet-demo, .tiles-demo, .pad-demo, .bar-demo';
+  const SKIP = '#syncDemo, #tryDemo, #heroDemo, .phone, .sheet-demo, .tiles-demo, .pad-demo, .bar-demo';
   const norm = (s) => s.replace(/\s+/g, ' ').trim();
   const hash = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
   const nodes = () => [...document.querySelectorAll(SEL)].filter((el) => !el.closest(SKIP) && !el.querySelector(SEL));

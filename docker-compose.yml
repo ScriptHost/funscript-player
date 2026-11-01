@@ -32,8 +32,8 @@ services:
       TZ: "${TZ:-Europe/Berlin}"
     volumes:
       # Videoordner (+ gleichnamige .funscript) – jeder Ordner unter /media/<Name> wird eine eigene Quelle
-      # in der Bibliothek und in HereSphere. Pfad in der .env (MEDIA_FILME); weitere Ordner hier als Zeile:
-      - ${MEDIA_FILME:-/srv/media/filme}:/media/Filme:ro
+      # in der Bibliothek und in HereSphere. Zum Einschalten „#“ entfernen und den Pfad in der .env setzen:
+      # - ${MEDIA_FILME}:/media/Filme:ro
       # - ${MEDIA_DOWNLOADS}:/media/Downloads:ro
       # - ${MEDIA_VR}:/media/VR:ro
       # Eigene Patterns, Scripts und Einstellungen

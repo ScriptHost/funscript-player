@@ -1,5 +1,17 @@
 # Änderungen
 
+## 1.18.0 – 01.11.2026
+
+- Handy standardmäßig „Original + Takt-Schutz“ (Vibrationen bleiben, nur Unschaffbares angepasst), Satisfyer „Automatisch“ – Anpassung je Gerät, angepasste Stellen in der Heatmap
+- Eigene Scripts: markiert (✋), Original/eigenes wählbar, neu aufnehmen (Abschnitt oder ganz), löschen; Originale nie überschrieben
+- Script-Bereich im Geräte-Kasten; Meldungszeile weg; Offset mit „🎯 eingemessen“ + ↺; 🎯/✋ auf Kacheln
+- Touch „Position“ mit Application ID korrigiert (0–1); Touch-Fläche zeigt Regler-Wert; Sprungweite 5/10 s
+- Bild-in-Bild: aus Vollbild nicht mehr schwarz, Wiedergabe läuft beim Zurückkehren weiter, kein doppelter Mini-Player
+- Erweiterte Einstellungen, Sicherung herunterladen/einspielen, Hinweis „Neu in 1.18“, Englisch (Sprache nach Gerät)
+- Status ohne doppelten Gerätenamen („↕ aus“), „Als Bildschirm anbieten“ standardmäßig aus, Finale-Standard sanfter, Finale nicht im Popup
+- Docker: Gesundheits-Check alle 5 s (Traefik wartete bis 30 s), Start-Übersicht + „✓ bereit“ in docker logs, langsame Anfragen, Einstellungen in .env (.env.example)
+- Server in lib/ aufgeteilt, Bibliothek gemerkt, Altlasten entfernt, Selbsttest (?selbsttest), Vorstellung mit Kopf-Animation und Smartphone-Ansicht
+
 ## 1.17.0 – 01.11.2026
 
 Ausführlich mit Begründungen: [RELEASE-NOTES-1.17.0.md](RELEASE-NOTES-1.17.0.md)

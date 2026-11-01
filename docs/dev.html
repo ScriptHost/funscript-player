@@ -96,7 +96,14 @@
     <div class="tbl-wrap">
     <table class="tbl">
       <tr><th>Datei</th><th>Aufgabe</th></tr>
-      <tr><td><code>server.js</code></td><td>Alles auf der Server-Seite: statische Dateien, Range-Streaming, Bibliothek-Scan, Stash-GraphQL und -Proxy, Zurückschreiben, HereSphere-API, HQ-Stream über ffmpeg, Intiface-WebSocket-Weiterleitung, Fernbedienungs-Relais.</td></tr>
+      <tr><td><code>server.js</code></td><td>Anfragen verteilen: Anmeldung, Schutz-Header, Herkunftsprüfung, Routen, Intiface-WebSocket-Weiterleitung, Start-Übersicht und langsame Anfragen in <code>docker logs</code>.</td></tr>
+      <tr><td><code>lib/config.js</code> · <code>lib/util.js</code></td><td>Umgebungsvariablen und feste Werte · sichere Pfade (<code>safeJoin</code>), <code>readBody</code>, <code>sendFile</code> mit Range, <code>cleanTitle</code>.</td></tr>
+      <tr><td><code>lib/library.js</code></td><td>Ordner-Bibliothek, gemerkt; neu eingelesen, wenn sich die Ordner ändern (<code>librarySignature</code>) bzw. im Hintergrund nach 30 s.</td></tr>
+      <tr><td><code>lib/settings.js</code> · <code>lib/data.js</code></td><td>Server-Einstellungen (HereSphere, Passwort-Hash, Intiface) · gemeinsame Einstellungen, Intensität, eigene Scripts (<code>data/userscripts.json</code>), Handy-Merkliste, Sicherung, Patterns.</td></tr>
+      <tr><td><code>lib/stash.js</code> · <code>lib/heresphere.js</code></td><td>Stash-GraphQL, Filter, Zurückschreiben, Proxy · HereSphere-API (nur VR, Passwort, Liste gemerkt).</td></tr>
+      <tr><td><code>lib/hq.js</code> · <code>lib/remote.js</code></td><td>HQ-Stream über ffmpeg (ffprobe-Ergebnisse gemerkt) · Fernbedienungs-Relais (Server-Sent Events).</td></tr>
+      <tr><td><code>i18n.js</code> · <code>i18n-en.js</code></td><td>Sprache: Englisch per Tabelle (deutscher Text → englischer) und Mustern; übersetzt beim Laden und per <code>MutationObserver</code> alles, was später gesetzt wird. Standard nach Gerätesprache, Wahl in ⚙️ → Anzeige.</td></tr>
+      <tr><td><code>selftest.js</code></td><td>Selbsttest im Browser: <code>?selbsttest</code> an die Adresse hängen – spielt Abläufe mit simulierter Handy durch.</td></tr>
       <tr><td><code>handy.js</code></td><td>Klasse <code>Handy</code> (API v2 bzw. v3 mit Application ID: HAMP, HSSP mit <code>playback_rate</code>, Uhrabgleich, Upload-Cache), gemeinsame Einstellungen (<code>SHARED_PREFS</code>, beim Laden synchron von <code>/api/prefs</code>), <code>claimHandy()</code>, Helfer <code>$</code>, <code>store</code>, <code>log</code> (auch als Einblendung <code>#toast</code>), <code>pillText</code> (Status-Chips), <code>positionAt</code>.</td></tr>
       <tr><td><code>app.js</code></td><td>Modi und Seiten, Menü ☰, Geräte-Fenster (<code>openDevices</code>/<code>closeDevices</code>), Schalter „Geräte folgen dem Video“, Video + Script laden, Sync Video → Handy (<code>doSync</code>), Heatmap, „Läuft gerade“.</td></tr>
       <tr><td><code>library.js</code></td><td>Bibliothek (Ordner + Stash), Filter je Modus, Szene öffnen, Stash-Aktionen (★, Favorit, O, Marker), Weiterschauen, Sprites.</td></tr>
@@ -184,15 +191,18 @@
       </div>
       <div class="card">
         <h3>Eigene Scripts &amp; Mitschnitt</h3>
-        <p><code>saveScriptToLibrary()</code> -> <code>POST /api/userscript</code>: neben das Ordner-Video (<code>wx</code>,
-          nie überschreiben) oder <code>data/scripts/</code>. Beim Öffnen ohne Script lädt <code>loadUserScript()</code>.
+        <p><code>saveScriptToLibrary(actions, 'all' | 'section')</code> -> <code>POST /api/userscript</code>: neben das Ordner-Video
+          (<code>wx</code>) oder <code>data/scripts/</code>; im Verzeichnis <code>data/userscripts.json</code> vermerkt – nur diese
+          darf der Player ersetzen/löschen, Originale nie. <code>loadSceneScript()</code> wählt Original oder eigenes (<code>scriptChoice</code>),
+          <code>renderScriptBox()</code> zeigt den Script-Bereich; „Abschnitt“ = <code>mergeSection()</code>.
           Der Mitschnitt (selfctl.js) tastet alle 100 ms an <code>mediaTime()</code> ab; <code>touchToTempoActions()</code>
           macht daraus Stöße, deren Tempo dem Wert folgt.</p>
       </div>
       <div class="card">
         <h3>Einstellungen speichern</h3>
-        <p>Pro Gerät in <code>localStorage</code> über <code>store.get/set</code> (Präfix <code>hp.</code>).
-          Nur Patterns und Script-Baukasten liegen auf dem Server (<code>/api/store</code> → <code>data/store.json</code>).</p>
+        <p>In <code>localStorage</code> über <code>store.get/set</code> (Präfix <code>hp.</code>); Schlüssel aus <code>SHARED_PREFS</code>
+          zusätzlich auf dem Server (<code>/api/prefs</code>, für alle Geräte). Patterns und Script-Baukasten: <code>/api/store</code>.
+          Erweiterte Einstellungen: Klasse <code>.adv</code>, eingeblendet mit <code>body.adv-on</code>.</p>
       </div>
     </div>
   </section>
@@ -223,7 +233,9 @@
       <tr><td><span class="m ws">WS</span></td><td><code>/intiface?target=IP:PORT</code></td><td>WebSocket-Weiterleitung zu Intiface, nur private IPv4 (mit „nur Heimnetz“ nur 192.168.x / 10.x), nur von der eigenen Seite</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/handycache?k=v2|v3:&lt;sha256&gt;</code></td><td>Merkliste schon hochgeladener Handy-Scripts (<code>data/handy-cache.json</code>, max. 3000): GET → <code>{ url }</code>, PUT <code>{ k, url }</code></td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/prefs</code></td><td>Gemeinsame Einstellungen aller Geräte (<code>data/prefs.json</code>); PUT führt zusammen, <code>null</code> löscht</td></tr>
-      <tr><td><span class="m get">GET</span> <span class="m post">POST</span></td><td><code>/api/userscript?src=…</code></td><td>Eigenes Script zu einem Video: POST <code>{ src, funscript }</code> legt es neben das Ordner-Video (nie überschreiben) bzw. nach <code>data/scripts/</code>; GET liefert es</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m post">POST</span> <span class="m put">DEL</span></td><td><code>/api/userscript?src=…</code></td><td>Eigenes Script: POST <code>{ src, funscript }</code> ersetzt ein eigenes bzw. legt es neben das Ordner-Video oder nach <code>data/scripts/</code> (Original daneben bleibt); GET liefert es; DELETE löscht nur eigene</td></tr>
+      <tr><td><span class="m get">GET</span></td><td><code>/api/userscripts</code></td><td>Verzeichnis der eigenen Scripts <code>{ src: { where, at } }</code></td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/backup</code></td><td>Sicherung: Einstellungen, Patterns, Server-Einstellungen, eigene Scripts samt Inhalt; PUT spielt sie ein</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/heat?src=stash:&lt;id&gt;|media:&lt;pfad&gt;</code></td><td>Intensität eines Scripts: 48 Abschnitte mit mittlerem Tempo + Durchschnitt (für die Kacheln)</td></tr>
       <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/settings</code></td><td>Server-Einstellungen (<code>{ heresphere, hsVrOnly, hsPassword, intifaceLan }</code>, gespeichert in <code>data/settings.json</code>; vom Passwort nur Salz + Hash)</td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/remote/time</code> · <code>/api/remote/events</code></td><td>Serveruhr · SSE-Verbindung der Fernbedienung</td></tr>
@@ -273,11 +285,14 @@
   <section id="konfig">
     <h2>Konfiguration (Umgebungsvariablen)</h2>
     <div class="tbl-wrap">
+    <p class="sub">Mit Docker stehen alle Werte in der <code>.env</code> (Vorlage <code>.env.example</code>); die <code>docker-compose.yml</code>
+      liest sie nur aus. Zusätzlich dort: <code>DOMAIN</code>, <code>PLAYER_HOST</code>, Traefik, Medienordner, <code>RENDER_GID</code>, <code>PUID</code>/<code>PGID</code>, <code>TZ</code>.</p>
     <table class="tbl">
       <tr><th>Variable</th><th>Standard</th><th>Bedeutung</th></tr>
       <tr><td><code>PORT</code> · <code>HOST</code></td><td>8080 · 0.0.0.0</td><td>Wo der Server lauscht</td></tr>
       <tr><td><code>MEDIA_DIR</code></td><td>/media</td><td>Videoordner; jeder Unterordner = eigene Quelle</td></tr>
-      <tr><td><code>DATA_DIR</code></td><td>./data</td><td>Ablage für <code>store.json</code> (Patterns, Scripts)</td></tr>
+      <tr><td><code>DATA_DIR</code></td><td>./data</td><td>Daten des Players (Einstellungen, Patterns, eigene Scripts, Merklisten)</td></tr>
+      <tr><td><code>LOG_LEVEL</code></td><td>–</td><td><code>debug</code> = jede Anfrage in <code>docker logs</code> (sonst nur langsame &gt; 1 s)</td></tr>
       <tr><td><code>STASH_URL</code> · <code>STASH_API_KEY</code></td><td>–</td><td>Stash-Adresse, API-Key nur bei Login in Stash</td></tr>
       <tr><td><code>STASH_INSECURE</code></td><td>–</td><td><code>1</code> = selbstsigniertes Zertifikat akzeptieren</td></tr>
       <tr><td><code>STASH_FAVORITE_TAG</code> · <code>STASH_MARKER_TAG</code></td><td>Favorit · Lieblingsstelle</td><td>Tag für Favoriten bzw. gesetzte Marker</td></tr>
@@ -308,14 +323,14 @@ node server.js
         <h3>Ablauf einer Version</h3>
         <ol class="steps">
           <li>Ändern, dann <code>node --check</code> für alle JS-Dateien und <code>node --test "test/*.test.js"</code>.</li>
-          <li>Im Browser testen (Testvideo + Funscript, Stash ggf. nachbauen).</li>
+          <li>Im Browser testen (Testvideo + Funscript, Stash ggf. nachbauen) – dazu <code>?selbsttest</code>.</li>
           <li><code>VERSION</code>, <code>CHANGELOG.md</code>, bei größeren Versionen <code>RELEASE-NOTES-x.y.z.md</code> – jeweils „was &amp; warum“.</li>
           <li>Commit, Tag <code>vX.Y.Z</code>, ZIP für Docker per <code>git archive</code>.</li>
         </ol>
       </div>
     </div>
     <div class="grid" style="margin-top:20px">
-      <div class="card"><h3>Sprache</h3><p>Oberfläche, Kommentare und Doku auf Deutsch; Kommentare erklären das Warum.</p></div>
+      <div class="card"><h3>Sprache</h3><p>Code-Kommentare auf Deutsch (sie erklären das Warum). Oberfläche zweisprachig: deutsche Texte im Code, neue Texte in <code>public/i18n-en.js</code> ergänzen.</p></div>
       <div class="card"><h3>Keine Abhängigkeiten</h3><p>Nur Node-Standardbibliothek und Browser-APIs. Kein Build, kein Bundler.</p></div>
       <div class="card"><h3>Sicherheit zuerst</h3><p>Alles, was Geräte bewegt, muss über <code>emergencyStop()</code> stoppbar sein und bei fehlender Verbindung anhalten.</p></div>
       <div class="card"><h3>Feature-Seite pflegen</h3><p>Neue Funktionen in <code>docs/index.html</code> ergänzen, technische Details hier.</p></div>
@@ -327,8 +342,8 @@ node server.js
     <p class="sub">Ohne zusätzliche Pakete, mit Node-Bordmitteln. Vor jeder Version laufen lassen:</p>
 <pre><code>node --test "test/*.test.js"</code></pre>
     <div class="grid two">
-      <div class="card"><h3>test/scripts.test.js</h3><p>Funscript einlesen, Script-Automatik (Analyse, Zittern, Hub, Tempo-Grenze), Touch-Aufnahme als Tempo/Position, Intensitäts-Zusammenfassung. Die Funktionen werden direkt aus den Browser-Dateien gelesen (<code>loadFunctions</code> in <code>test/helpers.js</code>).</p></div>
-      <div class="card"><h3>test/server.test.js</h3><p>Startet <code>server.js</code> mit Testordnern: Bibliothek, gemeinsame Einstellungen, Intensität, eigene Scripts (nie überschreiben), Fernbedienungs-Relais über Server-Sent Events, HereSphere-Schalter, „nur VR“ und Passwort, Herkunftsprüfung und Schutz-Header, Script-Merkliste.</p></div>
+      <div class="card"><h3>test/scripts.test.js</h3><p>Funscript einlesen, Script-Automatik (Analyse, Zittern, Hub, Tempo-Grenze), Touch-Aufnahme als Tempo/Position, Intensitäts-Zusammenfassung, Takt-Schutz mit Vibrations-Ausnahme, halbes Tempo, Modell-Erkennung. Die Funktionen werden direkt aus den Browser-Dateien gelesen (<code>loadFunctions</code> in <code>test/helpers.js</code>).</p></div>
+      <div class="card"><h3>test/server.test.js</h3><p>Startet <code>server.js</code> mit Testordnern: Bibliothek, gemeinsame Einstellungen, Intensität, eigene Scripts (eigene ersetzen, Originale nie, löschen), Sicherung, Fernbedienungs-Relais über Server-Sent Events, HereSphere-Schalter, „nur VR“ und Passwort, Herkunftsprüfung und Schutz-Header, Script-Merkliste.</p></div>
     </div>
   </section>
 

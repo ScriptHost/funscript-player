@@ -37,7 +37,7 @@
         <b>Stash</b> oder deinen Ordnern; schauen kannst du am PC, Smartphone, TV oder in der VR-Brille. Scripts werden
         automatisch verbessert, der Satisfyer läuft auch mit reinen Handy-Scripts – und Videos werden auf Wunsch schärfer hochgerechnet.</p>
       <div class="chips">
-        <span class="chip hl">⚡ Script-Automatik</span>
+        <span class="chip hl">⚡ Original + Takt-Schutz</span>
         <span class="chip hl">〰 Satisfyer mit jedem Script</span>
         <span class="chip hl">✨ Upscaling</span>
         <span class="chip">↕ The Handy · API v3 · 0,5×–2×</span>
@@ -52,25 +52,25 @@
       </div>
     </div>
 
-    <div class="phone" aria-label="Player auf dem Smartphone (Abbildung)">
-      <div class="screen">
-        <div class="scr-head"><span class="m-chip"><span class="ok">↕ verbunden</span> · <span class="ok">〰 1 · 🔋 64 %</span> ▾</span><span class="burger">☰</span></div>
-        <div class="video">
-          <span class="stop">■ STOPP</span>
-          <span class="play">❚❚</span>
-          <div class="bar-wrap">
-            <div class="heat"><i style="left:22%"></i><i style="left:63%"></i><b></b></div>
-            <div class="row"><span>−10</span><span>+10</span><span class="t">12:40 / 31:05</span><span class="g"></span><span class="gold">★ 4</span><span>💦 2</span><span>📍</span><span>🔥</span><span>⛶</span></div>
+    <!-- Kopf-Animation (docs/hero.js): verbinden -> Play -> Handy und Satisfyer im Takt -->
+    <div id="heroDemo" class="hero-demo" aria-label="Animation: Gerät verbinden, Video starten, The Handy und Satisfyer laufen im Takt">
+      <div class="phone">
+        <div class="screen">
+          <div class="scr-head"><span class="m-chip hd-chip"><span class="hd-h">↕ aus</span> · <span class="hd-v">〰 aus</span> ▾</span><span class="burger">☰</span></div>
+          <div class="video hd-video">
+            <span class="play hd-play">▶</span>
+            <div class="bar-wrap">
+              <canvas class="hd-graph"></canvas>
+              <div class="hd-track"><i class="hd-progress"></i></div>
+              <div class="row"><span>−10</span><span>+10</span><span class="t hd-time">0:00 / 0:10</span><span class="g"></span><span>🔥</span><span>⛶</span></div>
+            </div>
           </div>
+          <div class="scr-info"><b>Szene am See</b><span class="muted hd-note">Status antippen → verbinden</span></div>
         </div>
-        <div class="scr-info"><b>Szene am See</b><span class="muted">🛠️ Automatisch · Handy: 14 Stellen gekürzt</span></div>
-        <div class="scr-devs">
-          <span class="mbtn">❚❚ Geräte pausieren</span>
-          <span class="mrow">Offset <i style="--v:55%"></i> +40 ms</span>
-          <span class="mrow">Hub <i style="--v:80%;--s:10%"></i> 10–90 %</span>
-          <span class="mrow">〰 Stärke <i class="live" style="--v:62%"></i> 62 %</span>
-          <span class="mbtn fin">🔥 Finale</span>
-        </div>
+      </div>
+      <div class="hd-devs">
+        <div class="hd-dev"><div class="sd-rail"><div class="sd-carriage hd-carriage"></div></div><span>↕ The Handy <b class="hd-hpos">50 %</b></span></div>
+        <div class="hd-dev"><div class="sd-orb hd-orb"><span></span></div><span>〰 Satisfyer <b class="hd-vlvl">0 %</b></span></div>
       </div>
     </div>
   </div>
@@ -85,9 +85,10 @@
           <path d="M125 62 L135 8 L145 62 L155 8 L165 62 L175 8 L185 62 L195 8 L205 62 L215 8" fill="none" stroke="#ff5c93" stroke-width="2.8"/>
         </svg>
       </div>
-      <h3>⚡ Scripts automatisch besser</h3>
-      <p>Jedes Funscript wird beim Laden geprüft: Zittern weg, flacher Hub gestreckt, was die Handy nicht schafft
-        gekürzt – und der Satisfyer bekommt seine eigene, ungekürzte Fassung. Ohne einen Klick, Dateien bleiben unverändert.</p>
+      <h3>⚡ Original – und trotzdem im Takt</h3>
+      <p>Die Handy spielt jedes Funscript original, mit allen feinen Vibrationen. Nur Stöße, die ihr Motor nicht schafft,
+        passt der Takt-Schutz an – wahlweise kürzer oder mit vollem Hub im halben Tempo. Der Satisfyer bekommt seine eigene,
+        geglättete Fassung. Ohne einen Klick, Dateien bleiben unverändert.</p>
     </div>
     <div class="hl-card">
       <div class="hl-vis">
@@ -226,6 +227,8 @@
   <section id="funktionen">
     <span class="kicker">Funktionen</span>
     <h2>Was der Player kann</h2>
+    <details class="all-features">
+    <summary>Alle Funktionen ansehen</summary>
 
     <!-- Ein Script für alle Geräte -->
     <div class="feature">
@@ -237,9 +240,9 @@
             (API v3) bleibt sie auch bei 0,5× bis 2× Wiedergabe im Takt.</li>
           <li><b>Satisfyer</b>: Der Player rechnet daraus Vibration – im Rhythmus der Stöße, nach Tempo oder Position,
             mit einstellbarer Gleichmäßigkeit. Den Vorlauf misst er selbst.</li>
-          <li><b>Script-Automatik</b> prüft jedes Script: Zittern weg, flachen Hub strecken – und nur für die Handy anpassen,
-            was sie nicht schafft: Hub kürzen oder <b>voller Hub, halbes Tempo</b>. Das Modell der Handy erkennt der Player
-            selbst. Presets: Automatisch, Sanft, Intensiv, Original.</li>
+          <li><b>Pro Gerät eingestellt:</b> Handy standardmäßig <b>Original + Takt-Schutz</b> – nur, was der Motor nicht schafft,
+            wird angepasst (Hub kürzen oder <b>voller Hub, halbes Tempo</b>), feine Vibrationen bleiben. Satisfyer
+            <b>Automatisch</b>. Das Handy-Modell erkennt der Player selbst; angepasste Stellen zeigt die Heatmap.</li>
         </ul>
       </div>
       <div class="diagram" aria-label="Script vorher und nachher">
@@ -273,6 +276,7 @@
           <li>🧪 <b>Position:</b> Die Handy folgt deinem Finger direkt – hoch, runter, so schnell du willst.</li>
           <li><b>⏺ Mitschnitt zum Video</b> zeichnet deine Steuerung an der Video-Zeit auf. Gespeichert wird daraus ein
             eigenes Funscript – beim nächsten Mal läuft es genau so synchron mit.</li>
+          <li><b>✋ Eigene Scripts</b> sind markiert: neu aufnehmen, nur einen Abschnitt ersetzen oder löschen – Originale bleiben unangetastet.</li>
           <li>Aufnahmen auch als <b>Pattern</b> unter 🎮 Steuern oder als <b>.funscript</b> zum Herunterladen.</li>
         </ul>
       </div>
@@ -293,6 +297,7 @@
           <li><b>Mini-Player</b>: Beim Stöbern läuft das Video klein in der Ecke weiter, Geräte inklusive – ✕ schließt es.
             Verlässt du die App, läuft es als Bild-in-Bild weiter.</li>
           <li><b>Deine Leiste:</b> Knöpfe ein- und ausblenden und umsortieren; ohne Script und Steuerung verschwinden die Geräte-Regler.</li>
+          <li>Einstellungen zeigen erst das Nötige – Feinheiten unter <b>„Erweiterte Einstellungen“</b>.</li>
           <li>Darsteller, Tags, Marker und Beschreibung stehen unter „Mehr zur Szene“.</li>
         </ul>
       </div>
@@ -402,7 +407,10 @@
       <div class="card"><div class="icon">🔄</div><h3>Überall gleich</h3><p>Key, Offsets, Satisfyer-Übersetzung, Sicherheit und Presets liegen auf dem Server – auf jedem Gerät dieselben. Bild und Kopfzeile pro Gerät.</p></div>
       <div class="card"><div class="icon">🎮</div><h3>Steuern ohne Video</h3><p>Direktsteuerung, Finger-Fläche, Pattern-Editor und Script-Baukasten – abspielen oder als .funscript exportieren.</p></div>
       <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt.</p></div>
+      <div class="card"><div class="icon">🌐</div><h3>Deutsch &amp; Englisch</h3><p>Die Oberfläche spricht die Sprache deines Geräts – umschaltbar unter ⚙️ → Anzeige.</p></div>
+      <div class="card"><div class="icon">💾</div><h3>Sicherung</h3><p>Eigene Scripts, eingemessene Offsets, Patterns und Einstellungen in einer Datei – für den Umzug auf einen neuen Server.</p></div>
     </div>
+    </details>
   </section>
 
   <!-- ============ Bedienung ============ -->
@@ -435,6 +443,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="timeline">
+      <div class="tl"><b>1.18</b><p>Handy original mit Takt-Schutz, eigene Scripts (neu aufnehmen, Abschnitt ersetzen, löschen), Offset mit „🎯 eingemessen“, Erweiterte Einstellungen, Sicherung, Englisch, schneller Container-Start mit klaren Logs, Einstellungen in der <code>.env</code>.</p></div>
       <div class="tl"><b>1.17</b><p>Handy folgt dem Finger (Touch „Position“), „voller Hub, halbes Tempo“, Modell-Erkennung, schneller Start durch gemerkte Scripts, anpassbare Player-Leiste, Bild-in-Bild beim App-Wechsel, HereSphere-Passwort und schneller auf der Brille, Herkunftsprüfung.</p></div>
       <div class="tl"><b>1.16</b><p>Eine Status-Anzeige, nur verbundene Geräte am Video, Sync als Standard, Mitschnitt zum Video, Touch mit Aufnahme, Mini-Player, Intensitäts-Filter, Satisfyer-Akku, gemessene Verzögerung, automatische Tests.</p></div>
       <div class="tl"><b>1.15</b><p>Handy-API v3 (0,5×–2×), Einstellungen auf allen Geräten gleich, Heatmap-Leiste auf den Kacheln.</p></div>
@@ -478,15 +487,16 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-v1.17.0.zip</code> auf den Server kopieren und entpacken.</li>
-        <li>In der <code>docker-compose.yml</code> Medienordner, <code>STASH_URL</code> und Domain eintragen
+        <li>ZIP <code>handy-player-linux-v1.18.0.zip</code> auf den Server kopieren und entpacken.</li>
+        <li><code>.env.example</code> nach <code>.env</code> kopieren und Domain, <code>STASH_URL</code> und ggf. Medienordner eintragen
           (Player unter <code>handy.${DOMAIN}</code>).</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
         <li>Bauen und starten – fertig unter <code>https://handy.deine-domain</code>.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.17.0.zip
+<pre><code>unzip handy-player-linux-v1.18.0.zip
 cd handy-player
+cp .env.example .env   # einmal, dann anpassen
 docker compose up -d --build</code></pre>
         <p class="note">Bluetooth und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat (z. B. Traefik).
           Sollen eigene Scripts neben den Videos landen, Medienordner ohne <code>:ro</code> einbinden – sonst legt der
@@ -501,6 +511,7 @@ docker compose up -d --build</code></pre>
     <h2>Fragen &amp; Begriffe</h2>
     <div class="faq">
       <details><summary>Brauche ich ein eigenes Script für den Satisfyer?</summary><p>Nein. Der Satisfyer nutzt dasselbe Funscript wie die Handy; der Player rechnet daraus die Vibration.</p></details>
+      <details><summary>Warum spielt die Handy das Script original?</summary><p>Damit jede feine Bewegung und Vibration ankommt. Nur Stöße, die schneller sind als der Motor, passt der Takt-Schutz an – so bleibt die Handy exakt im Takt. Wer mehr Glättung will, stellt unter ⚙️ → Script „Automatisch“ ein.</p></details>
       <details><summary>Application ID oder Application Key?</summary><p>Die <b>Application ID</b> (handyfeeling.com → Application IDs) unter ⚙️ → Geräte eintragen – dann nutzt der Player die Handy-API v3. Den geheimen Application Key braucht er nicht.</p></details>
       <details><summary>Warum folgen die Geräte dem Video nicht?</summary><p>Dann ist „Geräte folgen dem Video“ aus (⚙️ → Geräte). Der Player zeigt dafür einen Hinweis mit „Einschalten“ unter dem Video.</p></details>
       <details><summary>Was bedeuten „1 842 Punkte“?</summary><p>Ein Funscript ist eine Liste „zur Zeit X auf Position Y“ – das ist die Anzahl dieser Bewegungspunkte. Mehr Punkte = feinere Bewegung.</p></details>
@@ -514,6 +525,7 @@ docker compose up -d --build</code></pre>
     <span><a href="dev.html">Entwickler-Doku →</a></span>
   </footer>
 </main>
+<script src="hero.js"></script>
 <script src="sync-demo.js"></script>
 <script src="try-demo.js"></script>
 <script src="i18n-en.js"></script>

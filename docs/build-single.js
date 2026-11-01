@@ -12,7 +12,7 @@ const js2 = fs.readFileSync('docs/try-demo.js', 'utf8');
 if (js2.includes('</script')) throw new Error('script would close early');
 swap('<script src="try-demo.js"></script>', `<script>\n${js2}\n</script>`);
 // DE/EN-Schalter
-for (const f of ['i18n-en.js', 'i18n.js']) {
+for (const f of ['hero.js', 'i18n-en.js', 'i18n.js']) {
   const code = fs.readFileSync('docs/' + f, 'utf8');
   if (code.includes('</script')) throw new Error('script would close early');
   swap(`<script src="${f}"></script>`, `<script>\n${code}\n</script>`);

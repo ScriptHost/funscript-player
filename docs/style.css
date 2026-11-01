@@ -346,3 +346,46 @@ footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line);
 .lang-switch { display: inline-flex; margin-left: 12px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
 .lang-switch button { background: none; border: 0; color: inherit; opacity: .6; font: inherit; font-size: 12px; font-weight: 700; padding: 4px 9px; cursor: pointer; }
 .lang-switch button.on { opacity: 1; background: rgba(255,92,147,.25); }
+/* 1.18: Kopf-Animation (hero.js) – Smartphone + Geräte daneben (Desktop) bzw. darunter (Smartphone) */
+.hero-demo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; }
+.hero-demo .phone { width: min(320px, 100%); }
+.hd-video .bar-wrap { padding-top: 10px; }
+.hd-graph { display: block; width: 100%; height: 44px; border-radius: 4px; background: rgba(0,0,0,.25); }
+.hd-track { height: 3px; margin-top: 4px; border-radius: 2px; background: rgba(255,255,255,.2); overflow: hidden; }
+.hd-progress { display: block; height: 100%; width: 0; background: #e0457b; }
+.hd-chip .busy { color: #ffb74d; }
+.hd-chip .ok { color: #36c47a; }
+.hero-demo.tapping .hd-chip { box-shadow: 0 0 0 3px rgba(224,69,123,.55); transition: box-shadow .2s; }
+.hero-demo .play { transition: transform .2s; }
+.hero-demo.playing .play { opacity: .0; transform: translate(-50%, -50%) scale(.6); }
+.hd-devs { display: flex; flex-direction: column; gap: 18px; align-items: center; min-width: 110px; }
+.hd-dev { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.hd-dev .sd-rail { flex: none; height: 170px; width: 30px; }
+.hd-dev .sd-orb { width: 70px; height: 70px; }
+.hd-dev b { color: var(--text); font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  /* Smartphone: Animation oben, Geräte nebeneinander unter dem Telefon */
+  .hero { gap: 22px; }
+  .hero > .hero-demo { order: -1; }
+  .hero-demo { grid-template-columns: 1fr; justify-items: center; }
+  .hd-devs { flex-direction: row; gap: 34px; }
+  .hd-dev .sd-rail { height: 120px; }
+  .hero .lead { font-size: 16px; }
+  /* Highlights als wischbare Karten */
+  .highlights { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 6px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+  .highlights .hl-card { flex: 0 0 82%; scroll-snap-align: center; }
+  /* Vergleich als Karten statt breiter Tabelle */
+  .vs { overflow: visible; }
+  .vs-tbl, .vs-tbl tbody, .vs-tbl tr, .vs-tbl td { display: block; min-width: 0; }
+  .vs-tbl thead { display: none; }
+  .vs-tbl tr { border-bottom: 1px solid var(--line); padding: 8px 4px; }
+  .vs-tbl td { border: 0; padding: 2px 8px; background: none !important; }
+  .vs-tbl td:first-child { font-weight: 700; }
+  /* Alle Funktionen: Abbildungen unter den Text */
+  .feature, .feature.rev { grid-template-columns: 1fr; }
+}
+/* Alle Funktionen aufklappbar */
+.all-features { margin-top: 18px; }
+.all-features > summary { cursor: pointer; display: inline-block; padding: 10px 18px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); font-weight: 600; list-style: none; }
+.all-features > summary::-webkit-details-marker { display: none; }
+.all-features[open] > summary { margin-bottom: 10px; }
