@@ -1,36 +1,48 @@
+<!-- Grafiken: docs/img/gh/ (erzeugt mit `node docs/img/gh/build.js`, Stil und Texte wie funscript-player.de) -->
 <p align="center">
-  <img src="docs/img/banner.svg" alt="Funscript Player – Your video. Your devices. Perfectly in sync." width="100%">
+  <a href="https://funscript-player.de"><img src="docs/img/gh/hero.svg" alt="Self-hosted · in the browser – Your video. Your devices. Perfectly in sync. A Funscript player that drives The Handy and the Satisfyer at the same time – from any script, right from your Stash library." width="100%"></a>
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.2-ff4f9a?style=flat-square">
+  <a href="#-quick-start"><img src="docs/img/gh/btn-install.svg" alt="Install" height="48"></a>&nbsp;
+  <a href="https://funscript-player.de"><img src="docs/img/gh/btn-website.svg" alt="Website" height="48"></a>&nbsp;
+  <a href="../../releases/latest"><img src="docs/img/gh/btn-download.svg" alt="Download ZIP" height="48"></a>
+</p>
+
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.2-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
-  <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-22d3ee?style=flat-square">
-  <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-7c5cff?style=flat-square">
-  <img alt="Stash" src="https://img.shields.io/badge/Stash-integrated-444?style=flat-square">
-  <img alt="Languages" src="https://img.shields.io/badge/UI-English%20%7C%20Deutsch-555?style=flat-square">
+  <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
+  <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-1a1d23?style=flat-square">
+  <img alt="Stash" src="https://img.shields.io/badge/Stash-integrated-1a1d23?style=flat-square">
+  <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/README-Deutsch-1a1d23?style=flat-square"></a>
 </p>
 
 <p align="center">
-  <a href="https://funscript-player.de"><b>Website</b></a> ·
-  <a href="#quick-start"><b>Quick start</b></a> ·
-  <a href="CHANGELOG.md"><b>Changelog</b></a> ·
-  <a href="https://funscript-player.de/dev.html"><b>Developer docs</b></a> ·
-  <a href="README.de.md"><b>🇩🇪 Deutsch</b></a>
+  <img src="docs/img/gh/live.svg" alt="Animation: the video plays, The Handy strokes and the Satisfyer pulses – all from one Funscript" width="100%">
 </p>
-
----
-
-**Funscript Player** is a self-hosted web player that plays your videos and drives **The Handy** and the **Satisfyer**
-in sync – both from the *same* Funscript, no separate vibration script needed. Your library comes from **Stash**
-and/or your own folders; watch on PC, phone, TV or in a VR headset. One small container, zero npm dependencies.
 
 <p align="center">
-  <img src="docs/img/player-1.19.2.svg" alt="Player with heatmap timeline, The Handy and Satisfyer in sync" width="100%">
+  <img src="docs/img/gh/highlights.svg" alt="Automatic – and still in time · Satisfyer with any script · Sharper picture through upscaling" width="100%">
 </p>
 
-## ✨ Highlights
+<p align="center">
+  <img src="docs/img/gh/h-look.svg" alt="See it – the player as it looks today" width="100%">
+  <img src="docs/img/player-1.19.2.svg" alt="Funscript Player 1.19.2 on a phone: player with script box and library" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/img/gh/h-for-whom.svg" alt="Who is it for? Whatever you own" width="100%">
+  <img src="docs/img/gh/for-whom.svg" alt="Just a Handy · Just a Satisfyer · A Stash library" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/img/gh/h-steps.svg" alt="In three steps – connect, pick, play" width="100%">
+  <img src="docs/img/gh/steps.svg" alt="1 Connect · 2 Pick a scene · 3 Play" width="100%">
+</p>
+
+## ✨ All features
 
 | | |
 |---|---|
@@ -42,6 +54,8 @@ and/or your own folders; watch on PC, phone, TV or in a VR headset. One small co
 | ✨ **Sharper picture** | Server-side upscaling (Intel Quick Sync / VAAPI) plus sharpening in the browser. |
 | 📱 **Remote & VR** | Video on the TV, controls on the phone; HereSphere API for VR headsets. |
 | 🛡️ **Safety first** | STOP button everywhere, Esc as emergency stop, devices pause when the screen locks. |
+
+<p align="center"><img src="docs/img/gh/h-install.svg" alt="Installation – Docker in five minutes" width="100%"></p>
 
 ## 🚀 Quick start
 
@@ -100,3 +114,14 @@ Open the player with `?selbsttest` for an in-browser self-test with a simulated 
   name `script.csv`). Videos and titles stay on your server.
 - **Formats:** whatever your browser plays – MP4 (H.264/H.265) and WebM everywhere, MKV depending on the browser;
   Stash scenes in other formats are converted live.
+
+---
+
+<p align="center">
+  <a href="https://funscript-player.de"><b>Website</b></a> ·
+  <a href="../../releases"><b>Releases</b></a> ·
+  <a href="CHANGELOG.md"><b>Changelog</b></a> ·
+  <a href="https://funscript-player.de/dev.html"><b>Developer docs</b></a> ·
+  <a href="../../issues/new/choose"><b>Report a bug / idea</b></a> ·
+  <a href="README.de.md"><b>🇩🇪 Deutsch</b></a>
+</p>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 56" width="150" height="56" role="img" aria-label="Install" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
+  
+</defs>
+<rect width="150" height="56" rx="14" fill="#e0457b"/><text x="75" y="35" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">Install</text>
+</svg>

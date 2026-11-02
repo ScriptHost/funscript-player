@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 177" width="1280" height="177" role="img" aria-label="Who is it for: just a Handy, just a Satisfyer, a Stash library" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
+  
+</defs>
+<g transform="translate(0 0)">
+  <rect x="1" y="1" width="408.6666666666667" height="175" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  
+  
+  
+  <text x="22" y="44" font-size="20" font-weight="700" fill="#e8eaed">↕ Just a Handy</text>
+  <text x="22" y="76" font-size="15" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="22" dy="0">Clean sync via the Handy cloud, scripts</tspan><tspan x="22" dy="23.25">corrected automatically, 0.5×–2× speed without</tspan><tspan x="22" dy="23.25">drift – and the library shows you beforehand</tspan><tspan x="22" dy="23.25">how intense a scene is.</tspan></text>
+</g>
+<g transform="translate(434.6666666666667 0)">
+  <rect x="1" y="1" width="408.6666666666667" height="175" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  
+  
+  
+  <text x="22" y="44" font-size="20" font-weight="700" fill="#e8eaed">〰 Just a Satisfyer</text>
+  <text x="22" y="76" font-size="15" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="22" dy="0">You don’t need vibration scripts: every Handy</tspan><tspan x="22" dy="23.25">script becomes vibration live. Connects via</tspan><tspan x="22" dy="23.25">Bluetooth right in the browser, no app.</tspan></text>
+</g>
+<g transform="translate(869.3333333333334 0)">
+  <rect x="1" y="1" width="408.6666666666667" height="175" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  
+  
+  
+  <text x="22" y="44" font-size="20" font-weight="700" fill="#e8eaed">📚 A Stash library</text>
+  <text x="22" y="76" font-size="15" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="22" dy="0">Scenes with Funscript, heatmap and intensity</tspan><tspan x="22" dy="23.25">at a glance. Watch on the TV, control from</tspan><tspan x="22" dy="23.25">your phone – or in VR via HereSphere.</tspan></text>
+</g>
+</svg>

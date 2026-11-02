@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" width="1280" height="520" role="img" aria-label="Animation: video plays, The Handy strokes and the Satisfyer pulses in sync" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
+  <radialGradient id="vid" cx="35%" cy="30%" r="90%"><stop offset="0" stop-color="#6a2a4a"/><stop offset=".55" stop-color="#23182a"/><stop offset="1" stop-color="#0e0f14"/></radialGradient>
+</defs>
+
+<rect width="1280" height="520" rx="22" fill="#111317"/>
+<g transform="translate(380 30)">
+  <rect width="520" height="460" rx="40" fill="#000" stroke="#2a2d35" stroke-width="2"/>
+  <rect x="14" y="14" width="492" height="432" rx="30" fill="#0b0c10"/>
+  <rect x="30" y="30" width="240" height="30" rx="15" fill="none" stroke="#2c313b"/>
+  <circle cx="48" cy="45" r="5" fill="#36c47a"/><text x="60" y="51" font-size="14" fill="#36c47a">↕ connected · 〰 connected ▾</text>
+  <text x="470" y="52" font-size="20" fill="#e8eaed">☰</text>
+  <rect x="30" y="74" width="460" height="200" rx="6" fill="url(#vid)"/>
+  <g transform="translate(30 214)">
+    <rect x="0" y="0" width="46" height="34" fill="#1e90ff" opacity=".55"/><rect x="46" y="0" width="46" height="34" fill="#28c864" opacity=".55"/><rect x="92" y="0" width="46" height="34" fill="#f0d228" opacity=".55"/><rect x="138" y="0" width="46" height="34" fill="#fa821e" opacity=".55"/><rect x="184" y="0" width="46" height="34" fill="#e62832" opacity=".55"/><rect x="230" y="0" width="46" height="34" fill="#fa821e" opacity=".55"/><rect x="276" y="0" width="46" height="34" fill="#28c864" opacity=".55"/><rect x="322" y="0" width="46" height="34" fill="#f0d228" opacity=".55"/><rect x="368" y="0" width="46" height="34" fill="#e62832" opacity=".55"/><rect x="414" y="0" width="46" height="34" fill="#1e90ff" opacity=".55"/>
+    <path d="M0 30 L23 4 L46 30 L69 6 L92 30 L115 4 L138 30 L161 10 L184 30 L207 4 L230 30 L253 6 L276 30 L299 4 L322 30 L345 8 L368 30 L391 4 L414 30 L437 6 L460 30" fill="none" stroke="#fff" stroke-width="2"/>
+    <rect x="0" y="0" width="3" height="34" fill="#fff"><animate attributeName="x" from="0" to="457" dur="8s" repeatCount="indefinite"/></rect>
+  </g>
+  <rect x="30" y="252" width="460" height="4" fill="#2c313b"/>
+  <rect x="30" y="252" width="0" height="4" fill="#e0457b"><animate attributeName="width" from="0" to="460" dur="8s" repeatCount="indefinite"/></rect>
+  <g font-size="13" fill="#e8eaed">
+    <rect x="30" y="292" width="40" height="28" rx="7" fill="#22262e"/><text x="38" y="311">−10</text>
+    <rect x="76" y="292" width="40" height="28" rx="7" fill="#22262e"/><text x="83" y="311">+10</text>
+    <text x="128" y="311" fill="#9aa1ab">0:03 / 0:10</text>
+    <rect x="414" y="292" width="34" height="28" rx="7" fill="#22262e"/><text x="423" y="311">🔥</text>
+    <rect x="456" y="292" width="34" height="28" rx="7" fill="#22262e"/><text x="466" y="311">⛶</text>
+  </g>
+  <rect x="30" y="336" width="460" height="92" rx="12" fill="#1a1d23"/>
+  <text x="48" y="374" font-size="19" font-weight="700" fill="#e8eaed">Lakeside scene</text>
+  <text x="48" y="402" font-size="15" fill="#9aa1ab">running in sync</text>
+</g>
+<!-- Handy -->
+<g transform="translate(990 70)">
+  <rect width="52" height="260" rx="26" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  <rect x="8" y="20" width="36" height="58" rx="18" fill="#ff5c93">
+    <animate attributeName="y" values="182;20;182;24;182;20;182;40;182" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  <text x="26" y="300" text-anchor="middle" font-size="16" fill="#e8eaed">↕ The Handy</text>
+</g>
+<!-- Satisfyer -->
+<g transform="translate(1016 410)">
+  <circle r="34" fill="#e0457b" opacity=".25"><animate attributeName="r" values="30;46;30" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".35;.08;.35" dur="1s" repeatCount="indefinite"/></circle>
+  <circle r="24" fill="#e0457b"><animate attributeName="r" values="22;27;22" dur="1s" repeatCount="indefinite"/></circle>
+  <text x="0" y="70" text-anchor="middle" font-size="16" fill="#e8eaed">〰 Satisfyer</text>
+</g>
+<!-- Script-Erklärung links -->
+<g transform="translate(70 150)">
+  <text font-size="15" font-weight="700" letter-spacing="1.2" fill="#e0457b">ONE FUNSCRIPT</text>
+  <text x="0" y="40" font-size="26" fill="#e8eaed" font-weight="700" text-anchor="start"><tspan x="0" dy="0">Video, script and devices</tspan><tspan x="0" dy="33.800000000000004">in the same beat.</tspan></text>
+  <text x="0" y="128" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="0" dy="0">The Handy follows the strokes,</tspan><tspan x="0" dy="24">the Satisfyer turns the same</tspan><tspan x="0" dy="24">script into vibration – live.</tspan></text>
+</g>
+
+</svg>

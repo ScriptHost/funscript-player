@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 346" width="1280" height="346" role="img" aria-label="Highlights: script automation, Satisfyer with any script, upscaling" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
+  
+</defs>
+<g transform="translate(0 0)">
+  <rect x="1" y="1" width="408.6666666666667" height="344" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  <path d="M19 1 H391.6666666666667 A18 18 0 0 1 409.6666666666667 19 V4 H1 V19 A18 18 0 0 1 19 1 Z" fill="url(#grad)"/>
+  <rect x="22" y="22" width="366.6666666666667" height="104" rx="12" fill="#101218"/><g transform="translate(55.33333333333334 34) scale(1.36)"><path d="M5 44 L15 26 L25 44 L35 26 L45 44 L55 26 L65 44 L75 26 L85 44 L95 26" fill="none" stroke="#7d8591" stroke-width="2.4"/>
+<path d="M100 35 H118" stroke="#9098a3" stroke-width="2"/><path d="M114 30 L120 35 L114 40" fill="none" stroke="#9098a3" stroke-width="2"/>
+<path d="M125 62 L135 8 L145 62 L155 8 L165 62 L175 8 L185 62 L195 8 L205 62 L215 8" fill="none" stroke="#ff5c93" stroke-width="2.8"/></g>
+  
+  <text x="22" y="166" font-size="20" font-weight="700" fill="#e8eaed">⚡ Automatic – and still in time</text>
+  <text x="22" y="198" font-size="15" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="22" dy="0">Every Funscript keeps its fine movements and</tspan><tspan x="22" dy="23.25">vibrations. Only strokes the motor can’t</tspan><tspan x="22" dy="23.25">manage are adapted by the beat guard –</tspan><tspan x="22" dy="23.25">shorter, or full stroke at half tempo – and</tspan><tspan x="22" dy="23.25">small strokes are stretched to the full range.</tspan><tspan x="22" dy="23.25">Your files stay untouched.</tspan></text>
+</g>
+<g transform="translate(434.6666666666667 0)">
+  <rect x="1" y="1" width="408.6666666666667" height="344" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  <path d="M19 1 H391.6666666666667 A18 18 0 0 1 409.6666666666667 19 V4 H1 V19 A18 18 0 0 1 19 1 Z" fill="url(#grad)"/>
+  <rect x="22" y="22" width="366.6666666666667" height="104" rx="12" fill="#101218"/><g transform="translate(55.33333333333334 34) scale(1.36)"><path d="M5 60 L17 10 L29 60 L37 22 L45 60 L50 30 L55 60 L59 30 L63 60 L67 30 L71 60 L83 15 L95 60" fill="none" stroke="#7d8591" stroke-width="2.4"/>
+<path d="M100 35 H118" stroke="#9098a3" stroke-width="2"/><path d="M114 30 L120 35 L114 40" fill="none" stroke="#9098a3" stroke-width="2"/>
+<g fill="#a07bff"><rect x="126" y="44" width="7" height="18" rx="2"/><rect x="136" y="34" width="7" height="28" rx="2"/><rect x="146" y="20" width="7" height="42" rx="2"/><rect x="156" y="12" width="7" height="50" rx="2"/><rect x="166" y="8" width="7" height="54" rx="2"/><rect x="176" y="18" width="7" height="44" rx="2"/><rect x="186" y="32" width="7" height="30" rx="2"/><rect x="196" y="40" width="7" height="22" rx="2"/><rect x="206" y="46" width="7" height="16" rx="2"/></g></g>
+  
+  <text x="22" y="166" font-size="20" font-weight="700" fill="#e8eaed">〰 Satisfyer with any script</text>
+  <text x="22" y="198" font-size="15" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="22" dy="0">Almost all Funscripts are made for strokers</tspan><tspan x="22" dy="23.25">like the Handy – vibration scripts barely</tspan><tspan x="22" dy="23.25">exist. The player converts the stroke script</tspan><tspan x="22" dy="23.25">into vibration live while playing: following</tspan><tspan x="22" dy="23.25">the rhythm of the strokes, their speed or the</tspan><tspan x="22" dy="23.25">position.</tspan></text>
+</g>
+<g transform="translate(869.3333333333334 0)">
+  <rect x="1" y="1" width="408.6666666666667" height="344" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
+  <path d="M19 1 H391.6666666666667 A18 18 0 0 1 409.6666666666667 19 V4 H1 V19 A18 18 0 0 1 19 1 Z" fill="url(#grad)"/>
+  <rect x="22" y="22" width="366.6666666666667" height="104" rx="12" fill="#101218"/><g transform="translate(55.33333333333334 34) scale(1.36)"><defs><pattern id="px" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#3a2a40"/><rect width="5" height="5" fill="#5a3050"/><rect x="5" y="5" width="5" height="5" fill="#5a3050"/></pattern>
+<radialGradient id="sharp" cx="60%" cy="45%" r="70%"><stop offset="0" stop-color="#ff7fb0"/><stop offset=".5" stop-color="#7a3a8a"/><stop offset="1" stop-color="#1e1830"/></radialGradient></defs>
+<rect x="0" y="0" width="108" height="58" rx="6" fill="url(#px)"/><rect x="112" y="0" width="108" height="58" rx="6" fill="url(#sharp)"/>
+<rect x="108" y="0" width="4" height="58" fill="#fff"/>
+<rect x="4" y="40" width="34" height="14" rx="4" fill="#000" opacity=".6"/><text x="21" y="51" text-anchor="middle" font-size="9" fill="#fff">720p</text>
+<rect x="166" y="40" width="50" height="14" rx="4" fill="#000" opacity=".6"/><text x="191" y="51" text-anchor="middle" font-size="9" fill="#fff">✨ 1440p</text></g>
+  
+  <text x="22" y="166" font-size="20" font-weight="700" fill="#e8eaed">✨ Sharper picture</text>
+  <text x="22" y="198" font-size="15" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="22" dy="0">If the video is smaller than your screen, the</tspan><tspan x="22" dy="23.25">server upscales, denoises and sharpens it – in</tspan><tspan x="22" dy="23.25">hardware via Intel Quick Sync. The browser</tspan><tspan x="22" dy="23.25">sharpens a little more. “Automatic” picks the</tspan><tspan x="22" dy="23.25">best picture per video and steps back if</tspan><tspan x="22" dy="23.25">playback stutters.</tspan></text>
+</g>
+</svg>
