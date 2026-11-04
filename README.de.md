@@ -157,3 +157,9 @@ Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [C
   Script-Hosting geladen. Videos und Titel bleiben auf deinem Server.
 - **Formate:** was dein Browser kann – MP4 (H.264/H.265) und WebM überall, MKV je nach Browser; Stash-Szenen in anderen
   Formaten werden live umgewandelt.
+
+## Lizenz
+
+Copyright © 2026 Funscript Player contributors. Lizenz: **[GNU AGPL-3.0](LICENSE)** – frei nutzen, selbst hosten und
+ändern; wer eine veränderte Fassung anderen anbietet – auch als Dienst im Netz –, muss deren Quellcode unter derselben
+Lizenz offenlegen.

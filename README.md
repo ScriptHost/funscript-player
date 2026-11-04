@@ -15,6 +15,7 @@
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
   <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-1a1d23?style=flat-square">
   <img alt="Stash" src="https://img.shields.io/badge/Stash-integrated-1a1d23?style=flat-square">
+  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-1a1d23?style=flat-square"></a>
   <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/README-Deutsch-1a1d23?style=flat-square"></a>
 </p>
 
@@ -153,6 +154,12 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
   name `script.csv`). Videos and titles stay on your server.
 - **Formats:** whatever your browser plays – MP4 (H.264/H.265) and WebM everywhere, MKV depending on the browser;
   Stash scenes in other formats are converted live.
+
+## License
+
+Copyright © 2026 Funscript Player contributors. Licensed under the **[GNU AGPL-3.0](LICENSE)**: use, self-host and
+change it freely; if you offer a modified version to others – also as a service over the network – you have to share its
+source code under the same license.
 
 ---
 
