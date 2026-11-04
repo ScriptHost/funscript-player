@@ -1,10 +1,14 @@
-# Hält die GitHub-Actions und das Node-Basis-Image aktuell (einmal im Monat ein Pull Request)
+# Hält GitHub-Actions, Node-Basis-Image und die ESLint-Pakete aktuell – einmal im Monat, je Bereich EIN gebündelter
+# Pull Request (Actions alle zusammen, Docker, npm alle zusammen).
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
   - package-ecosystem: docker
     directory: /
     schedule:
