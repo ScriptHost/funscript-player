@@ -4,6 +4,7 @@
 #   Manuell (Actions -> Release -> Run workflow):
 #     recreate = false   -> alle Tags ohne Release nachholen
 #     recreate = true    -> ALLE Releases löschen und neu erzeugen (englischer Text, ZIP aus dem jeweiligen Tag)
+#   Dasselbe beim Tag: steht „[alle Releases neu]“ in der Tag-Nachricht, werden alle Releases neu erzeugt.
 name: Release
 
 on:
@@ -33,9 +34,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RECREATE: ${{ inputs.recreate }}
         run: |
+          git fetch --force --tags -q   # Tag-Nachrichten vollständig (checkout macht den Tag sonst „leicht“)
           git show origin/main:CHANGELOG.en.md > changelog.en.md
           newest=$(git tag --sort=v:refname | tail -1)
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then tags="$GITHUB_REF_NAME"; else tags=$(git tag --sort=v:refname); fi
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && git tag -l --format="%(contents)" "$GITHUB_REF_NAME" | grep -qF "[alle Releases neu]"; then
+            RECREATE=true; tags=$(git tag --sort=v:refname)
+          fi
           for t in $tags; do
             if gh release view "$t" >/dev/null 2>&1; then
               if [ "$RECREATE" = "true" ]; then gh release delete "$t" --yes; else echo "$t: Release gibt es schon"; continue; fi
