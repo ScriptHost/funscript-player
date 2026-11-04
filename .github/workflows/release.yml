@@ -99,8 +99,11 @@ jobs:
             printf '\n---\nDocker: `docker compose pull && docker compose up -d` · Image `ghcr.io/scripthost/funscript-player:%s`\n' "$v" >> notes.md
             zip="handy-player-linux-$t.zip"
             git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github' 2>err.txt || { err "$t ZIP"; continue; }
+            # Prüfsumme zum Nachrechnen: sha256sum -c handy-player-linux-vX.Y.Z.zip.sha256
+            sha256sum "$zip" > "$zip.sha256"
+            printf '\nSHA-256 of the ZIP: `%s` – the image comes with an SBOM and a build provenance attestation.\n' "$(cut -d' ' -f1 "$zip.sha256")" >> notes.md
             if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
-            retry gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest || { err "$t anlegen"; continue; }
+            retry gh release create "$t" "$zip" "$zip.sha256" --title "$v" --notes-file notes.md $latest || { err "$t anlegen"; continue; }
             echo "$t: Release erstellt"
           done
           exit $fail
@@ -129,6 +132,9 @@ jobs:
         with:
           context: .
           push: true
+          # Software-Stückliste (SBOM) und Herkunftsnachweis (wo und woraus gebaut) hängen am Image
+          sbom: true
+          provenance: mode=max
           tags: |
             ghcr.io/scripthost/funscript-player:${{ steps.v.outputs.version }}
             ghcr.io/scripthost/funscript-player:latest

@@ -1,0 +1,64 @@
+name: 🐞 Bug report / Fehler melden
+description: Something doesn't work as expected – Etwas funktioniert nicht wie erwartet
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please check the [FAQ](https://github.com/ScriptHost/funscript-player#-faq--troubleshooting) first.
+        **Don't post connection keys, Application IDs, passwords or private URLs.**
+        Danke! Bitte vorher die FAQ ansehen – und **keine Keys, Application IDs, Passwörter oder privaten Adressen** posten.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / Was ist passiert?
+      description: And what did you expect instead? / Und was hast du stattdessen erwartet?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps / Schritte
+      placeholder: |
+        1. Open a scene with a Funscript
+        2. Press play
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: ⚙️ → System (e.g. 1.19.10, or "edge")
+    validations:
+      required: true
+  - type: dropdown
+    id: devices
+    attributes:
+      label: Devices / Geräte
+      multiple: true
+      options:
+        - The Handy – Wi-Fi (API v2, no Application ID)
+        - The Handy – Wi-Fi (API v3, with Application ID)
+        - The Handy – Bluetooth via Intiface
+        - Satisfyer – Bluetooth in the browser
+        - Satisfyer – via Intiface
+        - No device / kein Gerät
+  - type: input
+    id: browser
+    attributes:
+      label: Device & browser / Gerät & Browser
+      placeholder: e.g. Pixel 8, Chrome 142 – or Windows 11, Edge
+  - type: dropdown
+    id: library
+    attributes:
+      label: Library / Bibliothek
+      multiple: true
+      options:
+        - Stash
+        - Folders (/media)
+        - HereSphere (VR)
+  - type: textarea
+    id: logs
+    attributes:
+      label: docker logs
+      description: Output of `docker logs Funscript-Player` around the problem (remove private addresses) / Ausgabe rund um das Problem
+      render: text

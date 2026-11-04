@@ -16,6 +16,7 @@
   <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-1a1d23?style=flat-square">
   <img alt="Stash" src="https://img.shields.io/badge/Stash-integrated-1a1d23?style=flat-square">
   <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-1a1d23?style=flat-square"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/ScriptHost/funscript-player"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/ScriptHost/funscript-player/badge?style=flat-square"></a>
   <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/README-Deutsch-1a1d23?style=flat-square"></a>
 </p>
 
@@ -147,6 +148,24 @@ node --test "test/*.test.js"                           # automated tests, no pac
 At startup the container checks itself (data folder, stored files, every UI script and control, script intensity) –
 see `docker logs`. For development, `?selbsttest` runs typical flows with a simulated Handy. Technical details:
 [DEVELOPMENT.md](DEVELOPMENT.md). Release history: [CHANGELOG.md](CHANGELOG.md). Want to help? [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## ❓ FAQ / Troubleshooting
+
+- **“Handy is not online”** – the Handy must be in Wi-Fi mode and connected to the internet (LED blue), and the
+  connection key must be right (⚙️ → Devices). Turn it on, then tap the status at the top → *Connect*.
+- **The Satisfyer doesn't show up** – Bluetooth in the browser needs **Chrome or Edge** (Android/PC; iPhone: the *Bluefy*
+  app) and **HTTPS** or `localhost`. Close the Satisfyer app first (only one connection at a time) and try *Show all
+  Bluetooth devices*.
+- **Devices are off the beat** – shift the offset or calibrate it by tapping the beat (🎯, saved per scene). With an
+  *Application ID* (Handy API v3) the Handy also stays in sync at 0.5×–2×. A yellow status means the Handy cloud answers
+  slowly.
+- **Stash not reachable** – `STASH_URL` is seen from inside the container: on a shared Docker network use the container
+  name (e.g. `http://Stash:9999`), not `localhost`. Check the line `Stash:` in `docker logs Funscript-Player`.
+- **HQ stream says “CPU” or “not available”** – pass `/dev/dri` through and set `RENDER_GID` to the GID of the host group
+  `render` (`getent group render`).
+- **HereSphere asks for the password again** – passwords from before 1.19.5 are no longer accepted; set it once more
+  under ⚙️ → VR.
+- **Update** – `docker compose pull && docker compose up -d`; your data stays in the `funscript-data` volume.
 
 ## Notes
 

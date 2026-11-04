@@ -151,6 +151,23 @@ node --test "test/*.test.js"                           # automatische Tests, ohn
 
 Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [CHANGELOG.md](CHANGELOG.md) (englisch).
 
+## ❓ Häufige Fragen / Fehlerhilfe
+
+- **„Handy ist nicht online“** – die Handy muss im WLAN-Modus und mit dem Internet verbunden sein (LED blau) und der
+  Connection Key stimmen (⚙️ → Geräte). Einschalten, dann oben auf den Status tippen → *Verbinden*.
+- **Der Satisfyer taucht nicht auf** – Bluetooth im Browser braucht **Chrome oder Edge** (Android/PC; iPhone: App
+  *Bluefy*) und **HTTPS** oder `localhost`. Vorher die Satisfyer-App schließen (nur eine Verbindung möglich) und ggf.
+  *Alle Bluetooth-Geräte anzeigen*.
+- **Geräte liegen neben dem Takt** – Offset verschieben oder per Takt einmessen (🎯, wird je Szene gemerkt). Mit
+  *Application ID* (Handy-API v3) bleibt die Handy auch bei 0,5×–2× im Takt. Gelber Status = Handy-Cloud antwortet langsam.
+- **Stash nicht erreichbar** – `STASH_URL` gilt aus Sicht des Containers: im gemeinsamen Docker-Netz den Containernamen
+  nehmen (z. B. `http://Stash:9999`), nicht `localhost`. Zeile `Stash:` in `docker logs Funscript-Player` prüfen.
+- **HQ-Stream zeigt „CPU“ oder „nicht verfügbar“** – `/dev/dri` durchreichen und `RENDER_GID` auf die GID der Host-Gruppe
+  `render` setzen (`getent group render`).
+- **HereSphere fragt erneut nach dem Passwort** – Passwörter von vor 1.19.5 gelten nicht mehr; unter ⚙️ → VR einmal neu
+  setzen.
+- **Update** – `docker compose pull && docker compose up -d`; deine Daten bleiben im Volume `funscript-data`.
+
 ## Hinweise
 
 - **Datenschutz:** Für die WLAN-Steuerung wird nur das Funscript (als CSV mit neutralem Namen `script.csv`) auf Handys
