@@ -12,3 +12,11 @@ updates:
     ignore:
       - dependency-name: node
         update-types: ['version-update:semver-major']
+  # ESLint für die Code-Prüfung auf GitHub (package.json – nicht im Image)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      lint:
+        patterns: ['*']

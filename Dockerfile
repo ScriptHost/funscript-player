@@ -1,4 +1,5 @@
-FROM node:22-bookworm-slim
+# Basis-Image per Digest festgelegt (Dependabot hält es aktuell)
+FROM node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
 LABEL org.opencontainers.image.source="https://github.com/ScriptHost/funscript-player" \
       org.opencontainers.image.description="Funscript Player – The Handy and Satisfyer in sync with the video, with Stash" \
       org.opencontainers.image.licenses="AGPL-3.0-only"
