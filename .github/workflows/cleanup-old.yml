@@ -1,0 +1,36 @@
+# EINMALIG (vom Nutzer am 04.11.2026 ausdrücklich bestätigt): alte Versionen auf GitHub entfernen –
+# Git-Tags v1.0.0 … v1.19.8 und ihre Docker-Images. Lokale Tags und Dateien bleiben unberührt.
+# Bleiben: Tag v1.19.9, Images :1.19.9, :latest, :edge (und alles ohne Tag, damit die behaltenen Images heil bleiben).
+# Läuft nur, wenn diese Datei selbst gepusht wird – danach wird sie wieder entfernt.
+name: Alte Versionen entfernen
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cleanup-old.yml']
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Alte Git-Tags auf GitHub löschen
+        run: |
+          git fetch --tags -q
+          for t in $(git tag | grep -vx 'v1.19.9'); do git push -q origin ":refs/tags/$t" && echo "Tag gelöscht: $t"; done
+      - name: Alte Docker-Images löschen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          api=/users/ScriptHost/packages/container/funscript-player/versions
+          gh api --paginate "$api" --jq '.[] | [.id, (.metadata.container.tags | join(","))] | @tsv' | while IFS=$'\t' read -r id tags; do
+            [ -z "$tags" ] && continue
+            echo ",$tags," | grep -qE ',(1\.19\.9|latest|edge),' && { echo "bleibt: $tags"; continue; }
+            gh api -X DELETE "$api/$id" && echo "Image gelöscht: $tags"
+          done
