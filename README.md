@@ -146,7 +146,7 @@ node --test "test/*.test.js"                           # automated tests, no pac
 
 At startup the container checks itself (data folder, stored files, every UI script and control, script intensity) –
 see `docker logs`. For development, `?selbsttest` runs typical flows with a simulated Handy. Technical details:
-[DEVELOPMENT.md](DEVELOPMENT.md). Release history: [CHANGELOG.md](CHANGELOG.md).
+[DEVELOPMENT.md](DEVELOPMENT.md). Release history: [CHANGELOG.md](CHANGELOG.md). Want to help? [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Notes
 

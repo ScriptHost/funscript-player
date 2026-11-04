@@ -1,6 +1,7 @@
 FROM node:22-bookworm-slim
 LABEL org.opencontainers.image.source="https://github.com/ScriptHost/funscript-player" \
-      org.opencontainers.image.description="Funscript Player – The Handy and Satisfyer in sync with the video, with Stash"
+      org.opencontainers.image.description="Funscript Player – The Handy and Satisfyer in sync with the video, with Stash" \
+      org.opencontainers.image.licenses="AGPL-3.0-only"
 
 # ffmpeg + Intel media driver (iHD) for the HQ stream on Intel graphics (VAAPI / Quick Sync).
 # The "non-free" driver contains all encoder features of newer Intel GPUs (e.g. N100/N305).

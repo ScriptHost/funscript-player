@@ -1,0 +1,26 @@
+# Sicherheits-Analyse von GitHub (CodeQL) – bei jedem Push auf main, bei Pull Requests und einmal pro Woche.
+# Funde erscheinen im Reiter „Security → Code scanning“ (nur für Berechtigte sichtbar).
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  pull_request:
+  schedule:
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<!-- Vorschaubild für geteilte Links (GitHub → Settings → Social preview). PNG daraus: social-preview.png -->
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
+  <linearGradient id="heat" x1="0" x2="1">
+    <stop offset="0" stop-color="#1e3c9f"/><stop offset=".18" stop-color="#1e90ff"/><stop offset=".35" stop-color="#28c864"/>
+    <stop offset=".52" stop-color="#f0d228"/><stop offset=".7" stop-color="#fa821e"/><stop offset=".85" stop-color="#e62832"/><stop offset="1" stop-color="#fa821e"/>
+  </linearGradient>
+</defs>
+<rect width="1280" height="640" fill="#111317"/>
+<!-- Logo -->
+<g transform="translate(560 70)">
+  <rect width="160" height="160" rx="30" fill="#1b1e24" stroke="#2c313a" stroke-width="2"/>
+  <circle cx="80" cy="80" r="47" fill="#e0457b"/>
+  <path d="M69 55 L108 80 L69 105 Z" fill="#fff"/>
+</g>
+<text x="640" y="318" text-anchor="middle" font-size="76" font-weight="800" fill="#e8eaed">Funscript <tspan fill="url(#grad)">Player</tspan></text>
+<text x="640" y="378" text-anchor="middle" font-size="30" fill="#9aa1ab">Your video. Your devices. Perfectly in sync.</text>
+<!-- Heatmap-Leiste wie im Player -->
+<rect x="240" y="420" width="800" height="16" rx="8" fill="url(#heat)" opacity=".9"/>
+<text x="640" y="500" text-anchor="middle" font-size="26" font-weight="600" fill="#e8eaed">↕ The Handy  ·  〰 Satisfyer  ·  Stash  ·  HereSphere VR</text>
+<text x="640" y="560" text-anchor="middle" font-size="22" fill="#9aa1ab">Self-hosted · Docker · open source (AGPL-3.0)</text>
+</svg>
