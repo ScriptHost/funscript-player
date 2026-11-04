@@ -118,7 +118,7 @@ jobs:
           [ "$GITHUB_REF_TYPE" = "tag" ] || t=$(git tag --sort=v:refname | tail -1)
           git checkout -q "$t"
           echo "version=${t#v}" >> "$GITHUB_OUTPUT"
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
