@@ -258,7 +258,7 @@ function applyHeatFilter() {
 }
 
 function sceneCard(s) {
-  const img = el('img', { src: `/stash/scene/${s.id}/screenshot`, loading: 'lazy', alt: '' });
+  const img = el('img', { src: `/stash/scene/${sid(s.id)}/screenshot`, loading: 'lazy', alt: '' });
   const thumb = el('div', { className: 'thumb' }, img,
     s.duration ? el('span', { className: 'dur' }, fmtDuration(s.duration)) : null,
     tileBadge('stash:' + s.id, s.interactive),
@@ -270,7 +270,7 @@ function sceneCard(s) {
   // Vorschauvideo beim Drüberfahren mit der Maus
   card.addEventListener('pointerenter', (e) => {
     if (e.pointerType !== 'mouse' || !store.get('hoverPreview', true)) return;
-    const pv = el('video', { src: `/stash/scene/${s.id}/preview`, muted: true, loop: true, autoplay: true, playsInline: true, className: 'preview' });
+    const pv = el('video', { src: `/stash/scene/${sid(s.id)}/preview`, muted: true, loop: true, autoplay: true, playsInline: true, className: 'preview' });
     pv.addEventListener('error', () => pv.remove());
     thumb.append(pv);
   });
@@ -444,13 +444,13 @@ async function openFolderItem(it) {
 // ---------------------------------------------------------------------------
 async function openStashScene(s) {
   openPlayer();
-  loadVideo(`/stash/scene/${s.id}/stream`, s.title, 'stash:' + s.id);
-  video.poster = `/stash/scene/${s.id}/screenshot`; // Standbild statt Schwarz, bis Play gedrückt wird
+  loadVideo(`/stash/scene/${sid(s.id)}/stream`, s.title, 'stash:' + s.id);
+  video.poster = `/stash/scene/${sid(s.id)}/screenshot`; // Standbild statt Schwarz, bis Play gedrückt wird
   nowPlaying = { kind: 'stash', id: s.id, title: s.title, interactive: s.interactive };
   const session = { id: s.id, markers: [], resume: 0, played: 0, lastSave: Date.now(), counted: false };
   stashSession = session;
 
-  fetch(`/api/stash/scene/${s.id}`)
+  fetch(`/api/stash/scene/${sid(s.id)}`)
     .then((r) => (r.ok ? r.json() : null))
     .then((d) => {
       if (!d || stashSession !== session) return;
@@ -463,12 +463,14 @@ async function openStashScene(s) {
     })
     .catch(() => {});
 
-  loadSceneScript('stash:' + s.id, 'Funscript', s.interactive === false ? '' : `/stash/scene/${s.id}/funscript`);
+  loadSceneScript('stash:' + s.id, 'Funscript', s.interactive === false ? '' : `/stash/scene/${sid(s.id)}/funscript`);
 }
 
 // --- Eigene Scripts (Touch-Aufnahme, Mitschnitt, über „📂 Datei“ geladen) ---------------------------
 // Der Server führt ein Verzeichnis (/api/userscripts): nur diese Scripts darf der Player ersetzen oder
 // löschen. Hat eine Szene Original UND eigenes Script, ist wählbar, welches läuft (gemerkt pro Szene).
+// Stash-Szenen-ID für Adressen (immer kodiert – der Server nimmt ohnehin nur Ziffern)
+function sid(id) { return encodeURIComponent(id); }
 const nowKey = () => (nowPlaying?.kind === 'stash' ? 'stash:' + nowPlaying.id : nowPlaying?.kind === 'media' ? 'media:' + nowPlaying.video : '');
 let ownList = {};
 async function refreshOwn() {
@@ -629,7 +631,7 @@ async function saveScriptToLibrary(actions, mode = 'all') {
 async function stashAction(action, body) {
   if (!stashSession) return null;
   try {
-    const res = await fetch(`/api/stash/scene/${stashSession.id}/${action}`, {
+    const res = await fetch(`/api/stash/scene/${sid(stashSession.id)}/${action}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
     });
     if (!res.ok) throw new Error(await res.text());
@@ -797,7 +799,7 @@ video.addEventListener('timeupdate', () => {
 video.addEventListener('playing', () => {
   if (!stashSession || stashSession.counted) return;
   stashSession.counted = true;
-  fetch(`/api/stash/scene/${stashSession.id}/play`, { method: 'POST' }).catch(() => {});
+  fetch(`/api/stash/scene/${sid(stashSession.id)}/play`, { method: 'POST' }).catch(() => {});
 });
 video.addEventListener('pause', () => { lastTick = null; saveStashActivity(); });
 window.addEventListener('pagehide', () => saveStashActivity(true));
@@ -808,7 +810,7 @@ function saveStashActivity(beacon = false) {
   const body = JSON.stringify({ resume: mediaTime(), played: s.played });
   s.played = 0;
   s.lastSave = Date.now();
-  const url = `/api/stash/scene/${s.id}/activity`;
+  const url = `/api/stash/scene/${sid(s.id)}/activity`;
   if (beacon && navigator.sendBeacon) navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
   else fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
 }

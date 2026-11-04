@@ -8,9 +8,20 @@ a new minor for a batch of features, a patch only for bug fixes. Every push to `
 
 The 34 versions up to 1.19.9 (31.10.–04.11.2026) are summarised below; their git tags and Docker images stay available.
 
+## 1.19.10 – 04.11.2026
+
+Security fixes from GitHub code scanning (CodeQL) – all low risk:
+
+- `/api/version` now requires the login like everything else (only `/healthz` stays open for the Docker healthcheck)
+- Logs: line breaks and control characters are stripped from everything written to `docker logs`, so log lines can't be faked
+- Stash filters and own-script keys: names like `__proto__` are rejected
+- HereSphere: passwords from before 1.19.5 (SHA-256) are no longer accepted – if HereSphere asks again, set the password
+  once more under ⚙️ → VR
+- Code scanning ignores tests and the README graphics script; Stash IDs in requests are always encoded
+
 ## 1.19 – 01.–04.11.2026: polish, safety, Docker
 
-Latest: **1.19.9**. Upgrading from 1.19.6 or older: container and volume were renamed in 1.19.7 – see README
+Latest: **1.19.10** (security fixes, see above). Upgrading from 1.19.6 or older: container and volume were renamed in 1.19.7 – see README
 “Upgrading from 1.19.6 or older”.
 
 - **Script intensity, one choice for both devices:** Automatic · Original · Gentle · Intense, per scene at the video with

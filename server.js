@@ -8,7 +8,7 @@ const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
 const { AUTH_PASS, AUTH_USER, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION } = require('./lib/config');
-const { readBody, safeJoin, sendFile } = require('./lib/util');
+const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
 const { heresphereOn, hsAuthorized, hsCheckPassword, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
@@ -145,12 +145,13 @@ const handler = async (req, res) => {
     }
   });
   try {
-    if (req.url === '/healthz') return res.end('ok');
+    if (req.url === '/healthz') return res.end('ok'); // für den Docker-Healthcheck – ohne Anmeldung, verrät nichts
+    if (!checkAuth(req, res)) return;
+    // 1.19.10: Versionsnummer erst nach der Anmeldung (CodeQL #17)
     if (req.url === '/api/version') {
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
       return res.end(JSON.stringify({ version: VERSION }));
     }
-    if (!checkAuth(req, res)) return;
     const url = new URL(req.url, 'http://localhost');
     const pathname = decodeURIComponent(url.pathname);
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
@@ -281,13 +282,13 @@ server.on('upgrade', (req, socket, head) => {
   upstream.on('error', (err) => {
     if (!socket.destroyed && socket.bytesWritten === 0) fail(502, 'Bad Gateway');
     else socket.destroy();
-    console.warn(`Intiface ${m[1]}:${m[2]} not reachable: ${err.message}`);
+    console.warn(logSafe(`Intiface ${m[1]}:${m[2]} not reachable: ${err.message}`));
   });
   socket.on('close', () => upstream.destroy());
 });
 
 // Start-Übersicht in „docker logs“ (seit 1.19.7 englisch): was gefunden wurde, was erreichbar ist – und wann der Player bereit ist
-const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${msg}`);
+const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${logSafe(msg)}`);
 server.listen(PORT, HOST, async () => {
   logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
   if (!AUTH_USER) logLine('Note: no login set (AUTH_USER/AUTH_PASS) – run it only behind a protected proxy or on your home network.');

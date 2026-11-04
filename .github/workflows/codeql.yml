@@ -23,4 +23,9 @@ jobs:
         with:
           languages: javascript-typescript
           queries: security-extended
+          # Tests und das Skript für die README-Grafiken laufen nie auf dem Server – nicht mitprüfen
+          config: |
+            paths-ignore:
+              - test
+              - docs
       - uses: github/codeql-action/analyze@v4

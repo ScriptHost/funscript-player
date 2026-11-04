@@ -145,3 +145,13 @@ test('HereSphere abschaltbar', async () => {
   assert.strictEqual((await fetch(srv.base + '/heresphere')).status, 404);
   await put('/api/settings', { heresphere: true });
 });
+
+test('Mit Anmeldung: nur /healthz ist offen, die Versionsnummer nicht (1.19.10)', async () => {
+  const auth = await startServer({ AUTH_USER: 'u', AUTH_PASS: 'p' });
+  try {
+    assert.strictEqual((await fetch(auth.base + '/healthz')).status, 200);
+    assert.strictEqual((await fetch(auth.base + '/api/version')).status, 401);
+    const ok = await fetch(auth.base + '/api/version', { headers: { Authorization: 'Basic ' + Buffer.from('u:p').toString('base64') } });
+    assert.strictEqual(ok.status, 200);
+  } finally { auth.stop(); }
+});
