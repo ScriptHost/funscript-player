@@ -174,6 +174,11 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
 - **Formats:** whatever your browser plays – MP4 (H.264/H.265) and WebM everywhere, MKV depending on the browser;
   Stash scenes in other formats are converted live.
 
+## How it is made
+
+This is a hobby project, built with the help of **Claude** (Anthropic) – much of the code is AI-written. Every release
+is checked by automated tests, a browser self-test, ESLint and code scanning before it goes out.
+
 ## License
 
 Copyright © 2026 Funscript Player contributors. Licensed under the **[GNU AGPL-3.0](LICENSE)**: use, self-host and

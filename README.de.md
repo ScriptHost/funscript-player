@@ -175,6 +175,11 @@ Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [C
 - **Formate:** was dein Browser kann – MP4 (H.264/H.265) und WebM überall, MKV je nach Browser; Stash-Szenen in anderen
   Formaten werden live umgewandelt.
 
+## Wie es entsteht
+
+Ein Hobbyprojekt, entwickelt mit Hilfe von **Claude** (Anthropic) – ein großer Teil des Codes ist KI-geschrieben. Jede
+Version wird vor der Veröffentlichung durch automatische Tests, einen Browser-Selbsttest, ESLint und Code-Scanning geprüft.
+
 ## Lizenz
 
 Copyright © 2026 Funscript Player contributors. Lizenz: **[GNU AGPL-3.0](LICENSE)** – frei nutzen, selbst hosten und
