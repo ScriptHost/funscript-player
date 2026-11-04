@@ -6,7 +6,8 @@ The GitHub release notes are taken from this file (one `## x.y.z` section per re
 a new minor for a batch of features, a patch only for bug fixes. Every push to `main` additionally builds the test image
 `ghcr.io/scripthost/funscript-player:edge`; `latest` and the version tags only come with a real release.
 
-The 34 versions up to 1.19.9 (31.10.–04.11.2026) are summarised below; their git tags and Docker images stay available.
+The 34 versions up to 1.19.9 (31.10.–04.11.2026) are summarised below. Only 1.19.9 and newer are still available on
+GitHub (release, git tag, Docker image) – older ones were removed when the versioning was cleaned up.
 
 ## 1.19.11 – 04.11.2026
 

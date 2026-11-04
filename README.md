@@ -174,6 +174,11 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
 - **Formats:** whatever your browser plays – MP4 (H.264/H.265) and WebM everywhere, MKV depending on the browser;
   Stash scenes in other formats are converted live.
 
+## Trademarks
+
+“The Handy”, “Satisfyer”, “Stash”, “HereSphere” and “Intiface” are names of their respective owners. This is an
+independent hobby project – not affiliated with, endorsed or sponsored by any of them.
+
 ## How it is made
 
 This is a hobby project, built with the help of **Claude** (Anthropic) – much of the code is AI-written. Every release

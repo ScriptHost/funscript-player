@@ -175,6 +175,11 @@ Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [C
 - **Formate:** was dein Browser kann – MP4 (H.264/H.265) und WebM überall, MKV je nach Browser; Stash-Szenen in anderen
   Formaten werden live umgewandelt.
 
+## Marken
+
+„The Handy“, „Satisfyer“, „Stash“, „HereSphere“ und „Intiface“ sind Namen ihrer jeweiligen Inhaber. Dies ist ein
+unabhängiges Hobbyprojekt – ohne Verbindung zu den Herstellern, nicht von ihnen unterstützt oder beauftragt.
+
 ## Wie es entsteht
 
 Ein Hobbyprojekt, entwickelt mit Hilfe von **Claude** (Anthropic) – ein großer Teil des Codes ist KI-geschrieben. Jede
