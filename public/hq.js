@@ -47,7 +47,7 @@ function hqDecision(info) {
 }
 
 function hqUrl(start) {
-  const preset = hqState.preset === 'auto' ? 'clean' : hqState.preset;
+  const preset = hqState.preset === 'auto' ? 'natural' : hqState.preset; // Auto: natürlich, nur hochgerechnet
   return '/hq/stream?' + new URLSearchParams({ src: hq.src, t: start.toFixed(2), preset, h: hq.height || 1080 });
 }
 

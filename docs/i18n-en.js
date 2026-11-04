@@ -2,6 +2,29 @@
 // Englische Texte der Vorstellung (Schlüssel = Hash des deutschen Texts, siehe i18n.js).
 // Neue/geänderte deutsche Texte: in der Konsole fspTexts() aufrufen und Schlüssel ergänzen.
 window.FSP_EN = {
+  // 1.19.3
+  at0phf: 'One choice for Handy and Satisfyer: <b>Automatic</b> keeps fine movements and vibrations and only adapts what the motor can’t manage – small strokes are stretched to the full range. Want more? <b>Intense</b>. Calmer? <b>Gentle</b>. Per scene with a preview, files stay unchanged.',
+  '6pvxck': 'Script too tame or too wild',
+  '1hq3nj': '✗ rewrite it by hand',
+  '109lcwz': '✓ Gentle or Intense with one click',
+  '1ixozov': '<b>One choice for both:</b> Original, Automatic, Gentle or Intense – per scene right at the video, with a mini heatmap as preview. Automatic adapts what the motor can’t manage (shorten the stroke or <b>full stroke, half tempo</b>) and stretches scripts with a small stroke. The player detects the Handy model itself; adapted spots show in the heatmap.',
+  '48gode': 'Saved Stash filters as a bar; tags, performers, studios; “2D only” per device; 🔥 highlights of a scene.',
+  '9qgs0m': '<b>Upscaling on the server:</b> smaller than the screen? Then upscale (up to 1440p) and denoise lightly – natural, colours as in the original; more sharpness on request. In hardware via Intel Quick Sync (VAAPI). 4K and VR stay original.',
+  '1iwyj8f': 'Emergency stop',
+  vdeavn: 'STOP button, <span class=\x22kbd\x22>Esc</span>, “Stop all”, stop on screen lock and auto-stop after a few minutes without input, limits for speed and vibration. Other websites can’t trigger anything, the container never runs as root.',
+  '16kn2n3': 'Key, offsets, Satisfyer translation, emergency stop and intensity live on the server – the same on every device. Picture and header per device.',
+  j980fw: 'Direct control, finger pad and pattern editor – play or export as .funscript.',
+  '8ukczs': 'Everything in one place',
+  iervou: 'Settings, own scripts, offsets and patterns live in the Docker volume <code>handy-data</code> – back it up and everything is backed up. At startup the player checks itself.',
+  '16n1vs8': 'Script intensity for both devices (Original · Automatic · Gentle · Intense) right at the video with a preview, collapsible settings, emergency stop with auto-stop, a more natural picture, update notice, self-check at startup, ready-made Docker image – and rarely used features removed.',
+  hb5ohj: 'Smoother finger control, stroke length, adjust a section of a script, jump to the hottest spot, shared preset for Handy and Satisfyer, picture popup, own links, demo mode.',
+  '1ypncdy': 'All details in the <a href=\x22https://github.com/ScriptHost/funscript-player/blob/main/CHANGELOG.en.md\x22>CHANGELOG</a> and in the <a href=\x22https://github.com/ScriptHost/funscript-player/releases\x22>releases on GitHub</a>.',
+  '1uueywr': '<b>A browser:</b> Chrome or Edge on PC or Android. Bluetooth needs HTTPS (a reverse proxy in front).',
+  '1mk4eh1': 'Download the ZIP <code>handy-player-linux-v1.19.3.zip</code> from <a href=\x22https://github.com/ScriptHost/funscript-player/releases/latest\x22>GitHub (Releases)</a>, copy it to the server and unpack it.',
+  y0ebm4: 'Copy <code>.env.example</code> to <code>.env</code> and fill in <code>STASH_URL</code>, the port and media folders if needed.',
+  ui37j: 'Start it – the ready-made image comes from GitHub. The player runs at <code>http://server:8080</code>; for HTTPS put a reverse proxy in front.',
+  c2oqjh: 'Bluetooth and “Install as app” need HTTPS with a valid certificate (a reverse proxy like Traefik, Caddy or nginx). If your own scripts should be saved next to the videos, mount the media folders without <code>:ro</code> – otherwise the player keeps them on the server.',
+  '1kan3eb': '“Automatic” plays the script like the original, only adapts what the motor can’t manage and stretches scripts with a small stroke to the full range – that feels stronger. If you want the script completely unchanged, pick “Original”; “Gentle” and “Intense” make it noticeably calmer or stronger.',
   // GitHub-Links
   '1xz1pgl': '⚡ Automatic – and still in time',
   '1xp6x20': 'Every Funscript keeps its fine movements and vibrations. Only strokes the motor can’t manage are adapted by the beat guard – shorter, or full stroke at half tempo – and small strokes are stretched to the full range. The Satisfyer gets its own version. No clicks needed, your files stay untouched.',

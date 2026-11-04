@@ -22,12 +22,12 @@ const isFs = () => stage.classList.contains('fs');
 
 // Bedienung erst zeigen, wenn ein Video geladen ist
 video.addEventListener('loadedmetadata', () => { stage.classList.add('ready'); showOverlay(); drawOvBar(); });
-video.addEventListener('emptied', () => { if (!remote.on) stage.classList.remove('ready'); });
+video.addEventListener('emptied', () => stage.classList.remove('ready'));
 
 // ---------------------------------------------------------------------------
 // Vollbild an/aus
 // ---------------------------------------------------------------------------
-// Option „Vollbild nur mit dem Video“: Android schickt beim Verlassen der App nur ein Video, das
+// Vollbild nur mit dem Video (seit 1.19.3 immer): Android schickt beim Verlassen der App nur ein Video, das
 // selbst im Vollbild ist, automatisch ins kleine Fenster (der ganze Player-Bereich bliebe schwarz).
 // Dafür gibt es dann die Bedienleiste des Browsers statt der eigenen.
 let nativeFs = false;
@@ -41,7 +41,7 @@ async function enterNativeFullscreen() {
 }
 async function enterFullscreen() {
   if (isFs() || nativeFs) return;
-  if (store.get('fsVideoOnly', false) && video.requestFullscreen && !remote.on) return enterNativeFullscreen();
+  if (video.requestFullscreen) return enterNativeFullscreen();
   stage.classList.add('fs');
   document.body.classList.add('fs-open');
   $('ovFs').textContent = '✕';
@@ -72,10 +72,7 @@ function exitFullscreen() {
   realFullscreen = false;
   window.dispatchEvent(new Event('resize'));
 }
-// Als Fernbedienung schaltet ⛶ das Vollbild am Bildschirm
-const toggleFullscreen = () => (remote.on ? remoteCmd('fs') : isFs() ? exitFullscreen() : enterFullscreen());
-$('fsVideoOnly').checked = store.get('fsVideoOnly', false);
-$('fsVideoOnly').addEventListener('change', () => store.set('fsVideoOnly', $('fsVideoOnly').checked));
+const toggleFullscreen = () => (isFs() ? exitFullscreen() : enterFullscreen());
 
 // Zurück-Geste / Esc beendet das echte Fullscreen -> auch unseren Modus
 ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
@@ -110,8 +107,7 @@ function hideOverlay() {
 }
 
 function togglePlay() {
-  if (remote.on) remoteCmd('toggle');
-  else if (video.paused) video.play().catch(() => {}); else video.pause();
+  if (video.paused) video.play().catch(() => {}); else video.pause();
 }
 function seekBy(s) {
   seekTo(mediaTime() + s);
@@ -123,7 +119,6 @@ let lastTap = 0, tapTimer;
 // Gedrückt halten (1.19.2): rechts = doppelte Geschwindigkeit, links = im selben Tempo rückwärts; Loslassen = normal.
 // Rückwärts kann der Browser nicht abspielen: angehalten alle 0,1 s 0,2 s zurück. Beim HQ-Stream würde jeder
 // Sprung den Stream neu starten – dort läuft nur die Zielzeit mit, gesprungen wird einmal beim Loslassen.
-// Als Fernbedienung wie bisher in 5-s-Schritten.
 let holdTimer = null, holdRepeat = null, held = false, holdState = null;
 $('ovHit').addEventListener('pointerdown', (e) => {
   const r = stage.getBoundingClientRect();
@@ -133,11 +128,6 @@ $('ovHit').addEventListener('pointerdown', (e) => {
   holdTimer = setTimeout(() => {
     held = true;
     showOverlay();
-    if (remote.on) {
-      seekBy(side * 5);
-      holdRepeat = setInterval(() => seekBy(side * 5), 350);
-      return;
-    }
     holdState = { paused: video.paused, rate: video.playbackRate, target: null };
     if (side > 0) {
       video.playbackRate = 2;
@@ -320,7 +310,7 @@ function anyRunning() {
   return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active) || (typeof selfRunning === 'function' && selfRunning()));
 }
 
-// Abschaltbar (Geräte → Sicherheit); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
+// Abschaltbar (⚙️ → Notaus); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
 $('stopButton').checked = store.get('stopButton', true);
 const applyStopButton = () => document.body.classList.toggle('no-stop-btn', !$('stopButton').checked);
 $('stopButton').addEventListener('change', () => { store.set('stopButton', $('stopButton').checked); applyStopButton(); });
@@ -346,6 +336,19 @@ document.addEventListener('visibilitychange', () => {
     }
   }, 700);
 });
+
+// Auto-Stopp (⚙️ → Notaus): keine Bedienung und kein laufendes Video -> nach X Minuten alles aus.
+// Ein laufendes Video mit Script zählt als „dabei“ – nur Direktsteuerung, Patterns, manuelle Stärke usw.
+let lastInput = Date.now();
+['pointerdown', 'keydown', 'input', 'wheel'].forEach((ev) => document.addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
+$('autoStop').value = String(store.get('autoStop', 10));
+$('autoStop').addEventListener('change', () => store.set('autoStop', Number($('autoStop').value)));
+setInterval(() => {
+  const min = Number(store.get('autoStop', 10));
+  if (!min || videoPlaying() || !anyRunning() || Date.now() - lastInput < min * 60000) return;
+  emergencyStop(`Auto-Stopp: ${min} min keine Bedienung`);
+  lastInput = Date.now();
+}, 15000);
 
 // ---------------------------------------------------------------------------
 // Bildschirm nicht abschalten, solange etwas läuft

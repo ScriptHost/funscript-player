@@ -4,293 +4,123 @@
 
 # Funscript Player
 
-Selbst gehosteter Web-Player, der Videos abspielt und **The Handy** synchron per Funscript steuert.
+Selbst gehosteter Web-Player: spielt deine Videos (Stash oder Ordner) und steuert **The Handy** und den **Satisfyer**
+synchron aus demselben Funscript. Keine externen Abhängigkeiten, ein kleiner Docker-Container.
 
-- Bibliothek: Videos + gleichnamige `.funscript` aus einem Server-Ordner (Unterordner werden durchsucht)
-- Drag & Drop: lokale Video- und Funscript-Dateien direkt in den Browser ziehen (das Video wird **nicht** hochgeladen)
-- Handy-Steuerung per Connection Key (WLAN, HSSP), Offset, Hubbegrenzung, Script umkehren
-- Heatmap des Scripts unter dem Video (anklicken zum Springen)
-- Reiter **Steuerung & Patterns**:
-  - Direktsteuerung: Start/Stopp und Geschwindigkeit (Handy-Modus HAMP), Tastatur: Leertaste, ↑/↓
-  - Pattern-Editor: Bewegungszyklen per Maus zeichnen, Vorlagen, Tempo, Endlosschleife, Export als .funscript
-  - Script-Baukasten: Patterns mit Dauer und Tempo aneinanderreihen, abspielen oder als .funscript exportieren
-  - Patterns und Scripts werden auf dem Server gespeichert (`data/store.json`) und sind auf allen Geräten gleich
-- **Vibrator (Satisfyer u. a.)**: manuell steuern oder automatisch aus Video-Script, Pattern oder
-  Direktsteuerung übersetzen (nach Geschwindigkeit oder Position, Min/Max, Vorlauf)
-- Keine externen Abhängigkeiten, ein kleiner Container
+## Schnellstart (Docker)
+
+```bash
+unzip handy-player-linux-vX.Y.Z.zip && cd handy-player
+cp .env.example .env      # einmal: STASH_URL, ggf. Port und Medienordner eintragen
+nano .env
+docker compose pull && docker compose up -d
+docker logs Handy-Player  # Start-Übersicht mit Selbsttest, endet mit „✓ bereit“
+```
+
+- Erreichbar unter `http://<server>:8080` (`PLAYER_PORT` in der `.env`). Für **HTTPS** – nötig für Bluetooth und
+  „Als App installieren“ – einen beliebigen Reverse Proxy davor setzen (Traefik, Caddy, nginx, Nginx Proxy Manager …),
+  z. B. `https://funscript-player.example.com` → Port 8080 des Containers.
+- **Update:** `docker compose pull && docker compose up -d` – das fertige Image kommt von GitHub
+  (`ghcr.io/scripthost/funscript-player`). Selbst bauen: `docker compose up -d --build`.
+- Alle Server-Einstellungen stehen in der **`.env`**; die `docker-compose.yml` liest sie nur. Updates überschreiben die `.env` nie.
+- **Stash** am besten direkt über ein gemeinsames Docker-Netz ansprechen, z. B. `STASH_URL=http://Stash:9999`
+  (Containername). Der Player gibt keine Stash-Adressen an den Browser weiter – ein öffentlicher DNS-Name ist nicht nötig.
+- Der Container läuft als Benutzer `node` (1000), **nie als root**; `PUID`/`PGID` ändern das.
+- **HQ-Stream:** `/dev/dri` wird durchgereicht, `RENDER_GID` = GID der Host-Gruppe `render` (`getent group render`).
+
+### Was liegt im Volume `handy-data`?
+
+Alles, was der Player selbst speichert – eine Sicherung dieses Volumes ist eine Sicherung von allem.
+Wird es gelöscht, startet der Player wirklich neu (auch die Browser vergessen dann die gemeinsamen Einstellungen).
+
+| Datei | Inhalt |
+|---|---|
+| `prefs.json` | Gemeinsame Einstellungen aller Geräte: Connection Key, Application ID, Offsets und Hub je Szene, Script-Intensität, Satisfyer-Übersetzung, Notaus … |
+| `store.json` | Patterns (🎮 Steuern → Patterns) |
+| `settings.json` | Server-Schalter aus der Oberfläche: HereSphere an/aus, „nur VR“, HereSphere-Passwort (als Hash), Intiface nur Heimnetz |
+| `scripts/` + `userscripts.json` | Eigene Scripts (Touch-Aufnahmen, Mitschnitte) zu Stash-Szenen und das Verzeichnis aller eigenen Scripts |
+| `handy-cache.json` | Merkliste schon hochgeladener Scripts (schnellerer Start) |
+
+Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperre und geöffnete Bereiche.
 
 ## Aufbau
 
-Oben stehen nur eine Status-Anzeige für beide Geräte und das Menü ☰:
+- **Status oben antippen** öffnet das Geräte-Fenster – Handy verbinden, Satisfyer per Bluetooth, Hub, Neu synchronisieren.
+  Wird die Handy-Cloud langsam, wird der Status gelb.
+- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität, Offset −/+, Stärke, Finale, Pause, Alles stoppen.
+- **Script-Intensität** – eine Auswahl für Handy und Satisfyer, pro Szene am Video (vier Knöpfe mit Mini-Heatmap) oder
+  über 🎚 in der Player-Leiste; Standard unter ⚙️ → Script:
+  - **Original** – genau die Datei
+  - **Automatisch** – streckt kleinen Hub, passt an, was die Handy nicht schafft (bleibt exakt im Takt)
+  - **Sanft** – Hub 20–80 %, höchstens 240 %/s, Satisfyer schwächer und ruhiger
+  - **Intensiv** – voller Hub, ruhige Stellen im doppelten/dreifachen Takt, Satisfyer kräftiger
+- Der Satisfyer braucht **kein eigenes Vibrations-Script** – er nutzt dasselbe Funscript wie die Handy. Springt oder lädt
+  das Video, ruhen beide Geräte.
+- **Videos ohne Funscript:** „Selbst steuern“ (Tempo, Hub unten/oben, Satisfyer-Stärke, Touch-Fläche) und
+  **⏺ Mitschnitt zum Video** als eigenes Script (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: im Volume).
+- **🎮 Steuern:** Direktsteuerung, Touch-Fläche (Tempo oder 🧪 Position) und Pattern-Editor.
+- **Bibliothek:** Stash-Szenen und Ordner-Videos mit Heatmap-Leiste, Intensitäts-Filter, Tags/Darsteller/Studios,
+  gespeicherte Stash-Filter, „nur 2D“ je Gerät, Mini-Player beim Stöbern.
+- **Einstellungen:** jeder Bereich aufklappbar, Erklärungen hinter ⓘ; „Erweiterte Einstellungen zeigen“ blendet
+  Feinheiten ein. ⚙️ → System zeigt **„Update verfügbar“**, wenn es auf GitHub ein neueres Release gibt.
+- **Handy-API v3:** unter ⚙️ → Handy eine *Application ID* eintragen – dann läuft die Handy auch bei 0,5×–2× mit.
 
-- **Status antippen** öffnet das Geräte-Fenster – dort wird verbunden (Handy, Satisfyer per Bluetooth, Geräteliste).
-- **Unter dem Video** stehen nur die Regler der verbundenen Geräte (Script, Offset −/+, Stärke, Finale, Pause und Alles stoppen).
-  Hub min/max und „Neu synchronisieren“ stehen im Geräte-Fenster (Status antippen → Feineinstellung Handy).
-- **🔄 Geräte folgen dem Video** ist Standard (an); ausschalten nur unter ⚙️ → Geräte.
-- **Videos ohne Funscript:** unter dem Video „Selbst steuern“ – Handy-Geschwindigkeit und Satisfyer-Stärke
-  von Hand, solange das Video läuft. Pause hält an, STOPP wie immer. **⏺ Mitschnitt zum Video** speichert das als
-  eigenes Funscript zum Video (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: auf dem Player-Server).
-- Der Satisfyer braucht **kein eigenes Vibrations-Script** – er nutzt dasselbe Funscript wie die Handy.
-- **Einstellungen gelten auf allen Geräten** (Key, Offsets, Satisfyer, Sicherheit … liegen auf dem Server, `data/prefs.json`);
-  Bild/HQ, Kopfzeile und Bildschirmsperre bleiben pro Gerät.
-- **Handy-API v3:** unter ⚙️ → Geräte eine *Application ID* eintragen (handyfeeling.com → Application IDs) – dann läuft
-  die Handy auch bei anderer Wiedergabegeschwindigkeit mit. Den geheimen *Application Key* braucht der Player nicht.
-- **Bibliothek:** Kacheln mit Funscript zeigen unten eine Heatmap-Leiste – Intensität auf einen Blick.
-- **Touch-Steuerung:** Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“ – Umschalter **Tempo** (oben stark,
-  unten schwach) oder 🧪 **Position** (die Handy folgt dem Finger); ⏺ nimmt im gewählten Modus auf.
-- **Bibliothek:** nach Intensität filtern/sortieren; beim Stöbern läuft das Video als Mini-Player weiter (✕ schließt es).
-  Reiter Tags/Darsteller/Studios und gespeicherte Stash-Filter lassen sich unter ⚙️ → Bibliothek ausblenden.
-- **Player-Leiste** anpassbar unter ⚙️ → Anzeige (Knöpfe ein/aus, Reihenfolge). App verlassen, während das Video
-  läuft = kleines Fenster (Bild-in-Bild).
-- **Script-Automatik:** Stellen, die schneller sind als die Handy kann (Modell wird erkannt, Höchsttempo unter
-  ⚙️ → Geräte), werden gekürzt – oder wahlweise mit vollem Hub und halbem Tempo gespielt (⚙️ → Script).
-- **Schneller Start:** Einmal hochgeladene Scripts merkt sich der Server (`data/handy-cache.json`).
-- **Tests:** `node --test "test/*.test.js"` (ohne zusätzliche Pakete).
-- **☰ Menü**: Bibliothek, 🎮 Steuern (Direkt, Patterns, Script-Baukasten), ⚙️ Einstellungen.
-- **Im Player** stehen die Regler fürs Schauen fest am Video (am Smartphone darunter, am PC rechts daneben);
-  abschaltbar unter ⚙️ → Anzeige. Der Titel „Funscript Player“ führt zur Bibliothek bzw. zurück zum laufenden Video.
+## Notaus
 
-Die **Bibliothek** zeigt Stash-Szenen als Kacheln (Vorschauvideo beim Drüberfahren, endloses Scrollen).
-Über *Tags*, *Darsteller*, *Studios* stöbern; ein Klick setzt einen Filter-Chip, mehrere Filter lassen sich
-kombinieren. Im Player sind Studio, Darsteller und Tags anklickbar, Marker springen an die Stelle.
-Die Zurück-Geste am Smartphone führt vom Player zur Bibliothek.
+- Roter STOPP-Knopf, Esc-Taste oder „Alles stoppen“ halten Video, Handy, Patterns und Satisfyer sofort an.
+- Automatisch bei Bildschirmsperre / App-Wechsel (abschaltbar).
+- **Auto-Stopp:** keine Bedienung und kein laufendes Video → nach 5/10/20/30 Minuten alles aus (⚙️ → Notaus, Standard 10).
+- Grenzen: max. Geschwindigkeit der Direktsteuerung, „Maximum“ beim Satisfyer.
+
+## Selbsttest
+
+Beim Start prüft sich der Container selbst – Datenordner, gespeicherte Dateien, alle Skripte der Oberfläche, jedes
+Bedienelement und die Script-Intensität. Das Ergebnis steht in `docker logs` („Selbsttest: 9/9 ok“). Die Oberfläche
+prüft sich beim Laden still und meldet nur Fehler an den Server. Für die Entwicklung: `?selbsttest` spielt typische
+Abläufe mit einer simulierten Handy durch.
 
 ## Ordner einbinden
 
-Jeder Ordner unter `/media/<Name>` wird eine eigene Quelle in der Bibliothek und in HereSphere –
-in der `docker-compose.yml` einfach weitere Zeilen unter `volumes` ergänzen, z. B.
-`- /srv/downloads:/media/Downloads:ro`. Video und Script brauchen denselben Namen (`Name.mp4` + `Name.funscript`).
+Jeder Ordner unter `/media/<Name>` wird eine eigene Quelle – in der `docker-compose.yml` weitere Zeilen unter `volumes`,
+z. B. `- /srv/downloads:/media/Downloads:ro`. Video und Script brauchen denselben Namen (`Name.mp4` + `Name.funscript`).
 
 ## VR-Brille (HereSphere)
 
-In HereSphere im Browser `https://handy.<domain>/heresphere` öffnen. Standardmäßig erscheinen **nur VR-Videos**
-(abschaltbar unter ⚙️ → VR-Brille): Stash-Szenen mit
-mindestens einem VR-Tag (z. B. „VR“, „180°“, „360°“), Ordner-Videos mit VR-Kennung im Dateinamen. Kategorien: *Alle mit Script*,
-deine gespeicherten Stash-Filter und die eingebundenen Ordner – mit Vorschau, Tags, Markern und Funscript.
-Die Handy steuert HereSphere selbst (Connection Key in HereSphere eintragen). Das VR-Format wird an
-Dateinamen (`_180`, `_LR`, `_TB`, `_360`, `MKX200`, `fisheye` …) und VR-Tags erkannt.
-Eine Anmeldung im Reverse Proxy muss für `/heresphere` ausgenommen sein. Optional schützt ein **Passwort**
-(⚙️ → VR-Brille) die Schnittstelle – HereSphere fragt dann einmal nach Benutzer (egal) und Passwort.
-Wer HereSphere nicht nutzt, schaltet es unter ⚙️ → VR-Brille ab (oder fest mit `HERESPHERE=off` in der
-`docker-compose.yml`) – dann antwortet der Server dort nicht mehr und die Ausnahme kann weg.
+In HereSphere im Browser `https://<player>/heresphere` öffnen. Standardmäßig nur VR-Videos; Kategorien *Alle mit Script*,
+gespeicherte Stash-Filter und Ordner. Die Handy steuert HereSphere selbst (Connection Key dort eintragen). Eine Anmeldung
+im Reverse Proxy muss für `/heresphere` ausgenommen sein; optional schützt ein Passwort die Schnittstelle. Abschaltbar
+unter ⚙️ → VR oder fest mit `HERESPHERE=off`.
 
-## Bildverbesserung
+## Bild
 
-„✨ Bildverbesserung“ unter dem Video bzw. ✨ in der Bedienleiste (schaltet Aus → Natürlich → Schärfer → Maximal).
-Läuft per WebGL auf der Grafik des Abspielgeräts, der Server merkt davon nichts:
+„Automatisch“ rechnet kleine Videos auf dem Server hoch (Intel Quick Sync / VAAPI, sonst CPU) und entrauscht leicht; im
+Browser nur ein Hauch Schärfe (WebGL, AMD CAS) und Farbtreppen glätten – Farben und Kontrast bleiben wie im Original.
+„Schärfer“/„Maximal“ bzw. HQ „Sauber“/„Stark“ für mehr. Kein KI-Upscaling.
 
-- Skalieren auf Bildschirmgröße: Catmull-Rom (bikubisch) beim Vergrößern, Mittelung beim Verkleinern
-- Schärfen mit AMD FidelityFX CAS (schärft weiche Stellen, ohne Säume)
-- Kontrast, Sättigung, Helligkeit, Anti-Banding (Dithering gegen Farbtreppen)
-- „Eigene“ Werte und Vorher/Nachher-Vergleich (geteiltes Bild)
+## Satisfyer
 
-Kein KI-Upscaling: es entstehen keine neuen Details, vorhandene werden besser sichtbar.
+Direkt per Bluetooth aus dem Browser (Chrome/Edge auf Android/PC, iPhone: App „Bluefy“) – braucht HTTPS.
+Alternativ über **Intiface Central** (auch: Handy per Bluetooth ohne Internet); bei HTTPS leitet der Server die
+Verbindung über `/intiface` weiter (nur private IP-Adressen, mit `INTIFACE_LAN_ONLY=1` nur Heimnetz).
 
-### HQ-Stream vom Server (Intel Quick Sync)
+## Sicherheit
 
-Im selben Bedienfeld: **Aus / Sauber / Stark** und Zielauflösung (720p/1080p/1440p). Der Server wandelt
-das Video live mit ffmpeg um: `denoise_vaapi` → `scale_vaapi` (hq) → `sharpness_vaapi` → `h264_vaapi` –
-alles auf der Video-Hardware der Intel-Grafik, wie Jellyfin. Ohne `/dev/dri` oder bei Fehlern automatisch
-per CPU (hqdn3d → Lanczos → unsharp → x264). Die Browser-Verbesserung kommt danach noch obendrauf.
+- Keine Anmeldung im Player als Standard – hinter einem geschützten Proxy oder nur im Heimnetz betreiben, oder
+  `AUTH_USER`/`AUTH_PASS` setzen (Basic Auth).
+- Der Server nimmt Änderungen nur von der eigenen Seite an (Herkunftsprüfung) und lässt sich nicht einbetten.
 
-- Spulen startet die Umwandlung an der neuen Stelle neu (≈ 1 s); Handy/Vibrator bleiben synchron.
-- „Leistung testen“ wandelt 20 s um und zeigt die Geschwindigkeit (ab ~1,5× Echtzeit flüssig).
-- Docker: `devices: /dev/dri` und `group_add` mit der GID der Gruppe `render` (`getent group render`).
-  Prüfen im Container: `docker exec Handy-Player vainfo`.
-- `HQ_ACCEL=vaapi|cpu` erzwingt einen Weg, `HQ_MAX` begrenzt gleichzeitige Umwandlungen.
-
-## Docker mit Traefik
-
-Einstellungen stehen in der `.env`: einmal `cp .env.example .env` und Domain, `STASH_URL`, ggf. Medienordner eintragen.
-Updates überschreiben die `.env` nie. Medienordner sind in der `docker-compose.yml` standardmäßig auskommentiert.
-
-Die `docker-compose.yml` ist für ein Traefik-Setup
-vorbereitet (Labels und Netze selbst ergänzen); erreichbar unter `https://handy.${DOMAIN}`
-(`DOMAIN` aus deiner `.env`). Anzupassen: Videoordner und ggf. `STASH_URL` (am besten der interne
-Containername, z. B. `http://Stash:9999`).
-
-## Smartphone: Vollbild, App, Sicherheit
-
-- **Vollbild** (⛶ oben rechts im Video oder Doppelklick): füllt den ganzen Bildschirm, dreht auf Android ins
-  Querformat. „Füllen“ zoomt randlos (schneidet etwas ab), „Einpassen“ zeigt das ganze Bild.
-  Tippen = Bedienung ein/aus, doppelt tippen links/rechts = ±10 s, Zeitleiste mit Heatmap und Markern.
-- **Als App installieren** (Chrome: Menü → „App installieren“, iPhone/Bluefy: „Zum Home-Bildschirm“):
-  startet ohne Browserleisten – auf dem iPhone ist das der einzige Weg zu echtem Vollbild.
-  Braucht HTTPS mit gültigem Zertifikat (Reverse Proxy).
-- Der Bildschirm bleibt an, solange etwas läuft.
-- **Not-Aus**: roter STOPP-Knopf (schwebend bzw. im Vollbild oben rechts), Esc-Taste oder „Alles stoppen“.
-  Stoppt Video, Handy, Patterns und Vibratoren sofort. Optional automatisch bei Bildschirmsperre/App-Wechsel.
-  Der rote STOPP-Knopf über dem Video lässt sich unter ⚙️ Einstellungen → Sicherheit ausblenden.
-- Grenzen: max. Geschwindigkeit der Direktsteuerung (⚙️ Einstellungen → Sicherheit), „Maximum“ beim Vibrator gilt
-  auch für die manuelle Stärke.
-
-## Fernbedienung
-
-Video am TV/PC, Bedienung und Satisfyer am Smartphone: Player auf beiden Geräten öffnen, am Smartphone in
-der Bibliothek oben **„📺 Abspielen auf“** den Bildschirm wählen und eine Szene antippen. Das Smartphone zeigt
-die Player-Leiste (Play, Spulen, Heatmap, ★/💦/📍, STOPP) und lässt den Satisfyer im Takt des Bildschirms
-laufen. Die Handy steuert der Bildschirm, wenn sie dort verbunden ist. Details: `release-notes/RELEASE-NOTES-1.8.0.md`.
-
-## Stash
-
-Mit `StashUrl` (Windows, `config.ps1`) bzw. `STASH_URL` (Docker) erscheint in der Bibliothek der Umschalter
-**Ordner / Stash**. Der Player holt die Szenenliste per GraphQL und reicht Video, Funscript und Vorschaubild
-über den eigenen Server durch – der Browser spricht nie direkt mit Stash, ein API-Key bleibt auf dem Server.
-
-- Suche, Sortierung (Neueste, Datum, Titel, Zufall), „Nur mit Funscript“ = Stash-Filter *interaktiv*
-- Filter nach Tag, Darsteller, Studio; „🎲 Zufällige Szene abspielen“ mit den aktuellen Filtern
-- Stash-Marker als gelbe Striche in der Zeitleiste und als Sprungliste
-- Bewerten (★), Favorit, O-Zähler (💦) und Marker setzen (📍) direkt in der Player-Leiste – auch im Vollbild
-- Weiterschauen: startet an der in Stash gespeicherten Position; Position, Spieldauer und Play-Count
-  werden an Stash zurückgemeldet
-- Kann der Browser das Originalformat nicht (MKV, HEVC …), schaltet der Player automatisch auf Stashs
-  Live-Umwandlung (`stream.mp4`) um
-- Direktlink zu einer Szene: `https://<player>/?stash=<Szenen-ID>` – z. B. für einen eigenen Button in Stash
-- API-Key nur nötig, wenn in Stash ein Login gesetzt ist (Stash → Einstellungen → Sicherheit → API-Key)
-
-## Vibrator / Satisfyer
-
-**Direkt per Bluetooth (empfohlen, wie bei XToys):** Player auf dem Gerät öffnen, das die
-Bluetooth-Verbindung hält (z. B. Smartphone), dann „＋ Satisfyer verbinden“.
-
-- Android / PC / Mac: Chrome oder Edge. iPhone: Safari kann kein Bluetooth – App „Bluefy“ nutzen.
-- Web Bluetooth braucht eine **sichere Verbindung**: gültiges Zertifikat über deinen Reverse Proxy, oder die
-  `windows\cert\handy-player.cer` auf dem Smartphone als vertrauenswürdig installieren.
-- Satisfyer-Protokoll laut Buttplug.io: Init `0x01`, pro Motor 4 Bytes Stärke (0–100), alle 500 ms wiederholt.
-  Für Geräte mit zwei Motoren in der Geräteliste „2 Motoren“ wählen.
-
-**Alternativ über Intiface Central** (Android/iOS-App, unterstützt sehr viele Geräte): In Intiface unter
-Einstellungen „Listen on all interfaces“ aktivieren, Server starten, im Player die IP des Smartphones
-eintragen. Bei HTTPS leitet der Server die Verbindung über `/intiface` weiter (nur private IP-Adressen).
-Dein Reverse Proxy muss dafür WebSockets durchreichen (nginx: `proxy_set_header Upgrade $http_upgrade;`
-und `proxy_set_header Connection "upgrade";`).
-
-## Installation (Debian + Docker)
+## Entwicklung
 
 ```bash
-scp -r handy-player debian-server:/opt/
-ssh debian-server
-cd /opt/handy-player
-cp .env.example .env       # einmal: Domain, Stash, ggf. Medienordner eintragen
-nano .env
-docker compose up -d --build
+MEDIA_DIR=./testmedia DATA_DIR=./data node server.js   # → http://localhost:8080
+node --test "test/*.test.js"                           # automatische Tests, ohne Pakete
 ```
 
-Ordnerstruktur der Bibliothek:
-
-```
-/srv/media/filme/
-├── film1.mp4
-├── film1.funscript
-└── Serie/
-    ├── teil2.mp4
-    └── teil2.funscript
-```
-
-Der Container läuft als User `node` (UID 1000) und braucht Leserechte auf den Ordner.
-
-## Installation (Windows, ohne Docker)
-
-Alles Nötige liegt im Ordner `windows\`.
-
-1. Ordner `handy-player` auf die VM kopieren, z. B. nach `C:\handy-player`.
-2. `windows\config.ps1` anpassen: Medienordner, Port, Zugangsdaten, HTTPS ja/nein, Zertifikatsnamen.
-3. PowerShell **als Administrator** öffnen:
-
-   ```powershell
-   cd C:\handy-player\windows
-   powershell -ExecutionPolicy Bypass -File .\setup.ps1
-   ```
-
-   Das Skript installiert Node.js (winget), erzeugt bei Bedarf ein selbstsigniertes Zertifikat,
-   öffnet den Port in der Firewall und startet den Player automatisch beim Systemstart
-   (geplante Aufgabe „Handy Player“, Logs in `windows\logs\`).
-
-Optionen von `setup.ps1`:
-
-| Option | Wirkung |
-|---|---|
-| `-FirewallFrom 192.168.1.10` | Port nur für diese IP öffnen (z. B. deinen Reverse Proxy) |
-| `-AtLogon` | Autostart bei Benutzeranmeldung statt als SYSTEM – nötig für verbundene Netzlaufwerke |
-| `-NoAutostart` | Kein Autostart; manuell per Doppelklick auf `start.cmd` starten |
-
-**HTTPS-Varianten**
-
-- *Reverse Proxy terminiert TLS (empfohlen):* in `config.ps1` `Https = $false`, ggf. `BindHost = '127.0.0.1'`
-  (Proxy auf derselben VM) oder Firewall per `-FirewallFrom` auf die Proxy-IP beschränken.
-- *Direkt HTTPS im Player:* `Https = $true`. Entweder das selbstsignierte Zertifikat nutzen und die
-  erzeugte `windows\cert\handy-player.cer` auf deinen Geräten als vertrauenswürdig importieren,
-  oder ein Zertifikat deiner internen CA als `.pfx` unter `PfxFile` ablegen.
-
-Autostart und Firewall-Regel entfernen: `windows\uninstall.ps1` (als Administrator).
-
-**Medien auf einem NAS:** UNC-Pfad wie `\\nas\filme` in `MediaDir` eintragen. Läuft der Dienst als SYSTEM,
-braucht das Computerkonto der VM Leserechte auf die Freigabe, sonst `-AtLogon` verwenden.
-
-## Reverse Proxy
-
-Den Proxy einfach auf `http://127.0.0.1:8080` zeigen lassen. Wichtig ist nur, dass Range-Requests
-durchgereicht werden (Standard) und kein Puffern großer Antworten erzwungen wird.
-
-**nginx**
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name player.example.lan;
-    # ssl_certificate …;
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_buffering off;
-        client_max_body_size 1m;
-    }
-}
-```
-
-**Caddy**
-
-```
-player.example.lan {
-    reverse_proxy 127.0.0.1:8080
-}
-```
-
-**Traefik / Nginx Proxy Manager:** einfach auf Port 8080 des Containers zeigen; den `ports`-Eintrag
-dann ggf. durch das gemeinsame Docker-Netzwerk des Proxys ersetzen.
-
-## Anmeldung
-
-Mit `AUTH_USER`/`AUTH_PASS` schützt der Container sich selbst per HTTP Basic Auth.
-Übernimmt dein Proxy bereits die Anmeldung (Authelia, Authentik …), beide Variablen leer lassen.
-Ohne irgendeine Anmeldung bitte nicht ins Internet stellen.
-
-Unabhängig davon nimmt der Server Änderungen nur von der eigenen Seite an (Herkunftsprüfung) und lässt sich
-nicht in fremde Seiten einbetten – eine andere Webseite im selben Browser kann also nichts auslösen.
-
-## Sicherheit im Container
-
-- Der Player läuft als Benutzer `node` (1000), **nie als root**. Optional ein eigener Benutzer per
-  `user: "1234:1234"` in der `docker-compose.yml`; ein schon vorhandener Datenordner muss dann einmal umgestellt werden
-  (`docker run --rm -v <projekt>_handy-data:/d alpine chown -R 1234:1234 /d`).
-- `INTIFACE_LAN_ONLY=1` erlaubt die Intiface-Weiterleitung nur ins Heimnetz (192.168.x / 10.x) – keine Docker-Netze,
-  nichts im Container. Ohne die Variable lässt es sich unter ⚙️ → Geräte einschalten.
-
-## Bedienung
-
-1. Seite öffnen, unter **⚙️ Einstellungen → Geräte** den Connection Key eingeben – der Player verbindet sofort
-   (die Handy muss im WLAN-Modus und online sein).
-2. Video aus der Bibliothek wählen oder Video + Funscript in den Player ziehen.
-3. Abspielen. Pause, Spulen und Puffern werden automatisch nachsynchronisiert.
-4. Läuft die Handy vor oder nach: **Offset** verschieben (positiv = Handy früher). Standard ist 0 – die
-   Verzögerung der Geräte gleicht der Player selbst aus; „🎯 Einmessen“ steht unter „Feineinstellung“.
+Technische Details: `docs/dev.html`. Änderungen: [CHANGELOG.md](CHANGELOG.md).
 
 ## Hinweise
 
-- **Datenschutz:** Für die WLAN-Steuerung wird nur das Funscript (als CSV mit neutralem Dateinamen
-  `script.csv`) auf Handys Script-Hosting geladen. Videos und Titel bleiben auf deinem Server.
-- **Videoformate:** Was dein Browser kann – MP4 (H.264/H.265) und WebM laufen überall, MKV je nach Browser.
-- **Geschwindigkeit:** Bei Wiedergabe ≠ 1× wird die Handy angehalten (HSSP v2 kennt keine Wiedergaberate).
-- Genutzt wird die Handy API v2. Falls Handy sie irgendwann abschaltet, muss nur die Klasse `Handy`
-  in `public/app.js` angepasst werden.
+- **Datenschutz:** Für die WLAN-Steuerung wird nur das Funscript (als CSV mit neutralem Namen `script.csv`) auf Handys
+  Script-Hosting geladen. Videos und Titel bleiben auf deinem Server.
+- **Formate:** was dein Browser kann – MP4 (H.264/H.265) und WebM überall, MKV je nach Browser; Stash-Szenen in anderen
+  Formaten werden live umgewandelt.

@@ -6,3 +6,6 @@ windows/logs/
 node_modules/
 .env
 HANDOFF.md
+.env.*
+!.env.example
+privat*/

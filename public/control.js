@@ -2,8 +2,8 @@
 
 // ===========================================================================
 // Reiter „Steuerung & Patterns“
-//   Direktsteuerung (HAMP), Pattern-Editor und Script-Baukasten (beide HSSP).
-//   Patterns und Scripts liegen auf dem Server (data/store.json).
+//   Direktsteuerung (HAMP) und Pattern-Editor (HSSP).
+//   Patterns liegen auf dem Server (data/store.json; alte Baukasten-Scripts in „sequences“ bleiben dort unangetastet, der Baukasten ist seit 1.19.3 raus).
 // ===========================================================================
 
 // Ein Pattern ist ein Bewegungszyklus: Punkte mit t (0 … <1, Anteil am Zyklus)
@@ -173,11 +173,8 @@ function restartPatternIfPlaying() {
 
 function updateButtons() {
   const pat = active?.kind === 'pattern';
-  const seq = active?.kind === 'sequence';
   $('patternPlay').textContent = pat ? '■ Stopp' : '▶ Pattern abspielen';
   $('patternPlay').classList.toggle('running', pat);
-  $('seqPlay').textContent = seq ? '■ Stopp' : '▶ Script abspielen';
-  $('seqPlay').classList.toggle('running', seq);
   $('hampToggle').textContent = hampOn ? '■ Stopp' : '▶ Start';
   $('hampToggle').classList.toggle('running', hampOn);
 }
@@ -277,7 +274,6 @@ function fillPatternSelects() {
   const sel = $('patternSelect');
   sel.replaceChildren(...db.patterns.map((p) => new Option(p.name, p.id)));
   sel.value = currentPattern().id;
-  renderSteps();
 }
 
 function showPattern() {
@@ -341,14 +337,11 @@ $('patternDup').addEventListener('click', () => {
 $('patternDel').addEventListener('click', () => {
   if (db.patterns.length <= 1) return log('Das letzte Pattern kann nicht gelöscht werden.', true);
   const p = currentPattern();
-  const used = db.sequences.some((s) => s.steps.some((st) => st.patternId === p.id));
-  if (!confirm(`Pattern „${p.name}“ löschen?${used ? '\nEs wird in einem Script verwendet – diese Schritte entfallen.' : ''}`)) return;
+  if (!confirm(`Pattern „${p.name}“ löschen?`)) return;
   db.patterns = db.patterns.filter((x) => x !== p);
-  db.sequences.forEach((s) => (s.steps = s.steps.filter((st) => st.patternId !== p.id)));
   currentPatternId = db.patterns[0].id;
   fillPatternSelects();
   showPattern();
-  showSequence();
   saveStore();
 });
 
@@ -490,125 +483,6 @@ pc.addEventListener('contextmenu', deletePoint);
 new ResizeObserver(() => drawEditor()).observe(pc);
 
 // ---------------------------------------------------------------------------
-// Script-Baukasten
-// ---------------------------------------------------------------------------
-let currentSeqId = store.get('sequence', null);
-
-function currentSeq() {
-  return db.sequences.find((s) => s.id === currentSeqId) || db.sequences[0] || null;
-}
-
-function newSequence() {
-  const s = {
-    id: uid(),
-    name: 'Mein Script',
-    steps: db.patterns.slice(0, 3).map((p, i) => ({ patternId: p.id, seconds: 30, tempo: 80 + i * 20 })),
-  };
-  db.sequences.push(s);
-  currentSeqId = s.id;
-  saveStore();
-  return s;
-}
-
-function showSequence() {
-  const s = currentSeq() || newSequence();
-  currentSeqId = s.id;
-  store.set('sequence', s.id);
-  $('seqSelect').replaceChildren(...db.sequences.map((x) => new Option(x.name, x.id)));
-  $('seqSelect').value = s.id;
-  $('seqName').value = s.name;
-  renderSteps();
-}
-
-function renderSteps() {
-  const s = currentSeq();
-  if (!s) return;
-  const tbody = $('seqSteps');
-  tbody.replaceChildren();
-  s.steps.forEach((st, i) => {
-    const tr = document.createElement('tr');
-    const sel = document.createElement('select');
-    sel.append(...db.patterns.map((p) => new Option(p.name, p.id)));
-    sel.value = st.patternId;
-    sel.addEventListener('change', () => { st.patternId = sel.value; seqChanged(); });
-
-    const sec = Object.assign(document.createElement('input'), { type: 'number', min: 1, max: 3600, value: st.seconds });
-    sec.addEventListener('change', () => { st.seconds = clamp(Number(sec.value) || 1, 1, 3600); sec.value = st.seconds; seqChanged(); });
-
-    const tempo = Object.assign(document.createElement('input'), { type: 'number', min: 25, max: 300, step: 5, value: st.tempo });
-    tempo.addEventListener('change', () => { st.tempo = clamp(Number(tempo.value) || 100, 25, 300); tempo.value = st.tempo; seqChanged(); });
-
-    const del = Object.assign(document.createElement('button'), { textContent: '✕', title: 'Schritt entfernen' });
-    del.addEventListener('click', () => { s.steps.splice(i, 1); renderSteps(); seqChanged(); });
-
-    [sel, sec, tempo, del].forEach((el) => { const td = document.createElement('td'); td.append(el); tr.append(td); });
-    tbody.append(tr);
-  });
-  updateSeqInfo();
-}
-
-function buildSequence(s) {
-  const actions = [];
-  let offset = 0;
-  for (const st of s.steps) {
-    const p = db.patterns.find((x) => x.id === st.patternId);
-    if (!p) continue;
-    appendPattern(actions, p, st.tempo, st.seconds * 1000, offset);
-    offset += st.seconds * 1000;
-  }
-  if (actions.length) actions.push({ at: offset, pos: actions[0].pos });
-  return { actions, duration: offset };
-}
-
-function updateSeqInfo() {
-  const s = currentSeq();
-  const total = s.steps.reduce((sum, st) => sum + st.seconds * 1000, 0);
-  $('seqInfo').textContent = `${s.steps.length} Schritte · Gesamtdauer ${fmtTime(total)}`;
-}
-
-function seqChanged() {
-  saveStore();
-  updateSeqInfo();
-  if (active?.kind === 'sequence') stopPlayback();
-}
-
-$('seqSelect').addEventListener('change', (e) => { currentSeqId = e.target.value; showSequence(); });
-$('seqName').addEventListener('input', (e) => {
-  currentSeq().name = e.target.value.trim() || 'Ohne Namen';
-  $('seqSelect').selectedOptions[0].textContent = currentSeq().name;
-  saveStore();
-});
-$('seqNew').addEventListener('click', () => { newSequence(); showSequence(); $('seqName').select(); });
-$('seqDel').addEventListener('click', () => {
-  const s = currentSeq();
-  if (!confirm(`Script „${s.name}“ löschen?`)) return;
-  db.sequences = db.sequences.filter((x) => x !== s);
-  currentSeqId = null;
-  showSequence();
-  saveStore();
-});
-$('seqAdd').addEventListener('click', () => {
-  const s = currentSeq();
-  const lastStep = s.steps[s.steps.length - 1];
-  s.steps.push({ patternId: currentPattern().id, seconds: 30, tempo: lastStep ? lastStep.tempo : 100 });
-  renderSteps();
-  seqChanged();
-});
-function playSequence() {
-  const { actions, duration } = buildSequence(currentSeq());
-  if (!actions.length) return log('Das Script hat keine Schritte.', true);
-  startPlayback('sequence', actions, duration, $('seqLoop').checked);
-}
-$('seqPlay').addEventListener('click', () => (active?.kind === 'sequence' ? stopPlayback() : playSequence()));
-$('seqLoop').addEventListener('change', () => { if (active?.kind === 'sequence') active.loop = $('seqLoop').checked; });
-$('seqExport').addEventListener('click', () => {
-  const s = currentSeq();
-  const { actions } = buildSequence(s);
-  if (!actions.length) return log('Das Script hat keine Schritte.', true);
-  downloadFunscript(actions, s.name);
-});
-
-// ---------------------------------------------------------------------------
 // Für den Vibrator: laufendes Pattern/Script bzw. Direktsteuerung
 // ---------------------------------------------------------------------------
 function controlScriptSource() {
@@ -645,10 +519,8 @@ function controlLoop() {
     if (active) {
       pos = positionAt(active.actions, Math.min(elapsed, active.duration));
       if (active.kind === 'pattern') drawEditor((elapsed % active.cycle) / active.cycle);
-      $('seqProgress').style.width = active.kind === 'sequence' ? `${Math.min(100, (elapsed / active.duration) * 100)}%` : '0';
     }
   }
-  if (!active) $('seqProgress').style.width = '0';
   $('strokerFill').style.height = pos === null ? '0' : `${pos}%`;
   requestAnimationFrame(controlLoop);
 }
@@ -656,13 +528,11 @@ function controlLoop() {
 // Script umkehren betrifft auch laufende Patterns/Scripts
 $('invert').addEventListener('change', () => {
   if (active?.kind === 'pattern') playPattern();
-  else if (active?.kind === 'sequence') playSequence();
 });
 
 // Alles stoppen: egal, wer gerade steuert (pausiert auch das Video)
 // Not-Aus: Video, Patterns, Direktsteuerung, Handy und Vibratoren sofort anhalten
 async function emergencyStop(reason = 'Not-Aus') {
-  if (remote.on) remoteCmd('stop'); // Fernbedienung: Bildschirm (Video + dortige Geräte) mit anhalten
   claimHandy('none');
   if (!video.paused) video.pause();
   active = null;
@@ -696,7 +566,6 @@ $('stopAll').addEventListener('click', () => emergencyStop());
   await loadStore();
   fillPatternSelects();
   showPattern();
-  showSequence();
   updateButtons();
   requestAnimationFrame(controlLoop);
 })();

@@ -2,6 +2,30 @@
 // Englische Texte der Entwickler-Seite (Schlüssel = Hash des deutschen Texts, siehe i18n.js).
 // Neue/geänderte Texte: in der Konsole fspTexts() aufrufen und Schlüssel ergänzen.
 window.FSP_EN = {
+  // 1.19.3
+  '16uesep': 'The server delivers the interface, streams videos, proxies Stash and checks itself at startup. The browser talks to the Handy (cloud) and Satisfyer (Bluetooth) directly.',
+  '1pu10vv': 'Library, devices, intensity',
+  '1343bgd': 'HQ (ffmpeg), self-check',
+  ln8oyl: 'Server settings (HereSphere, password hash, Intiface) · shared settings, intensity, own scripts (<code>data/userscripts.json</code>), Handy cache, patterns.',
+  '1u3lics': 'HQ stream via ffmpeg (ffprobe results cached); presets <code>natural</code> (Auto), <code>clean</code>, <code>strong</code>.',
+  '1acahrn': 'Self-check at startup (data folder, stored files, UI scripts, every <code>$(\'id\')</code> in <code>index.html</code>, script intensity) – result in <code>docker logs</code>, also used by the tests · “Update available” (newest GitHub release, cached for 6 h).',
+  lp2dw0: 'Developer self-test in the browser: append <code>?selbsttest</code> to the address – runs flows with a simulated Handy (no button in the interface).',
+  '55bqf0': 'Library (folders + Stash), filters per mode, opening scenes, Stash actions (★, favourite, O, markers), resume position, sprites.',
+  rlg5sp: 'Control mode: direct control, pattern editor, <code>emergencyStop()</code>.',
+  '178ywge': 'Own player bar, fullscreen (video only), gestures, keyboard, STOP button, auto-stop, wake lock.',
+  n48jhy: 'Finale (detach / gentler) · script intensity for both devices: Original/Automatic/Gentle/Intense (<code>processScript</code>, <code>multiplyCalm</code>, <code>presetVibeShape</code>), per scene, preview in the buttons, offset calibration.',
+  eksp67: 'Settings page: collapsible sections, explanations behind ⓘ, picture/HQ mode, player display, update notice, silent self-check, reset.',
+  '4q3zje': '<code>mediaTime()</code>, <code>seekTo()</code>, <code>duration()</code> and <code>videoPlaying()</code> are the single source of truth about the video. They account for the HQ stream (restarts at 0 after every seek → <code>hq.offset</code>). Never use <code>video.currentTime</code> or <code>video.paused</code> directly for device logic.',
+  '12a4h5z': '<code>handy.owner</code> is <code>\'video\'</code>, <code>\'manual\'</code>, <code>\'self\'</code>, <code>\'pattern\'</code> or <code>\'finale\'</code>. <code>claimHandy(owner)</code> switches and fires the <code>handy-owner</code> event – the other parts reset themselves (e.g. the video pauses).',
+  '1jwq1yw': '<code>saveScriptToLibrary(actions, \'all\' | \'section\')</code> -&gt; <code>POST /api/userscript</code>: next to the folder video (<code>wx</code>) or into <code>data/scripts/</code>; recorded in <code>data/userscripts.json</code> – only these may the player replace/delete, originals never. <code>loadSceneScript()</code> picks original or own (<code>scriptChoice</code>), <code>renderScriptBox()</code> shows the script area; recording only a section = <code>mergeSection()</code>. The recording (selfctl.js) samples <code>mediaTime()</code> every 100 ms; <code>touchToTempoActions()</code> turns it into strokes whose tempo follows the value.',
+  '1plp3er': 'In <code>localStorage</code> via <code>store.get/set</code> (prefix <code>hp.</code>); keys from <code>SHARED_PREFS</code> also on the server (<code>/api/prefs</code>, for all devices – the server is the source of truth: what it lacks, the browser deletes). Patterns: <code>/api/store</code>. Advanced settings: class <code>.adv</code>, shown with <code>body.adv-on</code>.',
+  '1v4xoq4': 'Patterns (<code>{ patterns, sequences }</code> – <code>sequences</code> only from old versions)',
+  y3mr9l: 'Scene list (search, sort, filters, pages, <code>only2d=1</code> = only with the Stash tag “2D”)',
+  x4dly5: '<code>{ current, latest, url, available }</code> – newest release on GitHub',
+  '1xyjpjb': 'Silent self-check of the interface: <code>{ fails, ua }</code>, errors end up in <code>docker logs</code>',
+  '13fnreg': 'With Docker all values live in <code>.env</code> (template <code>.env.example</code>); <code>docker-compose.yml</code> only reads them. Also there: <code>PLAYER_PORT</code>, <code>PLAYER_VERSION</code> (image tag), media folders, <code>RENDER_GID</code>, <code>PUID</code>/<code>PGID</code>, <code>TZ</code>.',
+  but9u9: 'Reading Funscripts, script automation (analysis, jitter, stroke, speed limit), touch recording as tempo/position, intensity summary, beat guard with the vibration exception, half tempo, the four intensities, model detection. The functions are read straight from the browser files (<code>loadFunctions</code> in <code>test/helpers.js</code>).',
+  '916xus': 'Starts <code>server.js</code> with test folders: library, shared settings, intensity, own scripts (replace own, never originals, delete), startup self-check, update comparison, HereSphere switch, “VR only” and password, origin check and security headers, script cache.',
   // GitHub-Links
   '8fg252': '<a href=\x22https://github.com/ScriptHost/funscript-player\x22>GitHub</a> · <a href=\x22index.html\x22>← back to the features</a>',
   // 1.19.2

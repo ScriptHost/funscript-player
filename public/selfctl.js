@@ -30,7 +30,7 @@ if (selfCtl.lo === null || selfCtl.hi === null) {
 }
 const SELF_GAP = 10; // kleinster Abstand unten–oben in %
 
-const selfVideoLoaded =() => (remote.on ? !!remote.state?.src : !!nowPlaying);
+const selfVideoLoaded = () => !!nowPlaying;
 // Läuft „Selbst steuern“ gerade? (Sync an, Video ohne Script, Video läuft)
 function selfActive() {
   // Bewusste Wahl -> gilt in jedem Modus, auch bei „nur schauen“
@@ -69,6 +69,7 @@ function selfUI() {
   $('selfVibeVal').textContent = `${selfCtl.vibe} %`;
   $('selfHandy').textContent = selfCtl.handyOn ? '■ Handy' : '▶ Handy';
   $('selfHandy').classList.toggle('running', selfCtl.handyOn);
+  document.dispatchEvent(new Event('self-ui')); // Touch-Fläche folgt den Reglern
 }
 
 // Handy per WLAN nachführen: starten, Tempo ändern, anhalten

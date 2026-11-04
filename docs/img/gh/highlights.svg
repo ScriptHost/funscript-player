@@ -10,8 +10,8 @@
 <path d="M100 35 H118" stroke="#9098a3" stroke-width="2"/><path d="M114 30 L120 35 L114 40" fill="none" stroke="#9098a3" stroke-width="2"/>
 <path d="M125 62 L135 8 L145 62 L155 8 L165 62 L175 8 L185 62 L195 8 L205 62 L215 8" fill="none" stroke="#ff5c93" stroke-width="2.8"/></g>
   
-  <text x="18" y="146" font-size="19" font-weight="700" fill="#e8eaed">⚡ Automatic – and still in time</text>
-  <text x="18" y="176" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="18" dy="0">Every Funscript keeps its fine</tspan><tspan x="18" dy="24">movements and vibrations. Only</tspan><tspan x="18" dy="24">strokes the motor can’t manage</tspan><tspan x="18" dy="24">are adapted by the beat guard –</tspan><tspan x="18" dy="24">shorter, or full stroke at half</tspan><tspan x="18" dy="24">tempo – and small strokes are</tspan><tspan x="18" dy="24">stretched to the full range.</tspan><tspan x="18" dy="24">Your files stay untouched.</tspan></text>
+  <text x="18" y="146" font-size="19" font-weight="700" fill="#e8eaed">🎚 One choice, every device</text>
+  <text x="18" y="176" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="18" dy="0">Automatic keeps fine movements</tspan><tspan x="18" dy="24">and vibrations, adapts only what</tspan><tspan x="18" dy="24">the motor can’t manage and</tspan><tspan x="18" dy="24">stretches small strokes. Want</tspan><tspan x="18" dy="24">more? Intense. Calmer? Gentle.</tspan><tspan x="18" dy="24">Picked per scene right at the</tspan><tspan x="18" dy="24">video, with a preview – your</tspan><tspan x="18" dy="24">files stay untouched.</tspan></text>
 </g>
 <g transform="translate(326 0)">
   <rect x="1" y="1" width="306" height="372" rx="18" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/>
@@ -33,7 +33,7 @@
 <rect x="4" y="40" width="34" height="14" rx="4" fill="#000" opacity=".6"/><text x="21" y="51" text-anchor="middle" font-size="9" fill="#fff">720p</text>
 <rect x="166" y="40" width="50" height="14" rx="4" fill="#000" opacity=".6"/><text x="191" y="51" text-anchor="middle" font-size="9" fill="#fff">✨ 1440p</text></g>
   
-  <text x="18" y="146" font-size="19" font-weight="700" fill="#e8eaed">✨ Sharper picture</text>
-  <text x="18" y="176" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="18" dy="0">If the video is smaller than</tspan><tspan x="18" dy="24">your screen, the server</tspan><tspan x="18" dy="24">upscales, denoises and sharpens</tspan><tspan x="18" dy="24">it – in hardware via Intel Quick</tspan><tspan x="18" dy="24">Sync. The browser sharpens a</tspan><tspan x="18" dy="24">little more. “Automatic” picks</tspan><tspan x="18" dy="24">the best picture per video and</tspan><tspan x="18" dy="24">steps back if playback stutters.</tspan></text>
+  <text x="18" y="146" font-size="19" font-weight="700" fill="#e8eaed">✨ Natural picture</text>
+  <text x="18" y="176" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="18" dy="0">If the video is smaller than</tspan><tspan x="18" dy="24">your screen, the server upscales</tspan><tspan x="18" dy="24">it and denoises lightly – in</tspan><tspan x="18" dy="24">hardware via Intel Quick Sync.</tspan><tspan x="18" dy="24">Colours and contrast stay as in</tspan><tspan x="18" dy="24">the original, more sharpness on</tspan><tspan x="18" dy="24">request. Steps back by itself if</tspan><tspan x="18" dy="24">playback stutters.</tspan></text>
 </g>
 </svg>

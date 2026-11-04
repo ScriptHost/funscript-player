@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="496 16 758 728" width="758" height="728" role="img" aria-label="Funscript Player 1.19.2 on a phone: player with script box and library">
-  <!-- Nachbau der echten Oberfläche 1.19.2 (Farben aus public/style.css) – Player und Bibliothek am Smartphone -->
+  <!-- Nachbau der echten Oberfläche 1.19.3 (Farben aus public/style.css) – Player und Bibliothek am Smartphone -->
   <defs>
     <linearGradient id="heat" x1="0" x2="1">
       <stop offset="0" stop-color="#1e90ff"/><stop offset=".16" stop-color="#28c864"/><stop offset=".3" stop-color="#f0d228"/>
@@ -17,14 +17,14 @@
   <g font-family="Segoe UI, Inter, system-ui, -apple-system, Roboto, sans-serif" fill="#e6e8eb">
     <!-- Text links -->
     <text x="72" y="150" font-size="44" font-weight="800">Funscript <tspan fill="#e0457b">Player</tspan></text>
-    <text x="74" y="190" font-size="20" fill="#8b929c">Version 1.19.2 – as it looks today</text>
+    <text x="74" y="190" font-size="20" fill="#8b929c">Version 1.19.3 – as it looks today</text>
     <g font-size="19">
       <text x="74" y="262">↕ The Handy + 〰 Satisfyer from one script</text>
-      <text x="74" y="302">⚡ Script automation, per device</text>
-      <text x="74" y="342">✋ Control yourself, record, cut sections</text>
+      <text x="74" y="302">🎚 Original · Automatic · Gentle · Intense</text>
+      <text x="74" y="342">✋ Control yourself and record it</text>
       <text x="74" y="382">🔥 Heatmap, hottest spots, Finale</text>
-      <text x="74" y="422">📚 Stash + folders, 2D-only, continue watching</text>
-      <text x="74" y="462">■ STOP always within reach</text>
+      <text x="74" y="422">📚 Stash + folders, intensity, 2D-only</text>
+      <text x="74" y="462">■ STOP always within reach, auto-stop</text>
     </g>
 
     <!-- ================= Telefon 1: Player ================= -->
@@ -59,12 +59,16 @@
         <text x="10" y="362" font-size="11" fill="#8b929c">Library folder</text>
         <!-- Geräte-Kasten -->
         <rect x="8" y="374" width="314" height="292" rx="12" fill="#1b1e24" stroke="#2c313a"/>
-        <text x="20" y="404" font-size="12" fill="#8b929c">Script</text>
-        <rect x="88" y="388" width="222" height="24" rx="6" fill="#111317" stroke="#2c313a"/><text x="96" y="405" font-size="12">Automatic</text><text x="296" y="405" font-size="10" fill="#8b929c">▾</text>
+        <defs>
+          <linearGradient id="ivO"><stop offset="0" stop-color="#28c864"/><stop offset=".4" stop-color="#f0d228"/><stop offset=".7" stop-color="#1e90ff"/><stop offset="1" stop-color="#28c864"/></linearGradient>
+          <linearGradient id="ivA"><stop offset="0" stop-color="#28c864"/><stop offset=".4" stop-color="#fa821e"/><stop offset=".7" stop-color="#28c864"/><stop offset="1" stop-color="#f0d228"/></linearGradient>
+          <linearGradient id="ivS"><stop offset="0" stop-color="#1e3c9f"/><stop offset=".5" stop-color="#1e90ff"/><stop offset="1" stop-color="#1e3c9f"/></linearGradient>
+          <linearGradient id="ivI"><stop offset="0" stop-color="#fa821e"/><stop offset=".4" stop-color="#e62832"/><stop offset=".7" stop-color="#fa821e"/><stop offset="1" stop-color="#e62832"/></linearGradient>
+        </defs>
+        <g><rect x="20" y="382" width="68" height="36" rx="7" fill="#111317" stroke="#2c313a"/><text x="54" y="398" font-size="11" text-anchor="middle" fill="#8b929c">Original</text><rect x="26" y="406" width="56" height="5" rx="2" fill="url(#ivO)"/><rect x="94" y="382" width="68" height="36" rx="7" fill="#e0457b" stroke="#e0457b"/><text x="128" y="398" font-size="11" text-anchor="middle">Automatic</text><rect x="100" y="406" width="56" height="5" rx="2" fill="url(#ivA)"/><rect x="168" y="382" width="68" height="36" rx="7" fill="#111317" stroke="#2c313a"/><text x="202" y="398" font-size="11" text-anchor="middle" fill="#8b929c">Gentle</text><rect x="174" y="406" width="56" height="5" rx="2" fill="url(#ivS)"/><rect x="242" y="382" width="68" height="36" rx="7" fill="#111317" stroke="#2c313a"/><text x="276" y="398" font-size="11" text-anchor="middle" fill="#8b929c">Intense</text><rect x="248" y="406" width="56" height="5" rx="2" fill="url(#ivI)"/></g>
         <g font-size="11" text-anchor="middle">
-          <rect x="20" y="420" width="92" height="44" rx="7" fill="#2a2e36"/><text x="66" y="440" font-size="14">✋</text><text x="66" y="457">Yourself</text>
-          <rect x="119" y="420" width="92" height="44" rx="7" fill="#2a2e36"/><text x="165" y="440" font-size="14">🔥</text><text x="165" y="457">Intense</text>
-          <rect x="218" y="420" width="92" height="44" rx="7" fill="#2a2e36"/><text x="264" y="440" font-size="14">✂</text><text x="264" y="457">Section</text>
+          <rect x="20" y="426" width="141" height="42" rx="7" fill="#2a2e36"/><text x="90" y="444" font-size="14">✋</text><text x="90" y="461">Yourself</text>
+          <rect x="169" y="426" width="141" height="42" rx="7" fill="#2a2e36"/><text x="239" y="444" font-size="14">🔥</text><text x="239" y="461">Highlights</text>
         </g>
         <line x1="20" y1="476" x2="310" y2="476" stroke="#2c313a"/>
         <text x="20" y="504" font-size="12" fill="#8b929c">Offset</text>
@@ -84,21 +88,25 @@
       <rect x="-10" y="-10" width="350" height="700" rx="34" fill="#000" stroke="#2c313a"/>
       <g clip-path="url(#scr)">
         <rect width="330" height="680" fill="#111317"/>
-        <text x="12" y="33" font-size="14" font-weight="700">Funscript Player <tspan font-size="10" font-weight="400" fill="#8b929c">v1.19.2</tspan></text>
+        <text x="12" y="33" font-size="14" font-weight="700">Funscript Player <tspan font-size="10" font-weight="400" fill="#8b929c">v1.19.3</tspan></text>
         <rect x="216" y="14" width="66" height="26" rx="13" fill="none" stroke="#2c313a"/><text x="226" y="32" font-size="12" fill="#3fb950">connected</text>
         <rect x="290" y="12" width="28" height="28" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="297" y="32" font-size="16">☰</text>
         <line x1="0" y1="52" x2="330" y2="52" stroke="#2c313a"/>
         <rect x="10" y="64" width="310" height="32" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="20" y="85" font-size="12" fill="#8b929c">Search scenes, titles, files …</text>
         <rect x="10" y="104" width="148" height="28" rx="14" fill="#1b1e24" stroke="#e0457b"/><text x="22" y="123" font-size="11">☑ ⚡ only with Funscript</text>
         <rect x="166" y="104" width="154" height="28" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="176" y="123" font-size="11">Intensity: all ▾</text>
-        <text x="10" y="152" font-size="11" fill="#8b929c">CONTINUE WATCHING</text>
         <g font-size="11">
-          <rect x="10" y="160" width="150" height="94" rx="8" fill="url(#t2)"/><rect x="10" y="250" width="150" height="4" fill="url(#heat)"/><rect x="10" y="246" width="70" height="3" fill="#e0457b"/>
-          <text x="10" y="270" font-weight="600">Lakeside scene</text>
-          <rect x="170" y="160" width="150" height="94" rx="8" fill="url(#t1)"/><rect x="170" y="250" width="150" height="4" fill="url(#heat)"/><rect x="170" y="246" width="40" height="3" fill="#e0457b"/>
-          <text x="170" y="270" font-weight="600">Rooftop</text>
+          <g transform="translate(10 146)">
+            <rect width="150" height="94" rx="8" fill="url(#t2)"/><rect y="90" width="150" height="4" fill="url(#heat)"/>
+            <rect x="6" y="6" width="22" height="16" rx="4" fill="#e0457b"/><text x="11" y="18" font-size="10">⚡</text>
+            <text x="0" y="112" font-weight="600">Lakeside scene</text><text x="0" y="128" fill="#8b929c">25 min · medium</text>
+          </g>
+          <g transform="translate(170 146)">
+            <rect width="150" height="94" rx="8" fill="url(#t1)"/><rect y="90" width="150" height="4" fill="url(#heat)"/>
+            <rect x="6" y="6" width="22" height="16" rx="4" fill="#e0457b"/><text x="11" y="18" font-size="10">⚡</text>
+            <text x="0" y="112" font-weight="600">Rooftop</text><text x="0" y="128" fill="#8b929c">16 min · intense</text>
+          </g>
         </g>
-        <line x1="10" y1="288" x2="320" y2="288" stroke="#2c313a"/>
         <g font-size="11">
           <g transform="translate(10 300)">
             <rect width="150" height="94" rx="8" fill="url(#t3)"/><rect y="90" width="150" height="4" fill="url(#heat)"/>

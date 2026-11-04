@@ -1,36 +1,45 @@
 'use strict';
 
 // ===========================================================================
-// 🛠️ Script-Werkzeuge – rechnen das Script beim Abspielen um, Dateien bleiben unverändert.
-//   Presets:  Original · Automatisch · Sanft · Intensiv · Eigene (Haken unten)
-//   Automatisch prüft jedes Script und ändert nur, was nötig ist:
-//     Zittern (winzige Bewegungen < 3 %) entfernen, zu kleinen Hub strecken,
-//     physisch zu schnelle Stellen kürzen, bei stark schwankendem Tempo den Satisfyer beruhigen.
-//   Preset gilt als Standard und lässt sich pro Szene ändern (wird wie der Offset gemerkt).
+// 🛠️ Script-Intensität – rechnet das Script beim Abspielen um, Dateien bleiben unverändert.
+//   Seit 1.19.3 eine Auswahl für Handy und Satisfyer:
+//     Original     – genau die Datei, nichts geändert
+//     Automatisch  – kleinen Hub strecken, was die Handy nicht schafft anpassen (Takt-Schutz)
+//     Sanft        – kleinerer Hub (20–80 %), langsamer, Satisfyer schwächer und ruhiger
+//     Intensiv     – voller Hub, ruhige Stellen im doppelten/dreifachen Takt, Satisfyer stärker
+//   Standard unter ⚙️ → Script, pro Szene am Video (wird wie der Offset gemerkt).
 //   Takt einmessen:  im Takt der Stöße tippen -> Offset für diese Szene berechnen
 // Ergebnis wird zwischengespeichert (Vibrator fragt ~16× pro Sekunde nach).
 // ===========================================================================
 
 // tooFast: 'shorten' = Hub kürzen, 'half' = voller Hub, dort halbes Tempo
-const tools = Object.assign({ stretch: false, limit: false, jitter: false, maxSpeed: 400, tooFast: 'shorten' }, store.get('scriptTools', {}));
-let toolCache = { handy: null, vibe: null };
+const tools = Object.assign({ tooFast: 'shorten' }, store.get('scriptTools', {}));
+let toolCache = {};
 
-const SCRIPT_PRESETS = { protect: 'Original + Takt-Schutz', original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv', custom: 'Eigene' };
-// Seit 1.19.2 für beide Geräte „Automatisch“ (vorher Handy „Original + Takt-Schutz“) – einmalig umgestellt
-if (!store.get('presetFix1192', false)) {
-  if (store.get('scriptPresetHandy', 'protect') === 'protect') store.set('scriptPresetHandy', 'auto');
-  store.set('presetFix1192', true);
+const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv' };
+// 1.19.3: nur noch eine Auswahl für beide Geräte. Alte Werte („Original + Takt-Schutz“, „Eigene“) -> Automatisch
+const presetFix = (p) => (SCRIPT_PRESETS[p] ? p : 'auto');
+// Neuer Schlüssel „scriptIntensity“: die Umstellung läuft nur einmal (auf dem ersten Gerät), weil sie
+// gemeinsam gespeichert wird – ein zweites Gerät überschreibt danach nichts mehr.
+if (store.get('scriptIntensity', null) === null) {
+  store.set('scriptIntensity', presetFix(store.get('scriptPresetHandy', 'auto')));
+  const map = store.get('scenePresets', {});
+  for (const k of Object.keys(map)) {
+    if (typeof map[k] === 'string' && SCRIPT_PRESETS[map[k]]) continue;
+    const v = typeof map[k] === 'string' ? map[k] : map[k]?.handy || map[k]?.vibe;
+    if (SCRIPT_PRESETS[v]) map[k] = v; else delete map[k];
+  }
+  store.set('scenePresets', map);
 }
-const presetDefault = { handy: store.get('scriptPresetHandy', 'auto'), vibe: store.get('scriptPresetVibe', 'auto') };
-let localPreset = {}; // Szene ohne festen Schlüssel (lokale Datei): nur bis zum nächsten Video
+let presetDefault = presetFix(store.get('scriptIntensity', 'auto'));
+let localPreset = null; // Szene ohne festen Schlüssel (lokale Datei): nur bis zum nächsten Video
 
-// Preset dieser Szene für ein Gerät. Ältere Einträge (nur ein Text) galten für beide – jetzt für die Handy.
-function currentPreset(target = 'handy') {
+// Preset dieser Szene (gilt für Handy und Satisfyer)
+function currentPreset() {
   const k = offsetKey();
-  if (!k) return localPreset[target] || presetDefault[target];
-  const v = store.get('scenePresets', {})[k];
-  const p = typeof v === 'string' ? (target === 'handy' ? v : null) : v?.[target];
-  return (p && SCRIPT_PRESETS[p]) ? p : presetDefault[target];
+  if (!k) return localPreset || presetDefault;
+  const p = store.get('scenePresets', {})[k];
+  return typeof p === 'string' && SCRIPT_PRESETS[p] ? p : presetDefault;
 }
 
 // Kennzahlen eines Scripts. Der Hub zählt ohne die äußersten 2 % (einzelne Ausreißer)
@@ -142,80 +151,92 @@ function fitHandy(out, maxSpeed, only, res) {
   return r.changed ? r.actions : out;
 }
 
-// target = 'handy' oder 'vibe' – jedes Gerät hat sein eigenes Preset (currentPreset(target)).
-// Die Handy bekommt nur angepasst, was sie physisch nicht schafft (Vibrationen bleiben);
-// der Satisfyer hat keine Tempo-Grenze und bekommt das Script ungekürzt (dafür ggf. ruhiger).
-function processScript(actions, target = 'handy') {
+// „Intensiv“: ruhige Stellen im mehrfachen Takt – aus einer langsamen Bewegung A→B wird A→B→A→B
+// (dreifaches Tempo) bzw. bei mittlerem Tempo A→B→Mitte→B (doppelt). Nur wo das Ergebnis noch
+// unter dem Höchsttempo bleibt; Vibrationen (kleiner Hub) und Pausen bleiben.
+function multiplyCalm(a, maxSpeed) {
+  const out = [a[0]];
+  let added = 0;
+  for (let i = 1; i < a.length; i++) {
+    const p = a[i - 1], x = a[i];
+    const dt = x.at - p.at, d = Math.abs(x.pos - p.pos);
+    const speed = dt > 0 ? (d / dt) * 1000 : 0;
+    if (d > VIB_AMP && dt >= 450 && speed * 3 <= maxSpeed * 0.9) {
+      out.push({ at: Math.round(p.at + dt / 3), pos: x.pos }, { at: Math.round(p.at + (2 * dt) / 3), pos: p.pos });
+      added++;
+    } else if (d > VIB_AMP && dt >= 350 && speed * 2 <= maxSpeed * 0.9) {
+      out.push({ at: Math.round(p.at + dt / 2), pos: x.pos }, { at: Math.round(p.at + (3 * dt) / 4), pos: Math.round((p.pos + x.pos) / 2) });
+      added++;
+    }
+    out.push(x);
+  }
+  return { actions: out, added };
+}
+// Hub um die Mitte skalieren (Sanft: kleiner)
+const scaleAround = (a, k, mid = 50) => a.map((x) => ({ at: x.at, pos: Math.max(0, Math.min(100, Math.round(mid + (x.pos - mid) * k))) }));
+
+// target = 'handy' oder 'vibe' – das Preset gilt für beide, jedes Gerät bekommt seine Fassung:
+// die Handy nur, was sie physisch schafft (Vibrationen bleiben); der Satisfyer ungekürzt,
+// dafür mit eigener Stärke/Gleichmäßigkeit (presetVibeShape, presetVibeEven).
+// preset: zum Ausprobieren (Vorschau in den Knöpfen) – sonst das der Szene.
+function processScript(actions, target = 'handy', preset = currentPreset()) {
   if (!actions) return actions;
-  const preset = currentPreset(target);
-  const key = `${preset}|${tools.stretch}|${tools.limit}|${tools.maxSpeed}|${tools.tooFast}|${tools.jitter}|${handyMaxSpeedSafe()}`;
-  const hit = toolCache[target];
-  if (hit && hit.src === actions && hit.key === key) return hit.actions;
+  const key = `${tools.tooFast}|${handyMaxSpeedSafe()}`;
+  const slot = preset === currentPreset() ? target : `${target}:${preset}`;
+  const hit = toolCache[slot];
+  if (hit && hit.src === actions && hit.key === key && hit.preset === preset) return hit.actions;
   let out = actions;
   const notes = [];      // was am Script geändert wurde
   const only = [];       // gerätetypische Anpassungen
   const res = { marks: [] };
   let even = 0;          // zusätzliche Gleichmäßigkeit für den Satisfyer (0–1)
   const handyTarget = target === 'handy';
+  const st = preset === 'original' ? null : analyzeScript(out);
 
-  if (preset === 'protect') {
-    if (handyTarget) out = fitHandy(out, handyMaxSpeedSafe(), only, res);
-  } else if (preset === 'custom') {
-    if (tools.jitter) {
+  if (st) {
+    const max = handyMaxSpeedSafe();
+    const range = st.hi - st.lo;
+    // Satisfyer: Zittern glätten, wenn es viel davon gibt (die Handy behält feine Vibrationen)
+    if (!handyTarget && (preset !== 'auto' || st.jitter / st.segs > 0.05)) {
       const r = removeJitter(out);
       if (r.removed) { out = r.actions; notes.push(`${r.removed} Zitterpunkte entfernt`); }
     }
-    if (tools.stretch) {
-      let min = 100, max = 0;
-      for (const a of out) { if (a.pos < min) min = a.pos; if (a.pos > max) max = a.pos; }
-      if (max - min >= 5 && max - min < 90) {
-        out = stretchRange(out, min, max);
-        notes.push(`Hub ${min}–${max} → 0–100 gestreckt`);
-      }
+    if (range >= 5 && range < (preset === 'auto' ? 70 : 95)) {
+      out = stretchRange(out, st.lo, st.hi);
+      notes.push(`Hub ${st.lo}–${st.hi} → 0–100 gestreckt`);
     }
-    if (tools.limit && handyTarget) out = fitHandy(out, tools.maxSpeed, only, res);
-  } else if (preset !== 'original') {
-    const st = analyzeScript(out);
-    if (st) {
-      // Zittern entfernen: beim Satisfyer wie gehabt, bei der Handy nur mit Haken (sonst gehen Vibrationen verloren)
-      const jitterOk = handyTarget ? tools.jitter : (preset !== 'auto' || st.jitter / st.segs > 0.05);
-      if (jitterOk) {
-        const r = removeJitter(out);
-        if (r.removed) { out = r.actions; notes.push(`${r.removed} Zitterpunkte entfernt`); }
-      }
-      const range = st.hi - st.lo;
-      if (range >= 5 && ((preset === 'auto' && range < 70) || (preset === 'intense' && range < 90))) {
-        out = stretchRange(out, st.lo, st.hi);
-        notes.push(`Hub ${st.lo}–${st.hi} → 0–100 gestreckt`);
-      }
-      if (preset === 'soft' && range >= 5) {
-        out = stretchRange(out, st.lo, st.hi).map((x) => ({ at: x.at, pos: Math.round(15 + x.pos * 0.7) }));
-        notes.push(`Hub ${st.lo}–${st.hi} → 15–85 %`);
-      }
-      if (handyTarget) {
-        // Was die Handy nicht schafft, anpassen (nach dem Strecken – das macht Bewegungen schneller).
-        // Grenze nach Modell / ⚙️ → Geräte; „Sanft“ bleibt darunter, „Intensiv“ etwas darüber.
-        const max = handyMaxSpeedSafe();
-        out = fitHandy(out, preset === 'soft' ? Math.min(300, max) : preset === 'intense' ? max + 50 : max, only, res);
-      } else {
-        // 1.19: „Automatisch“ glättet den Satisfyer nicht mehr (wirkte zu gleichmäßig) – nur „Sanft“
-        even = preset === 'soft' ? 0.5 : 0;
-        if (even) only.push('ruhiger');
-      }
+    if (preset === 'soft') {
+      out = scaleAround(out, 0.6);
+      notes.push('Hub 20–80 %');
+    }
+    if (preset === 'intense') {
+      const m = multiplyCalm(out, max);
+      if (m.added) { out = m.actions; notes.push(`${m.added} ruhige Stellen im mehrfachen Takt`); }
+    }
+    if (handyTarget) {
+      // Was die Handy nicht schafft, anpassen (nach dem Strecken – das macht Bewegungen schneller).
+      // „Sanft“ bleibt deutlich darunter.
+      out = fitHandy(out, preset === 'soft' ? Math.min(240, max) : max, only, res);
+    } else {
+      even = preset === 'soft' ? 0.5 : 0;
+      if (preset === 'soft') only.push('schwächer, ruhiger');
+      if (preset === 'intense') only.push('stärker');
     }
   }
-  toolCache[target] = { src: actions, key, actions: out, notes, only, even, preset, marks: res.marks };
+  toolCache[slot] = { src: actions, key, actions: out, notes, only, even, preset, marks: res.marks };
   return out;
 }
 
-// Info je Gerät: was für die VERBUNDENEN Geräte gilt (ohne Gerät: beides)
+// Info je Gerät: was am Script geändert wird
+const tr = (s) => (typeof I18N !== 'undefined' ? I18N.t(s) : s);
 function presetInfoParts() {
   if (!script) return { handy: '', vibe: '' };
   const text = (target) => {
     processScript(script.actions, target);
     const c = toolCache[target];
-    const parts = [...c.notes, ...c.only];
-    return parts.join(', ') || (c.preset === 'original' || (c.preset === 'protect' && target === 'vibe') ? 'unverändert' : 'passt, nichts geändert');
+    // Teile einzeln übersetzen (englische Oberfläche) – der zusammengesetzte Satz steht in keiner Tabelle
+    const parts = [...c.notes, ...c.only].map(tr);
+    return parts.join(', ') || tr(c.preset === 'original' ? 'unverändert' : 'passt, nichts geändert');
   };
   return { handy: text('handy'), vibe: text('vibe') };
 }
@@ -235,77 +256,72 @@ function adaptedMarks() {
 function presetVibeEven() {
   return script && toolCache.vibe?.src === script.actions ? toolCache.vibe.even : 0;
 }
+// Stärke des Satisfyers je Preset (raw 0–1 -> 0–1): Sanft schwächer und weicher, Intensiv kräftiger
+function presetVibeShape(raw) {
+  const p = script ? currentPreset() : 'auto';
+  if (p === 'soft') return 0.7 * raw ** 1.3;
+  if (p === 'intense') return Math.min(1, 1.25 * raw ** 0.75);
+  return raw;
+}
 
 function toolsChanged() {
   store.set('scriptTools', tools);
-  $('toolMaxRow').hidden = !tools.limit;
-  $('tool_maxSpeedVal').textContent = `${tools.maxSpeed} %/s`;
-  for (const dev of ['handy', 'vibe']) {
-    document.querySelectorAll(`.preset-default[data-dev="${dev}"] button`).forEach((b) => b.classList.toggle('active', b.dataset.preset === presetDefault[dev]));
-  }
-  $('toolCustom').hidden = ![presetDefault.handy, presetDefault.vibe, currentPreset('handy'), currentPreset('vibe')].includes('custom');
+  document.querySelectorAll('[data-preset-default] button').forEach((b) => b.classList.toggle('active', b.dataset.preset === presetDefault));
+  const cur = currentPreset();
+  document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.classList.toggle('active', b.dataset.preset === cur));
   const info = presetInfoParts();
-  $('toolInfo').textContent = script ? `Aktuelles Video – Handy: ${SCRIPT_PRESETS[currentPreset('handy')]} (${info.handy}) · Satisfyer: ${SCRIPT_PRESETS[currentPreset('vibe')]} (${info.vibe})` : '';
-  $('scenePresetHandy').value = currentPreset('handy');
-  $('scenePresetVibe').value = currentPreset('vibe');
-  $('sbInfoHandy').textContent = script ? info.handy : '';
-  $('sbInfoVibe').textContent = script ? info.vibe : '';
+  $('toolInfo').textContent = script ? `Aktuelles Video: ${tr(SCRIPT_PRESETS[cur])} – Handy: ${info.handy} · Satisfyer: ${info.vibe}` : '';
+  $('sbInfo').textContent = script ? presetInfoText() : '';
   if (typeof renderScriptBox === 'function') renderScriptBox();
+  drawPresetPreviews();
   drawHeatmap();
   if (handy.owner === 'video') resync(); // geändertes Script sofort an die Handy
 }
 
-// Gemeinsam einstellen (Standard): eine Auswahl gilt für beide Geräte – passend übersetzt
-// („Original + Takt-Schutz“ gibt es nur für die Handy – beim Satisfyer wird daraus „Automatisch“)
-const presetLinked = () => store.get('presetLink', true);
-const linkedPreset = (dev, p) => (dev === 'vibe' && p === 'protect' ? 'auto' : p);
-// Standard-Preset je Gerät (Einstellungen) und Preset dieser Szene je Gerät (Script-Bereich am Video)
-document.querySelectorAll('.preset-default').forEach((seg) => seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-  const dev = seg.dataset.dev;
-  const devs = presetLinked() ? ['handy', 'vibe'] : [dev];
-  for (const d of devs) {
-    presetDefault[d] = d === dev ? b.dataset.preset : linkedPreset(d, b.dataset.preset);
-    store.set(d === 'handy' ? 'scriptPresetHandy' : 'scriptPresetVibe', presetDefault[d]);
+// Standard (Einstellungen) und Auswahl dieser Szene (Script-Bereich + Popup in der Player-Leiste)
+document.querySelectorAll('[data-preset-default] button').forEach((b) => b.addEventListener('click', () => {
+  presetDefault = b.dataset.preset;
+  store.set('scriptIntensity', presetDefault);
+  toolsChanged();
+}));
+function setScenePreset(p) {
+  const k = offsetKey();
+  if (!k) localPreset = p;
+  else {
+    const map = store.get('scenePresets', {});
+    if (p === presetDefault) delete map[k]; else map[k] = p;
+    store.set('scenePresets', map);
   }
   toolsChanged();
-})));
-for (const [id, dev] of [['scenePresetHandy', 'handy'], ['scenePresetVibe', 'vibe']]) {
-  $(id).addEventListener('change', () => {
-    const chosen = $(id).value;
-    const k = offsetKey();
-    const map = store.get('scenePresets', {});
-    const cur = typeof map[k] === 'string' ? { handy: map[k] } : { ...map[k] };
-    for (const d of presetLinked() ? ['handy', 'vibe'] : [dev]) {
-      const v = d === dev ? chosen : linkedPreset(d, chosen);
-      if (!k) localPreset[d] = v;
-      else if (v === presetDefault[d]) delete cur[d]; else cur[d] = v;
+  log(`Script: ${tr(SCRIPT_PRESETS[p])}${k ? ' (für diese Szene gemerkt)' : ''}`);
+}
+document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.addEventListener('click', () => setScenePreset(b.dataset.preset)));
+video.addEventListener('emptied', () => { localPreset = null; });
+
+// 🧪 Vorschau in den Knöpfen: Mini-Heatmap, wie das Script mit diesem Preset aussieht
+function drawPresetPreviews() {
+  document.querySelectorAll('[data-preset-scene] canvas').forEach((c) => {
+    if (!c.clientWidth) return; // versteckt: beim Öffnen neu
+    const g = c.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = (c.width = Math.round(c.clientWidth * dpr)), h = (c.height = Math.round(c.clientHeight * dpr));
+    g.clearRect(0, 0, w, h);
+    if (!script) return;
+    const a = processScript(script.actions, typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy', c.parentElement.dataset.preset);
+    const total = a[a.length - 1].at || 1;
+    for (let i = 1; i < a.length; i++) {
+      const dt = a[i].at - a[i - 1].at;
+      if (dt <= 0) continue;
+      g.fillStyle = heatColor((Math.abs(a[i].pos - a[i - 1].pos) / dt) * 1000);
+      g.fillRect((a[i - 1].at / total) * w, 0, Math.max(1, (dt / total) * w), h);
     }
-    if (k) {
-      if (Object.keys(cur).length) map[k] = cur; else delete map[k];
-      store.set('scenePresets', map);
-    }
-    toolsChanged();
   });
 }
-video.addEventListener('emptied', () => { localPreset = {}; });
 
-// Gemeinsam / getrennt: im Script-Bereich dann nur eine Auswahl
-function applyPresetLink() {
-  document.body.classList.toggle('preset-linked', presetLinked());
-  document.querySelector('.sb-handy .sb-lbl').textContent = presetLinked() ? 'Script' : '↕ Handy';
-}
-$('presetLink').checked = presetLinked();
-$('presetLink').addEventListener('change', () => { store.set('presetLink', $('presetLink').checked); applyPresetLink(); });
-applyPresetLink();
-$('tool_stretch').checked = tools.stretch;
-$('tool_limit').checked = tools.limit;
-$('tool_jitter').checked = tools.jitter;
-$('tool_maxSpeed').value = tools.maxSpeed;
-$('tool_stretch').addEventListener('change', () => { tools.stretch = $('tool_stretch').checked; toolsChanged(); });
-$('tool_limit').addEventListener('change', () => { tools.limit = $('tool_limit').checked; toolsChanged(); });
-$('tool_jitter').addEventListener('change', () => { tools.jitter = $('tool_jitter').checked; toolsChanged(); });
-$('tool_maxSpeed').addEventListener('input', () => { tools.maxSpeed = Number($('tool_maxSpeed').value); $('tool_maxSpeedVal').textContent = `${tools.maxSpeed} %/s`; });
-$('tool_maxSpeed').addEventListener('change', toolsChanged);
+// Player-Leiste: 🎚 öffnet die Auswahl über dem Video
+$('ovInt').addEventListener('click', (e) => { e.stopPropagation(); $('intPop').hidden = !$('intPop').hidden; drawPresetPreviews(); });
+document.addEventListener('click', (e) => { if (!$('intPop').hidden && !e.target.closest('#intPop, #ovInt')) $('intPop').hidden = true; });
+
 $('tooFast').value = tools.tooFast;
 $('tooFast').addEventListener('change', () => { tools.tooFast = $('tooFast').value; toolsChanged(); });
 

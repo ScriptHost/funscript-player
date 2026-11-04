@@ -73,6 +73,19 @@ test('Takt-Schutz: Vibrationen bleiben, große Stöße um ihre eigene Mitte gek�
   assert.ok(r.marks.length === r.changed);
 });
 
+test('Intensität: Original unverändert, Sanft kleiner, Intensiv mehr Stöße – Handy nie zu schnell', () => {
+  const { loadPresets, sampleScript, topSpeed } = require('../lib/selfcheck');
+  const run = loadPresets(450);
+  const a = sampleScript();
+  assert.strictEqual(JSON.stringify(run(a, 'handy', 'original')), JSON.stringify(a));
+  const soft = run(a, 'handy', 'soft');
+  assert.ok(Math.min(...soft.map((x) => x.pos)) >= 20 && Math.max(...soft.map((x) => x.pos)) <= 80);
+  assert.ok(topSpeed(soft) <= 242);
+  const auto = run(a, 'handy', 'auto'), intense = run(a, 'handy', 'intense');
+  assert.ok(intense.length > auto.length);
+  assert.ok(topSpeed(intense) <= 452 && topSpeed(auto) <= 452);
+});
+
 test('Handy-Modell erkennen', () => {
   assert.strictEqual(handyModelKey('', ''), 'h1');
   assert.strictEqual(handyModelKey('H02', ''), 'h2');

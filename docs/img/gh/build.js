@@ -146,15 +146,15 @@ const visUp = `<defs><pattern id="px" width="10" height="10" patternUnits="userS
 <rect x="166" y="40" width="50" height="14" rx="4" fill="#000" opacity=".6"/><text x="191" y="51" text-anchor="middle" font-size="9" fill="#fff">✨ 1440p</text>`;
 
 cards('highlights.svg', 'Highlights: script automation, Satisfyer with any script, upscaling', [
-  { vis: visOriginal, title: '⚡ Automatic – and still in time', text: 'Every Funscript keeps its fine movements and vibrations. Only strokes the motor can’t manage are adapted by the beat guard – shorter, or full stroke at half tempo – and small strokes are stretched to the full range. Your files stay untouched.' },
+  { vis: visOriginal, title: '🎚 One choice, every device', text: 'Automatic keeps fine movements and vibrations, adapts only what the motor can’t manage and stretches small strokes. Want more? Intense. Calmer? Gentle. Picked per scene right at the video, with a preview – your files stay untouched.' },
   { vis: visVibe, title: '〰 Satisfyer with any script', text: 'Almost all Funscripts are made for strokers like the Handy – vibration scripts barely exist. The player converts the stroke script into vibration live while playing: following the rhythm of the strokes, their speed or the position.' },
-  { vis: visUp, title: '✨ Sharper picture', text: 'If the video is smaller than your screen, the server upscales, denoises and sharpens it – in hardware via Intel Quick Sync. The browser sharpens a little more. “Automatic” picks the best picture per video and steps back if playback stutters.' },
+  { vis: visUp, title: '✨ Natural picture', text: 'If the video is smaller than your screen, the server upscales it and denoises lightly – in hardware via Intel Quick Sync. Colours and contrast stay as in the original, more sharpness on request. Steps back by itself if playback stutters.' },
 ], { vis: true, bar: true });
 
 cards('for-whom.svg', 'Who is it for: just a Handy, just a Satisfyer, a Stash library', [
   { title: '↕ Just a Handy', text: 'Clean sync via the Handy cloud, scripts corrected automatically, 0.5×–2× speed without drift – and the library shows you beforehand how intense a scene is.' },
   { title: '〰 Just a Satisfyer', text: 'You don’t need vibration scripts: every Handy script becomes vibration live. Connects via Bluetooth right in the browser, no app.' },
-  { title: '📚 A Stash library', text: 'Scenes with Funscript, heatmap and intensity at a glance. Watch on the TV, control from your phone – or in VR via HereSphere.' },
+  { title: '📚 A Stash library', text: 'Scenes with Funscript, heatmap and intensity at a glance. Ratings, favourites and markers go back to Stash – also from VR via HereSphere.' },
 ]);
 
 cards('steps.svg', 'Three steps: connect, pick a scene, play', [

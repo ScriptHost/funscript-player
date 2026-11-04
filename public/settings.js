@@ -46,11 +46,27 @@ applyHud();
 $('langSel').value = I18N.lang;
 $('langSel').addEventListener('change', () => { store.set('lang', $('langSel').value); location.reload(); });
 
-// --- Demo-Modus (pro Gerät) ------------------------------------------------------------------
-$('demoMode').checked = store.get('demoMode', false);
-const applyDemo = () => document.body.classList.toggle('demo-mode', $('demoMode').checked);
-$('demoMode').addEventListener('change', () => { store.set('demoMode', $('demoMode').checked); applyDemo(); });
-applyDemo();
+// --- Aufklappen (1.19.3): Bereiche zu, Erklärtexte hinter ⓘ ----------------------------------------
+// Offene Bereiche merkt sich jedes Gerät. Aufeinanderfolgende Erklärtexte landen unter einem ⓘ.
+const openSecs = new Set(store.get('setOpen', []));
+document.querySelectorAll('#view-settings details.sec').forEach((d) => {
+  d.open = openSecs.has(d.id);
+  d.addEventListener('toggle', () => {
+    if (d.open) openSecs.add(d.id); else openSecs.delete(d.id);
+    store.set('setOpen', [...openSecs]);
+  });
+});
+document.querySelectorAll('#view-settings p.hint-text:not([id]), #view-settings ul.preset-help').forEach((p) => {
+  if (p.closest('details.more-info, .hud-options, .adv-bar')) return;
+  const prev = p.previousElementSibling;
+  const adv = p.classList.contains('adv');
+  if (prev?.matches('details.more-info') && prev.classList.contains('adv') === adv) { prev.append(p); p.classList.remove('adv'); return; }
+  const d = Object.assign(document.createElement('details'), { className: 'more-info' + (adv ? ' adv' : '') });
+  d.append(Object.assign(document.createElement('summary'), { textContent: 'ⓘ Erklärung' }));
+  p.replaceWith(d);
+  d.append(p);
+  p.classList.remove('adv');
+});
 
 // --- Erweiterte Einstellungen (pro Gerät): standardmäßig nur das Nötige ------------------------
 function setAdvMode(on) {
@@ -67,44 +83,10 @@ function updateAdvHint() {
 $('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
 setAdvMode(store.get('advMode', false));
 
-// --- Sicherung: Server-Daten (Einstellungen, Patterns, eigene Scripts …) + Einstellungen dieses Geräts ----
-$('backupGet').addEventListener('click', async () => {
-  try {
-    const data = await (await fetch('/api/backup')).json();
-    data.local = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k.startsWith('hp.') && !isSharedPref(k.slice(3))) data.local[k] = localStorage.getItem(k);
-    }
-    const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `funscript-player-sicherung-${new Date().toISOString().slice(0, 10)}.json` });
-    document.body.append(a);
-    a.click();
-    a.remove();
-    log(`⬇ Sicherung erstellt (${Object.keys(data.scripts || {}).length} eigene Scripts).`);
-  } catch (e) { log('Sicherung: ' + e.message, true); }
-});
-$('backupPut').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file || !confirm('Sicherung einspielen? Einstellungen, Patterns und eigene Scripts werden durch die aus der Datei ersetzt.')) return;
-  try {
-    const data = JSON.parse(await file.text());
-    const res = await fetch('/api/backup', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-    if (!res.ok) throw new Error(await res.text());
-    for (const [k, v] of Object.entries(data.local || {})) if (k.startsWith('hp.')) localStorage.setItem(k, v);
-    alert('Sicherung eingespielt – der Player lädt neu.');
-    location.reload();
-  } catch (err) { log('Sicherung einspielen: ' + err.message, true); }
-});
-
-// --- Selbsttest (lädt die Seite mit ?selbsttest neu) --------------------------------------------
-$('selfTestRun').addEventListener('click', () => { location.href = location.pathname + '?selbsttest'; });
-
-// --- Einmal nach dem Update auf 1.19.2: Hinweis auf geänderte Standards ------------------------
-if (!store.get('seen1192', false)) {
+// --- Einmal nach dem Update auf 1.19.3: was neu ist ------------------------
+if (!store.get('seen1193', false)) {
   $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen1192', true); };
+  const done = () => { $('whatsNew').hidden = true; store.set('seen1193', true); };
   $('whatsNewOk').addEventListener('click', done);
   $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setScript'); });
 }
@@ -116,8 +98,9 @@ const BAR_BTNS = [
   ['sync', '⟳ Handy neu synchronisieren', ['ovSync']],
   ['finale', '🔥 Finale', ['ovFinale']],
   ['vibe', 'Vib ❚❚ Geräte pausieren', ['ovVibe']],
+  ['int', '🎚 Script-Intensität', ['ovInt']],
   ['enh', '✨ Bild (Verbesserung an/aus)', ['ovEnh']],
-  ['fit', 'Einpassen / Füllen (im Vollbild)', ['ovFit']],
+  ['fit', 'Einpassen / Füllen (im Vollbild am iPhone)', ['ovFit']],
   ['pip', '⧉ Bild-in-Bild', ['ovPip']],
 ];
 const barCfg = Object.assign({ order: BAR_BTNS.map((b) => b[0]), off: [] }, store.get('barBtns', {}));
@@ -165,38 +148,6 @@ function renderBarOptions() {
 function saveBar() { store.set('barBtns', barCfg); applyBar(); renderBarOptions(); }
 applyBar();
 renderBarOptions();
-
-// --- Knöpfe der Bibliothek: vorhandene ein/aus, eigene Links (für alle Geräte) -----------------
-const libLinks = Object.assign({ hide: [], custom: [] }, store.get('libLinks', {}));
-function applyLibLinks() {
-  document.querySelectorAll('[data-libbtn]').forEach((b) => b.classList.toggle('tab-off', libLinks.hide.includes(b.dataset.libbtn)));
-  $('libCustomLinks').replaceChildren(...libLinks.custom.map((l) => Object.assign(document.createElement('a'), {
-    className: 'small secondary btn', href: l.url, target: '_blank', rel: 'noopener noreferrer', textContent: l.name + ' ↗',
-  })));
-  $('libLinkList').replaceChildren(...libLinks.custom.map((l, i) => {
-    const li = document.createElement('li');
-    const del = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '✕', title: 'Entfernen' });
-    del.addEventListener('click', () => { libLinks.custom.splice(i, 1); saveLibLinks(); });
-    li.append(Object.assign(document.createElement('span'), { className: 'check', textContent: `${l.name} – ${l.url}` }), del);
-    return li;
-  }));
-}
-function saveLibLinks() { store.set('libLinks', libLinks); applyLibLinks(); }
-document.querySelectorAll('#libBtnOptions input').forEach((cb) => {
-  cb.checked = !libLinks.hide.includes(cb.dataset.libopt);
-  cb.addEventListener('change', () => {
-    libLinks.hide = cb.checked ? libLinks.hide.filter((x) => x !== cb.dataset.libopt) : [...libLinks.hide, cb.dataset.libopt];
-    saveLibLinks();
-  });
-});
-$('libLinkAdd').addEventListener('click', () => {
-  const name = $('libLinkName').value.trim(), url = $('libLinkUrl').value.trim();
-  if (!name || !/^https?:\/\//i.test(url)) return log('Bitte Name und eine Adresse mit https:// eingeben.', true);
-  libLinks.custom.push({ name: name.slice(0, 30), url });
-  $('libLinkName').value = $('libLinkUrl').value = '';
-  saveLibLinks();
-});
-applyLibLinks();
 
 // --- Reiter der Stash-Bibliothek (Tags / Darsteller / Studios) ------------------------------
 const browseTabs = Object.assign({ tags: true, performers: true, studios: false }, store.get('browseTabs', {}));
@@ -279,11 +230,6 @@ $('hsCopy').addEventListener('click', async () => {
 // --- Bibliothek --------------------------------------------------------------
 $('setHoverPreview').checked = store.get('hoverPreview', true);
 $('setHoverPreview').addEventListener('change', () => store.set('hoverPreview', $('setHoverPreview').checked));
-$('setShowContinue').checked = store.get('showContinue', false);
-$('setShowContinue').addEventListener('change', () => {
-  store.set('showContinue', $('setShowContinue').checked);
-  renderContinue();
-});
 
 function renderLibrarySettings() {
   const sel = $('setStartSource');
@@ -314,6 +260,7 @@ async function renderSysInfo() {
   const rows = [];
   const add = (k, v) => rows.push([k, v]);
   try { add('Version', 'v' + (await (await fetch('/api/version')).json()).version); } catch { add('Version', '?'); }
+  showUpdate();
   const st = lib.stashStatus || {};
   add('Stash', !st.configured ? 'nicht eingerichtet' : st.ok ? `verbunden (${st.version || 'ok'})` : `Fehler: ${st.error}`);
   add('HQ-Stream', !hqState.checked ? 'wird geprüft …'
@@ -326,6 +273,36 @@ async function renderSysInfo() {
     Object.assign(document.createElement('dd'), { textContent: v }),
   ]));
 }
+
+// „Update verfügbar“ (neuestes GitHub-Release, der Server fragt höchstens alle 6 h) – auch als Punkt an der Version oben
+async function showUpdate() {
+  try {
+    const u = await (await fetch('/api/update')).json();
+    $('updateBox').hidden = !u.available;
+    $('appVersion').classList.toggle('has-update', !!u.available);
+    if (!u.available) return;
+    $('updateText').textContent = `Version ${u.latest} ist da (du hast ${u.current}).`;
+    $('updateLink').href = u.url;
+  } catch { $('updateBox').hidden = true; }
+}
+setTimeout(showUpdate, 4000);
+$('appVersion').addEventListener('click', (e) => { if ($('appVersion').classList.contains('has-update')) { e.stopPropagation(); openSettings('setSystem'); } });
+
+// Stiller Selbsttest beim Laden (statt Knopf): Rechnet die Script-Intensität einmal durch und prüft die
+// Bedienelemente. Nur Fehler gehen an den Server (stehen dann in „docker logs“), sichtbar wird nichts.
+setTimeout(() => {
+  const fails = [];
+  try {
+    const a = Array.from({ length: 40 }, (_, i) => ({ at: i * 300, pos: i % 2 ? 80 : 20 }));
+    for (const p of Object.keys(SCRIPT_PRESETS)) {
+      const r = processScript(a, 'handy', p);
+      if (!Array.isArray(r) || !r.length || r.some((x) => !(x.pos >= 0 && x.pos <= 100))) fails.push('Intensität ' + p);
+    }
+    toolCache = {};
+  } catch (e) { fails.push('Intensität: ' + e.message); }
+  for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox', 'intPop']) if (!$(id)) fails.push('fehlt: #' + id);
+  if (fails.length) fetch('/api/clientcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fails, ua: navigator.userAgent }) }).catch(() => {});
+}, 5000);
 
 $('resetLocal').addEventListener('click', () => {
   if (!confirm('Alle Einstellungen auf diesem Gerät zurücksetzen (Connection Key, Bild, Satisfyer, Ansicht)?\nPatterns und Scripts auf dem Server bleiben erhalten.')) return;

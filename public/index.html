@@ -30,7 +30,7 @@
     <button id="menuBtn" class="menu-btn" aria-label="Menü" aria-expanded="false">☰</button>
     <nav id="menu" class="menu" aria-label="Menü" hidden>
       <button id="menuLibrary">📚 Bibliothek</button>
-      <button data-mode="control">🎮 Steuern <small>Direkt, Patterns, Baukasten</small></button>
+      <button data-mode="control">🎮 Steuern <small>Direkt, Patterns</small></button>
       <button id="navSettings">⚙️ Einstellungen</button>
     </nav>
   </header>
@@ -44,12 +44,14 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.2</h3>
+    <h3>✨ Neu in 1.19.3</h3>
     <ul>
-      <li>Scripts laufen jetzt auch bei der Handy standardmäßig <b>Automatisch</b> (Standard änderbar unter ⚙️ → Script).</li>
-      <li>🔥 Finale: neue Standardwerte – Hub 10–80 %, Vibration 50 %, nach 240 s zurück zum Sync.</li>
-      <li>Hub max steht wieder auf 100 % und bleibt dort; „Selbst steuern“ mit Hub unten/oben; Steuerung mit dem Finger direkter.</li>
-      <li>Gedrückt halten: rechts doppelt so schnell, links rückwärts.</li>
+      <li>🎚 <b>Script-Intensität</b>: nur noch Original · Automatisch · Sanft · Intensiv – eine Auswahl für Handy und Satisfyer,
+        direkt am Video (mit Vorschau) und über 🎚 in der Player-Leiste. Sanft und Intensiv sind jetzt deutlich spürbar.</li>
+      <li>⚙️ Einstellungen aufklappbar, Erklärungen hinter ⓘ. „Sicherheit“ heißt jetzt <b>Notaus</b> – neu mit Auto-Stopp.</li>
+      <li>✨ Bild „Automatisch“ natürlicher: hochrechnen, kaum nachschärfen, Farben wie im Original.</li>
+      <li>Aufgeräumt: Fernbedienung, Script-Baukasten, Abschnitt anpassen, Demo-Modus, Weiterschauen, Knöpfe der Bibliothek
+        und die Sicherung sind raus – alles liegt im Volume <code>handy-data</code>.</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -59,12 +61,6 @@
 
       <!-- ================= Bibliothek ================= -->
       <section id="view-library" class="view">
-        <!-- Fernbedienung: erscheint, sobald ein anderes Gerät als Bildschirm bereitsteht -->
-        <div id="castBar" class="castbar" hidden>
-          <label>📺 Abspielen auf <select id="castTarget" aria-label="Abspielen auf"></select></label>
-          <span id="castNow" class="cast-now"></span>
-          <button id="castOpen" class="small" hidden>📱 Fernbedienung öffnen</button>
-        </div>
         <div class="libbar">
           <div id="libSource" class="seg" hidden></div>
           <input id="search" type="search" placeholder="Szenen, Titel, Dateien suchen …">
@@ -84,13 +80,6 @@
             <option value="asc">sortiert: ruhig → intensiv</option>
             <option value="desc">sortiert: intensiv → ruhig</option>
           </select>
-          <button id="stashRandom" class="small secondary" data-libbtn="random">🎲 Zufall</button>
-          <a class="small secondary btn sync-only" data-libbtn="faptap" href="https://faptap.net/videos" target="_blank" rel="noopener noreferrer" title="Neue Scripts auf FapTap finden">FapTap ↗</a>
-          <a class="small secondary btn stream-only" data-libbtn="pornhub" href="https://www.pornhub.com/" target="_blank" rel="noopener noreferrer" title="Pornhub öffnen">Pornhub ↗</a>
-          <span id="libCustomLinks" class="lib-custom"></span>
-          <label class="small secondary btn" data-libbtn="file" title="Lokale Dateien abspielen">📂 Datei
-            <input id="fileInput" type="file" multiple accept="video/*,.funscript,application/json" hidden>
-          </label>
         </div>
 
         <nav id="browseTabs" class="browse" hidden>
@@ -100,10 +89,6 @@
           <button data-browse="studios">Studios</button>
         </nav>
 
-        <div id="continueRow" class="continue" hidden>
-          <h3>▶ Weiterschauen</h3>
-          <div class="continue-list"></div>
-        </div>
         <div id="savedFilters" class="savedbar" hidden></div>
         <div id="activeFilters" class="filters"></div>
         <p id="libInfo" class="hint-text">Lade Bibliothek …</p>
@@ -116,12 +101,6 @@
       <!-- ================= Player ================= -->
       <section id="view-player" class="view" hidden>
         <button id="backToLib" class="back">← Bibliothek</button>
-        <div id="remoteBanner" class="remote-banner" hidden>
-          <span>📱 Fernbedienung für <b id="remoteName"></b> · <span id="remoteState">verbunden</span></span>
-          <label class="remote-vol" title="Lautstärke am Bildschirm">🔊 <input id="remoteVol" type="range" min="0" max="100" step="5" value="100"></label>
-          <button id="remoteMute" class="small secondary" title="Ton am Bildschirm an/aus">🔇</button>
-          <button id="remoteLeave" class="small secondary">Trennen</button>
-        </div>
         <div id="drop" class="drop" data-fit="cover">
           <video id="video" playsinline preload="metadata"></video>
           <canvas id="enh" class="enh"></canvas>
@@ -165,6 +144,7 @@
                 <button id="ovSync" class="sync-only" title="Handy neu synchronisieren (S)">⟳</button>
                 <button id="ovFinale" class="sync-only finale-btn" title="Finale: ruhiger – Modus in den Einstellungen (O)">🔥</button>
                 <button id="ovVibe" class="sync-only" title="Vibration pausieren">Vib ❚❚</button>
+                <button id="ovInt" class="sync-only" title="Script-Intensität für diese Szene">🎚</button>
                 <button id="ovEnh" title="Bildverbesserung umschalten">✨</button>
                 <button id="ovFit" title="Bild füllen / einpassen">Einpassen</button>
                 <button id="ovPip" title="Bild-in-Bild – schwebt auch über anderen Apps" hidden>⧉</button>
@@ -180,6 +160,12 @@
           <div class="seg"><button data-q="auto">Automatisch – bestes Bild</button><button data-q="off">Aus – Original</button></div>
           <div class="seg"><button data-preset="natural">Natürlich</button><button data-preset="sharp">Schärfer</button><button data-preset="max">Maximal</button></div>
           <a href="#" data-settings="imageSettings">Alle Bild-Einstellungen …</a>
+        </div>
+        <!-- 1.19.3: Script-Intensität für diese Szene, aus der Player-Leiste (🎚) -->
+        <div id="intPop" class="img-pop int-pop" hidden>
+          <div class="pop-title">🎚 Script-Intensität <small>– für diese Szene</small></div>
+          <div class="seg int-seg" data-preset-scene><button data-preset="original">Original<canvas></canvas></button><button data-preset="auto">Automatisch<canvas></canvas></button><button data-preset="soft">Sanft<canvas></canvas></button><button data-preset="intense">Intensiv<canvas></canvas></button></div>
+          <a href="#" data-settings="setScript">Standard und Erklärung …</a>
         </div>
         <button id="openImageSettings" class="small secondary quality-link">✨ Bild: <b id="enhState">Natürlich</b> · HQ: <b id="hqLabel">Auto</b> – Einstellungen</button>
 
@@ -246,24 +232,27 @@
       <!-- ================= Einstellungen ================= -->
       <section id="view-settings" class="view" hidden>
         <h2 class="page-title">⚙️ Einstellungen</h2>
+        <!-- 1.19.3: jeder Bereich aufklappbar (zu = nur die Überschrift), Erklärtexte hinter ⓘ (settings.js) -->
         <div class="adv-bar">
+          <label class="check sync-setting"><input class="sync-toggle" type="checkbox"> 🔄 <b>Geräte folgen dem Video</b> (Sync) – aus = nur schauen</label>
           <label class="check"><input id="advMode" type="checkbox"> Erweiterte Einstellungen zeigen</label>
           <span id="advHint" class="hint-text"></span>
         </div>
         <nav id="setNav" class="set-nav" aria-label="Bereiche">
-          <a href="#setDevices">🔌 Geräte</a>
-          <a href="#setSafety">🛡️ Sicherheit</a>
+          <a href="#setDevices">↕ Handy</a>
+          <a href="#setVibe">〰 Satisfyer</a>
+          <a href="#setSafety">🛑 Notaus</a>
+          <a href="#setScript">🎚 Script</a>
+          <a href="#setFinale">🔥 Finale</a>
           <a href="#imageSettings">✨ Bild</a>
-          <a href="#setScript">🛠️ Script &amp; Finale</a>
-          <a href="#setRemote">📱 Fernbedienung</a>
           <a href="#setPlayer">🖥️ Anzeige</a>
           <a href="#setLibrary">📚 Bibliothek</a>
+          <a href="#setVR">🥽 VR</a>
           <a href="#setSystem">ℹ️ System</a>
         </nav>
 
-        <div id="setDevices" class="card">
-          <label class="check sync-setting"><input class="sync-toggle" type="checkbox"> 🔄 <b>Geräte folgen dem Video</b> (Sync) – aus = nur schauen</label>
-          <h2>↕ The Handy</h2>
+        <details id="setDevices" class="card sec">
+          <summary><h2>↕ The Handy</h2></summary>
           <label>Connection Key
             <input id="key" type="password" autocomplete="off" spellcheck="false">
           </label>
@@ -278,7 +267,7 @@
           <label class="adv check"><input id="invert" type="checkbox"> Script umkehren</label>
           <details class="adv">
             <summary>Ohne Internet: Handy per Bluetooth</summary>
-            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann unten bei „Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
+            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann bei „Satisfyer → Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
             <label>Bluetooth-Vorlauf <output id="btLeadVal"></output>
               <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
             </label>
@@ -287,15 +276,15 @@
             <input id="handyMax" type="range" min="250" max="900" step="25" value="450">
           </label>
           <label class="adv check"><input id="handyMaxAuto" type="checkbox" checked> Automatisch nach Modell <small id="handyModelInfo" class="muted"></small></label>
-          <p class="adv hint-text">Was schneller ist, schafft der Motor nicht – solche Stellen passt die Script-Automatik an (⚙️ → Script).
+          <p class="adv hint-text">Was schneller ist, schafft der Motor nicht – solche Stellen passt die Script-Intensität an.
             Das Modell erkennt der Player beim Verbinden. Für Handy 2 / 2 Pro gibt es noch keine gemessenen Werte –
             spürst du, dass deine mehr schafft, Automatik aus und höher stellen.</p>
           <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein. Touch-Fläche:
             <b>Tempo</b> = Finger-Höhe ist das Tempo der Stöße, <b>Position 🧪</b> = die Handy folgt deinem Finger (Beta).</p>
-        </div>
+        </details>
 
-        <div class="card">
-          <h2>〰 Satisfyer</h2>
+        <details id="setVibe" class="card sec">
+          <summary><h2>〰 Satisfyer</h2></summary>
           <label class="adv check"><input id="vibeAll" type="checkbox"> Beim Verbinden alle Bluetooth-Geräte anzeigen</label>
           <h3>Übersetzung Script → Vibration</h3>
           <label>Berechnung
@@ -335,25 +324,94 @@
             <label class="check"><input id="intifaceLan" type="checkbox"> Nur Adressen im Heimnetz erlauben (192.168.x / 10.x) – gilt für alle Geräte</label>
             <p id="intifaceLanHint" class="hint-text" hidden>Fest eingestellt über INTIFACE_LAN_ONLY in der docker-compose.yml.</p>
           </details>
-        </div>
+        </details>
 
-        <div id="setSafety" class="card">
-          <h2>🛡️ Sicherheit</h2>
+        <details id="setSafety" class="card sec">
+          <summary><h2>🛑 Notaus</h2></summary>
+          <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
+          <label>Automatisch stoppen, wenn nichts bedient wird und kein Video läuft
+            <select id="autoStop">
+              <option value="0">nie</option>
+              <option value="5">nach 5 Minuten</option>
+              <option value="10">nach 10 Minuten</option>
+              <option value="20">nach 20 Minuten</option>
+              <option value="30">nach 30 Minuten</option>
+            </select>
+          </label>
+          <label class="check"><input id="stopButton" type="checkbox" checked> STOPP-Knöpfe am Video zeigen (schwebend und „Alles stoppen“ unter dem Video – im Status-Fenster oben bleibt „Alles stoppen“ immer)</label>
           <label class="adv">Max. Geschwindigkeit Direktsteuerung <output id="capSpeedVal"></output>
             <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
           </label>
-          <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
-          <label class="check"><input id="stopButton" type="checkbox" checked> STOPP-Knöpfe am Video zeigen (schwebend, Vollbild und „Alles stoppen“ unter dem Video – im Status-Fenster oben bleibt „Alles stoppen“ immer)</label>
-          <p class="hint-text">Not-Aus: Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ in der Geräte-Spalte (bleibt immer da). Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
-        </div>
+          <p class="hint-text">Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ in der Geräte-Spalte halten sofort alles an.
+            Der Auto-Stopp greift bei Direktsteuerung, Patterns, „Selbst steuern“ und manueller Stärke – ein laufendes Video mit
+            Script zählt als „dabei“. Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
+        </details>
 
-        <div id="imageSettings" class="card">
-          <h2>✨ Bild &amp; Qualität</h2>
+        <details id="setScript" class="card sec">
+          <summary><h2>🎚 Script-Intensität</h2></summary>
+          <h3>Standard für alle Szenen</h3>
+          <div class="seg preset-default" data-preset-default>
+            <button data-preset="original">Original</button>
+            <button data-preset="auto">Automatisch</button>
+            <button data-preset="soft">Sanft</button>
+            <button data-preset="intense">Intensiv</button>
+          </div>
+          <ul class="hint-text preset-help">
+            <li><b>Original</b> – genau die Datei, nichts geändert.</li>
+            <li><b>Automatisch</b> – streckt Scripts mit kleinem Hub auf den vollen Weg; was die Handy nicht schafft, wird so
+              angepasst, dass sie exakt im Takt bleibt (feine Vibrationen bleiben).</li>
+            <li><b>Sanft</b> – Hub 20–80 %, höchstens 240 %/s, Satisfyer schwächer und ruhiger.</li>
+            <li><b>Intensiv</b> – voller Hub, ruhige Stellen im doppelten oder dreifachen Takt, Satisfyer kräftiger.</li>
+          </ul>
+          <p class="hint-text">Gilt für Handy und Satisfyer zusammen und rechnet nur beim Abspielen um – deine Dateien bleiben
+            unverändert. Pro Szene wählst du am Video (Script-Bereich oder 🎚 in der Player-Leiste); das wird wie der Offset gemerkt.</p>
+          <label class="adv">Stellen, die für die Handy zu schnell sind
+            <select id="tooFast">
+              <option value="shorten">Hub kürzen – jeder Stoß bleibt, dafür etwas kürzer</option>
+              <option value="half">Voller Hub, halbes Tempo – jeder zweite Stoß fällt dort weg</option>
+            </select>
+          </label>
+          <p id="toolInfo" class="hint-text"></p>
+          <p class="hint-text">🎯 Offset per Takt einmessen: in der Geräte-Spalte unter „Feineinstellung Offset“ oder Taste T, während das Video läuft.</p>
+        </details>
+
+        <details id="setFinale" class="card sec">
+          <summary><h2>🔥 Finale</h2></summary>
+          <p class="hint-text">Der 🔥-Knopf im Player (oder Taste O) schaltet auf ruhiger. Nochmal drücken = zurück zum normalen Video-Sync.</p>
+          <div id="finMode" class="seg big-seg">
+            <button data-fin="detach">Komplett lösen</button>
+            <button data-fin="soft">Script weiter, sanfter</button>
+          </div>
+          <p id="finModeInfo" class="hint-text"></p>
+          <label id="finHalfRow" class="adv check"><input id="fin_half" type="checkbox" checked> Halbes Tempo – aus zwei Stößen wird einer, bleibt im Takt des Videos</label>
+          <div class="adv grid2">
+            <label id="finSpeedRow">Geschwindigkeit <output id="fin_speedVal"></output>
+              <input id="fin_speed" type="range" min="5" max="100" step="5" value="30">
+            </label>
+            <label><span id="finVibeLabel">Vibration</span> <output id="fin_vibeVal"></output>
+              <input id="fin_vibe" type="range" min="0" max="100" step="5" value="50">
+            </label>
+            <label>Hub von <output id="fin_minVal"></output>
+              <input id="fin_min" type="range" min="0" max="95" step="5" value="10">
+            </label>
+            <label>Hub bis <output id="fin_maxVal"></output>
+              <input id="fin_max" type="range" min="5" max="100" step="5" value="80">
+            </label>
+          </div>
+          <label class="adv">Automatisch zurück zum Sync nach <output id="fin_timeVal"></output>
+            <input id="fin_time" type="range" min="0" max="300" step="15" value="240">
+          </label>
+        </details>
+
+        <details id="imageSettings" class="card sec">
+          <summary><h2>✨ Bild &amp; Qualität</h2></summary>
           <div id="qualityMode" class="seg big-seg">
             <button data-q="auto">Automatisch – bestes Bild</button>
             <button data-q="off">Aus – Original</button>
           </div>
-          <p id="qualityInfo" class="hint-text">Wählt pro Video selbst: Hochrechnen auf dem Server nur wenn das Video kleiner als dein Bildschirm ist (4K/VR bleiben Original), Schärfe passend zum Vergrößerungsfaktor, Anti-Banding. Ruckelt es, wird automatisch eine Stufe zurückgeschaltet.</p>
+          <p id="qualityInfo" class="hint-text">Wählt pro Video selbst: Ist das Video kleiner als dein Bildschirm, rechnet der Server es hoch
+            und entrauscht leicht (4K/VR bleiben Original); im Browser nur ein Hauch Schärfe und Farbtreppen glätten – Farben und
+            Kontrast bleiben wie im Original. Ruckelt es, wird automatisch eine Stufe zurückgeschaltet.</p>
 
           <details class="adv" id="qualityAdvanced">
           <summary>Erweitert – einzelne Einstellungen</summary>
@@ -386,7 +444,8 @@
 
           <div id="hqBox" class="hq" hidden>
             <h3>HQ-Stream vom Server (Intel Quick Sync)</h3>
-            <p class="hint-text">Der Server entrauscht, skaliert hoch und verstärkt Details in Hardware, bevor gestreamt wird. Spulen startet die Umwandlung neu (≈ 1 s).</p>
+            <p class="hint-text">Der Server entrauscht und skaliert in Hardware hoch, bevor gestreamt wird – „Auto“ nur dezent,
+              „Sauber“/„Stark“ mit mehr Schärfe. Spulen startet die Umwandlung neu (≈ 1 s).</p>
             <div id="hqPresets" class="seg">
               <button data-hq="off">Aus</button>
               <button data-hq="auto" title="Nur wenn das Video kleiner ist als der Bildschirm – 4K und VR bleiben Original">Auto</button>
@@ -407,89 +466,76 @@
             <p id="hqInfo" class="hint-text"></p>
           </div>
           </details>
-        </div>
+        </details>
 
-        <div id="setScript" class="card">
-          <h2>🛠️ Script-Werkzeuge</h2>
-          <p class="hint-text">Rechnen das Script nur beim Abspielen um – deine Dateien bleiben unverändert. Die Heatmap zeigt, was an die Geräte geht.</p>
-          <label class="check"><input id="presetLink" type="checkbox" checked> Handy und Satisfyer gemeinsam einstellen (eine Auswahl für beide)</label>
-          <h3>Standard für alle Szenen – ↕ Handy</h3>
-          <div class="seg preset-default" data-dev="handy">
-            <button data-preset="protect">Original + Takt-Schutz</button>
-            <button data-preset="original">Original</button>
-            <button data-preset="auto">Automatisch</button>
-            <button data-preset="soft">Sanft</button>
-            <button data-preset="intense">Intensiv</button>
-            <button data-preset="custom">Eigene</button>
+        <details id="setPlayer" class="card sec">
+          <summary><h2>🖥️ Anzeige</h2></summary>
+          <p class="adv hint-text">Was unter dem Video stehen soll – Nicht-Benötigtes einfach ausblenden.</p>
+          <div id="hudOptions" class="adv hud-options">
+            <label class="check"><input type="checkbox" data-hud="devices"> Geräte-Steuerung am Video (Verbinden, Offset, Hub, Stärke – am PC rechts daneben)</label>
+            <label class="check"><input type="checkbox" data-hud="meta"> Datum, Länge, Aufrufe</label>
+            <label class="check"><input type="checkbox" data-hud="script"> Zeile „⚡ Scriptname (Punkte)“</label>
+            <label class="check"><input type="checkbox" data-hud="actions"> Bewertung, Favorit, O-Zähler, Marker setzen</label>
+            <label class="check"><input type="checkbox" data-hud="baractions"> ★ / 💦 / 📍 in der Player-Leiste</label>
+            <label class="check"><input type="checkbox" data-hud="people"> Studio und Darsteller</label>
+            <label class="check"><input type="checkbox" data-hud="tags"> Tags</label>
+            <label class="check"><input type="checkbox" data-hud="markers"> Marker-Liste</label>
+            <label class="check"><input type="checkbox" data-hud="details"> Beschreibung</label>
+            <label class="check"><input type="checkbox" data-hud="quality"> Zeile „Bild / HQ – Einstellungen“</label>
           </div>
-          <h3>Standard für alle Szenen – 〰 Satisfyer</h3>
-          <div class="seg preset-default" data-dev="vibe">
-            <button data-preset="original">Original</button>
-            <button data-preset="auto">Automatisch</button>
-            <button data-preset="soft">Sanft</button>
-            <button data-preset="intense">Intensiv</button>
-            <button data-preset="custom">Eigene</button>
-          </div>
-          <ul class="hint-text preset-help">
-            <li><b>Original + Takt-Schutz</b> (Handy) – alles wie in der Datei, auch kleine Vibrationen. Nur große Stöße, die die Handy
-              nicht schafft, werden angepasst (siehe unten), damit sie exakt im Takt bleibt.</li>
-            <li><b>Automatisch</b> (Standard) – wie „Original + Takt-Schutz“, streckt aber zusätzlich Scripts mit kleinem Hub (&lt; 70 %)
-              auf den vollen Weg; beim Satisfyer zusätzlich Zittern glätten.</li>
-            <li><b>Sanft</b> – Hub 15–85 %, langsamer (max. 300 %/s), Satisfyer ruhig.</li>
-            <li><b>Intensiv</b> – voller Hub, nur das physisch Nötige gekürzt, Satisfyer im vollen Rhythmus.</li>
-            <li><b>Original</b> – genau wie die Datei. <b>Eigene</b> – die Haken unten.</li>
-          </ul>
-          <p class="hint-text">Pro Szene änderst du die Anpassung unter dem Video (wird wie der Offset gemerkt).</p>
-          <label class="adv">Stellen, die für die Handy zu schnell sind
-            <select id="tooFast">
-              <option value="shorten">Hub kürzen – jeder Stoß bleibt, dafür etwas kürzer</option>
-              <option value="half">Voller Hub, halbes Tempo – jeder zweite Stoß fällt dort weg</option>
+          <h3 class="adv">Knöpfe in der Player-Leiste</h3>
+          <p class="adv hint-text">Knöpfe, die gerade nichts tun können (z. B. ⟳ ohne Handy), blendet der Player selbst aus.</p>
+          <ul id="barOptions" class="adv bar-options"></ul>
+          <label>Springen mit −/+ und Doppeltippen links/rechts
+            <select id="skipSec"><option value="10">10 Sekunden</option><option value="5">5 Sekunden</option></select>
+          </label>
+          <label>Sprache
+            <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
+          </label>
+          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
+          <p class="hint-text">Vollbild zeigt nur das Video mit der Bedienleiste des Browsers – so geht beim Verlassen der App
+            automatisch das kleine Fenster auf (Android). Not-Aus im Vollbild: Esc bzw. zurück, dann STOPP.</p>
+          <h3 class="adv">Beim Stöbern</h3>
+          <label class="adv">Video, während du in Bibliothek oder Einstellungen bist
+            <select id="browseMini">
+              <option value="left">Mini-Player unten links</option>
+              <option value="right">Mini-Player unten rechts</option>
+              <option value="bar">Nur Leiste „Läuft gerade“</option>
             </select>
           </label>
-          <label class="adv check"><input id="tool_jitter" type="checkbox"> Handy: winzige Bewegungen (&lt; 3 %) entfernen – nur einschalten, wenn die Handy rattert; löscht auch feine Vibrationen</label>
-          <div id="toolCustom">
-            <label class="check"><input id="tool_stretch" type="checkbox"> Auf vollen Hub strecken – Scripts, die nur einen Teil des Bereichs nutzen, wirken nicht mehr flach</label>
-            <label class="check"><input id="tool_limit" type="checkbox"> Zu schnelle Stellen glätten – die Handy muss nicht selbst „abkürzen“</label>
-            <label id="toolMaxRow">Höchstgeschwindigkeit <output id="tool_maxSpeedVal"></output>
-              <input id="tool_maxSpeed" type="range" min="150" max="700" step="25" value="400">
-            </label>
-          </div>
-          <p id="toolInfo" class="hint-text"></p>
-          <p class="hint-text">🎯 Offset per Takt einmessen: Knopf in der Handy-Karte (rechts) oder Taste T während das Video läuft.</p>
-        </div>
+          <h3 class="adv">Kopfzeile</h3>
+          <label class="adv check"><input id="hdrNotch" type="checkbox"> Kompakt: Handy- und Satisfyer-Status links und rechts neben der Kamera (für Smartphones mit Kamera oben in der Mitte)</label>
+          <p class="adv hint-text">Browser verraten nur, wie hoch der Kamerabereich ist, nicht wo die Kamera sitzt – deshalb zum Einschalten.</p>
+        </details>
 
-        <div class="card">
-          <h2>🔥 Finale</h2>
-          <p class="hint-text">Der 🔥-Knopf im Player (oder Taste O) schaltet auf ruhiger. Nochmal drücken = zurück zum normalen Video-Sync.</p>
-          <div id="finMode" class="seg big-seg">
-            <button data-fin="detach">Komplett lösen</button>
-            <button data-fin="soft">Script weiter, sanfter</button>
-          </div>
-          <p id="finModeInfo" class="hint-text"></p>
-          <label id="finHalfRow" class="adv check"><input id="fin_half" type="checkbox" checked> Halbes Tempo – aus zwei Stößen wird einer, bleibt im Takt des Videos</label>
-          <div class="adv grid2">
-            <label id="finSpeedRow">Geschwindigkeit <output id="fin_speedVal"></output>
-              <input id="fin_speed" type="range" min="5" max="100" step="5" value="30">
-            </label>
-            <label><span id="finVibeLabel">Vibration</span> <output id="fin_vibeVal"></output>
-              <input id="fin_vibe" type="range" min="0" max="100" step="5" value="50">
-            </label>
-            <label>Hub von <output id="fin_minVal"></output>
-              <input id="fin_min" type="range" min="0" max="95" step="5" value="40">
-            </label>
-            <label>Hub bis <output id="fin_maxVal"></output>
-              <input id="fin_max" type="range" min="5" max="100" step="5" value="70">
-            </label>
-          </div>
-          <label class="adv">Automatisch zurück zum Sync nach <output id="fin_timeVal"></output>
-            <input id="fin_time" type="range" min="0" max="300" step="15" value="0">
+        <details id="setLibrary" class="card sec">
+          <summary><h2>📚 Bibliothek</h2></summary>
+          <label>Beim Start anzeigen
+            <select id="setStartSource"></select>
           </label>
-        </div>
+          <label class="check"><input id="only2d" type="checkbox"> Nur 2D-Videos zeigen</label>
+          <p class="hint-text">Die Bibliothek zeigt dann nur Szenen mit dem Stash-Tag „2D“. Gilt nur für dieses Gerät – z. B. am Smartphone an, in der VR-Brille aus.</p>
+          <label class="adv check"><input id="setHoverPreview" type="checkbox" checked> Vorschauvideo beim Drüberfahren mit der Maus</label>
+          <label class="adv check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, hineingezogene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
+          <p class="adv hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
+          <h3 class="adv">Reiter in der Stash-Bibliothek</h3>
+          <div id="browseOptions" class="adv hud-options">
+            <label class="check"><input type="checkbox" data-browse-opt="tags"> Tags</label>
+            <label class="check"><input type="checkbox" data-browse-opt="performers"> Darsteller</label>
+            <label class="check"><input type="checkbox" data-browse-opt="studios"> Studios</label>
+          </div>
+          <h3 class="adv">Gespeicherte Stash-Filter in der Leiste</h3>
+          <div id="setSavedFilters" class="adv hud-options"><p class="hint-text">Erscheinen, sobald Stash verbunden ist.</p></div>
+          <h3>Eingebundene Ordner</h3>
+          <ul id="setFolders" class="folders"></ul>
+          <p class="hint-text">Weitere Ordner einbinden: in der <code>docker-compose.yml</code> pro Ordner eine Zeile unter <code>volumes</code>, z. B.
+            <code>- /pfad/zu/downloads:/media/Downloads:ro</code> – jeder Unterordner von <code>/media</code> wird eine eigene Quelle. Danach <code>docker compose up -d</code>.</p>
+        </details>
 
-        <div class="card">
-          <h2>🥽 VR-Brille (HereSphere)</h2>
+        <details id="setVR" class="card sec">
+          <summary><h2>🥽 VR-Brille (HereSphere)</h2></summary>
           <label class="check"><input id="hsOn" type="checkbox" checked> HereSphere-Schnittstelle aktiv</label>
-          <p id="hsOffHint" class="hint-text" hidden>Aus: Der Server antwortet unter <code>/heresphere</code> nicht mehr – die Ausnahme in deiner Proxy-Anmeldung kann weg. Gilt für alle Geräte.</p>
+          <p id="hsOffHint" class="hint-text" hidden>Aus: Der Server antwortet unter <code>/heresphere</code> nicht – die Ausnahme in deiner Proxy-Anmeldung kann weg. Gilt für alle Geräte.</p>
           <div id="hsBox">
           <label class="adv check"><input id="hsVrOnly" type="checkbox" checked> Nur VR-Videos zeigen (aus = auch normale Videos, als flache Leinwand)</label>
           <label class="adv">Passwort für HereSphere <small class="muted">(optional – HereSphere fragt dann einmal nach Benutzer und Passwort, der Benutzername ist egal)</small>
@@ -503,121 +549,32 @@
             <input id="hsUrl" type="text" readonly>
             <button id="hsCopy" class="small secondary">Kopieren</button>
           </div>
-          <ol class="steps-list">
-            <li>HereSphere starten → Web-Browser öffnen → Adresse oben eingeben.</li>
-            <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner.</li>
-            <li>The Handy: in HereSphere unter <i>Einstellungen → Haptik</i> deinen Connection Key eintragen. HereSphere lädt das Funscript automatisch mit.</li>
-            <li>Das VR-Format (180°/360°, SBS/TB, Fisheye/MKX) erkennt der Player an Dateinamen und VR-Tags.</li>
-          </ol>
+          <details class="more-info">
+            <summary>ⓘ So geht's</summary>
+            <ol class="steps-list">
+              <li>HereSphere starten → Web-Browser öffnen → Adresse oben eingeben.</li>
+              <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner.</li>
+              <li>The Handy: in HereSphere unter <i>Einstellungen → Haptik</i> deinen Connection Key eintragen. HereSphere lädt das Funscript automatisch mit.</li>
+              <li>Das VR-Format (180°/360°, SBS/TB, Fisheye/MKX) erkennt der Player an Dateinamen und VR-Tags.</li>
+            </ol>
+          </details>
           <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen. Das Passwort oben schützt die Schnittstelle dann trotzdem.</p>
           </div>
-        </div>
+        </details>
 
-        <div id="setRemote" class="card">
-          <h2>📱 Fernbedienung</h2>
-          <p class="hint-text">Video am TV/PC, Bedienung und Satisfyer am Smartphone: Auf beiden Geräten den Player öffnen,
-            dann am Smartphone in der Bibliothek oben bei „📺 Abspielen auf“ den Bildschirm wählen und eine Szene antippen.</p>
-          <label class="check"><input id="rcScreen" type="checkbox"> Dieses Gerät als Bildschirm anbieten (lässt sich fernsteuern)</label>
-          <p id="rcNoScreen" class="hint-text">Noch kein Bildschirm gefunden: Am TV/PC den Player öffnen und dort diesen Haken setzen –
-            danach erscheint er am Smartphone in der Bibliothek unter „📺 Abspielen auf“.</p>
-          <label class="adv">Name dieses Geräts <input id="rcName" type="text" maxlength="40" placeholder="z. B. Wohnzimmer-TV"></label>
-          <p class="hint-text">Die Handy steuert der Bildschirm, wenn sie dort verbunden ist (am genauesten) – sonst die Fernbedienung.
-            Den Satisfyer am Smartphone verbinden. Startet das Video am Bildschirm nicht, dort einmal tippen oder klicken –
-            Browser spielen erst nach einer Berührung ab. Ist „Alles stoppen bei Bildschirmsperre“ an, hält das Sperren
-            des Smartphones auch den Bildschirm an.</p>
-        </div>
-
-        <div id="setPlayer" class="card">
-          <h2>🖥️ Anzeige im Player</h2>
-          <p class="adv hint-text">Was unter dem Video stehen soll – Nicht-Benötigtes einfach ausblenden.</p>
-          <div id="hudOptions" class="adv hud-options">
-            <label class="check"><input type="checkbox" data-hud="devices"> Geräte-Steuerung am Video (Verbinden, Offset, Hub, Stärke – am PC rechts daneben)</label>
-            <label class="check"><input type="checkbox" data-hud="meta"> Datum, Länge, Aufrufe</label>
-            <label class="check"><input type="checkbox" data-hud="script"> Zeile „⚡ Scriptname (Punkte)“</label>
-            <label class="check"><input type="checkbox" data-hud="actions"> Bewertung, Favorit, O-Zähler, Marker setzen</label>
-            <label class="check"><input type="checkbox" data-hud="baractions"> ★ / 💦 / 📍 in der Player-Leiste (auch im Vollbild)</label>
-            <label class="check"><input type="checkbox" data-hud="people"> Studio und Darsteller</label>
-            <label class="check"><input type="checkbox" data-hud="tags"> Tags</label>
-            <label class="check"><input type="checkbox" data-hud="markers"> Marker-Liste</label>
-            <label class="check"><input type="checkbox" data-hud="details"> Beschreibung</label>
-            <label class="check"><input type="checkbox" data-hud="quality"> Zeile „Bild / HQ – Einstellungen“</label>
+        <details id="setSystem" class="card sec">
+          <summary><h2>ℹ️ System</h2></summary>
+          <div id="updateBox" class="update-box" hidden>
+            <b>⬆ Update verfügbar</b> <span id="updateText"></span>
+            <a id="updateLink" href="#" target="_blank" rel="noopener">Was ist neu? ↗</a>
+            <p class="hint-text">Aktualisieren: <code>docker compose pull &amp;&amp; docker compose up -d</code> – deine Einstellungen liegen im Volume <code>handy-data</code> und bleiben.</p>
           </div>
-          <h3 class="adv">Knöpfe in der Player-Leiste</h3>
-          <p class="adv hint-text">Gilt am Video und im Vollbild. Knöpfe, die gerade nichts tun können (z. B. ⟳ ohne Handy), blendet der Player selbst aus.</p>
-          <ul id="barOptions" class="adv bar-options"></ul>
-          <label>Springen mit −/+ und Doppeltippen links/rechts
-            <select id="skipSec"><option value="10">10 Sekunden</option><option value="5">5 Sekunden</option></select>
-          </label>
-          <label>Sprache
-            <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
-          </label>
-          <label class="check adv"><input id="fsVideoOnly" type="checkbox"> Vollbild nur mit dem Video – dann geht beim Verlassen der App automatisch das kleine Fenster auf (Android); im Vollbild gibt es die Browser-Bedienung statt der Player-Leiste</label>
-          <label class="check"><input id="demoMode" type="checkbox"> Demo-Modus: Vorschaubilder, Video und Titel unkenntlich – zum Vorzeigen und für Screenshots (nur auf diesem Gerät)</label>
-          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
-          <h3 class="adv">Beim Stöbern</h3>
-          <label class="adv">Video, während du in Bibliothek oder Einstellungen bist
-            <select id="browseMini">
-              <option value="left">Mini-Player unten links</option>
-              <option value="right">Mini-Player unten rechts</option>
-              <option value="bar">Nur Leiste „Läuft gerade“</option>
-            </select>
-          </label>
-          <h3 class="adv">Kopfzeile</h3>
-          <label class="adv check"><input id="hdrNotch" type="checkbox"> Kompakt: Handy- und Satisfyer-Status links und rechts neben der Kamera (für Smartphones mit Kamera oben in der Mitte)</label>
-          <p class="adv hint-text">Browser verraten nur, wie hoch der Kamerabereich ist, nicht wo die Kamera sitzt – deshalb zum Einschalten.</p>
-        </div>
-
-        <div id="setLibrary" class="card">
-          <h2>📚 Bibliothek</h2>
-          <label>Beim Start anzeigen
-            <select id="setStartSource"></select>
-          </label>
-          <label class="adv check"><input id="setHoverPreview" type="checkbox" checked> Vorschauvideo beim Drüberfahren mit der Maus</label>
-          <label class="adv check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, über „📂 Datei“ geladene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
-          <p class="adv hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
-          <label class="check"><input id="only2d" type="checkbox"> Nur 2D-Videos zeigen</label>
-          <p class="hint-text">Bibliothek, Zufall und Weiterschauen zeigen nur Szenen mit dem Stash-Tag „2D“. Gilt nur für dieses Gerät – z. B. am Smartphone an, in der VR-Brille aus.</p>
-          <label class="check"><input id="setShowContinue" type="checkbox"> „Weiterschauen“-Reihe oben in der Stash-Bibliothek anzeigen</label>
-          <h3>Knöpfe in der Bibliothek</h3>
-          <div id="libBtnOptions" class="hud-options">
-            <label class="check"><input type="checkbox" data-libopt="random"> 🎲 Zufall</label>
-            <label class="check"><input type="checkbox" data-libopt="faptap"> FapTap ↗</label>
-            <label class="check"><input type="checkbox" data-libopt="pornhub"> Pornhub ↗</label>
-            <label class="check"><input type="checkbox" data-libopt="file"> 📂 Datei</label>
-          </div>
-          <p class="hint-text">Eigene Links (öffnen in einem neuen Tab):</p>
-          <ul id="libLinkList" class="bar-options"></ul>
-          <div class="copyrow"><input id="libLinkName" type="text" placeholder="Name, z. B. Scripts" maxlength="30">
-            <input id="libLinkUrl" type="url" placeholder="https://…"><button id="libLinkAdd" class="small secondary">＋ Hinzufügen</button></div>
-          <h3 class="adv">Reiter in der Stash-Bibliothek</h3>
-          <div id="browseOptions" class="adv hud-options">
-            <label class="check"><input type="checkbox" data-browse-opt="tags"> Tags</label>
-            <label class="check"><input type="checkbox" data-browse-opt="performers"> Darsteller</label>
-            <label class="check"><input type="checkbox" data-browse-opt="studios"> Studios</label>
-          </div>
-          <h3 class="adv">Gespeicherte Stash-Filter in der Leiste</h3>
-          <div id="setSavedFilters" class="adv hud-options"><p class="hint-text">Erscheinen, sobald Stash verbunden ist.</p></div>
-          <h3>Eingebundene Ordner</h3>
-          <ul id="setFolders" class="folders"></ul>
-          <p class="hint-text">Weitere Ordner einbinden: in der <code>docker-compose.yml</code> pro Ordner eine Zeile unter <code>volumes</code>, z. B.
-            <code>- /pfad/zu/downloads:/media/Downloads:ro</code> – jeder Unterordner von <code>/media</code> wird eine eigene Quelle. Danach <code>docker compose up -d</code>.</p>
-        </div>
-
-        <div id="setSystem" class="card">
-          <h2>ℹ️ System</h2>
           <dl id="sysInfo" class="sysinfo"></dl>
-          <h3>Selbsttest</h3>
-          <p class="hint-text">Spielt die wichtigsten Abläufe mit einer simulierten Handy durch (an deine Geräte geht nichts) und zeigt das Ergebnis – mit Bericht zum Herunterladen.</p>
-          <button id="selfTestRun" class="small secondary">🧪 Selbsttest starten</button>
-          <h3>Sicherung</h3>
-          <p class="hint-text">Eigene Scripts, eingemessene Offsets, Patterns, Script-Baukasten und alle Einstellungen in einer Datei –
-            zum Aufheben oder für einen neuen Server. Original-Funscripts und Videos sind nicht dabei.</p>
-          <div class="actions">
-            <button id="backupGet" class="small secondary">⬇ Sicherung herunterladen</button>
-            <label class="small secondary btn">⬆ Sicherung einspielen<input id="backupPut" type="file" accept=".json,application/json" hidden></label>
-          </div>
+          <p class="hint-text">Alles, was der Player speichert (Einstellungen, eigene Scripts, Offsets, Patterns), liegt auf dem Server im
+            Docker-Volume <code>handy-data</code> – eine Sicherung davon ist eine Sicherung von allem. Beim Start prüft sich der Player
+            selbst; das Ergebnis steht in <code>docker logs</code>.</p>
           <button id="resetLocal" class="adv small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
-        </div>
+        </details>
       </section>
 
       <!-- ================= Steuern ================= -->
@@ -625,7 +582,6 @@
         <nav class="subtabs" data-group="control">
           <button data-sub="direct" class="active">Direkt</button>
           <button data-sub="patterns">Patterns</button>
-          <button data-sub="builder">Script-Baukasten</button>
         </nav>
 
         <div class="card" data-panel="control:direct">
@@ -685,28 +641,6 @@
           </div>
         </div>
 
-        <div class="card" data-panel="control:builder" hidden>
-          <h2>Script-Baukasten</h2>
-          <p class="hint-text">Patterns hintereinander hängen und als eigenes Script abspielen oder exportieren.</p>
-          <div class="toolbar">
-            <select id="seqSelect" aria-label="Script"></select>
-            <button id="seqNew" class="small">Neu</button>
-            <button id="seqDel" class="small danger">Löschen</button>
-          </div>
-          <label>Name<input id="seqName" type="text" maxlength="60"></label>
-          <table class="steps">
-            <thead><tr><th>Pattern</th><th>Dauer (s)</th><th>Tempo %</th><th></th></tr></thead>
-            <tbody id="seqSteps"></tbody>
-          </table>
-          <button id="seqAdd" class="small secondary">+ Schritt</button>
-          <p id="seqInfo" class="hint-text"></p>
-          <div class="progress"><div id="seqProgress"></div></div>
-          <div class="actions">
-            <button id="seqPlay">▶ Script abspielen</button>
-            <label class="check"><input id="seqLoop" type="checkbox"> Wiederholen</label>
-            <button id="seqExport" class="secondary">Als .funscript exportieren</button>
-          </div>
-        </div>
       </section>
     </div>
 
@@ -725,32 +659,16 @@
         <div id="scriptBox" class="script-box sync-only" hidden>
           <div class="sb-head"><span id="sbName" class="sb-name"></span>
             <span id="sbChoice" class="seg sb-choice" hidden><button data-choice="orig">⚡ Original</button><button data-choice="own">✋ Eigenes</button></span></div>
+          <!-- Intensität dieser Szene (Handy und Satisfyer zusammen); die Farbstreifen zeigen, wie das Script dann aussieht -->
           <div class="sb-presets">
-            <label class="sb-dev sb-handy"><span class="sb-lbl">↕ Handy</span>
-              <select id="scenePresetHandy" title="Gilt für diese Szene – Standard unter ⚙️ → Script">
-                <option value="protect">Original + Takt-Schutz</option><option value="original">Original</option><option value="auto">Automatisch</option>
-                <option value="soft">Sanft</option><option value="intense">Intensiv</option><option value="custom">Eigene</option>
-              </select><small id="sbInfoHandy" class="sb-info"></small></label>
-            <label class="sb-dev sb-vibe"><span class="sb-lbl">〰 Satisfyer</span>
-              <select id="scenePresetVibe" title="Gilt für diese Szene – Standard unter ⚙️ → Script">
-                <option value="original">Original</option><option value="auto">Automatisch</option>
-                <option value="soft">Sanft</option><option value="intense">Intensiv</option><option value="custom">Eigene</option>
-              </select><small id="sbInfoVibe" class="sb-info"></small></label>
+            <div class="seg int-seg" data-preset-scene title="Gilt für diese Szene – Standard unter ⚙️ → Script"><button data-preset="original">Original<canvas></canvas></button><button data-preset="auto">Automatisch<canvas></canvas></button><button data-preset="soft">Sanft<canvas></canvas></button><button data-preset="intense">Intensiv<canvas></canvas></button></div>
+            <small id="sbInfo" class="sb-info"></small>
           </div>
           <div class="sb-own">
             <button id="sbResume" class="small" hidden>↩ Zurück zum Script</button>
             <button id="sbSelf" class="small secondary sb-tool" title="Script anhalten und selbst steuern – mit ⏺ neu aufnehmen"><span class="ic">✋</span>Selbst</button>
             <button id="sbDelete" class="small secondary" hidden>🗑 Eigenes Script löschen</button>
-            <button id="sbHot" class="small secondary sb-tool" title="Springt der Reihe nach zu den 3 intensivsten Stellen"><span class="ic">🔥</span>Intensiv</button>
-            <button id="sbCut" class="small secondary sb-tool" title="Einen Zeitbereich sanfter, intensiver, langsamer, verschoben oder stumm machen"><span class="ic">✂</span>Abschnitt</button>
-          </div>
-          <div id="sbCutBox" class="sb-cut" hidden>
-            <div class="sb-cut-row"><button id="cutFrom" class="small secondary">⇤ ab hier</button><span id="cutRange" class="hint-text">–</span><button id="cutTo" class="small secondary">bis hier ⇥</button></div>
-            <div class="sb-cut-row"><select id="cutAction">
-              <option value="soft">sanfter (kleinerer Hub)</option><option value="hard">intensiver (größerer Hub)</option>
-              <option value="half">halbes Tempo</option><option value="mute">stumm (Handy ruht)</option>
-              <option value="later">Offset +100 ms (später)</option><option value="earlier">Offset −100 ms (früher)</option>
-            </select><button id="cutApply" class="small">✓ Als eigenes Script speichern</button></div>
+            <button id="sbHot" class="small secondary sb-tool" title="Springt der Reihe nach zu den 3 intensivsten Stellen"><span class="ic">🔥</span>Höhepunkte</button>
           </div>
         </div>
         <p id="devNone" class="hint-text dev-none">Kein Gerät verbunden – oben auf <b>↕</b> (Handy) oder <b>〰</b> (Satisfyer) tippen.</p>
@@ -828,7 +746,6 @@
   </main>
 
   <button id="fabStop" class="fab-stop" hidden>■ STOPP</button>
-  <div id="rcBadge" class="rc-badge" hidden>📱 Ferngesteuert von <b id="rcBadgeName"></b> <button id="rcKick" class="small secondary">Trennen</button></div>
   <div id="nowBar" class="now-bar" hidden>
     <button id="nowPlay" title="Abspielen / Pause">▶</button>
     <button id="nowOpen" class="now-open" title="Zurück zum Video"><span id="nowTitle"></span><small>Zum Video ↑</small></button>
@@ -850,7 +767,6 @@
   <script src="selfctl.js"></script>
   <script src="touchpad.js"></script>
   <script src="settings.js"></script>
-  <script src="remote.js"></script>
   <script>I18N.start();</script>
   <script>if (/[?&]selbsttest\b/.test(location.search)) document.write('<script src="selftest.js"><\/script>');</script>
 </body>

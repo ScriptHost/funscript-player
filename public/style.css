@@ -503,10 +503,6 @@ aside { min-width: 0; }
 }
 .ov-bottom { position: absolute; }
 .ov-bottom > #ovBar { position: relative; }
-.continue { margin-bottom: 14px; }
-.continue h3 { font-size: 15px; margin: 4px 0 8px; }
-.continue-list { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 240px); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
-@media (max-width: 600px) { .continue-list { grid-auto-columns: 46%; } }
 
 /* 1.4: Stash-Aktionen im Player */
 .scene-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; }
@@ -535,15 +531,6 @@ aside { min-width: 0; }
 .ov-row .ov-pop .stars button:hover ~ button { color: rgba(255,255,255,.35); }
 .ov-row #ovFav.active { background: #c2185b; }
 /* 1.8: Fernbedienung */
-.castbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
-.castbar label { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; white-space: nowrap; }
-.castbar select { width: auto; margin: 0; }
-.castbar .cast-now { flex: 1; min-width: 0; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.castbar button { width: auto; margin: 0; }
-body.remote-on .castbar { border-color: var(--accent); }
-.remote-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; padding: 8px 12px; background: var(--card); border: 1px solid var(--accent); border-radius: 10px; font-size: 14px; }
-.remote-banner[hidden] { display: none; }
-.remote-banner button { width: auto; margin: 0; }
 #remoteState.warn { color: #ffb74d; }
 /* Fernbedienung hat kein eigenes Video: Standbild statt Bild, Bild-/Ton-Knöpfe aus */
 body.remote-on #ovEnh, body.remote-on #ovFit, body.remote-on #ovMute,
@@ -851,12 +838,6 @@ body.remote-on #ovPip { display: none !important; }
 /* 1.16: Fernbedienung – Lautstärke, Anzeige am Bildschirm */
 .remote-vol { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
 .remote-vol input { width: 110px; margin: 0; }
-.rc-badge { position: fixed; z-index: 1700; top: calc(var(--hdr-h, 56px) + 8px); left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 999px; background: var(--card);
-  border: 1px solid var(--accent); box-shadow: 0 6px 20px rgba(0,0,0,.4); font-size: 13px; white-space: nowrap; }
-.rc-badge[hidden] { display: none; }
-.rc-badge button { width: auto; margin: 0; }
-body.fs-open .rc-badge { top: 12px; }
 
 /* 1.17: Mini-Player schließen */
 .mini-ctl #miniClose { background: rgba(160,20,40,.8); }
@@ -905,13 +886,11 @@ body.dev-open #finaleBtn { display: none !important; }
 .sb-choice button { flex: 0 0 auto; width: auto; padding: 4px 10px; }
 .sb-choice button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .sb-choice[hidden] { display: none; }
-.sb-presets { display: grid; gap: 6px; }
-.sb-dev { display: grid; grid-template-columns: 88px 1fr; align-items: center; gap: 2px 8px; margin: 0; font-size: 13px; color: var(--muted); }
-.sb-dev select { margin: 0; padding: 4px 6px; font-size: 13px; }
-.sb-info { grid-column: 2; font-size: 12px; color: var(--muted); }
+.sb-presets { display: grid; gap: 4px; }
+.sb-info { font-size: 12px; color: var(--muted); }
 body.has-dev:not(.has-handy) .sb-handy, body.has-dev:not(.has-vibe) .sb-vibe { display: none; }
 /* 1.19.2: drei gleich breite Werkzeug-Knöpfe, Symbol über kurzem Text; Zurück/Löschen über die ganze Breite */
-.sb-own { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.sb-own { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
 .sb-own button { width: auto; margin: 0; }
 .sb-own button:not(.sb-tool) { grid-column: 1 / -1; }
 .sb-own .sb-tool { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; font-size: 13px; }
@@ -971,24 +950,37 @@ body.hud-off-script #sbName, body.hud-off-script .sb-info { display: none !impor
 .img-pop .seg { flex-wrap: wrap; margin-bottom: 8px; }
 .img-pop .seg button { flex: 1 1 auto; width: auto; padding: 6px 10px; }
 .img-pop .seg button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.img-pop a { font-size: 13px; }
-/* Bibliothek: ausgeblendete Knöpfe und eigene Links */
-.libbar .tab-off { display: none !important; }
-.lib-custom { display: contents; }
+.img-pop a { font-size: 13px; color: var(--accent); }
 /* 1.19: Szenentitel kleiner; „Mehr zur Szene“ ohne Aufklappen, wenn nur ein Teil an ist */
 .sceneinfo h2 { font-size: 17px; line-height: 1.3; }
 .scene-more.single > summary { display: none; }
-/* 1.19: Handy und Satisfyer gemeinsam eingestellt -> eine Auswahl, Infos beider Geräte darunter */
-body.preset-linked .sb-vibe .sb-lbl, body.preset-linked .sb-vibe select { display: none; }
-body.preset-linked .sb-vibe { grid-template-columns: 88px 1fr; margin-top: -4px; }
+/* 1.19.3: Script-Intensität – vier Knöpfe mit Mini-Heatmap (so sieht das Script mit dieser Wahl aus) */
+.int-seg { display: grid; grid-template-columns: repeat(2, 1fr); margin: 0; }
+.int-pop .int-seg { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 420px) { .int-pop .int-seg { grid-template-columns: repeat(2, 1fr); } }
+.int-seg button { min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 6px 5px; font-size: 13px; }
+.int-seg button canvas { display: block; width: 100%; height: 5px; border-radius: 2px; background: var(--line); }
+.int-seg button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.int-pop .pop-title { font-weight: 600; margin-bottom: 8px; }
+.int-pop .pop-title small { font-weight: 400; color: var(--muted); }
 
-/* ✂ Abschnitt anpassen */
-.sb-cut { margin-top: 8px; padding: 8px; border: 1px dashed var(--line); border-radius: 8px; display: grid; gap: 6px; }
-.sb-cut[hidden] { display: none; }
-.sb-cut-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.sb-cut-row button, .sb-cut-row select { width: auto; margin: 0; }
-
-/* 1.19: Demo-Modus – Inhalte unkenntlich, Bedienung bleibt sichtbar */
-body.demo-mode .thumb img, body.demo-mode .thumb video, body.demo-mode #video, body.demo-mode #enh,
-body.demo-mode .tile-title, body.demo-mode .tile-sub, body.demo-mode #videoName, body.demo-mode #ovTitle,
-body.demo-mode #nowTitle, body.demo-mode .chips-row, body.demo-mode #sceneMeta, body.demo-mode .continue-list { filter: blur(14px); }
+/* 1.19.3: Einstellungen aufklappbar – zu = nur die Überschrift */
+details.sec { padding-top: 12px; padding-bottom: 12px; margin-bottom: 10px; }
+details.sec > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; list-style: none; color: var(--text); font-size: inherit; margin: 0; }
+details.sec > summary::-webkit-details-marker { display: none; }
+details.sec > summary h2 { margin: 0; }
+details.sec > summary::after { content: '›'; font-size: 22px; line-height: 1; color: var(--muted); transition: transform .15s; }
+details.sec[open] > summary::after { transform: rotate(90deg); }
+details.sec[open] > summary { margin-bottom: 12px; }
+/* Erklärtexte hinter ⓘ */
+details.more-info { margin: 0 0 10px; }
+details.more-info > summary { display: inline-block; cursor: pointer; list-style: none; color: var(--muted); font-size: 13px; padding: 2px 0; }
+details.more-info > summary::-webkit-details-marker { display: none; }
+details.more-info[open] > summary { color: var(--text); }
+details.more-info > .hint-text, details.more-info > ul, details.more-info > ol { margin-top: 4px; }
+/* „Update verfügbar“ */
+.update-box { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: 10px; }
+.update-box[hidden] { display: none; }
+.update-box a { margin-left: 6px; font-size: 13px; }
+#appVersion.has-update { cursor: pointer; color: var(--accent); }
+#appVersion.has-update::after { content: ' ⬆'; }

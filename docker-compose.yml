@@ -1,18 +1,21 @@
 # Funscript Player – alle Werte stehen in der .env (Vorlage: .env.example, einmal kopieren).
+# Update: docker compose pull && docker compose up -d   (fertiges Image von GitHub)
+# Selbst bauen statt laden: docker compose up -d --build
 services:
   Handy-Player:
+    image: ghcr.io/scripthost/funscript-player:${PLAYER_VERSION:-latest}
     build: .
-    image: handy-player:local
     container_name: Handy-Player
     restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"          # nie root
     security_opt: [no-new-privileges:true]
 
-    # Erreichbar unter http://<server>:8080 – für HTTPS einen Reverse Proxy davor setzen
+    # Erreichbar unter http://<server>:<PLAYER_PORT>. Für HTTPS (nötig für Bluetooth und „als App
+    # installieren“) einen Reverse Proxy davor setzen, z. B. https://funscript-player.example.com -> Port 8080.
     ports:
-      - "8080:8080"
+      - "${PLAYER_PORT:-8080}:8080"
 
-    # Intel-Grafik für den HQ-Stream
+    # Intel-Grafik für den HQ-Stream (ohne Intel-Grafik: diese zwei Zeilen löschen)
     devices: [/dev/dri:/dev/dri]
     group_add: ["${RENDER_GID:-992}"]
 
@@ -30,7 +33,7 @@ services:
       TZ: ${TZ:-Europe/Berlin}
 
     volumes:
-      - handy-data:/app/data                    # Einstellungen, Patterns, eigene Scripts
+      - handy-data:/app/data                    # alles, was der Player speichert (siehe README)
       # Videoordner (optional, sonst nur Stash) – „#“ entfernen, Pfad in der .env:
       # - ${MEDIA_FILME}:/media/Filme:ro
       # - ${MEDIA_DOWNLOADS}:/media/Downloads:ro

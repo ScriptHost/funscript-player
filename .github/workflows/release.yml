@@ -1,14 +1,24 @@
-# Release je Versions-Tag: ZIP (wie handy-player-linux-vX.Y.Z.zip) + Abschnitt aus CHANGELOG.md.
-# Neuer Tag -> nur dieser. Manuell starten (Actions -> Release -> Run workflow) -> alle Tags ohne Release nachholen.
+# Release je Versions-Tag: ZIP (handy-player-linux-vX.Y.Z.zip) + englischer Text aus CHANGELOG.en.md (Stand main)
+# + Docker-Image auf GitHub (ghcr.io/scripthost/funscript-player:X.Y.Z und :latest).
+#   Neuer Tag            -> nur dieser.
+#   Manuell (Actions -> Release -> Run workflow):
+#     recreate = false   -> alle Tags ohne Release nachholen
+#     recreate = true    -> ALLE Releases löschen und neu erzeugen (englischer Text, ZIP aus dem jeweiligen Tag)
 name: Release
 
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      recreate:
+        description: 'Alle Releases löschen und neu erzeugen'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
@@ -21,17 +31,48 @@ jobs:
       - name: Create releases
         env:
           GH_TOKEN: ${{ github.token }}
+          RECREATE: ${{ inputs.recreate }}
         run: |
+          git show origin/main:CHANGELOG.en.md > changelog.en.md
           newest=$(git tag --sort=v:refname | tail -1)
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then tags="$GITHUB_REF_NAME"; else tags=$(git tag --sort=v:refname); fi
           for t in $tags; do
-            if gh release view "$t" >/dev/null 2>&1; then echo "$t: Release gibt es schon"; continue; fi
+            if gh release view "$t" >/dev/null 2>&1; then
+              if [ "$RECREATE" = "true" ]; then gh release delete "$t" --yes; else echo "$t: Release gibt es schon"; continue; fi
+            fi
             v="${t#v}"
-            { git show "$t:CHANGELOG.md" 2>/dev/null || true; } \
-              | awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' > notes.md
+            awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' changelog.en.md > notes.md
             [ -s notes.md ] || echo "Version $v" > notes.md
+            printf '\n---\nDocker: `docker compose pull && docker compose up -d` · Image `ghcr.io/scripthost/funscript-player:%s`\n' "$v" >> notes.md
             zip="handy-player-linux-$t.zip"
             git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github'
             if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
             gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest
           done
+
+  image:
+    # Docker-Image nur für einen neuen Tag (bzw. beim manuellen Lauf für den neuesten)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Version
+        id: v
+        run: |
+          t="${GITHUB_REF_NAME}"
+          [ "$GITHUB_REF_TYPE" = "tag" ] || t=$(git tag --sort=v:refname | tail -1)
+          git checkout -q "$t"
+          echo "version=${t#v}" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/scripthost/funscript-player:${{ steps.v.outputs.version }}
+            ghcr.io/scripthost/funscript-player:latest

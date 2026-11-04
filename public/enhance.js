@@ -17,12 +17,12 @@ const ENH_PRESETS = {
 };
 const ENH_LABEL = { auto: 'Auto', off: 'Aus', natural: 'Natürlich', sharp: 'Schärfer', max: 'Maximal', custom: 'Eigene' };
 
-// „Auto“: Schärfe nach Vergrößerungsfaktor (Anzeigehöhe / Videohöhe). Kleine Videos auf großem
-// Bildschirm brauchen mehr Schärfe, Videos in voller Auflösung nur einen Hauch.
+// „Auto“ (seit 1.19.3 natürlicher): nur dezent nachschärfen, je nach Vergrößerungsfaktor (Anzeigehöhe /
+// Videohöhe) höchstens 25 %. Kontrast, Farbe und Helligkeit bleiben wie im Original; Farbtreppen glätten bleibt.
 function enhAutoValues() {
   const f = enh.zoom || 1;
-  const sharp = f >= 2 ? 75 : f >= 1.4 ? 55 : f > 1.05 ? 40 : 25;
-  return { sharp, contrast: 3, saturation: 6, brightness: 0, deband: true };
+  const sharp = f >= 2 ? 25 : f >= 1.4 ? 18 : f > 1.05 ? 12 : 6;
+  return { sharp, contrast: 0, saturation: 0, brightness: 0, deband: true };
 }
 const presetValues = (s) => (s.preset === 'custom' ? s : s.preset === 'auto' ? enhAutoValues() : ENH_PRESETS[s.preset] || ENH_PRESETS.natural);
 

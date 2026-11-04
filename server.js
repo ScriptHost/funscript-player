@@ -1,7 +1,7 @@
 // Funscript Player – kleiner Webserver ohne externe Abhängigkeiten.
 // Liefert die Weboberfläche aus, listet die Bibliothek und streamt Videos (mit Range-Support).
 
-// Die Teile stehen in lib/: config, util, library, settings, data, stash, heresphere, hq, remote.
+// Die Teile stehen in lib/: config, util, library, settings, data, stash, heresphere, hq, update, selfcheck.
 const http = require('http');
 const https = require('https');
 const net = require('net');
@@ -11,11 +11,12 @@ const { AUTH_PASS, AUTH_USER, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL
 const { readBody, safeJoin, sendFile } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
 const { heresphereOn, hsAuthorized, hsHash, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
-const { backupGet, backupPut, deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
+const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashStatus } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
 const { hqBench, hqProbe, hqStatus, hqStream } = require('./lib/hq');
-const { rcEvents, rcPost } = require('./lib/remote');
+const { updateInfo } = require('./lib/update');
+const { runSelfcheck } = require('./lib/selfcheck');
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest();
 
@@ -69,7 +70,7 @@ const handler = async (req, res) => {
   const t0 = Date.now();
   res.on('finish', () => {
     const ms = Date.now() - t0;
-    if (LOG_DEBUG || (ms > 1000 && /^\/(api|heresphere)/.test(req.url) && !req.url.startsWith('/api/remote/events'))) {
+    if (LOG_DEBUG || (ms > 1000 && /^\/(api|heresphere)/.test(req.url))) {
       logLine(`${ms > 1000 ? 'langsam' : 'Anfrage'}: ${req.method} ${req.url.split('?')[0]} → ${res.statusCode} in ${ms} ms`);
     }
   });
@@ -97,17 +98,6 @@ const handler = async (req, res) => {
       }
       res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
       return res.end(JSON.stringify(await readStore()));
-    }
-
-    if (pathname === '/api/remote/time') {
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify({ now: Date.now() }));
-    }
-    if (pathname === '/api/remote/events' && req.method === 'GET') return rcEvents(req, res, url.searchParams);
-    if ((pathname === '/api/remote/state' || pathname === '/api/remote/cmd') && req.method === 'POST') {
-      await rcPost(req, pathname.endsWith('state') ? 'state' : 'cmd');
-      res.writeHead(204);
-      return res.end();
     }
 
     const sa = /^\/api\/stash\/scene\/(\d+)(?:\/(activity|play|rating|favorite|o|o-undo|marker))?$/.exec(pathname);
@@ -147,15 +137,6 @@ const handler = async (req, res) => {
         return res.end();
       }
       return sendFile(req, res, (await ownScriptFile(src)) || userScriptFile(src));
-    }
-    if (pathname === '/api/backup') {
-      if (req.method === 'PUT') {
-        await backupPut(req);
-        res.writeHead(204);
-        return res.end();
-      }
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(await backupGet()));
     }
     if (pathname === '/api/userscripts') {
       // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
@@ -219,6 +200,15 @@ const handler = async (req, res) => {
       return res.end(JSON.stringify(data));
     }
 
+    // Stiller Selbsttest der Oberfläche (settings.js): meldet nur Fehler – stehen dann in „docker logs“
+    if (pathname === '/api/clientcheck' && req.method === 'POST') {
+      const r = JSON.parse((await readBody(req, 20000)) || '{}');
+      const fails = Array.isArray(r.fails) ? r.fails.slice(0, 20).map((f) => String(f).slice(0, 200)) : [];
+      if (fails.length) logLine(`Selbsttest Oberfläche (${String(r.ua || '').slice(0, 60)}): ✗ ${fails.join(' · ')}`);
+      res.writeHead(204);
+      return res.end();
+    }
+
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405);
       return res.end();
@@ -245,6 +235,11 @@ const handler = async (req, res) => {
       const filters = await stashFilters();
       res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
       return res.end(JSON.stringify(filters));
+    }
+
+    if (pathname === '/api/update') {
+      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
+      return res.end(JSON.stringify(await updateInfo()));
     }
 
     if (pathname === '/api/library') {
@@ -356,6 +351,10 @@ server.listen(PORT, HOST, async () => {
   else if (stash.value?.ok) logLine(`Stash: verbunden (${STASH_URL}, Version ${stash.value.version || '?'})`);
   else logLine(`Stash: NICHT erreichbar (${STASH_URL}) – ${stash.value?.error || stash.reason?.message || 'unbekannt'}`);
   logLine(`HQ-Stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel-Grafik (VAAPI)' : 'CPU') : 'nicht verfügbar (kein ffmpeg)'}`);
+  const checks = await runSelfcheck().catch((e) => [{ name: 'Selbsttest', ok: false, info: e.message }]);
+  const bad = checks.filter((c) => !c.ok);
+  logLine(`Selbsttest: ${checks.length - bad.length}/${checks.length} ok${bad.length ? '' : ' (Server, Oberfläche, Script-Intensität)'}`);
+  for (const c of bad) logLine(`  ✗ ${c.name}${c.info ? ' – ' + c.info : ''}`);
   logLine(`HereSphere: ${heresphereOn() ? (serverSettings.hsPass ? 'an, mit Passwort' : 'an') : 'aus'} · Intiface: ${intifaceLanOnly() ? 'nur Heimnetz' : 'private Adressen'}`);
   logLine('✓ bereit');
 });

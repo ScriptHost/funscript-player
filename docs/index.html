@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Funscript Player</title>
-  <meta name="description" content="Selbst gehosteter Web-Player für Videos mit Funscripts – The Handy und Satisfyer im Takt, Stash, Fernbedienung, VR.">
+  <meta name="description" content="Selbst gehosteter Web-Player für Videos mit Funscripts – The Handy und Satisfyer im Takt, Stash, VR.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -76,7 +76,7 @@
         </svg>
       </div>
       <h3>⚡ Automatisch – und trotzdem im Takt</h3>
-      <p>Jedes Funscript behält seine feinen Bewegungen und Vibrationen. Nur Stöße, die der Motor nicht schafft, passt der Takt-Schutz an – kürzer oder mit vollem Hub im halben Tempo –, und kleine Hübe werden auf den vollen Weg gestreckt. Der Satisfyer bekommt seine eigene Fassung. Ohne einen Klick, Dateien bleiben unverändert.</p>
+      <p>Eine Auswahl für Handy und Satisfyer: <b>Automatisch</b> behält feine Bewegungen und Vibrationen und passt nur an, was der Motor nicht schafft – kleine Hübe werden auf den vollen Weg gestreckt. Lieber mehr? <b>Intensiv</b>. Ruhiger? <b>Sanft</b>. Pro Szene mit Vorschau, Dateien bleiben unverändert.</p>
     </div>
     <div class="hl-card">
       <div class="hl-vis">
@@ -118,7 +118,7 @@
           <tr><td>Schwache Scripts</td><td class="no">✗ von Hand nachbearbeiten</td><td class="yes">✓ automatisch verbessert</td></tr>
           <tr><td>Videos in niedriger Auflösung</td><td class="no">✗ unscharf auf großem Bild</td><td class="yes">✓ hochgerechnet &amp; geschärft</td></tr>
           <tr><td>Format, das der Browser nicht kann</td><td class="no">✗ vorher konvertieren</td><td class="yes">✓ live umgewandelt</td></tr>
-          <tr><td>Steuern vom Sofa</td><td class="no">✗ zurück an den PC</td><td class="yes">✓ Smartphone als Fernbedienung</td></tr>
+          <tr><td>Script zu lahm oder zu wild</td><td class="no">✗ von Hand umschreiben</td><td class="yes">✓ Sanft oder Intensiv per Klick</td></tr>
         </tbody>
       </table>
     </div>
@@ -221,9 +221,9 @@
             (API v3) bleibt sie auch bei 0,5× bis 2× Wiedergabe im Takt.</li>
           <li><b>Satisfyer</b>: Der Player rechnet daraus Vibration – im Rhythmus der Stöße, nach Tempo oder Position,
             mit einstellbarer Gleichmäßigkeit. Den Vorlauf misst er selbst.</li>
-          <li><b>Pro Gerät eingestellt:</b> Standard für Handy und Satisfyer ist <b>Automatisch</b> – was der Motor nicht schafft,
-            wird angepasst (Hub kürzen oder <b>voller Hub, halbes Tempo</b>), Scripts mit kleinem Hub werden gestreckt. Wer jede
-            Feinheit original will, wählt „Original + Takt-Schutz“. Das Handy-Modell erkennt der Player selbst; angepasste Stellen zeigt die Heatmap.</li>
+          <li><b>Eine Auswahl für beide:</b> Original, Automatisch, Sanft oder Intensiv – pro Szene direkt am Video, mit Mini-Heatmap
+            als Vorschau. Automatisch passt an, was der Motor nicht schafft (Hub kürzen oder <b>voller Hub, halbes Tempo</b>), und
+            streckt Scripts mit kleinem Hub. Das Handy-Modell erkennt der Player selbst; angepasste Stellen zeigt die Heatmap.</li>
         </ul>
       </div>
       <div class="diagram" aria-label="Script vorher und nachher">
@@ -300,7 +300,7 @@
         <p class="muted">Stash bleibt deine Verwaltung – der Player liest sie und schreibt zurück, was du beim Schauen tust.</p>
         <ul class="ticks">
           <li><b>Heatmap-Leiste</b> auf jeder Kachel mit Funscript, <b>filtern und sortieren</b> nach Intensität.</li>
-          <li>Gespeicherte Stash-Filter als Leiste; Tags, Darsteller, Studios; 🎲 Zufall; Weiterschauen.</li>
+          <li>Gespeicherte Stash-Filter als Leiste; Tags, Darsteller, Studios; „nur 2D“ je Gerät; 🔥 Höhepunkte einer Szene.</li>
           <li><b>Zurückschreiben</b>: Sterne, Favorit, O-Zähler und Marker – direkt in der Player-Leiste, auch im Vollbild.</li>
           <li>Ordner unter <code>/media</code> sind eigene Quellen: Video + gleichnamige <code>.funscript</code>.</li>
         </ul>
@@ -317,50 +317,6 @@
       </div>
     </div>
 
-    <!-- Fernbedienung -->
-    <div class="feature">
-      <div>
-        <h3 class="f-title">📱 Fernbedienung</h3>
-        <p class="muted">Video am TV oder PC, Bedienung und Satisfyer am Smartphone. Beide gleichen ihre Uhr mit dem
-          Server ab und bleiben im Takt.</p>
-        <ul class="ticks">
-          <li>Am Smartphone in der Bibliothek <b>„📺 Abspielen auf“</b> wählen, Szene antippen – sie startet am TV.</li>
-          <li>Player-Leiste, Heatmap, ★/💦/📍, <b>Lautstärke</b> und STOPP am Smartphone.</li>
-          <li>Am TV steht <b>„Ferngesteuert von …“</b> mit Trennen-Knopf.</li>
-        </ul>
-      </div>
-      <div class="diagram" aria-label="Aufbau der Fernbedienung">
-        <svg viewBox="0 0 440 300" role="img">
-          <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
-          <rect class="d-box" x="10" y="30" width="120" height="76" rx="10"/>
-          <text class="d-t" x="70" y="62" text-anchor="middle">📺 TV / PC</text>
-          <text class="d-s" x="70" y="82" text-anchor="middle">spielt das Video</text>
-          <rect class="d-acc" x="160" y="30" width="120" height="76" rx="10"/>
-          <text class="d-t" x="220" y="62" text-anchor="middle">Server</text>
-          <text class="d-s" x="220" y="82" text-anchor="middle">gemeinsame Uhr</text>
-          <rect class="d-box" x="310" y="30" width="120" height="76" rx="10"/>
-          <text class="d-t" x="370" y="62" text-anchor="middle">📱 Smartphone</text>
-          <text class="d-s" x="370" y="82" text-anchor="middle">Fernbedienung</text>
-          <path class="d-line" d="M306 56 H284" marker-end="url(#ah2)"/>
-          <path class="d-line" d="M156 56 H134" marker-end="url(#ah2)"/>
-          <text class="d-s" x="220" y="20" text-anchor="middle">Befehle: Szene, Play, Spulen, ★, STOPP</text>
-          <path class="d-hot" d="M134 92 H156" marker-end="url(#ah2)"/>
-          <path class="d-hot" d="M284 92 H306" marker-end="url(#ah2)"/>
-          <text class="d-s" x="220" y="128" text-anchor="middle">Zustand: Position + Serverzeit (alle 3 s)</text>
-          <rect class="d-box" x="10" y="200" width="120" height="64" rx="10"/>
-          <text class="d-t" x="70" y="228" text-anchor="middle">↕ The Handy</text>
-          <text class="d-s" x="70" y="247" text-anchor="middle">wenn am TV verbunden</text>
-          <rect class="d-box" x="310" y="200" width="120" height="64" rx="10"/>
-          <text class="d-t" x="370" y="228" text-anchor="middle">〰 Satisfyer</text>
-          <text class="d-s" x="370" y="247" text-anchor="middle">Bluetooth</text>
-          <path class="d-line" d="M70 106 V196" marker-end="url(#ah2)"/>
-          <text class="d-s" x="78" y="156">Cloud</text>
-          <path class="d-line" d="M370 106 V196" marker-end="url(#ah2)"/>
-          <text class="d-s" x="300" y="156" text-anchor="end">rechnet Position weiter</text>
-        </svg>
-      </div>
-    </div>
-
     <!-- Bild & Wiedergabe -->
     <div class="feature">
       <div>
@@ -368,8 +324,8 @@
         <ul class="ticks">
           <li><b>Automatisch umwandeln:</b> Stash-Szenen in Formaten, die der Browser nicht kann (z. B. MKV, HEVC), werden
             beim Abspielen live umgewandelt – du musst nichts vorbereiten. Ordner-Videos wandelt der HQ-Stream mit um.</li>
-          <li><b>Upscaling auf dem Server:</b> kleiner als der Bildschirm? Dann hochrechnen (bis 1440p), entrauschen und
-            Details verstärken – in Hardware über Intel Quick Sync (VAAPI). 4K und VR bleiben im Original.</li>
+          <li><b>Upscaling auf dem Server:</b> kleiner als der Bildschirm? Dann hochrechnen (bis 1440p) und leicht entrauschen –
+            natürlich, Farben wie im Original; mehr Schärfe auf Wunsch. In Hardware über Intel Quick Sync (VAAPI). 4K und VR bleiben im Original.</li>
           <li><b>Bildverbesserung im Browser:</b> Schärfen (AMD CAS) und Anti-Banding gegen Farbtreppen, auf der Grafik
             deines Geräts. Vorher/Nachher-Vergleich zum Einschalten.</li>
           <li><b>Selbstregelnd:</b> Stockt der Stream, schaltet der Player eine Stufe zurück – 1440p → 1080p → 720p → Original.</li>
@@ -384,12 +340,12 @@
 
     <div class="grid">
       <div class="card"><div class="icon">🥽</div><h3>VR mit HereSphere</h3><p>VR-Videos als Mediathek (auf Wunsch alle), Formaterkennung, Bewertung aus der Brille zurück nach Stash, optional mit Passwort. Abschaltbar – dann bleibt <code>/heresphere</code> zu.</p></div>
-      <div class="card"><div class="icon">🛡️</div><h3>Sicherheit</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, „Geräte pausieren“, Stopp bei Bildschirmsperre, Grenzen für Tempo und Vibration. Fremde Webseiten können nichts auslösen, der Container läuft nie als root.</p></div>
-      <div class="card"><div class="icon">🔄</div><h3>Überall gleich</h3><p>Key, Offsets, Satisfyer-Übersetzung, Sicherheit und Presets liegen auf dem Server – auf jedem Gerät dieselben. Bild und Kopfzeile pro Gerät.</p></div>
-      <div class="card"><div class="icon">🎮</div><h3>Steuern ohne Video</h3><p>Direktsteuerung, Finger-Fläche, Pattern-Editor und Script-Baukasten – abspielen oder als .funscript exportieren.</p></div>
+      <div class="card"><div class="icon">🛑</div><h3>Notaus</h3><p>STOPP-Knopf, <span class="kbd">Esc</span>, „Alles stoppen“, Stopp bei Bildschirmsperre und Auto-Stopp nach ein paar Minuten ohne Bedienung, Grenzen für Tempo und Vibration. Fremde Webseiten können nichts auslösen, der Container läuft nie als root.</p></div>
+      <div class="card"><div class="icon">🔄</div><h3>Überall gleich</h3><p>Key, Offsets, Satisfyer-Übersetzung, Notaus und Intensität liegen auf dem Server – auf jedem Gerät dieselben. Bild und Kopfzeile pro Gerät.</p></div>
+      <div class="card"><div class="icon">🎮</div><h3>Steuern ohne Video</h3><p>Direktsteuerung, Finger-Fläche und Pattern-Editor – abspielen oder als .funscript exportieren.</p></div>
       <div class="card"><div class="icon">🔥</div><h3>Finale</h3><p>Ein Knopf: Script lösen und gleichmäßig weiter, oder sanfter und halbes Tempo im Takt.</p></div>
       <div class="card"><div class="icon">🌐</div><h3>Deutsch &amp; Englisch</h3><p>Die Oberfläche spricht die Sprache deines Geräts – umschaltbar unter ⚙️ → Anzeige.</p></div>
-      <div class="card"><div class="icon">💾</div><h3>Sicherung</h3><p>Eigene Scripts, eingemessene Offsets, Patterns und Einstellungen in einer Datei – für den Umzug auf einen neuen Server.</p></div>
+      <div class="card"><div class="icon">📦</div><h3>Alles an einem Ort</h3><p>Einstellungen, eigene Scripts, Offsets und Patterns liegen im Docker-Volume <code>handy-data</code> – eine Sicherung davon sichert alles. Beim Start prüft sich der Player selbst.</p></div>
     </div>
     </details>
   </section>
@@ -424,6 +380,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="timeline">
+      <div class="tl"><b>1.19.3</b><p>Script-Intensität für beide Geräte (Original · Automatisch · Sanft · Intensiv) direkt am Video mit Vorschau, aufklappbare Einstellungen, Notaus mit Auto-Stopp, natürlicheres Bild, Update-Hinweis, Selbsttest beim Start, fertiges Docker-Image – und Selten-Genutztes entfernt.</p></div>
       <div class="tl"><b>1.19.2</b><p>Script-Standard „Automatisch“, aufgeräumter Script-Kasten, Feineinstellung im Geräte-Fenster, Hub unten/oben beim Selbststeuern, direktere Finger-Steuerung, gedrückt halten = 2× vor/zurück, nur 2D-Videos, neue Finale-Standards.</p></div>
       <div class="tl"><b>1.19</b><p>Flüssigere Finger-Steuerung, Hublänge, Abschnitt eines Scripts anpassen, zur intensivsten Stelle springen, gemeinsames Preset für Handy und Satisfyer, Bild-Popup, eigene Links, Demo-Modus.</p></div>
       <div class="tl"><b>1.18</b><p>Handy original mit Takt-Schutz, eigene Scripts (neu aufnehmen, Abschnitt ersetzen, löschen), Offset mit „🎯 eingemessen“, Erweiterte Einstellungen, Sicherung, Englisch, schneller Container-Start mit klaren Logs, Einstellungen in der <code>.env</code>.</p></div>
@@ -435,7 +392,7 @@
       <div class="tl"><b>1.11–1.12</b><p>Script-Automatik mit Presets, ruhigere Oberfläche, HereSphere nur VR.</p></div>
       <div class="tl"><b>1.8–1.10</b><p>Fernbedienung, aufgeräumte Einstellungen, neuer Name „Funscript Player“.</p></div>
     </div>
-    <p class="muted">Alle Details im <code>CHANGELOG.md</code> und in den <code>RELEASE-NOTES-*.md</code> im Projekt.</p>
+    <p class="muted">Alle Details im <a href="https://github.com/ScriptHost/funscript-player/blob/main/CHANGELOG.md">CHANGELOG</a> und in den <a href="https://github.com/ScriptHost/funscript-player/releases">Releases auf GitHub</a>.</p>
   </section>
 
   <!-- ============ Voraussetzungen ============ -->
@@ -448,7 +405,7 @@
         <ul class="ticks">
           <li><b>Einen Rechner, der dauerhaft läuft</b> – Heimserver, NAS oder PC mit Docker. Dort liegen Videos und Scripts.</li>
           <li><b>Mindestens ein Gerät:</b> The Handy (WLAN, Connection Key) und/oder einen Satisfyer mit Bluetooth.</li>
-          <li><b>Einen Browser:</b> Chrome oder Edge am PC oder Android. Für Bluetooth über HTTPS (z. B. per Traefik).</li>
+          <li><b>Einen Browser:</b> Chrome oder Edge am PC oder Android. Für Bluetooth über HTTPS (Reverse Proxy davor).</li>
           <li><b>Videos mit Funscript</b> – im Ordner daneben oder in Stash.</li>
         </ul>
       </div>
@@ -470,18 +427,18 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-v1.19.2.zip</code> von <a href="https://github.com/ScriptHost/funscript-player/releases/latest">GitHub (Releases)</a> herunterladen, auf den Server kopieren und entpacken.</li>
-        <li><code>.env.example</code> nach <code>.env</code> kopieren und Domain, <code>STASH_URL</code> und ggf. Medienordner eintragen
-          (Player unter <code>handy.${DOMAIN}</code>).</li>
+        <li>ZIP <code>handy-player-linux-v1.19.3.zip</code> von <a href="https://github.com/ScriptHost/funscript-player/releases/latest">GitHub (Releases)</a> herunterladen, auf den Server kopieren und entpacken.</li>
+        <li><code>.env.example</code> nach <code>.env</code> kopieren und <code>STASH_URL</code>, ggf. Port und Medienordner eintragen.</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
-        <li>Bauen und starten – fertig unter <code>https://handy.deine-domain</code>.</li>
+        <li>Starten – das fertige Image kommt von GitHub. Der Player läuft unter <code>http://server:8080</code>; für HTTPS einen Reverse Proxy davor setzen.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.19.2.zip
+<pre><code>unzip handy-player-linux-v1.19.3.zip
 cd handy-player
 cp .env.example .env   # einmal, dann anpassen
-docker compose up -d --build</code></pre>
-        <p class="note">Bluetooth und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat (z. B. Traefik).
+docker compose pull && docker compose up -d
+# Update später: docker compose pull && docker compose up -d</code></pre>
+        <p class="note">Bluetooth und „Als App installieren“ brauchen HTTPS mit gültigem Zertifikat (Reverse Proxy wie Traefik, Caddy oder nginx).
           Sollen eigene Scripts neben den Videos landen, Medienordner ohne <code>:ro</code> einbinden – sonst legt der
           Player sie auf dem Server ab.</p>
       </div>
@@ -494,7 +451,7 @@ docker compose up -d --build</code></pre>
     <h2>Fragen &amp; Begriffe</h2>
     <div class="faq">
       <details><summary>Brauche ich ein eigenes Script für den Satisfyer?</summary><p>Nein. Der Satisfyer nutzt dasselbe Funscript wie die Handy; der Player rechnet daraus die Vibration.</p></details>
-      <details><summary>Warum „Automatisch“ statt original?</summary><p>„Automatisch“ spielt das Script wie das Original, passt nur an, was der Motor nicht schafft, und streckt Scripts mit kleinem Hub auf den vollen Weg – das fühlt sich kräftiger an. Wer jede Feinheit unverändert will, wählt unter ⚙️ → Script „Original + Takt-Schutz“.</p></details>
+      <details><summary>Warum „Automatisch“ statt original?</summary><p>„Automatisch“ spielt das Script wie das Original, passt nur an, was der Motor nicht schafft, und streckt Scripts mit kleinem Hub auf den vollen Weg – das fühlt sich kräftiger an. Wer das Script ganz unverändert will, wählt „Original“; „Sanft“ und „Intensiv“ machen es spürbar ruhiger bzw. kräftiger.</p></details>
       <details><summary>Application ID oder Application Key?</summary><p>Die <b>Application ID</b> (handyfeeling.com → Application IDs) unter ⚙️ → Geräte eintragen – dann nutzt der Player die Handy-API v3. Den geheimen Application Key braucht er nicht.</p></details>
       <details><summary>Warum folgen die Geräte dem Video nicht?</summary><p>Dann ist „Geräte folgen dem Video“ aus (⚙️ → Geräte). Der Player zeigt dafür einen Hinweis mit „Einschalten“ unter dem Video.</p></details>
       <details><summary>Was bedeuten „1 842 Punkte“?</summary><p>Ein Funscript ist eine Liste „zur Zeit X auf Position Y“ – das ist die Anzahl dieser Bewegungspunkte. Mehr Punkte = feinere Bewegung.</p></details>

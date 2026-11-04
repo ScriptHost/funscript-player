@@ -1,4 +1,6 @@
 FROM node:22-bookworm-slim
+LABEL org.opencontainers.image.source="https://github.com/ScriptHost/funscript-player" \
+      org.opencontainers.image.description="Funscript Player – The Handy und Satisfyer synchron zum Video, mit Stash"
 
 # ffmpeg + Intel-Mediatreiber (iHD) für den HQ-Stream über die Intel-Grafik (VAAPI / Quick Sync).
 # Der „non-free“-Treiber enthält alle Encoder-Funktionen der neueren Intel-GPUs (z. B. N100/N305).
@@ -23,7 +25,7 @@ ENV PORT=8080 \
 USER node
 EXPOSE 8080
 
-# Kurzer Abstand: Traefik leitet erst an „healthy“ Container weiter – mit 30 s wartete die Seite nach jedem Start
+# Kurzer Abstand: Reverse Proxys (z. B. Traefik) leiten erst an „healthy“ Container weiter – mit 30 s wartete die Seite nach jedem Start
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
 
 CMD ["node", "server.js"]

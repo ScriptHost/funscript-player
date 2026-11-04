@@ -558,7 +558,11 @@ function targetLevel() {
   let raw = null;
   const src = scriptSource();
   // Video-Script: derselbe Offset wie bei der Handy; Vorlauf gleicht Bluetooth aus
-  if (src) raw = scriptIntensity(src.actions, src.ms + vibeLeadMs() + (src.video ? Number($('offset').value) : 0));
+  if (src) {
+    raw = scriptIntensity(src.actions, src.ms + vibeLeadMs() + (src.video ? Number($('offset').value) : 0));
+    // Video-Script: Sanft schwächer, Intensiv stärker (⚙️ → Script / Auswahl am Video)
+    if (src.video && raw && typeof presetVibeShape === 'function') raw = presetVibeShape(raw);
+  }
   else if (typeof hampLevel === 'function' && hampLevel() !== null) {
     // Direktsteuerung: im Rhythmus-Modus Stöße nachbilden (schneller bei höherer Geschwindigkeit)
     const speed = hampLevel();

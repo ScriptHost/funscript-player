@@ -1,8 +1,9 @@
 'use strict';
 
 // ===========================================================================
-// Selbsttest: Adresse mit ?selbsttest öffnen. Spielt typische Abläufe mit einer SIMULIERTEN Handy
-// durch (es geht nichts an die Handy-Cloud) und zeigt das Ergebnis als Liste. Braucht in der
+// Selbsttest für die Entwicklung: Adresse mit ?selbsttest öffnen (seit 1.19.3 ohne Knopf in der Oberfläche –
+// der Container prüft sich beim Start selbst, siehe lib/selfcheck.js). Spielt typische Abläufe mit einer
+// SIMULIERTEN Handy durch (es geht nichts an die Handy-Cloud) und zeigt das Ergebnis als Liste. Braucht in der
 // Bibliothek mindestens ein Ordner-Video mit und eins ohne Funscript.
 // ===========================================================================
 (async function selfTest() {
@@ -77,9 +78,11 @@
       withScript.click();
       await wait(1800);
       check('Script-Bereich am Video sichtbar', !$('scriptBox').hidden, $('sbName').textContent);
-      check('Standard: Handy und Satisfyer „Automatisch“',
-        $('scenePresetHandy').value === (store.get('scriptPresetHandy', 'auto')) && $('scenePresetVibe').value === store.get('scriptPresetVibe', 'auto'),
-        `${$('scenePresetHandy').value} / ${$('scenePresetVibe').value}`);
+      const activeInt = document.querySelector('#scriptBox [data-preset-scene] button.active')?.dataset.preset;
+      check('Script-Intensität: Standard aktiv, vier Knöpfe', activeInt === presetDefault && document.querySelectorAll('#scriptBox [data-preset-scene] button').length === 4, activeInt);
+      $('ovInt').click();
+      check('🎚 in der Player-Leiste öffnet die Intensität', !$('intPop').hidden);
+      document.body.click();
       check('Finale-Knopf nicht im Geräte-Fenster', (() => { openDevices(); const v = getComputedStyle($('finaleBtn')).display === 'none'; closeDevices(); return v; })());
       const fine = document.querySelector('.dev-fine[data-fine="handy"]');
       check('Feineinstellung Handy nur im Geräte-Fenster (Status oben), nicht am Video', (() => {

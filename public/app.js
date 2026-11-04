@@ -25,22 +25,17 @@ let stashSession = null; // aktuelle Stash-Szene: { id, markers, resume, played,
 // Zeitachse des Films. Beim HQ-Stream (hq.js) startet das <video> nach jedem Spulen
 // wieder bei 0 – die echte Position ist dann hq.offset + video.currentTime.
 const hq = { active: false, offset: 0, duration: 0, src: '', url: '' };
-// Fernbedienung (remote.js): ist sie an, kommen Zeit, Dauer und „läuft“ vom Bildschirm
-const remote = { on: false, target: '', state: null, stateAt: 0, srcKey: '' };
-let nowPlaying = null; // was hier läuft (für die Fernbedienung): { kind: 'stash'|'media'|'file', … }
+let nowPlaying = null; // was hier läuft: { kind: 'stash'|'media'|'file', … }
 function mediaTime() {
-  if (remote.on) return remoteTime();
   return (hq.active ? hq.offset : 0) + (video.currentTime || 0);
 }
 function seekTo(sec) {
   const max = duration() / 1000;
   sec = Math.max(0, max ? Math.min(sec, max - 0.5) : sec);
-  if (remote.on) remoteCmd('seek', sec);
-  else if (hq.active) hqRestart(sec); else video.currentTime = sec;
+  if (hq.active) hqRestart(sec); else video.currentTime = sec;
 }
-// Läuft das Video gerade – hier oder (als Fernbedienung) auf dem Bildschirm?
 function videoPlaying() {
-  return remote.on ? remotePlaying() : !video.paused && !video.ended;
+  return !video.paused && !video.ended;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +61,8 @@ function openSettings(section) {
   showView('settings');
   // Ziel liegt bei den erweiterten Einstellungen -> diese einblenden
   if (section && $(section)?.closest('.adv') && typeof setAdvMode === 'function') setAdvMode(true);
+  // Zugeklappte Bereiche auf dem Weg zum Ziel öffnen
+  for (let d = section && $(section)?.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
   if (section) $(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   else window.scrollTo(0, 0);
 }
@@ -106,7 +103,7 @@ function setMode(mode) {
   if (mode === 'control') {
     showView('control');
   } else {
-    showView(location.hash === '#player' && (video.src || remote.on) ? 'player' : 'library');
+    showView(location.hash === '#player' && video.src ? 'player' : 'library');
     // Streamen: Geräte folgen dem Video nicht mehr
     if (mode === 'stream' && handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
     resync();
@@ -133,7 +130,7 @@ function backToLibrary() {
 window.addEventListener('popstate', () => {
   if (location.hash !== '#player' && document.body.dataset.view === 'player') {
     showView('library');
-  } else if (location.hash === '#player' && (video.src || remote.on) && appMode !== 'control') {
+  } else if (location.hash === '#player' && video.src && appMode !== 'control') {
     showView('player');
   }
 });
@@ -159,7 +156,7 @@ function goLibrary() {
 $('menuLibrary').addEventListener('click', goLibrary);
 // Titel „Funscript Player“: zur Bibliothek – steht man schon dort und läuft ein Video, zurück zum Video
 function goHome() {
-  const loaded = remote.on ? !!remote.state?.src : !!video.currentSrc && !!nowPlaying;
+  const loaded = !!video.currentSrc && !!nowPlaying;
   if (document.body.dataset.view === 'library' && loaded) openPlayer();
   else goLibrary();
 }
@@ -224,7 +221,6 @@ document.addEventListener('handy-owner', (e) => {
 // ---------------------------------------------------------------------------
 // hqSrc: Quelle für den HQ-Stream des Servers ("stash:<id>" / "media:<pfad>"), sonst leer
 function loadVideo(src, name, hqSrc = '') {
-  if (remote.on) remoteLeave(false); // hier abspielen = Fernbedienung beenden
   if (typeof saveStashActivity === 'function') saveStashActivity();
   // Neues Video = Geräte wieder aktiv (auch nach „Geräte pausieren“ oder STOPP beim vorigen)
   if (typeof setVibePaused === 'function' && vibePaused) setVibePaused(false);
@@ -248,7 +244,6 @@ function loadVideo(src, name, hqSrc = '') {
 
 // Video schließen (✕ am Mini-Player): anhalten, Geräte stoppen, Mini-Player weg
 function closeVideo() {
-  if (remote.on) return remoteLeave(true);
   if (typeof saveStashActivity === 'function') saveStashActivity();
   video.pause();
   if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
@@ -352,14 +347,13 @@ function resync() {
 async function doSync() {
   if (!handy.connected || !script || (typeof finDetached === 'function' && finDetached())) return;
   try {
-    // Fernbedienung: die Handy steuert der Bildschirm, wenn sie dort verbunden ist (genauer)
-    const playing = syncActive() && videoPlaying() && !vibePaused && (remote.on ? !remote.state?.handy : video.readyState >= 3);
+    const playing = syncActive() && videoPlaying() && !vibePaused && video.readyState >= 3;
     if (!playing) {
       if (handy.owner === 'video') await handy.stop();
       return;
     }
     // Andere Geschwindigkeit als 1×: mit API v3 läuft die Handy mit, mit v2 pausiert sie
-    const rate = remote.on ? (remote.state?.rate || 1) : video.playbackRate;
+    const rate = video.playbackRate;
     if (rate !== 1 && !handy.v3) {
       if (handy.owner === 'video') await handy.stop();
       log('Handy pausiert: Wiedergabegeschwindigkeit muss 1× sein – mit Application ID (⚙️ → Geräte) läuft sie mit.');
@@ -384,7 +378,7 @@ async function doSync() {
   }
 }
 
-['playing', 'pause', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
+['playing', 'pause', 'seeking', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
 
 // Script nach den Script-Werkzeugen (Hub strecken, Spitzen glätten) – siehe tools.js
 function toolActions(target = 'handy') {
@@ -401,8 +395,10 @@ function vibeActions() {
 }
 
 // Für den Vibrator: laufendes Video-Script und aktuelle Stelle (nur im Modus „Sync“)
+// Springt oder lädt das Video (seeking/waiting), ruhen die Geräte – sonst vibriert der Satisfyer
+// schon mit der neuen Stelle, während das Bild noch steht.
 function videoScriptSource() {
-  if (!syncActive() || !script || !videoPlaying()) return null;
+  if (!syncActive() || !script || !videoPlaying() || video.seeking || video.readyState < 3) return null;
   return { actions: vibeActions(), ms: mediaTime() * 1000, video: true };
 }
 
@@ -432,7 +428,6 @@ function heatColor(speed) {
 }
 
 function duration() {
-  if (remote.on && remote.state?.duration) return remote.state.duration * 1000;
   if (hq.active && hq.duration) return hq.duration * 1000;
   if (Number.isFinite(video.duration) && video.duration > 0) return video.duration * 1000;
   return script ? script.actions[script.actions.length - 1].at : 0;
@@ -578,7 +573,7 @@ updateKeyHint();
 // „Läuft gerade“: unten in Bibliothek/Einstellungen/Steuern, solange ein Video geladen ist
 // ---------------------------------------------------------------------------
 function updateNowBar() {
-  const loaded = remote.on ? !!remote.state?.src : !!video.currentSrc && !!nowPlaying;
+  const loaded = !!video.currentSrc && !!nowPlaying;
   // Beim Stöbern: Mini-Player in der Ecke (Standard) oder nur die Leiste
   const corner = store.get('browseMini', 'left');
   // Läuft es schon im System-Fenster (Bild-in-Bild), kein zweites Fenster – nur die Leiste
@@ -598,16 +593,19 @@ setInterval(updateNowBar, 500);
 const hasHandy = () => handy.connected || (typeof strokers === 'function' && strokers().length > 0);
 const hasVibe = () => typeof allVibes === 'function' && allVibes().some((d) => !d.linear?.length);
 let lastDevState = '';
+const HANDY_SLOW_MS = 600; // ab dieser Antwortzeit der Handy-Cloud: Status gelb
 function updateDevClasses() {
   const h = hasHandy(), v = hasVibe();
   if (lastDevState !== `${h}${v}`) { lastDevState = `${h}${v}`; if (typeof toolsChanged === 'function') toolsChanged(); }
   document.body.classList.toggle('has-handy', h);
   document.body.classList.toggle('has-vibe', v);
   document.body.classList.toggle('has-dev', h || v);
-  // Status oben: ein Wort für alle Geräte
-  $('devState').textContent = h || v ? 'verbunden' : 'getrennt';
-  $('devState').className = 'pill ' + (h || v ? 'on' : 'off');
-  $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}Handy-Cloud: ${handy.rtt} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
+  // Status oben: ein Wort für alle Geräte; Handy-Cloud spürbar langsam = gelb
+  const slow = handy.connected && Math.max(handy.rtt || 0, handy.lat || 0) > HANDY_SLOW_MS;
+  $('devState').textContent = h || v ? (slow ? 'verbunden · langsam' : 'verbunden') : 'getrennt';
+  $('devState').className = 'pill ' + (h || v ? (slow ? 'busy' : 'on') : 'off');
+  $('devChip').title = slow ? `Handy-Cloud antwortet langsam (${Math.round(Math.max(handy.rtt || 0, handy.lat || 0))} ms) – Befehle kommen verzögert an` : 'Geräte – antippen für Verbinden, Offset, Hub, Stärke';
+  $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}Handy-Cloud: ${Math.round(Math.max(handy.rtt, handy.lat || 0))} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
   // Verbinden-Knopf zeigt den Zustand (verbunden = grau, „neu verbinden“)
   const btn = $('connect');
   if (!btn.disabled) {
@@ -615,7 +613,7 @@ function updateDevClasses() {
     btn.classList.toggle('secondary', handy.connected);
   }
   // Video ohne Funscript und „Keine Steuerung“: Geräte-Regler und Geräte-Knöpfe sind nutzlos
-  const loaded = remote.on ? !!remote.state?.src : !!nowPlaying;
+  const loaded = !!nowPlaying;
   document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode === 'self'));
   // Hinweis im Player: Gerät da, Video mit Script, aber Sync aus
   $('syncHint').hidden = !(h || v) || !script || appMode !== 'stream' || document.body.dataset.view !== 'player';
@@ -667,7 +665,7 @@ function applyAutoPip() {
   video.autoPictureInPicture = on;
   try {
     navigator.mediaSession?.setActionHandler('enterpictureinpicture', on ? () => {
-      if (!document.pictureInPictureElement && videoPlaying() && !remote.on) video.requestPictureInPicture().catch(() => {});
+      if (!document.pictureInPictureElement && videoPlaying()) video.requestPictureInPicture().catch(() => {});
     } : null);
   } catch { /* Browser kennt die Aktion nicht */ }
 }
@@ -685,7 +683,7 @@ video.addEventListener('leavepictureinpicture', () => {
 // Aus dem Vollbild in den Hintergrund: das Video selbst ins kleine Fenster
 // (sonst nimmt Android den ganzen Vollbild-Bereich – der bleibt im Hintergrund schwarz)
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'hidden' || !$('autoPip').checked || !videoPlaying() || remote.on) return;
+  if (document.visibilityState !== 'hidden' || !$('autoPip').checked || !videoPlaying()) return;
   if (!document.pictureInPictureElement && document.fullscreenElement) {
     video.requestPictureInPicture().catch(() => {});
   }
@@ -871,7 +869,6 @@ const drop = $('drop');
 drop.addEventListener('drop', (e) => { e.preventDefault(); e.stopPropagation(); handleFiles(e.dataTransfer.files); });
 document.addEventListener('dragover', (e) => e.preventDefault());
 document.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
-$('fileInput').addEventListener('change', (e) => { handleFiles(e.target.files); e.target.value = ''; });
 
 // Beim Schließen der Seite Handy anhalten
 window.addEventListener('pagehide', () => {

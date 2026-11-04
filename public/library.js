@@ -71,7 +71,6 @@ function setSource(src) {
   const stash = src === 'stash';
   $('browseTabs').hidden = !stash;
   $('stashSort').hidden = !stash;
-  $('stashRandom').hidden = !stash;
   renderSavedFilters();
   setBrowse(stash ? lib.browse : 'scenes');
 }
@@ -87,7 +86,6 @@ function setBrowse(browse) {
 
 function refresh() {
   renderFilterChips();
-  renderContinue();
   if (lib.browse !== 'scenes') return renderFacets(true);
   if (lib.source === 'stash') fetchScenes(true);
   else renderFolder();
@@ -280,22 +278,6 @@ function sceneCard(s) {
   return card;
 }
 
-// „Weiterschauen“: angefangene Stash-Szenen, nur in der ungefilterten Startansicht
-async function renderContinue() {
-  const box = $('continueRow');
-  const plain = store.get('showContinue', false) // in den Einstellungen einschaltbar, standardmäßig aus
-    && lib.source === 'stash' && lib.browse === 'scenes' && !lib.saved && !$('search').value.trim()
-    && !Object.values(lib.filters).some((l) => l.length);
-  if (!plain || !lib.stashStatus?.ok) { box.hidden = true; return; }
-  try {
-    const res = await fetch('/api/stash/scenes?' + new URLSearchParams({ continue: '1', per_page: 12, page: 1, only2d: store.get('only2d', false) ? '1' : '0' }));
-    if (!res.ok) throw new Error();
-    const { scenes } = await res.json();
-    box.hidden = !scenes.length;
-    box.querySelector('.continue-list').replaceChildren(...scenes.map(sceneCard));
-  } catch { box.hidden = true; }
-}
-
 // ---------------------------------------------------------------------------
 // Gespeicherte Filter aus Stash (z. B. „2D“, „VR Script“) als Leiste
 // ---------------------------------------------------------------------------
@@ -450,7 +432,6 @@ function renderFolder() {
 }
 
 async function openFolderItem(it) {
-  if (remote.on) return remoteOpen({ kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder });
   openPlayer();
   loadVideo(mediaUrl(it.video), it.name, 'media:' + it.video);
   nowPlaying = { kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder };
@@ -462,7 +443,6 @@ async function openFolderItem(it) {
 // Stash-Szene öffnen + Infos im Player
 // ---------------------------------------------------------------------------
 async function openStashScene(s) {
-  if (remote.on) return remoteOpen({ kind: 'stash', id: s.id, title: s.title, interactive: s.interactive });
   openPlayer();
   loadVideo(`/stash/scene/${s.id}/stream`, s.title, 'stash:' + s.id);
   video.poster = `/stash/scene/${s.id}/screenshot`; // Standbild statt Schwarz, bis Play gedrückt wird
@@ -531,7 +511,7 @@ async function loadSceneScript(src, origName, origUrl) {
 
 // Script-Bereich im Geräte-Kasten
 function renderScriptBox() {
-  const show = !!(script || suspended || scriptMeta.hasOwn) && !!nowKey() && !remote.on;
+  const show = !!(script || suspended || scriptMeta.hasOwn) && !!nowKey();
   $('scriptBox').hidden = !show;
   $('selfResume').hidden = $('sbResume').hidden = !suspended;
   if (!show) return;
@@ -542,7 +522,7 @@ function renderScriptBox() {
   $('sbChoice').hidden = !(scriptMeta.hasOrig && scriptMeta.hasOwn) || !!suspended;
   document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', (b.dataset.choice === 'own') === scriptMeta.own));
   document.querySelector('.sb-presets').hidden = !script;
-  $('sbSelf').hidden = $('sbHot').hidden = $('sbCut').hidden = !script;
+  $('sbSelf').hidden = $('sbHot').hidden = !script;
   $('sbDelete').hidden = !scriptMeta.hasOwn;
 }
 document.querySelectorAll('#sbChoice button').forEach((b) => b.addEventListener('click', () => {
@@ -604,36 +584,6 @@ $('sbHot').addEventListener('click', () => {
   log(`🔥 Intensive Stelle ${n + 1}/${spots.length} bei ${fmtDuration(spots[n])}`);
 });
 
-// ✂ Abschnitt anpassen: Bereich wählen, Änderung nur dort, Ergebnis als eigenes Script (Original bleibt)
-const cut = { from: null, to: null };
-function cutShow() {
-  $('cutRange').textContent = `${cut.from === null ? '–' : fmtDuration(cut.from)} … ${cut.to === null ? '–' : fmtDuration(cut.to)}`;
-}
-$('sbCut').addEventListener('click', () => { $('sbCutBox').hidden = !$('sbCutBox').hidden; cutShow(); });
-$('cutFrom').addEventListener('click', () => { cut.from = mediaTime(); cutShow(); });
-$('cutTo').addEventListener('click', () => { cut.to = mediaTime(); cutShow(); });
-function cutApplyTo(actions, from, to, action) {
-  const inside = (a) => a.at >= from && a.at <= to;
-  if (action === 'later' || action === 'earlier') {
-    const d = action === 'later' ? 100 : -100;
-    return actions.map((a) => (inside(a) ? { at: Math.max(0, a.at + d), pos: a.pos } : a)).sort((x, y) => x.at - y.at);
-  }
-  if (action === 'mute') {
-    return [...actions.filter((a) => !inside(a)), { at: from, pos: 50 }, { at: to, pos: 50 }].sort((x, y) => x.at - y.at);
-  }
-  if (action === 'half') {
-    const halved = actions.filter(inside).filter((_, i) => i % 2 === 0); // jeder zweite Umkehrpunkt fällt weg
-    return [...actions.filter((a) => !inside(a)), ...halved].sort((x, y) => x.at - y.at);
-  }
-  const k = action === 'soft' ? 0.6 : 1.35;
-  return actions.map((a) => (inside(a) ? { at: a.at, pos: Math.max(0, Math.min(100, Math.round(50 + (a.pos - 50) * k))) } : a));
-}
-$('cutApply').addEventListener('click', () => {
-  if (!script || cut.from === null || cut.to === null || cut.to <= cut.from) return log('Bitte erst „ab hier“ und „bis hier“ setzen (Ende nach dem Anfang).', true);
-  saveScriptToLibrary(cutApplyTo(script.actions, Math.round(cut.from * 1000), Math.round(cut.to * 1000), $('cutAction').value), 'all');
-  $('sbCutBox').hidden = true;
-});
-
 // Neuer Mitschnitt nur über einen Zeitabschnitt: das alte eigene Script davor und danach bleibt
 function mergeSection(old, neu) {
   if (!neu.length) return old;
@@ -683,7 +633,6 @@ async function stashAction(action, body) {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
     });
     if (!res.ok) throw new Error(await res.text());
-    if (remote.on) remoteCmd('refresh'); // Bildschirm zeigt die Änderung gleich mit
     return await res.json();
   } catch (e) {
     log('Stash: ' + (e.message || e), true);
@@ -870,7 +819,7 @@ window.addEventListener('pagehide', () => saveStashActivity(true));
 
 function saveStashActivity(beacon = false) {
   const s = stashSession;
-  if (!s || remote.on || !mediaTime()) return; // als Fernbedienung meldet der Bildschirm
+  if (!s || !mediaTime()) return;
   const body = JSON.stringify({ resume: mediaTime(), played: s.played });
   s.played = 0;
   s.lastSave = Date.now();
@@ -893,20 +842,6 @@ let searchTimer;
 $('search').addEventListener('input', () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => (lib.browse === 'scenes' ? refresh() : renderFacets(true)), 300);
-});
-
-// Zufällige Szene mit den aktuellen Filtern sofort abspielen
-$('stashRandom').addEventListener('click', async () => {
-  try {
-    const res = await fetch('/api/stash/scenes?' + stashParams({ sort: 'random', seed: Math.floor(Math.random() * 1e8), per_page: 1, page: 1 }));
-    if (!res.ok) throw new Error(await res.text());
-    const { scenes } = await res.json();
-    if (!scenes.length) return log('Keine passende Szene gefunden.', true);
-    await openStashScene(scenes[0]);
-    video.play().catch(() => {});
-  } catch (e) {
-    log(e.message || e, true);
-  }
 });
 
 // ---------------------------------------------------------------------------

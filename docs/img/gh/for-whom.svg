@@ -25,6 +25,6 @@
   
   
   <text x="18" y="40" font-size="19" font-weight="700" fill="#e8eaed">📚 A Stash library</text>
-  <text x="18" y="70" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="18" dy="0">Scenes with Funscript, heatmap</tspan><tspan x="18" dy="24">and intensity at a glance. Watch</tspan><tspan x="18" dy="24">on the TV, control from your</tspan><tspan x="18" dy="24">phone – or in VR via HereSphere.</tspan></text>
+  <text x="18" y="70" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="18" dy="0">Scenes with Funscript, heatmap</tspan><tspan x="18" dy="24">and intensity at a glance.</tspan><tspan x="18" dy="24">Ratings, favourites and markers</tspan><tspan x="18" dy="24">go back to Stash – also from VR</tspan><tspan x="18" dy="24">via HereSphere.</tspan></text>
 </g>
 </svg>

@@ -37,6 +37,11 @@ const TOUCH_TARGETS = {
     handyOff() { selfCtl.handyOn = false; selfUI(); },
     vibe(v) { selfCtl.vibe = v; selfUI(); },
     vibeOff() { selfCtl.vibe = 0; selfUI(); },
+    // Ohne Finger zeigt die Fläche die Stufe der Regler darüber (Satisfyer-Stärke bzw. Handy-Tempo)
+    level() {
+      if (store.get('touchVibe', true) && hasVibe() && selfCtl.vibe > 0) return selfCtl.vibe;
+      return selfCtl.handyOn && hasHandy() ? selfCtl.speed : null;
+    },
   },
 };
 
@@ -145,8 +150,10 @@ function setupTouchPad(pad) {
     if (touchMode() !== 'pos') target.handyOff();
     target.vibeOff();
     cur = null;
-    show(null);
+    show(target.level?.() ?? null);
   };
+  // Regler über der Fläche verschoben -> Fläche zeigt die neue Stufe (solange kein Finger drauf ist)
+  if (target.level) document.addEventListener('self-ui', () => { if (!down) show(target.level()); });
 
   area.addEventListener('pointerdown', (e) => {
     e.preventDefault();

@@ -5,7 +5,9 @@ const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { startServer, listen, wait } = require('./helpers');
+const { startServer } = require('./helpers');
+const { runSelfcheck } = require('../lib/selfcheck');
+const { newer } = require('../lib/update');
 
 let srv;
 test.before(async () => {
@@ -68,22 +70,6 @@ test('Eigenes Script: neben das Video, eigenes ersetzen, Original nie anfassen, 
   assert.strictEqual((await fetch(srv.base + '/api/userscript?src=media:Filme/mit.mp4', { method: 'DELETE' })).status, 404);
 });
 
-test('Fernbedienung: Bildschirm sichtbar, Befehl kommt mit Namen an', async () => {
-  const screen = listen(srv.base + '/api/remote/events?id=screen1&name=TV&screen=1');
-  const phone = listen(srv.base + '/api/remote/events?id=phone1&name=Pixel&screen=0');
-  await wait(300);
-  const list = phone.events.filter((e) => e.event === 'screens').pop();
-  assert.ok(list.data.list.some((s) => s.id === 'screen1' && s.name === 'TV'));
-  await put('/api/remote/cmd', { from: 'phone1', to: 'screen1', cmd: 'vol', arg: 40 }, 'POST');
-  await put('/api/remote/state', { from: 'screen1', state: { t: 12, playing: true } }, 'POST');
-  await wait(200);
-  const cmd = screen.events.find((e) => e.event === 'cmd');
-  assert.deepStrictEqual([cmd.data.cmd, cmd.data.arg, cmd.data.fromName], ['vol', 40, 'Pixel']);
-  assert.ok(phone.events.some((e) => e.event === 'state' && e.data.state.t === 12));
-  assert.strictEqual((await put('/api/remote/cmd', { from: 'screen1', to: 'phone1', cmd: 'play' }, 'POST')).status, 404, 'nur „kicked“ an Nicht-Bildschirme');
-  screen.close(); phone.close();
-});
-
 test('Eigenes Script nur neben Videos', async () => {
   fs.writeFileSync(path.join(srv.media, 'Filme', 'notiz.txt'), 'x');
   const r = await put('/api/userscript', { src: 'media:Filme/notiz.txt', funscript: { actions: [] } }, 'POST');
@@ -133,14 +119,24 @@ test('HereSphere: nur VR, Passwort', async () => {
   assert.ok((await urls()).length);
 });
 
-test('Sicherung: herunterladen und wieder einspielen', async () => {
-  const b = await (await fetch(srv.base + '/api/backup')).json();
-  assert.strictEqual(b.app, 'funscript-player');
-  assert.ok(b.scripts['stash:42'], 'eigenes Script ist dabei');
-  await put('/api/prefs', { offset: 999 });
-  assert.strictEqual((await put('/api/backup', b)).status, 204);
-  assert.strictEqual((await (await fetch(srv.base + '/api/prefs')).json()).offset, b.prefs.offset);
-  assert.strictEqual((await put('/api/backup', { foo: 1 })).status, 400);
+test('Fernbedienung und Sicherung sind raus (1.19.3)', async () => {
+  for (const p of ['/api/backup', '/api/remote/time']) assert.strictEqual((await fetch(srv.base + p)).status, 404, p);
+});
+
+test('Selbsttest beim Start: alles grün', async () => {
+  const bad = (await runSelfcheck()).filter((c) => !c.ok);
+  assert.deepStrictEqual(bad, []);
+});
+
+test('Update-Hinweis: Versionen vergleichen', () => {
+  assert.ok(newer('1.19.10', '1.19.9'));
+  assert.ok(newer('1.20', '1.19.3'));
+  assert.ok(!newer('1.19.3', '1.19.3'));
+  assert.ok(!newer('1.19.2', '1.19.3'));
+});
+
+test('Stiller Selbsttest der Oberfläche wird angenommen', async () => {
+  assert.strictEqual((await put('/api/clientcheck', { fails: [], ua: 'test' }, 'POST')).status, 204);
 });
 
 test('HereSphere abschaltbar', async () => {

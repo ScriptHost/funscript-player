@@ -1,5 +1,33 @@
 # Änderungen
 
+English: [CHANGELOG.en.md](CHANGELOG.en.md)
+
+## 1.19.3 – 04.11.2026
+
+- **Script-Intensität, eine Auswahl für beide Geräte:** Original · Automatisch · Sanft · Intensiv. *Original* = Datei ganz
+  unverändert, *Sanft* spürbar sanfter (Hub 20–80 %, max. 240 %/s, Satisfyer schwächer und ruhiger), *Intensiv* spürbar
+  stärker (voller Hub, ruhige Stellen im doppelten/dreifachen Takt, Satisfyer kräftiger). Pro Szene direkt am Video – vier
+  Knöpfe mit Mini-Heatmap als Vorschau – oder über 🎚 in der Player-Leiste. „Original + Takt-Schutz“, „Eigene“ und
+  „getrennt einstellen“ entfallen (alte Wahl wird einmalig übernommen)
+- **Spulen/Laden:** Handy und Satisfyer ruhen, solange das Video springt oder lädt, statt dem Bild vorauszuvibrieren
+- **Selbst steuern:** die Touch-Fläche folgt dem Stärke-Regler darüber
+- **Bild „Automatisch“ natürlicher:** Hochrechnen auf dem Server nur leicht entrauscht und kaum geschärft, im Browser
+  höchstens 25 % Schärfe, Kontrast und Farbe unverändert
+- **Einstellungen:** jeder Bereich aufklappbar, Erklärungen hinter ⓘ; „Sicherheit“ heißt jetzt **Notaus**, neu mit
+  **Auto-Stopp** nach X Minuten ohne Bedienung (wenn kein Video läuft)
+- **Status gelb**, wenn die Handy-Cloud langsam antwortet
+- **„Update verfügbar“** in ⚙️ → System (und Punkt an der Version), sobald es auf GitHub ein neueres Release gibt
+- **Selbsttest beim Start** in `docker logs` (Server, Skripte der Oberfläche, alle Bedienelemente, Script-Intensität); die
+  Oberfläche prüft sich still und meldet nur Fehler – der Knopf ist weg (`?selbsttest` bleibt für die Entwicklung)
+- **Einstellungen: der Server ist maßgeblich** – ein gelöschtes Volume `handy-data` ist ein echter Neuanfang (der Browser
+  lädt seine alten Kopien, z. B. den Connection Key, nicht mehr hoch)
+- **Entfernt:** Fernbedienung, Script-Baukasten, „Abschnitt anpassen“, Demo-Modus, Weiterschauen, Knöpfe der Bibliothek
+  (Zufall, FapTap, Pornhub, Datei, eigene Links), Sicherung (alles liegt im Volume `handy-data`), Windows-Skripte, Option
+  „Vollbild nur mit dem Video“ (jetzt immer)
+- **Docker:** compose ohne Traefik (Port 8080, beliebiger Reverse Proxy davor), fertiges Image auf GitHub
+  (`ghcr.io/scripthost/funscript-player`) – Update mit `docker compose pull && docker compose up -d`
+- GitHub-Releases auf Englisch, neu erzeugt aus CHANGELOG.en.md
+
 ## 1.19.2 – 01.11.2026
 
 - Standards: Scripts laufen auch bei der Handy **Automatisch** (änderbar unter ⚙️ → Script); 🔥 Finale neu: Hub 10–80 %, Vibration 50 %, halbes Tempo, nach 240 s zurück – alte Standardwerte werden einmalig umgestellt, Hinweis „Neu in 1.19.2“

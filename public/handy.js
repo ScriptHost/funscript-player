@@ -22,7 +22,8 @@ class Handy {
     this.serverOffset = 0;
     this.mode = null;      // 0 = HAMP, 1 = HSSP
     this.hsspUrl = null;   // aktuell auf der Handy geladenes Script
-    this.owner = null;     // 'video' | 'manual' | 'self' | 'pattern' | 'sequence' | 'finale'
+    this.owner = null;     // 'video' | 'manual' | 'self' | 'pattern' | 'finale'
+    this.lat = 0;          // gemittelte Antwortzeit der Handy-Cloud (ms)
     this.uploadCache = new Map(); // CSV -> URL, spart wiederholte Uploads
   }
 
@@ -34,11 +35,15 @@ class Handy {
     const headers = { 'X-Connection-Key': this.key, 'Content-Type': 'application/json', Accept: 'application/json' };
     if (v3) headers['X-Api-Key'] = this.appId;
     let res;
+    const t0 = Date.now();
     try {
       res = await fetch((v3 ? HANDY_API_V3 : HANDY_API) + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
     } catch {
       throw Object.assign(new Error('Handy-Cloud nicht erreichbar – Internet?'), { kind: 'net' });
     }
+    // Antwortzeit gleitend mitteln – langsame Cloud = Status gelb (app.js)
+    const ms = Date.now() - t0;
+    if (!path.includes('setup')) this.lat = this.lat ? this.lat * 0.7 + ms * 0.3 : ms; // Script-Laden dauert immer länger
     const json = await res.json().catch(() => ({}));
     if (!res.ok || json.error) {
       const kind = res.status === 401 || res.status === 403 ? 'auth' : res.status === 429 ? 'limit' : '';
@@ -222,13 +227,13 @@ function claimHandy(owner) {
 const $ = (id) => document.getElementById(id);
 // Einstellungen: im Browser (localStorage) – die gemeinsamen zusätzlich auf dem Server,
 // damit alle Geräte dieselben haben. Pro Gerät bleiben Bild/HQ, Kopfzeile, Bildschirmsperre,
-// Ton, Fernbedienungs-Name, Bluetooth-Geräte und welche Ansicht gerade offen ist.
+// Ton, Bluetooth-Geräte und welche Ansicht gerade offen ist.
 const SHARED_PREFS = new Set([
   'key', 'appId', 'autoConnect', 'autoSync', 'invert', 'btLead', 'offset', 'offsets', 'min', 'max',
-  'capSpeed', 'stopButton', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeSmooth', 'vibeMap2', 'vibeSource',
+  'capSpeed', 'stopButton', 'autoStop', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeSmooth', 'vibeMap2', 'vibeSource',
   'bleKnownNames', 'scriptTools', 'scriptPreset', 'scenePresets', 'finale', 'hud',
-  'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts', 'showContinue',
-  'offsetInfo', 'scriptChoice', 'scriptPresetHandy', 'scriptPresetVibe', 'skipSec', 'selfStroke', 'selfLo', 'selfHi', 'libLinks', 'presetLink', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
+  'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts',
+  'offsetInfo', 'scriptChoice', 'scriptPresetHandy', 'scriptPresetVibe', 'scriptIntensity', 'skipSec', 'selfStroke', 'selfLo', 'selfHi', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
 ]);
 const isSharedPref = (k) => SHARED_PREFS.has(k) || k.startsWith('savedFilter.');
 let prefsPending = {}, prefsTimer = null;
@@ -250,8 +255,9 @@ function flushPrefs() {
 window.addEventListener('pagehide', () => { if (Object.keys(prefsPending).length) flushPrefs(); });
 
 // Beim Laden: gemeinsame Einstellungen vom Server übernehmen – synchron, weil die anderen
-// Skripte sie sofort lesen. Hat der Server noch keine (erstes Gerät nach dem Update),
-// schickt dieses Gerät seine bisherigen hoch.
+// Skripte sie sofort lesen. Seit 1.19.3 ist der Server (Volume handy-data) maßgeblich: Was er nicht
+// hat, löscht der Browser – ein gelöschtes Volume ist ein echter Neuanfang (vorher lud der Browser
+// seine alten Kopien, z. B. den Connection Key, wieder hoch).
 (function loadSharedPrefs() {
   try {
     const xhr = new XMLHttpRequest();
@@ -259,15 +265,9 @@ window.addEventListener('pagehide', () => { if (Object.keys(prefsPending).length
     xhr.send();
     if (xhr.status !== 200) return;
     const prefs = JSON.parse(xhr.responseText || '{}');
-    if (Object.keys(prefs).length) {
-      for (const [k, v] of Object.entries(prefs)) if (isSharedPref(k)) localStorage.setItem('hp.' + k, JSON.stringify(v));
-      return;
-    }
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i).replace(/^hp\./, '');
-      if (isSharedPref(k)) prefsPending[k] = store.get(k);
-    }
-    if (Object.keys(prefsPending).length) flushPrefs();
+    Object.keys(localStorage).filter((k) => k.startsWith('hp.') && isSharedPref(k.slice(3)) && !(k.slice(3) in prefs))
+      .forEach((k) => localStorage.removeItem(k));
+    for (const [k, v] of Object.entries(prefs)) if (isSharedPref(k)) localStorage.setItem('hp.' + k, JSON.stringify(v));
   } catch { /* ohne Server: nur lokal */ }
 })();
 

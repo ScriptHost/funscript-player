@@ -6,7 +6,6 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const vm = require('vm');
-const http = require('http');
 const { spawn } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
@@ -52,26 +51,5 @@ async function startServer(env = {}) {
   return { base, media, data, stop: () => { proc.kill(); fs.rmSync(tmp, { recursive: true, force: true }); } };
 }
 
-// Server-Sent Events mitlesen: liefert { events: [{event, data}], close() }
-function listen(url) {
-  const events = [];
-  const req = http.get(url, (res) => {
-    let buf = '';
-    res.setEncoding('utf8');
-    res.on('data', (chunk) => {
-      buf += chunk;
-      let idx;
-      while ((idx = buf.indexOf('\n\n')) >= 0) {
-        const block = buf.slice(0, idx);
-        buf = buf.slice(idx + 2);
-        const ev = /^event: (.+)$/m.exec(block), data = /^data: (.+)$/m.exec(block);
-        if (ev && data) events.push({ event: ev[1], data: JSON.parse(data[1]) });
-      }
-    });
-  });
-  req.on('error', () => {});
-  return { events, close: () => req.destroy() };
-}
-
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-module.exports = { loadFunctions, startServer, listen, wait, ROOT };
+module.exports = { loadFunctions, startServer, wait, ROOT };
