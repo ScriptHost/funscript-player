@@ -41,7 +41,8 @@ async function enterNativeFullscreen() {
 }
 async function enterFullscreen() {
   if (isFs() || nativeFs) return;
-  if (video.requestFullscreen) return enterNativeFullscreen();
+  // 1.19.11: wieder eigenes Vollbild mit allen Knöpfen und Einpassen/Füllen (Nutzerwunsch) – das echte
+  // Video-Vollbild (enterNativeFullscreen) brachte nur die Browser-Leiste. Bild-in-Bild dafür per ⧉.
   stage.classList.add('fs');
   document.body.classList.add('fs-open');
   $('ovFs').textContent = '✕';

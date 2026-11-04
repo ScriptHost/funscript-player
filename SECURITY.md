@@ -5,7 +5,8 @@ This is a hobby project, maintained in spare time – but security reports are w
 ## Reporting a problem
 
 Please report security problems **privately**, not as a public issue: open the **Security** tab of this repository and
-choose **Report a vulnerability**. Describe what you found and how to reproduce it – no real keys, passwords or private
+choose **Report a vulnerability** – direct link:
+https://github.com/ScriptHost/funscript-player/security/advisories/new. Describe what you found and how to reproduce it – no real keys, passwords or private
 addresses, please.
 
 I'll look at it as soon as I can and fix real problems in the next release. If you plan to write about it, please wait

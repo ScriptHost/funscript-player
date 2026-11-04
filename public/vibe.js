@@ -161,10 +161,10 @@ async function addBluetoothDevice(all = false) {
 }
 
 // Gerät verbinden und bei kurzen Abbrüchen automatisch wieder verbinden
-async function attachBleDevice(device) {
+async function attachBleDevice(device, quiet = false) {
   {
     const dev = new SatisfyerBle(device);
-    log(`Verbinde mit ${dev.name} …`);
+    if (!quiet) log(`Verbinde mit ${dev.name} …`);
     await dev.connect();
     bleDevices.push(dev);
     // Bricht Bluetooth ab, bis zu 5× neu verbinden, bevor das Gerät entfernt wird.
@@ -176,14 +176,12 @@ async function attachBleDevice(device) {
       if (dev.closed) return;
       if (typeof deviceLost === 'function') deviceLost(dev.name);
       if (document.hidden) {
-        log(`${dev.name}: getrennt – verbindet neu, sobald der Player wieder sichtbar ist.`, true);
         await new Promise((resolve) => {
           const back = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', back); resolve(); } };
           document.addEventListener('visibilitychange', back);
         });
       }
       for (let attempt = 1; attempt <= 5; attempt++) {
-        log(`${dev.name}: Verbindung verloren – neuer Versuch ${attempt}/5 …`, true);
         await new Promise((r) => setTimeout(r, 1000 * attempt));
         if (dev.closed) return;
         try {
@@ -196,7 +194,7 @@ async function attachBleDevice(device) {
       }
       const i = bleDevices.indexOf(dev);
       if (i >= 0) bleDevices.splice(i, 1);
-      log(`${dev.name}: Verbindung verloren – der Player versucht es im Hintergrund weiter (10 min).`, true);
+      log(`${dev.name} nicht erreichbar – der Player versucht es im Hintergrund weiter.`);
       renderVibe();
       // Weiter still versuchen (z. B. Satisfyer kurz außer Reichweite oder aus) – ohne neu koppeln
       for (let n = 0; n < 40 && !dev.closed; n++) {
@@ -219,7 +217,7 @@ async function attachBleDevice(device) {
       recover().finally(() => { dev.recovering = false; });
     };
     device.addEventListener('gattserverdisconnected', dev.lost);
-    log(`${dev.name} verbunden.`);
+    if (!quiet) log(`${dev.name} verbunden.`);
   }
   renderVibe();
 }
@@ -235,7 +233,7 @@ async function autoConnectBluetooth() {
   try {
     for (const device of await navigator.bluetooth.getDevices()) {
       if (bleDevices.some((d) => d.device.id === device.id)) continue;
-      attachBleDevice(device).catch(() => { /* nicht in Reichweite – still ignorieren */ });
+      attachBleDevice(device, true).catch(() => { /* nicht in Reichweite – still ignorieren */ });
     }
   } catch { /* nicht unterstützt */ }
 }

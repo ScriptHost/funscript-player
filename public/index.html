@@ -44,11 +44,11 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.9</h3>
+    <h3>✨ Neu in 1.19.11</h3>
     <ul>
-      <li>🔌 „Verbunden“ stimmt jetzt: Der Player prüft die Geräte und verbindet neu. Reißt eins mitten im Video ab, hält das Video an.</li>
-      <li>Offset am Video zugeklappt – antippen zum Ändern. Wischen im Vollbild: links Hub Handy, rechts Stärke Satisfyer. 🔋 Akku in der Geräte-Liste.</li>
-      <li>Bild-in-Bild bleibt nicht mehr grau hängen. „Nach Ton“ ist raus; Satisfyer-Steuerung und Application ID stehen unter ⚙️ → Geräte.</li>
+      <li>⛶ Das <b>eigene Vollbild</b> ist zurück – mit STOPP, Finale, Ton und Einpassen/Füllen. Wischen zeigt den Wert mitten im Bild.</li>
+      <li>Weniger Meldungen beim Start: Verbinden läuft still, nur der Status oben zeigt es. Beim Videostart erst das Vorschaubild.</li>
+      <li>Mitschnitt klappt auch nur mit dem Satisfyer; im Geräte-Fenster steht, ob Handy-API v2 oder v3 läuft.</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -120,6 +120,10 @@
           <!-- Mini-Player beim Stöbern -->
           <div id="miniCtl" class="mini-ctl"><button id="miniPlay" aria-label="Abspielen / Pause">❚❚</button><button id="miniOpen" aria-label="Zum Video">⤢</button><button id="miniClose" aria-label="Video schließen" title="Video schließen – Geräte halten an">✕</button></div>
           <!-- Bedienung im Vollbild -->
+          <!-- 1.19.11: Wert beim Wischen im Vollbild (die Einblendung unten ist im Vollbild nicht sichtbar) -->
+          <div id="swipeHud" class="swipe-hud" hidden></div>
+          <!-- 1.19.11: Vorschaubild beim Start eines Videos, bis das erste echte Bild da ist -->
+          <div id="startCover" class="start-cover" hidden><img alt=""><span class="spin"></span></div>
           <div id="ov" class="overlay">
             <div id="ovHit" class="ov-hit"></div>
             <div class="ov-top">
@@ -261,7 +265,7 @@
             Wiedergabegeschwindigkeit (0,5× … 2×) im Takt. Ohne ID wie bisher (API v2, nur 1×). Eine <b>Application ID</b> ist kein
             Geheimnis – den geheimen <i>Application Key</i> braucht der Player nicht.</p>
           <label class="check"><input id="autoConnect" type="checkbox" checked> Beim Start automatisch verbinden (Handy und bekannte Satisfyer)</label>
-          <label class="adv check"><input id="autoSync" type="checkbox" checked> Sync automatisch nachkorrigieren</label>
+          <label class="adv check"><input id="autoSync" type="checkbox" checked> Handy im Takt halten – prüft alle 30 s still, ob sie noch genau zum Video passt, und rückt sie nach (empfohlen)</label>
           <label class="adv check"><input id="invert" type="checkbox"> Script umkehren</label>
           <details class="adv">
             <summary>Ohne Internet: Handy per Bluetooth</summary>
@@ -498,7 +502,7 @@
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
           <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
-          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (aus dem Vollbild)</label>
+          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (sofern der Browser es zulässt, sonst ⧉)</label>
           <!-- 1.19.8: wie eine installierte App -->
           <label id="appFsRow" class="check"><input id="appFs" type="checkbox"> Im Browser die ganze App im Vollbild (ohne Browserleiste) – beginnt beim ersten Antippen, die Zurück-Geste beendet es</label>
           <button id="installApp" class="small secondary" hidden>📲 Als App installieren</button>
@@ -511,8 +515,8 @@
               <select id="swipeRight"><option value="off">Aus</option><option value="volume">Lautstärke</option><option value="vibe">Stärke Satisfyer</option><option value="handy">Hub Handy</option><option value="both">Beide Geräte</option></select>
             </label>
           </div>
-          <p class="hint-text">Vollbild zeigt nur das Video mit der Bedienleiste des Browsers – so geht beim Verlassen der App
-            automatisch das kleine Fenster auf (Android). Not-Aus im Vollbild: Esc bzw. zurück, dann STOPP.</p>
+          <p class="hint-text">Vollbild mit eigener Bedienung (STOPP, Finale, Ton, Einpassen/Füllen). Kleines Fenster beim Verlassen:
+            über ⧉ in der Leiste. Not-Aus: Esc oder „Alles stoppen“ im Geräte-Fenster.</p>
           <h3 class="adv">Beim Stöbern</h3>
           <label class="adv">Video, während du in Bibliothek oder Einstellungen bist
             <select id="browseMini">
@@ -704,8 +708,8 @@
             <button id="offsetReset" class="small secondary offset-reset" hidden title="Offset dieser Szene verwerfen – wieder der allgemeine Wert">↺</button>
           </div>
           <input id="offset" class="offset-slider" type="range" min="-500" max="500" step="10" value="0" aria-label="Video-Offset">
-          <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
-          <p class="hint-text">Nur nötig, wenn ein Script spürbar daneben liegt – Verzögerungen der Geräte gleicht der Player selbst aus.</p>
+          <button id="calibBtn" class="small secondary wide tools-calib" title="Bei jedem Stoß im Video am tiefsten Punkt tippen (Taste T)">🎯 Offset per Takt einmessen</button>
+          <p class="hint-text">Video laufen lassen, aufs <b>Video</b> schauen und bei jedem Stoß genau dann tippen, wenn der tiefste Punkt erreicht ist (etwa 8×). Nur nötig, wenn ein Script spürbar daneben liegt – Verzögerungen der Geräte gleicht der Player selbst aus.</p>
           </details>
         </div>
 
@@ -716,13 +720,13 @@
             <!-- 1.19.7: Key direkt im Geräte-Fenster (gleiches Feld wie ⚙️ → Geräte) -->
             <details id="keyBox" class="dev-key">
               <summary>🔑 Verbindung (Connection Key)</summary>
-              <span class="copyrow"><input id="keyDev" type="password" autocomplete="off" spellcheck="false" aria-label="Connection Key" placeholder="Connection Key">
-                <button id="keyDevSave" class="small secondary">Verbinden</button></span>
+              <input id="keyDev" type="password" autocomplete="off" spellcheck="false" aria-label="Connection Key" placeholder="Connection Key – danach oben „Verbinden“">
               <!-- 1.19.9: Application ID nur in den Einstellungen -->
               <p class="hint-text">Ohne Application ID nutzt der Player die Handy-API v2. Für v3 (läuft auch bei 0,5×–2× im Takt) die ID unter <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
             </details>
             <!-- 1.19.7: Neu synchronisieren nur noch hier (nicht mehr in der Player-Leiste; Taste S bleibt) -->
             <button id="resyncBtn" class="small secondary wide" title="Taste S">⟳ Neu synchronisieren</button>
+            <p id="handyApi" class="hint-text"></p>
             <p id="handyLat" class="hint-text"></p>
           </div>
           <details class="dev-fine" data-fine="handy">

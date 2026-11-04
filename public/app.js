@@ -240,7 +240,26 @@ function loadVideo(src, name, hqSrc = '') {
   if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
   loadOffsetForVideo();
   resetSceneInfo(name);
+  // Poster (Stash-Standbild) setzt library.js direkt danach – darum erst im nächsten Takt lesen
+  setTimeout(showStartCover);
 }
+
+// 1.19.11: Beim Start eines Videos das Vorschaubild (bzw. schwarz mit Ladekreis) zeigen, bis ein echtes Bild
+// zu sehen ist – statt Schwarz oder einem alten Standbild (auch mit Bildverbesserung/HQ-Stream).
+function showStartCover() {
+  const img = $('startCover').querySelector('img');
+  const poster = video.getAttribute('poster');
+  if (poster) img.src = poster; else img.removeAttribute('src');
+  $('startCover').hidden = false;
+}
+function hideStartCover() {
+  if ($('startCover').hidden) return;
+  // Ein Bild weiter warten: dann hat auch die Bildverbesserung gezeichnet
+  const done = () => { $('startCover').hidden = true; };
+  if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(() => requestAnimationFrame(done)); else setTimeout(done, 150);
+}
+['playing', 'seeked'].forEach((ev) => video.addEventListener(ev, hideStartCover));
+video.addEventListener('error', () => { $('startCover').hidden = true; });
 
 // Video schließen (✕ am Mini-Player): anhalten, Geräte stoppen, Mini-Player weg
 function closeVideo() {
@@ -538,7 +557,16 @@ document.querySelectorAll('details.dev-fine').forEach((d) => {
 });
 updateOutputs();
 
-const AUTO_RETRY_S = [3, 10, 30];
+// 1.19.11: welche Handy-API gerade läuft (im Geräte-Fenster)
+function showHandyApi() {
+  $('handyApi').textContent = !handy.connected ? ''
+    : handy.v3 ? '✓ Handy-API v3 (mit Application ID) – auch bei 0,5×–2× im Takt'
+      : 'Handy-API v2 – für v3 die Application ID in ⚙️ → Geräte eintragen';
+}
+setInterval(showHandyApi, 2000);
+
+// 1.19.11: Automatisches Verbinden still – nur der Status oben; erst nach dem letzten Versuch EINE ruhige Meldung
+const AUTO_RETRY_S = [3, 10, 30, 60];
 let autoRetries = 0;
 async function connectHandy(auto = false) {
   const key = $('key').value.trim();
@@ -553,7 +581,7 @@ async function connectHandy(auto = false) {
     await handy.connect(key, store.get('appId', '').trim());
     setStatus('on', 'verbunden');
     const api = handy.v3 ? ' (Handy-API v3)' : '';
-    log(auto ? `Handy automatisch verbunden${api}.` : `Verbunden${api}.`);
+    if (!auto) log(`Verbunden${api}.`);
     autoRetries = 0;
     await applySlide();
     if (script) await preloadScript();
@@ -563,15 +591,24 @@ async function connectHandy(auto = false) {
     else setStatus(auto ? 'off' : 'err', handyErrText(e));
     // 1.19.7: Nach dem Neuladen ist die Handy-Cloud manchmal kurz nicht bereit (oder bremst wegen vieler Anfragen) –
     // automatisch noch ein paar Mal versuchen statt getrennt zu bleiben
-    if (auto && ['net', 'offline', 'limit'].includes(e.kind) && autoRetries < AUTO_RETRY_S.length) {
+    if (auto && e.kind !== 'auth' && autoRetries < AUTO_RETRY_S.length) {
       setTimeout(() => { if (!handy.connected && $('key').value.trim()) connectHandy(true); }, AUTO_RETRY_S[autoRetries++] * 1000);
+    } else if (auto) {
+      log('Handy nicht erreichbar – einschalten (WLAN, LED blau), dann oben auf den Status tippen und verbinden.');
+    } else {
+      log((e.message || e) + ' – oben auf den Status tippen und „Verbinden“.', true);
     }
-    log((auto ? 'Automatisches Verbinden fehlgeschlagen: ' : '') + (e.message || e) + ' – oben auf den Status tippen und „Verbinden“.', true);
   } finally {
     btn.disabled = false;
   }
 }
-$('connect').addEventListener('click', () => connectHandy());
+$('connect').addEventListener('click', () => { autoRetries = AUTO_RETRY_S.length; connectHandy(); });
+// 1.19.11: zurück in der App (z. B. nach Neuladen im Hintergrund) und nicht verbunden -> still neu versuchen
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || handy.connected || $('connect').disabled || !$('autoConnect').checked || !$('key').value.trim()) return;
+  autoRetries = 0;
+  connectHandy(true);
+});
 // Application ID (Handy-API v3): gilt für alle Geräte; ändern = neu verbinden
 $('appId').value = store.get('appId', '');
 $('appId').addEventListener('change', () => {
@@ -593,7 +630,6 @@ function mirrorField(mirror, src) {
   }
 }
 mirrorField('keyDev', 'key');
-$('keyDevSave').addEventListener('click', () => { if (!$('connect').disabled) connectHandy(); }); // „change“ beim Verlassen des Felds verbindet schon
 // Ohne Key gleich aufgeklappt
 $('keyBox').open = !$('key').value.trim();
 

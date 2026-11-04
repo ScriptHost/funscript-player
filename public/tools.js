@@ -363,6 +363,8 @@ function calibTap() {
   if (!calib || now - calib.last > 8000) {
     calib = { diffs: [], last: now, bottoms: scriptBottoms() };
     if (!calib.bottoms.length) { calib = null; return log('Im Script wurden keine Stöße gefunden.', true); }
+    // 1.19.11: Anleitung beim ersten Tipp
+    log(`🎯 Aufs VIDEO schauen (nicht auf die Handy): bei jedem Stoß genau dann tippen, wenn der tiefste Punkt erreicht ist – ${CALIB_TAPS}× im Rhythmus.`);
   }
   calib.last = now;
   // Was du siehst, ist mediaTime – der aktuelle Offset spielt für die Messung keine Rolle

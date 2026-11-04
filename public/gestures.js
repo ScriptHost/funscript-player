@@ -10,6 +10,12 @@
 const SWIPE_ACTIONS = ['off', 'volume', 'vibe', 'handy', 'both'];
 // 1.19.9: Standard links Hub Handy, rechts Stärke Satisfyer (Lautstärke nur noch auf Wunsch)
 const swipeCfg = { left: store.get('swipeLeft', 'handy'), right: store.get('swipeRight', 'vibe') };
+// 1.19.11: einmalig weg von den Standards aus 1.19.8 (links Lautstärke, rechts beide Geräte)
+if (!store.get('swipe1911', false)) {
+  if (swipeCfg.left === 'volume') { swipeCfg.left = 'handy'; store.set('swipeLeft', 'handy'); }
+  if (swipeCfg.right === 'both') { swipeCfg.right = 'vibe'; store.set('swipeRight', 'vibe'); }
+  store.set('swipe1911', true);
+}
 for (const side of ['left', 'right']) {
   const sel = $(side === 'left' ? 'swipeLeft' : 'swipeRight');
   if (!SWIPE_ACTIONS.includes(swipeCfg[side])) swipeCfg[side] = 'off';
@@ -69,8 +75,17 @@ function swipeMove(e) {
     swipeSet('slideMax', v);
     msg = a === 'both' ? `〰 ${$('vibeScene').value} % · ↕ Hub ${v} %` : `↕ Hub ${v} %`;
   }
-  if (msg) log(msg);
+  if (msg) swipeShow(msg);
   if (e.cancelable) e.preventDefault();
+}
+
+// Wert mitten im Bild zeigen (im Vollbild ist nur der Player sichtbar, keine Einblendung)
+let swipeHudTimer = null;
+function swipeShow(msg) {
+  $('swipeHud').textContent = msg;
+  $('swipeHud').hidden = false;
+  clearTimeout(swipeHudTimer);
+  swipeHudTimer = setTimeout(() => { $('swipeHud').hidden = true; }, 900);
 }
 
 function swipeEnd() {

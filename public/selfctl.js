@@ -173,15 +173,17 @@ selfUI();
 // ---------------------------------------------------------------------------
 let selfRec = null, selfRecTimer = null, selfRecActions = null, selfRecPos = false;
 // Touch „Position“: aufgenommen wird die Finger-Position (wird ein Positions-Script), sonst das Tempo
+// 1.19.11: „Position“ nur mit Handy – nur mit Satisfyer wurde sonst nichts aufgenommen
+const selfRecPosMode = () => touchMode() === 'pos' && hasHandy();
 const selfRecValue = () => {
-  if (touchMode() === 'pos') return videoPlaying() && tpos.cur !== null ? tpos.cur : null;
+  if (selfRecPosMode()) return videoPlaying() && tpos.cur !== null ? tpos.cur : null;
   const v = Math.max(selfCtl.handyOn ? selfSpeed() : 0, selfCtl.vibe);
   return selfActive() && v > 0 ? v : null;
 };
 $('selfRec').addEventListener('click', () => {
   if (!selfRec) {
     selfRec = [];
-    selfRecPos = touchMode() === 'pos';
+    selfRecPos = selfRecPosMode();
     selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
     $('selfRec').textContent = '■ Mitschnitt beenden';
     $('selfRec').classList.add('recording');

@@ -8,6 +8,20 @@ a new minor for a batch of features, a patch only for bug fixes. Every push to `
 
 The 34 versions up to 1.19.9 (31.10.–04.11.2026) are summarised below; their git tags and Docker images stay available.
 
+## 1.19.11 – 04.11.2026
+
+- **Own fullscreen is back** – with STOP, finale, sound and fit/fill (“stretched”); swiping shows its value in the middle of
+  the picture. The browser’s video fullscreen (since 1.19.3) only had the browser controls. Picture-in-picture via ⧉
+- **Quieter start:** connecting the Handy automatically runs silently (status at the top only) and keeps retrying; one calm
+  hint only after the last attempt. Satisfyer reconnects silently too. Coming back to the app retries the Handy
+- **Video start:** the thumbnail (or black with a spinner) shows until the first real frame is on screen
+- **Fix:** recording along the video with only a Satisfyer recorded nothing (touch mode “position” is Handy-only now)
+- **Devices window:** one “Connect” button instead of two; shows whether Handy API v2 or v3 is in use
+- Clearer texts for “keep the Handy in time” and for calibrating the offset (tap when the video reaches the lowest point)
+- Swipe defaults from 1.19.8 (left volume, right both) are switched once to left Handy stroke, right Satisfyer strength
+- Code check: ESLint 10 and globals 17 (Dependabot), minimatch ≥ 11.0.1 (GHSA-g3hv-75wg-m249) – only the check on GitHub,
+  not in the image; SECURITY.md shorter, with a direct reporting link
+
 ## 1.19.10 – 04.11.2026
 
 Security fixes from GitHub code scanning (CodeQL) – all low risk:
@@ -21,7 +35,7 @@ Security fixes from GitHub code scanning (CodeQL) – all low risk:
 
 ## 1.19 – 01.–04.11.2026: polish, safety, Docker
 
-Latest: **1.19.10** (security fixes, see above). Upgrading from 1.19.6 or older: container and volume were renamed in 1.19.7 – see README
+Latest: **1.19.11**. Upgrading from 1.19.6 or older: container and volume were renamed in 1.19.7 – see README
 “Upgrading from 1.19.6 or older”.
 
 - **Script intensity, one choice for both devices:** Automatic · Original · Gentle · Intense, per scene at the video with
