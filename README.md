@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.7-e0457b?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.8-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
@@ -48,12 +48,14 @@
 | 🎚 **One script, every device** | Pick the intensity once for Handy and Satisfyer: **Original** (untouched), **Automatic** (small strokes stretched, what the motor can't manage adapted – still exactly in time), **Gentle** or **Intense** – per scene right at the video, with a mini heatmap preview. |
 | 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. Several Satisfyers at once, each with its own strength and lead; two motors can split into rhythm and tempo. |
 | ⏱️ **Sync that stays in time** | Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× playback. |
-| 🎵 **Follow sound (beta)** | Videos without a script: the Satisfyer follows the volume and rhythm of the soundtrack. |
+| 🎵 **Follow sound (beta)** | Videos without a script: Handy and Satisfyer follow the volume and rhythm of the soundtrack. |
+| 👆 **Swipe in fullscreen** | Left/right half up/down – volume, Satisfyer strength, Handy stroke or both devices, configurable per half. |
+| 📲 **Like an app** | Install it as an app with one tap, or put the whole app in fullscreen in the browser; leaving the app while the video plays opens picture-in-picture. |
 | ✋ **Your own scripts** | Control the devices yourself while watching (slider, quick picks, touch pad), record it as a script, replace just a section later. Originals are never overwritten. |
 | 📚 **Library** | Stash scenes and folder videos with heatmap, intensity filter, 🔥 highlights, saved Stash filters, 2D-only mode, mini player, picture-in-picture. |
 | ✨ **Natural picture** | Small videos are upscaled on the server (Intel Quick Sync / VAAPI) and lightly denoised; colours stay as in the original. More sharpness on request. |
 | 🥽 **VR** | HereSphere API for VR headsets – ratings and favourites go back to Stash. |
-| 🛑 **Emergency stop** | STOP button everywhere, Esc, devices stop when the screen locks, optional auto-stop after X minutes without input. |
+| 🛑 **Emergency stop** | Esc and “Stop everything” in the devices window always; optional STOP buttons at the video, stop on screen lock and auto-stop after X minutes without input. |
 
 <p align="center"><img src="docs/img/gh/h-install.svg" alt="Installation – Docker in five minutes" width="100%"></p>
 

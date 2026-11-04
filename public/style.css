@@ -743,7 +743,8 @@ body:not(.has-handy) #devices [data-panel="dev:handy"] > :not(.conn),
 body:not(.has-vibe) #devices [data-panel="dev:vibe"] > :not(.conn) { display: none !important; }
 body:not(.has-dev) #devCommon, body:not(.has-dev) #finaleBtn { display: none; }
 body:not(.has-dev):not(.dev-open) #stopAll, body.no-stop-btn:not(.dev-open) #stopAll { display: none; }
-.dev-common { margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.dev-common { margin-bottom: 8px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
+.dev-common .dev-fine { margin: 2px 0 6px; }
 body:not(.has-dev) #vibePause { display: none; }
 body:not(.has-dev) .dev-stop-row, body.no-stop-btn:not(.dev-open) .dev-stop-row { grid-template-columns: 1fr; }
 .sync-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 8px 12px; border: 1px solid #ffb74d; border-radius: 10px; color: #ffb74d; font-size: 14px; }
@@ -842,19 +843,20 @@ body.dev-open #finaleBtn { display: none !important; }
 .sb-info { font-size: 12px; color: var(--muted); }
 
 /* 1.19.2: drei gleich breite Werkzeug-Knöpfe, Symbol über kurzem Text; Zurück/Löschen über die ganze Breite */
-.sb-own { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
+.sb-own { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
 .sb-own button { width: auto; margin: 0; }
 .sb-own button:not(.sb-tool) { grid-column: 1 / -1; }
-.sb-own .sb-tool { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; font-size: 13px; }
-.sb-own .sb-tool .ic { font-size: 18px; line-height: 1; }
+.sb-own .sb-tool { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; padding: 5px 4px; font-size: 13px; }
+.sb-own .sb-tool .ic { font-size: 15px; line-height: 1; }
 .sb-own button[hidden] { display: none; }
 
 /* Offset kompakt */
-.offset-row { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; color: var(--muted); }
+.offset-row { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; font-size: 14px; color: var(--muted); }
 .offset-row > span { flex: 1; }
-.offset-row button { width: 38px; height: 34px; margin: 0; padding: 0; flex: 0 0 auto; }
+.offset-row button { width: 34px; height: 28px; margin: 0; padding: 0; flex: 0 0 auto; }
 .offset-row output { min-width: 56px; text-align: center; color: var(--text); font-variant-numeric: tabular-nums; }
-.offset-row .offset-reset[hidden] { display: none; }
+/* 1.19.8: ↺ hat immer seinen Platz (unsichtbar) – sonst rutscht er nach „+“ genau unter den Finger */
+.offset-row .offset-reset[hidden] { display: block; visibility: hidden; }
 body:not(.adv-on) .offset-slider { display: none; }
 /* Pause und STOPP nebeneinander */
 .dev-stop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
@@ -947,6 +949,10 @@ details.more-info > .hint-text, details.more-info > ul, details.more-info > ol {
 #appVersion.has-update { cursor: pointer; color: var(--accent); }
 #appVersion.has-update::after { content: ' ⬆'; }
 
+/* 1.19.8: Wischen im Vollbild – der Browser darf die senkrechte Bewegung nicht als Scrollen nehmen */
+#drop.fs #ovHit, video:fullscreen { touch-action: none; }
+#installApp[hidden], #welcomeInstall[hidden], #appFsRow[hidden] { display: none; }
+
 /* 1.19.7: Script-Intensität immer am Video – auch wenn „Geräte-Steuerung am Video“ aus ist (dann nur der Script-Bereich) */
 body[data-view=player].hud-off-devices:not(.dev-open) #devices.sheet {
   display: block; position: static; width: auto; max-height: none; overflow: visible; box-shadow: none; border-radius: 0; padding: 0;
@@ -955,3 +961,5 @@ body[data-view=player].hud-off-devices:not(.dev-open) #devices.sheet > .card { b
 body[data-view=player].hud-off-devices:not(.dev-open) #devices .card > :not(#scriptBox) { display: none !important; }
 body[data-view=player].hud-off-devices:not(.dev-open) #devices .script-box { margin: 0; padding: 0; border: 0; }
 body[data-view=player].hud-off-devices:not(.dev-open) #devices:has(#scriptBox[hidden]) { display: none !important; }
+/* 1.19.8: Kopf des Script-Bereichs ohne Inhalt (Scriptname ausgeblendet, keine Wahl Original/Eigenes) – keine Leerzeile */
+body.hud-off-script .sb-head:has(#sbChoice[hidden]) { display: none; }

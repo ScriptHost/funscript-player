@@ -184,17 +184,13 @@ $('ovHit').addEventListener('click', (e) => {
 stage.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') showOverlay(); });
 
 $('ovPlay').addEventListener('click', () => { togglePlay(); showOverlay(); });
-// Sprungweite für −/+ und Doppeltippen: 5 oder 10 s (⚙️ → Anzeige)
+// Sprungweite fürs Doppeltippen links/rechts: 5 oder 10 s (⚙️ → Anzeige) – die −/+-Knöpfe gibt es seit 1.19.8 nicht mehr
 const skipSec = () => (store.get('skipSec', 10) === 5 ? 5 : 10);
 function applySkip() {
-  $('ovBack').textContent = `−${skipSec()}`;
-  $('ovFwd').textContent = `+${skipSec()}`;
   $('skipSec').value = String(skipSec());
 }
 $('skipSec').addEventListener('change', () => { store.set('skipSec', Number($('skipSec').value)); applySkip(); });
 applySkip();
-$('ovBack').addEventListener('click', () => seekBy(-skipSec()));
-$('ovFwd').addEventListener('click', () => seekBy(skipSec()));
 $('ovVibe').addEventListener('click', () => { setVibePaused(!vibePaused); showOverlay(); });
 $('ovStop').addEventListener('click', () => emergencyStop());
 
@@ -312,7 +308,8 @@ function anyRunning() {
 }
 
 // Abschaltbar (⚙️ → Notaus); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
-$('stopButton').checked = store.get('stopButton', true);
+// 1.19.8: STOPP-Knöpfe und Stopp bei Bildschirmsperre standardmäßig aus – Esc und „Alles stoppen“ im Geräte-Fenster bleiben
+$('stopButton').checked = store.get('stopButton', false);
 const applyStopButton = () => document.body.classList.toggle('no-stop-btn', !$('stopButton').checked);
 $('stopButton').addEventListener('change', () => { store.set('stopButton', $('stopButton').checked); applyStopButton(); });
 applyStopButton();
@@ -325,7 +322,7 @@ document.addEventListener('keydown', (e) => {
   exitFullscreen();
 });
 
-$('stopHidden').checked = store.get('stopHidden', true);
+$('stopHidden').checked = store.get('stopHidden', false);
 $('stopHidden').addEventListener('change', () => store.set('stopHidden', $('stopHidden').checked));
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'hidden' || !$('stopHidden').checked || !anyRunning()) return;

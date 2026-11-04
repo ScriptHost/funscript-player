@@ -713,10 +713,11 @@ video.addEventListener('leavepictureinpicture', () => {
   setTimeout(() => { if (resume && video.paused && video.currentSrc) video.play().catch(() => {}); updateNowBar(); }, 300);
 });
 // Aus dem Vollbild in den Hintergrund: das Video selbst ins kleine Fenster
-// (sonst nimmt Android den ganzen Vollbild-Bereich – der bleibt im Hintergrund schwarz)
+// (sonst nimmt Android den ganzen Vollbild-Bereich – der bleibt im Hintergrund schwarz).
+// 1.19.8: auch von der Player-Seite ohne Vollbild – ob der Browser das ohne Antippen erlaubt, entscheidet er selbst.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'hidden' || !$('autoPip').checked || !videoPlaying()) return;
-  if (!document.pictureInPictureElement && document.fullscreenElement) {
+  if (!document.pictureInPictureElement && (document.fullscreenElement || document.body.dataset.view === 'player')) {
     video.requestPictureInPicture().catch(() => {});
   }
 });

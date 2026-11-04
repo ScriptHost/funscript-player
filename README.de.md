@@ -65,7 +65,7 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
 - **Status oben antippen** öffnet das Geräte-Fenster – Handy verbinden (Connection Key und Application ID gleich dort
   unter „🔑 Verbindung“), ⟳ Neu synchronisieren, Satisfyer per Bluetooth.
   Wird die Handy-Cloud langsam, wird der Status gelb.
-- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität, Offset −/+, Hub der Handy, Stärke min/max
+- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität (Automatisch zuerst), Offset −/+, Hub der Handy, Stärke min/max
   und Übersetzung des Satisfyers, Finale, Pause, Alles stoppen.
 - **Script-Intensität** – eine Auswahl für Handy und Satisfyer, pro Szene am Video (vier Knöpfe mit Mini-Heatmap);
   Standard unter ⚙️ → Script:
@@ -78,7 +78,11 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
   Motoren folgt Motor 2 auf Wunsch dem Tempo. Die Geräte-Liste zeigt ⏱ die Bluetooth-Laufzeit, schwankt sie, wird der Status gelb.
 - **Videos ohne Funscript:** „Selbst steuern“ (Tempo, Hub unten/oben, Satisfyer-Stärke, Touch-Fläche) und
   **⏺ Mitschnitt zum Video** als eigenes Script (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: im Volume).
-  🧪 Beta **„🎵 Nach Ton“**: der Satisfyer folgt Lautstärke und Rhythmus des Tons.
+  🧪 Beta **„🎵 Nach Ton“**: Handy und Satisfyer folgen Lautstärke und Rhythmus des Tons.
+- **Vollbild:** Doppeltippen links/rechts springt 5/10 s, gedrückt halten = 2× bzw. rückwärts. **Wischen** hoch/runter
+  je Bildhälfte: Lautstärke, Stärke Satisfyer, Hub Handy oder beide Geräte (⚙️ → Anzeige).
+- **Wie eine App:** „📲 Als App installieren“ (⚙️ → Anzeige, auch im Willkommen) oder im Browser „ganze App im Vollbild“.
+  App verlassen, während das Video läuft = Bild-in-Bild (sofern der Browser es zulässt).
 - **🎮 Steuern:** Direktsteuerung, Touch-Fläche (Tempo oder 🧪 Position) und Pattern-Editor.
 - **Bibliothek:** Stash-Szenen und Ordner-Videos mit Heatmap-Leiste, Intensitäts-Filter, Tags/Darsteller/Studios,
   gespeicherte Stash-Filter, „nur 2D“ je Gerät, Mini-Player beim Stöbern.
@@ -88,8 +92,9 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
 
 ## Notaus
 
-- Roter STOPP-Knopf, Esc-Taste oder „Alles stoppen“ halten Video, Handy, Patterns und Satisfyer sofort an.
-- Automatisch bei Bildschirmsperre / App-Wechsel (abschaltbar).
+- Esc-Taste oder „■ Alles stoppen“ im Geräte-Fenster (Status oben) halten Video, Handy, Patterns und Satisfyer sofort an – immer.
+- Seit 1.19.8 standardmäßig aus, unter ⚙️ → Notaus einschaltbar: rote STOPP-Knöpfe am Video (schwebend, oben im Vollbild,
+  „Alles stoppen“ unter dem Video) und Stopp bei Bildschirmsperre / App-Wechsel.
 - **Auto-Stopp:** keine Bedienung und kein laufendes Video → nach 5/10/20/30 Minuten alles aus (⚙️ → Notaus, Standard: nie).
 - Grenzen: max. Geschwindigkeit der Direktsteuerung, „Maximum“ beim Satisfyer.
 

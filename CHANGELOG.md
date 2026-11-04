@@ -2,6 +2,20 @@
 
 The GitHub release notes are taken from this file.
 
+## 1.19.8 – 04.11.2026
+
+- **Swipe in fullscreen:** up/down on the left or right half – volume, Satisfyer strength, Handy stroke or both devices;
+  configurable per half under ⚙️ → Display (default: left volume, right both devices)
+- **🎵 Follow sound (beta)** now drives the Handy too (tempo from the smoothed loudness, capped by the direct-control
+  speed limit)
+- **Like an app:** “📲 Install as app” (⚙️ → Display and in the welcome), optional “whole app in fullscreen” in the
+  browser; leaving the app from the player page (not only fullscreen) asks for picture-in-picture while the video plays
+- **New defaults:** STOP buttons at the video and stop on screen lock are off (Esc and “Stop everything” in the devices
+  window always work), date/length/views below the video off – saved choices are kept
+- **Player page more compact:** −10/+10 removed from the bar (double tap jumps), intensity starts with *Automatic*, smaller
+  offset row and tool buttons; the ↺ offset reset keeps its place so −/+ no longer jump under your finger
+- **Docker image:** `vainfo` and `wget` removed, the healthcheck uses Node
+
 ## 1.19.7 – 04.11.2026
 
 - **🧪 Follow sound (beta):** videos without a script get “🎵 Follow sound” below the video – the Satisfyer follows the

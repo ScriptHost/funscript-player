@@ -32,7 +32,8 @@ document.addEventListener('hq-ready', renderQualityMode);
 // --- Anzeige im Player -----------------------------------------------------------
 // Standard: was man beim normalen Schauen braucht; Tags, Studio/Darsteller, Beschreibung aus.
 // 1.19.7: Stash-Aktionen (unter dem Video und in der Leiste) standardmäßig aus – gespeicherte Wahl bleibt
-const HUD_DEFAULT = { devices: true, meta: true, script: false, actions: false, baractions: false, people: false, tags: false, markers: true, details: false, quality: true };
+// 1.19.8: auch „Datum, Länge, Aufrufe“ standardmäßig aus
+const HUD_DEFAULT = { devices: true, meta: false, script: false, actions: false, baractions: false, people: false, tags: false, markers: true, details: false, quality: true };
 const hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
 function applyHud() {
   for (const [k, on] of Object.entries(hud)) document.body.classList.toggle('hud-off-' + k, !on);
@@ -90,21 +91,62 @@ $('welcomeOk').addEventListener('click', () => { showWelcome(false); store.set('
 $('welcomeConnect').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); openDevices(); });
 $('welcomeAgain').addEventListener('click', () => showWelcome());
 if (freshInstall && !store.get('seenWelcome', false)) {
-  store.set('seen1197', true); // statt „Neu in …“
+  store.set('seen1198', true); // statt „Neu in …“
   showWelcome();
 }
 
-// --- Einmal nach dem Update auf 1.19.7: was neu ist ------------------------
-if (!store.get('seen1197', false)) {
+// --- 1.19.8: Als App installieren und „ganze App im Vollbild“ (wie installiert, nur im Browser) ----------
+const isInstalledApp = () => matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
+let installPrompt = null;
+function renderInstall() {
+  for (const id of ['installApp', 'welcomeInstall']) $(id).hidden = isInstalledApp();
+  $('appFsRow').hidden = isInstalledApp();
+}
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; renderInstall(); });
+window.addEventListener('appinstalled', () => { installPrompt = null; renderInstall(); });
+async function installApp() {
+  if (installPrompt) {
+    const p = installPrompt;
+    installPrompt = null;
+    p.prompt();
+    const r = await p.userChoice.catch(() => null);
+    if (r?.outcome === 'accepted') log('Funscript Player wird als App installiert.');
+    return;
+  }
+  // Kein Angebot vom Browser: Weg von Hand zeigen
+  log(/iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iPhone/iPad: in Safari auf „Teilen“ → „Zum Home-Bildschirm“.'
+    : !window.isSecureContext ? 'Installieren geht nur über HTTPS (Reverse Proxy davor).'
+      : 'Im Browser-Menü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.');
+}
+$('installApp').addEventListener('click', installApp);
+$('welcomeInstall').addEventListener('click', installApp);
+renderInstall();
+
+function enterAppFs() {
+  if (isInstalledApp() || document.fullscreenElement || !document.documentElement.requestFullscreen) return;
+  document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+}
+$('appFs').checked = store.get('appFs', false);
+$('appFs').addEventListener('change', () => {
+  store.set('appFs', $('appFs').checked);
+  if ($('appFs').checked) enterAppFs();
+  else if (document.fullscreenElement === document.documentElement) document.exitFullscreen().catch(() => {});
+});
+// Der Browser verlangt für Vollbild ein Antippen: das nächste Antippen startet es (nicht das ⛶ des Videos)
+document.addEventListener('click', (e) => {
+  if ($('appFs').checked && !e.target.closest('#ovFs, #ovHit, video, #ovPip, #appFs')) enterAppFs();
+}, true);
+
+// --- Einmal nach dem Update auf 1.19.8: was neu ist ------------------------
+if (!store.get('seen1198', false)) {
   $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen1197', true); };
+  const done = () => { $('whatsNew').hidden = true; store.set('seen1198', true); };
   $('whatsNewOk').addEventListener('click', done);
   $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setPlayer'); });
 }
 
 // --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------
 const BAR_BTNS = [
-  ['skip', '−/+ Sekunden springen', ['ovBack', 'ovFwd']],
   ['mute', '🔊 Ton an/aus', ['ovMute']],
   ['finale', '🔥 Finale', ['ovFinale']],
   ['vibe', 'Vib ❚❚ Geräte pausieren', ['ovVibe']],
@@ -112,7 +154,7 @@ const BAR_BTNS = [
   ['pip', '⧉ Bild-in-Bild', ['ovPip']],
 ];
 const barCfg = Object.assign({ order: BAR_BTNS.map((b) => b[0]), off: [] }, store.get('barBtns', {}));
-barCfg.order = barCfg.order.filter((k) => BAR_BTNS.some((b) => b[0] === k)); // 1.19.7: 🎚, ✨ und ⟳ entfallen
+barCfg.order = barCfg.order.filter((k) => BAR_BTNS.some((b) => b[0] === k)); // 1.19.7: 🎚, ✨ und ⟳ entfallen, 1.19.8: −/+
 for (const [k] of BAR_BTNS) if (!barCfg.order.includes(k)) barCfg.order.push(k); // neue Knöpfe hinten
 function applyBar() {
   for (const k of barCfg.order) {

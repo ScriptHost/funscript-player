@@ -41,8 +41,11 @@ function selfActive() {
 }
 const selfSpeed = () => Math.min(selfCtl.speed, Number($('capSpeed').value));
 
+// 1.19.8: „🎵 Nach Ton“ läuft (Video ohne Script spielt) – die Handy folgt dem Ton (audiovibe.js)
+const audioActive = () => selfCtl.mode === 'audio' && !script && selfVideoLoaded() && videoPlaying();
 // Für stroker.js (Handy per Bluetooth) über control.js hampLevel()
 function selfHampLevel() {
+  if (audioActive()) { const s = audioHandySpeed(); return s > 0 ? s / 100 : null; }
   return selfActive() && selfCtl.handyOn && selfSpeed() > 0 ? selfSpeed() / 100 : null;
 }
 // Für vibe.js: eigene Stärke statt Script (null = nicht zuständig)
@@ -51,7 +54,7 @@ function selfVibeLevel() {
 }
 // Für den STOPP-Knopf / Bildschirm-wach-halten
 function selfRunning() {
-  return selfActive() && ((selfCtl.handyOn && selfSpeed() > 0) || selfCtl.vibe > 0);
+  return (selfActive() && ((selfCtl.handyOn && selfSpeed() > 0) || selfCtl.vibe > 0)) || (audioActive() && selfCtl.sent > 0);
 }
 
 function selfUI() {
@@ -90,7 +93,7 @@ async function selfTick() {
   if (!handy.connected) return;
   // Läuft noch ein Befehl: direkt danach nachsenden statt auf den nächsten Takt zu warten
   if (selfCtl.busy) { selfCtl.again = true; return; }
-  const want = selfHampLevel() !== null ? selfSpeed() : 0;
+  const want = selfHampLevel() !== null ? Math.round(selfHampLevel() * 100) : 0;
   if (want === selfCtl.sent || touchPosActive()) return; // Touch „Position“ steuert die Handy gerade direkt
   selfCtl.busy = true;
   try {

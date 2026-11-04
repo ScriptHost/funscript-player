@@ -44,13 +44,13 @@ order – later ones may use earlier ones, the other way round only at runtime (
 | `library.js` | Library (folders + Stash), filters, opening a scene, Stash actions (`sceneAct`: ★, favourite, O, marker), resume position, sprites |
 | `control.js` | Control mode: direct control, pattern editor, `emergencyStop()` |
 | `vibe.js` | Satisfyer via Web Bluetooth and Intiface: several devices, each with its own loop, lead (`devLeadMs`), strength (`devGain`), motor mode (`same`/`split`), soft start and latency display |
-| `fullscreen.js` | Player bar, fullscreen (native video), gestures, keyboard, STOP button, auto-stop, wake lock |
+| `fullscreen.js` · `gestures.js` | Player bar, fullscreen (native video), taps/double taps/hold, keyboard, STOP button, auto-stop, wake lock · swipe up/down per half in fullscreen (`swipeLeft`/`swipeRight`: volume, `vibeScene`, `slideMax`, both) on the video element (native fullscreen) and `#ovHit` |
 | `enhance.js` · `hq.js` | Picture enhancement via WebGL · HQ stream from the server (seeking restarts the conversion) |
 | `finale.js` · `tools.js` | Finale · script intensity for both devices: original/auto/soft/intense (`processScript`, `multiplyCalm`, `presetVibeShape`), per scene, previews, offset calibration |
 | `stroker.js` | Stroker devices via Intiface (e.g. the Handy over Bluetooth) |
-| `audiovibe.js` | 🧪 “Follow sound” (beta): video → Web Audio `AnalyserNode`; `audioVibeLevel()` gives `targetLevel()` a 0–1 level from loudness above the running average plus onsets. The `AudioContext` is only created on a click (otherwise the video would play muted); all media is same-origin, so the analyser gets real samples |
+| `audiovibe.js` | 🧪 “Follow sound” (beta): video → Web Audio `AnalyserNode`; `audioVibeLevel()` gives `targetLevel()` a 0–1 level from loudness above the running average plus onsets; `audioHandySpeed()` smooths it (~0.8 s) into Handy tempo steps of 10 for `selfHampLevel()`. The `AudioContext` is only created on a click (otherwise the video would play muted); all media is same-origin, so the analyser gets real samples |
 | `selfctl.js` · `touchpad.js` | “Control yourself” (`selfCtl.mode`: `off` / `self` / `audio`) for videos without a Funscript · touch area (tempo or 🧪 position via HDSP, at most 2 commands in flight, slower on HTTP 429), ⏺ recording |
-| `settings.js` | Settings page: collapsible sections, ⓘ explanations, picture/HQ, player display, update notice, “new in” dialog, welcome dialog (only on a fresh install: `freshInstall` from `handy.js` = nothing stored in the browser nor on the server), reset |
+| `settings.js` | Settings page: collapsible sections, ⓘ explanations, picture/HQ, player display, update notice, “new in” dialog, welcome dialog (only on a fresh install: `freshInstall` from `handy.js` = nothing stored in the browser nor on the server), install as app (`beforeinstallprompt`, otherwise a hint) and “whole app in fullscreen” (`appFs`, next tap), reset |
 | `selftest.js` | Developer self-test in the browser: append `?selbsttest` to the address – runs typical flows with a simulated Handy |
 | `test/` | Automated tests with Node built-ins |
 

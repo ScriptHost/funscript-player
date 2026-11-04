@@ -2,10 +2,11 @@
 
 // ===========================================================================
 // 🧪 Beta (1.19.7): Vibration nach Ton – für Videos ohne Funscript.
-//   Unter dem Video „🎵 Nach Ton“: der Satisfyer folgt Lautstärke und Rhythmus des Tons.
+//   Unter dem Video „🎵 Nach Ton“: der Satisfyer folgt Lautstärke und Rhythmus des Tons,
+//   seit 1.19.8 auch die Handy (Tempo nach der geglätteten Lautheit, in 10er-Stufen über selfctl.js).
 //   Web Audio: Video -> AnalyserNode -> Lautsprecher. Die Lautheit wird an den Pegel des
 //   Videos angepasst (leise Filme vibrieren nicht schwächer), Anstiege (Schläge) betont.
-//   Die Handy macht hier nichts. Stärke min/max, „Stärke für diese Szene“, Pause und STOPP gelten.
+//   Stärke min/max, „Stärke für diese Szene“, „Max. Geschwindigkeit“, Pause und STOPP gelten.
 //   Ton von fremder Adresse ohne Freigabe liefert dem Browser nur Stille – Stash läuft über den
 //   Player-Server (gleiche Adresse), Ordner-Videos ohnehin.
 // ===========================================================================
@@ -59,14 +60,30 @@ function audioVibeLevel() {
   return audioVibe.level;
 }
 
+// Für die Handy (selfctl.js): Tempo 0–100 nach Ton. Ruhiger als beim Satisfyer (≈ 0,8 s geglättet) und in
+// 10er-Stufen – jede Änderung ist ein Befehl an die Handy-Cloud.
+const audioHandy = { level: 0, at: 0 };
+function audioHandySpeed() {
+  const raw = audioVibeLevel();
+  if (raw === null) { audioHandy.level = 0; return 0; }
+  const now = performance.now();
+  const k = 1 - Math.exp(-Math.min(now - (audioHandy.at || now), 1000) / 800);
+  audioHandy.at = now;
+  audioHandy.level += (raw - audioHandy.level) * k;
+  if (audioHandy.level < 0.08) return 0;
+  const speed = Math.round((20 + audioHandy.level * 80) / 10) * 10;
+  return Math.min(speed, Number($('capSpeed').value));
+}
+
 function audioVibeUI() {
   const on = selfCtl.mode === 'audio';
   $('audioInfo').hidden = !on || $('selfRow').hidden;
   if (!on) return;
   const silent = audioVibe.silentSince && performance.now() - audioVibe.silentSince > 8000 && videoPlaying() && !video.muted;
-  $('audioInfo').textContent = !hasVibe() ? '🧪 Beta: Kein Satisfyer verbunden – oben auf den Status tippen und verbinden.'
+  const h = hasHandy(), v = hasVibe();
+  $('audioInfo').textContent = !h && !v ? '🧪 Beta: Kein Gerät verbunden – oben auf den Status tippen und verbinden.'
     : silent ? '🧪 Beta: Kein Ton erkannt – bei diesem Video liefert der Browser den Ton nicht (fremde Adresse) oder es ist still.'
-      : '🧪 Beta: Der Satisfyer folgt Lautstärke und Rhythmus des Tons. Stärke min/max am Satisfyer, STOPP wie immer. Die Handy läuft dabei nicht.';
+      : `🧪 Beta: ${h && v ? 'Handy und Satisfyer folgen' : h ? 'Die Handy folgt' : 'Der Satisfyer folgt'} Lautstärke und Rhythmus des Tons – Esc oder „Alles stoppen“ hält an.`;
 }
 
 document.querySelectorAll('#selfSeg button').forEach((b) => b.addEventListener('click', () => {

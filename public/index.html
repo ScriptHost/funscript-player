@@ -44,11 +44,11 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.7</h3>
+    <h3>✨ Neu in 1.19.8</h3>
     <ul>
-      <li>🎵 <b>Beta:</b> Videos ohne Script – unter dem Video „🎵 Nach Ton“: der Satisfyer folgt Lautstärke und Rhythmus.</li>
-      <li>Am Video: Hub der Handy, Stärke und Übersetzung des Satisfyers; der Connection Key steht auch im Geräte-Fenster.</li>
-      <li>Aufgeräumt: 🎚, ✨ und ⟳ sind aus der Player-Leiste raus (Intensität und Bild unter dem Video, ⟳ im Geräte-Fenster), Auto-Stopp ist standardmäßig aus, Bild steht auf „Auto“.</li>
+      <li>👆 <b>Wischen im Vollbild:</b> links Lautstärke, rechts Stärke beider Geräte – einstellbar unter ⚙️ → Anzeige.</li>
+      <li>🎵 „Nach Ton“ steuert jetzt auch die Handy. 📲 Als App installieren oder die ganze App im Vollbild (⚙️ → Anzeige).</li>
+      <li><b>Neue Standards:</b> STOPP-Knöpfe am Video und Stopp bei Bildschirmsperre sind aus – Esc und „Alles stoppen“ im Geräte-Fenster gehen immer, einschalten unter ⚙️ → Notaus. −/+ ist raus (Doppeltippen springt).</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -58,10 +58,10 @@
     <ol>
       <li>🔌 <b>Gerät verbinden:</b> oben auf den Status tippen – The Handy mit dem Connection Key, Satisfyer per Bluetooth.</li>
       <li>📚 <b>Video wählen:</b> in der Bibliothek, ⚡ = mit Funscript.</li>
-      <li>▶ <b>Abspielen:</b> die Geräte laufen mit dem Video mit. <b>■ STOPP</b> hält sofort alles an.</li>
+      <li>▶ <b>Abspielen:</b> die Geräte laufen mit dem Video mit. <b>Esc</b> oder <b>■ Alles stoppen</b> im Geräte-Fenster hält sofort alles an.</li>
     </ol>
     <p>Alles Weitere unter ⚙️ Einstellungen – dort auch die Sprache.</p>
-    <div class="actions"><button id="welcomeConnect" class="small">Gerät verbinden</button><button id="welcomeOk" class="small secondary">Los geht's</button></div>
+    <div class="actions"><button id="welcomeConnect" class="small">Gerät verbinden</button><button id="welcomeInstall" class="small secondary" hidden>📲 Als App installieren</button><button id="welcomeOk" class="small secondary">Los geht's</button></div>
   </div>
 
   <main>
@@ -131,8 +131,6 @@
               <div id="seekPreview" class="seek-preview" hidden><span></span></div>
               <canvas id="ovBar"></canvas>
               <div class="ov-row">
-                <button id="ovBack">−10</button>
-                <button id="ovFwd">+10</button>
                 <span id="ovTime" class="ov-time">0:00 / 0:00</span>
                 <span class="grow"></span>
                 <!-- Stash-Aktionen direkt in der Leiste (nur bei Stash-Szenen) -->
@@ -186,7 +184,7 @@
           <div id="selfRow" class="self-row" hidden>
             <div class="self-head">
               <span>Kein Funscript</span>
-              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button><button data-self="audio" title="Satisfyer folgt Lautstärke und Rhythmus des Tons">🎵 Nach Ton 🧪</button></span>
+              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button><button data-self="audio" title="Handy und Satisfyer folgen Lautstärke und Rhythmus des Tons">🎵 Nach Ton 🧪</button></span>
               <button id="selfResume" class="small" hidden>↩ Script wieder abspielen</button>
             </div>
             <!-- 1.19.7 (Beta): Satisfyer folgt dem Ton des Videos (audiovibe.js) -->
@@ -329,7 +327,7 @@
 
         <details id="setSafety" class="card sec">
           <summary><h2>🛑 Notaus</h2></summary>
-          <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
+          <label class="check"><input id="stopHidden" type="checkbox"> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
           <label>Automatisch stoppen, wenn nichts bedient wird und kein Video läuft
             <select id="autoStop">
               <option value="0">nie (Standard)</option>
@@ -339,7 +337,7 @@
               <option value="30">nach 30 Minuten</option>
             </select>
           </label>
-          <label class="check"><input id="stopButton" type="checkbox" checked> STOPP-Knöpfe am Video zeigen (schwebend und „Alles stoppen“ unter dem Video – im Status-Fenster oben bleibt „Alles stoppen“ immer)</label>
+          <label class="check"><input id="stopButton" type="checkbox"> STOPP-Knöpfe am Video zeigen (schwebend, oben im Vollbild und „Alles stoppen“ unter dem Video – im Status-Fenster oben und mit Esc geht „Alles stoppen“ immer)</label>
           <label class="adv">Max. Geschwindigkeit Direktsteuerung <output id="capSpeedVal"></output>
             <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
           </label>
@@ -352,8 +350,8 @@
           <summary><h2>🎚 Script-Intensität</h2></summary>
           <h3>Standard für alle Szenen</h3>
           <div class="seg preset-default" data-preset-default>
-            <button data-preset="original">Original</button>
             <button data-preset="auto">Automatisch</button>
+            <button data-preset="original">Original</button>
             <button data-preset="soft">Sanft</button>
             <button data-preset="intense">Intensiv</button>
           </div>
@@ -487,14 +485,26 @@
           <h3 class="adv">Knöpfe in der Player-Leiste</h3>
           <p class="adv hint-text">Knöpfe, die gerade nichts tun können (z. B. ⟳ ohne Handy), blendet der Player selbst aus.</p>
           <ul id="barOptions" class="adv bar-options"></ul>
-          <label>Springen mit −/+ und Doppeltippen links/rechts
+          <label>Springen mit Doppeltippen links/rechts
             <select id="skipSec"><option value="10">10 Sekunden</option><option value="5">5 Sekunden</option></select>
           </label>
           <label>Sprache
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
           <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
-          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
+          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter – im Vollbild und auf der Player-Seite (sofern der Browser es zulässt)</label>
+          <!-- 1.19.8: wie eine installierte App -->
+          <label id="appFsRow" class="check"><input id="appFs" type="checkbox"> Im Browser die ganze App im Vollbild (ohne Browserleiste) – beginnt beim ersten Antippen, die Zurück-Geste beendet es</label>
+          <button id="installApp" class="small secondary" hidden>📲 Als App installieren</button>
+          <h3>Wischen im Vollbild</h3>
+          <div class="grid2">
+            <label>Linke Hälfte hoch/runter
+              <select id="swipeLeft"><option value="off">Aus</option><option value="volume">Lautstärke</option><option value="vibe">Stärke Satisfyer</option><option value="handy">Hub Handy</option><option value="both">Beide Geräte</option></select>
+            </label>
+            <label>Rechte Hälfte hoch/runter
+              <select id="swipeRight"><option value="off">Aus</option><option value="volume">Lautstärke</option><option value="vibe">Stärke Satisfyer</option><option value="handy">Hub Handy</option><option value="both">Beide Geräte</option></select>
+            </label>
+          </div>
           <p class="hint-text">Vollbild zeigt nur das Video mit der Bedienleiste des Browsers – so geht beim Verlassen der App
             automatisch das kleine Fenster auf (Android). Not-Aus im Vollbild: Esc bzw. zurück, dann STOPP.</p>
           <h3 class="adv">Beim Stöbern</h3>
@@ -663,7 +673,7 @@
             <span id="sbChoice" class="seg sb-choice" hidden><button data-choice="orig">⚡ Original</button><button data-choice="own">✋ Eigenes</button></span></div>
           <!-- Intensität dieser Szene (Handy und Satisfyer zusammen); die Farbstreifen zeigen, wie das Script dann aussieht -->
           <div class="sb-presets">
-            <div class="seg int-seg" data-preset-scene title="Gilt für diese Szene – Standard unter ⚙️ → Script"><button data-preset="original">Original<canvas></canvas></button><button data-preset="auto">Automatisch<canvas></canvas></button><button data-preset="soft">Sanft<canvas></canvas></button><button data-preset="intense">Intensiv<canvas></canvas></button></div>
+            <div class="seg int-seg" data-preset-scene title="Gilt für diese Szene – Standard unter ⚙️ → Script"><button data-preset="auto">Automatisch<canvas></canvas></button><button data-preset="original">Original<canvas></canvas></button><button data-preset="soft">Sanft<canvas></canvas></button><button data-preset="intense">Intensiv<canvas></canvas></button></div>
             <small id="sbInfo" class="sb-info"></small>
           </div>
           <div class="sb-own">
@@ -782,6 +792,7 @@
   <script src="control.js"></script>
   <script src="vibe.js"></script>
   <script src="fullscreen.js"></script>
+  <script src="gestures.js"></script>
   <script src="enhance.js"></script>
   <script src="hq.js"></script>
   <script src="finale.js"></script>
