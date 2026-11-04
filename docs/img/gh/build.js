@@ -59,8 +59,9 @@ const heat = ['#1e90ff', '#28c864', '#f0d228', '#fa821e', '#e62832', '#fa821e', 
 const heatBars = heat.map((c, i) => `<rect x="${i * 46}" y="0" width="46" height="34" fill="${c}" opacity=".55"/>`).join('');
 // Stöße: Wendepunkte im Takt (Dauer 4 s, wiederholt)
 const stroke = 'M0 30 L23 4 L46 30 L69 6 L92 30 L115 4 L138 30 L161 10 L184 30 L207 4 L230 30 L253 6 L276 30 L299 4 L322 30 L345 8 L368 30 L391 4 L414 30 L437 6 L460 30';
-write('live.svg', svg(1280, 520, 'Animation: video plays, The Handy strokes and the Satisfyer pulses in sync', `
-<rect width="1280" height="520" rx="22" fill="${C.bg}"/>
+write('live.svg', svg(1060, 520, 'Animation: video plays, The Handy strokes and the Satisfyer pulses in sync', `
+<rect width="1060" height="520" rx="22" fill="${C.bg}"/>
+<g transform="translate(-40 0)">
 <g transform="translate(380 30)">
   <rect width="520" height="460" rx="40" fill="#000" stroke="#2a2d35" stroke-width="2"/>
   <rect x="14" y="14" width="492" height="432" rx="30" fill="#0b0c10"/>
@@ -92,39 +93,40 @@ write('live.svg', svg(1280, 520, 'Animation: video plays, The Handy strokes and 
   <rect x="8" y="20" width="36" height="58" rx="18" fill="${C.pink}">
     <animate attributeName="y" values="182;20;182;24;182;20;182;40;182" dur="2s" repeatCount="indefinite"/>
   </rect>
-  <text x="26" y="300" text-anchor="middle" font-size="16" fill="${C.text}">↕ The Handy</text>
+  <text x="26" y="300" text-anchor="middle" font-size="18" fill="${C.text}">↕ The Handy</text>
 </g>
 <!-- Satisfyer -->
 <g transform="translate(1016 410)">
   <circle r="34" fill="${C.accent}" opacity=".25"><animate attributeName="r" values="30;46;30" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".35;.08;.35" dur="1s" repeatCount="indefinite"/></circle>
   <circle r="24" fill="${C.accent}"><animate attributeName="r" values="22;27;22" dur="1s" repeatCount="indefinite"/></circle>
-  <text x="0" y="70" text-anchor="middle" font-size="16" fill="${C.text}">〰 Satisfyer</text>
+  <text x="0" y="70" text-anchor="middle" font-size="18" fill="${C.text}">〰 Satisfyer</text>
 </g>
 <!-- Script-Erklärung links -->
 <g transform="translate(70 150)">
   <text font-size="15" font-weight="700" letter-spacing="1.2" fill="${C.accent}">ONE FUNSCRIPT</text>
   ${textBlock(0, 40, ['Video, script and devices', 'in the same beat.'], 26, C.text, 1.3, 'start', 700)}
-  ${textBlock(0, 128, ['The Handy follows the strokes,', 'the Satisfyer turns the same', 'script into vibration – live.'], 16, C.muted, 1.5)}
+  ${textBlock(0, 128, ['The Handy follows the strokes,', 'the Satisfyer turns the same', 'script into vibration – live.'], 18, C.muted, 1.5)}
+</g>
 </g>
 `, `<radialGradient id="vid" cx="35%" cy="30%" r="90%"><stop offset="0" stop-color="#6a2a4a"/><stop offset=".55" stop-color="#23182a"/><stop offset="1" stop-color="#0e0f14"/></radialGradient>`));
 
 // ---------- Karten ----------
 function cards(name, label, items, opts = {}) {
-  const W = 1280, gap = 24, cw = (W - gap * 2) / 3, pad = 22;
-  const visH = opts.vis ? 104 : 0;
-  const laid = items.map((it) => ({ ...it, lines: wrap(it.text, cw - pad * 2, 15) }));
+  const W = 960, gap = 18, cw = (W - gap * 2) / 3, pad = 18; // schmal: GitHub zeigt ~830 px, Text bleibt lesbar
+  const visH = opts.vis ? 88 : 0;
+  const laid = items.map((it) => ({ ...it, lines: wrap(it.text, cw - pad * 2, 16) }));
   const maxLines = Math.max(...laid.map((l) => l.lines.length));
   const top = opts.vis ? pad + visH + 18 : pad;
-  const H = Math.ceil(top + 34 + maxLines * 15 * 1.55 + pad + 6);
+  const H = Math.ceil(top + 34 + maxLines * 16 * 1.5 + pad + 6);
   const body = laid.map((it, i) => {
     const x = i * (cw + gap);
     return `<g transform="translate(${x} 0)">
   <rect x="1" y="1" width="${cw - 2}" height="${H - 2}" rx="18" fill="${C.card}" stroke="${C.line}" stroke-width="2"/>
   ${opts.bar ? `<path d="M19 1 H${cw - 19} A18 18 0 0 1 ${cw - 1} 19 V4 H1 V19 A18 18 0 0 1 19 1 Z" fill="url(#grad)"/>` : ''}
-  ${it.vis ? `<rect x="${pad}" y="${pad}" width="${cw - pad * 2}" height="${visH}" rx="12" fill="${C.vis}"/><g transform="translate(${pad + (cw - pad * 2 - 300) / 2} ${pad + 12}) scale(1.36)">${it.vis}</g>` : ''}
+  ${it.vis ? `<rect x="${pad}" y="${pad}" width="${cw - pad * 2}" height="${visH}" rx="12" fill="${C.vis}"/><g transform="translate(${pad + (cw - pad * 2 - 242) / 2} ${pad + 9}) scale(1.1)">${it.vis}</g>` : ''}
   ${it.num ? `<circle cx="${pad + 18}" cy="${pad + 18}" r="18" fill="${C.accent}"/><text x="${pad + 18}" y="${pad + 25}" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">${it.num}</text>` : ''}
-  <text x="${pad + (it.num ? 48 : 0)}" y="${top + (it.num ? 24 : 22)}" font-size="20" font-weight="700" fill="${C.text}">${esc(it.title)}</text>
-  ${textBlock(pad, top + (it.num ? 62 : 54), it.lines, 15, C.muted, 1.55)}
+  <text x="${pad + (it.num ? 48 : 0)}" y="${top + (it.num ? 24 : 22)}" font-size="19" font-weight="700" fill="${C.text}">${esc(it.title)}</text>
+  ${textBlock(pad, top + (it.num ? 62 : 52), it.lines, 16, C.muted, 1.5)}
 </g>`;
   }).join('\n');
   write(name, svg(W, H, label, body));
@@ -163,7 +165,7 @@ cards('steps.svg', 'Three steps: connect, pick a scene, play', [
 
 // ---------- Abschnitts-Überschriften (Kicker + Titel wie auf der Webseite) ----------
 function heading(name, kicker, title) {
-  write(name, svg(1280, 96, `${kicker} – ${title}`, `
+  write(name, svg(960, 96, `${kicker} – ${title}`, `
 <text x="2" y="30" font-size="15" font-weight="700" letter-spacing="1.4" fill="${C.accent}">${esc(kicker.toUpperCase())}</text>
 <text x="0" y="76" font-size="36" font-weight="800" fill="${C.text}">${esc(title)}</text>`));
 }

@@ -1,10 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" width="1280" height="520" role="img" aria-label="Animation: video plays, The Handy strokes and the Satisfyer pulses in sync" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 520" width="1060" height="520" role="img" aria-label="Animation: video plays, The Handy strokes and the Satisfyer pulses in sync" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
 <defs>
   <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
   <radialGradient id="vid" cx="35%" cy="30%" r="90%"><stop offset="0" stop-color="#6a2a4a"/><stop offset=".55" stop-color="#23182a"/><stop offset="1" stop-color="#0e0f14"/></radialGradient>
 </defs>
 
-<rect width="1280" height="520" rx="22" fill="#111317"/>
+<rect width="1060" height="520" rx="22" fill="#111317"/>
+<g transform="translate(-40 0)">
 <g transform="translate(380 30)">
   <rect width="520" height="460" rx="40" fill="#000" stroke="#2a2d35" stroke-width="2"/>
   <rect x="14" y="14" width="492" height="432" rx="30" fill="#0b0c10"/>
@@ -36,19 +37,20 @@
   <rect x="8" y="20" width="36" height="58" rx="18" fill="#ff5c93">
     <animate attributeName="y" values="182;20;182;24;182;20;182;40;182" dur="2s" repeatCount="indefinite"/>
   </rect>
-  <text x="26" y="300" text-anchor="middle" font-size="16" fill="#e8eaed">↕ The Handy</text>
+  <text x="26" y="300" text-anchor="middle" font-size="18" fill="#e8eaed">↕ The Handy</text>
 </g>
 <!-- Satisfyer -->
 <g transform="translate(1016 410)">
   <circle r="34" fill="#e0457b" opacity=".25"><animate attributeName="r" values="30;46;30" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".35;.08;.35" dur="1s" repeatCount="indefinite"/></circle>
   <circle r="24" fill="#e0457b"><animate attributeName="r" values="22;27;22" dur="1s" repeatCount="indefinite"/></circle>
-  <text x="0" y="70" text-anchor="middle" font-size="16" fill="#e8eaed">〰 Satisfyer</text>
+  <text x="0" y="70" text-anchor="middle" font-size="18" fill="#e8eaed">〰 Satisfyer</text>
 </g>
 <!-- Script-Erklärung links -->
 <g transform="translate(70 150)">
   <text font-size="15" font-weight="700" letter-spacing="1.2" fill="#e0457b">ONE FUNSCRIPT</text>
   <text x="0" y="40" font-size="26" fill="#e8eaed" font-weight="700" text-anchor="start"><tspan x="0" dy="0">Video, script and devices</tspan><tspan x="0" dy="33.800000000000004">in the same beat.</tspan></text>
-  <text x="0" y="128" font-size="16" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="0" dy="0">The Handy follows the strokes,</tspan><tspan x="0" dy="24">the Satisfyer turns the same</tspan><tspan x="0" dy="24">script into vibration – live.</tspan></text>
+  <text x="0" y="128" font-size="18" fill="#9aa1ab" font-weight="400" text-anchor="start"><tspan x="0" dy="0">The Handy follows the strokes,</tspan><tspan x="0" dy="27">the Satisfyer turns the same</tspan><tspan x="0" dy="27">script into vibration – live.</tspan></text>
+</g>
 </g>
 
 </svg>
