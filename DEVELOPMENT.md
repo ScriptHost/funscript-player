@@ -168,8 +168,13 @@ Without Stash everything works with the folders. Web Bluetooth works on `localho
   English translations in `public/i18n-en.js`.
 - **Safety first:** everything that moves devices must be stoppable via `emergencyStop()` and stop when the connection
   is lost.
-- **Release:** `VERSION`, `CHANGELOG.md` (English), README; tag `vX.Y.Z` → the workflow runs the tests, starts
-  the container read-only, then publishes the release (ZIP + notes from `CHANGELOG.md`) and the Docker image.
+- **Versioning (from 2.0.0):** `MAJOR.MINOR.PATCH` – major for big breaks (new interface, renamed container/volume),
+  minor for a batch of features, patch only for bug fixes. Collect changes into one release instead of one per idea.
+- **Test builds without a release:** every push to `main` with green tests builds `ghcr.io/scripthost/funscript-player:edge`
+  (workflow “Tests”). Point a test server at `:edge` to try things; `latest` and version tags only come from a release.
+- **Release:** `VERSION`, `CHANGELOG.md` (English, a `## x.y.z` section), README; tag `vX.Y.Z` → the workflow runs the
+  tests, starts the container read-only, then publishes the release (ZIP + notes from `CHANGELOG.md`) and the Docker
+  image (`:x.y.z` and `:latest`).
 
 ## Tests
 

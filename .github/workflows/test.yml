@@ -21,3 +21,25 @@ jobs:
       - run: node --test "test/*.test.js"   # inkl. Browser-Selbsttest in Chrome (test/browser.test.js)
       # Code-Prüfung (1.19.9): nur hier, nicht im Image
       - run: npm i --no-save --no-audit --no-fund eslint@9 globals@15 && npx eslint .
+
+  # Test-Image (seit 1.19.9): jeder Push auf main nach grünen Tests -> ghcr.io/…:edge.
+  # Zum Ausprobieren auf dem Server ohne Release; „latest“ und Versionsnummern gibt es nur mit einem Release-Tag.
+  edge:
+    if: github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/scripthost/funscript-player:edge

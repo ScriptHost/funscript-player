@@ -21,7 +21,8 @@ docker logs Funscript-Player  # Start-Übersicht mit Selbsttest (englisch), ende
   „Als App installieren“ – einen beliebigen Reverse Proxy davor setzen (Traefik, Caddy, nginx, Nginx Proxy Manager …),
   z. B. `https://funscript-player.example.com` → Port 8080 des Containers.
 - **Update:** `docker compose pull && docker compose up -d` – das fertige Image kommt von GitHub
-  (`ghcr.io/scripthost/funscript-player`). Selbst bauen: `docker compose up -d --build`.
+  (`ghcr.io/scripthost/funscript-player`). Selbst bauen: `docker compose up -d --build`. Vorab testen, was kommt:
+  `PLAYER_VERSION=edge` in der `.env` folgt dem neuesten getesteten Stand von `main` (kein Release, ändert sich oft).
 - Alle Server-Einstellungen stehen in der **`.env`**; die `docker-compose.yml` liest sie nur. Updates überschreiben die `.env` nie.
 - **Stash** am besten direkt über ein gemeinsames Docker-Netz ansprechen, z. B. `STASH_URL=http://Stash:9999`
   (Containername). Der Player gibt keine Stash-Adressen an den Browser weiter – ein öffentlicher DNS-Name ist nicht nötig.
