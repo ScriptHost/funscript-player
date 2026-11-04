@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.5-e0457b?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.6-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
@@ -115,7 +115,7 @@ Every settings section is collapsible; fine-tuning (Satisfyer translation, pictu
 - The container runs read-only, with `/tmp` as tmpfs, without Linux capabilities (`cap_drop: ALL`) and with
   `no-new-privileges`; it only writes to its data volume.
 - A strict Content Security Policy only allows the player's own scripts.
-- HereSphere password: stored as a scrypt hash; a login is valid for 30 days.
+- HereSphere password: stored as a scrypt hash; a new password logs out all devices.
 
 ## Development
 

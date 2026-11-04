@@ -2,6 +2,14 @@
 
 English version of [CHANGELOG.md](CHANGELOG.md) (German). The GitHub releases use this file.
 
+## 1.19.6 – 04.11.2026
+
+- **HereSphere:** logging in once with the password is enough – the login no longer expires after 30 days. Logins from
+  1.19.5 stay valid; a new password still logs out all devices
+- **Release workflow:** GitHub Actions updated (checkout 7, setup-node 7, docker/login-action 4,
+  docker/build-push-action 7); tests now run on every push, Dependabot keeps the actions up to date, `SECURITY.md`
+  explains confidential security reports
+
 ## 1.19.5 – 04.11.2026
 
 - **Hardened container:** `read_only`, `/tmp` as tmpfs and `cap_drop: ALL` in docker-compose.yml – the player can only

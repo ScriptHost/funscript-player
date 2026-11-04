@@ -128,5 +128,5 @@ window.FSP_EN = {
   '241c8v': 'Funscript Player · developer docs', hc3yj1: '<a href=\x22index.html\x22>← back to the features</a>',
   '1cp8qyb': "<code>1</code> = Intiface forwarding fixed to 192.168.x / 10.x only (otherwise switchable in the UI, default since 1.19.5: on)",
   '1ilcob7': "Allowed Intiface ports, comma-separated",
-  '1819g1m': "Server settings (<code>{ heresphere, hsVrOnly, hsPassword, intifaceLan }</code>, stored in <code>data/settings.json</code>; of the password only salt + scrypt hash, token valid for 30 days)",
+  '7395m7': "Server settings (<code>{ heresphere, hsVrOnly, hsPassword, intifaceLan }</code>, stored in <code>data/settings.json</code>; of the password only salt + scrypt hash, token without expiry, new password = all tokens invalid)",
 };

@@ -380,7 +380,7 @@
     <span class="kicker">Versionen</span>
     <h2>Was zuletzt dazukam</h2>
     <div class="timeline">
-      <div class="tl"><b>1.19.5</b><p>Sicherer: Container schreibgeschützt und ohne Linux-Rechte, strenge Content-Security-Policy, HereSphere-Passwort mit scrypt und Anmeldung für 30 Tage, Intiface standardmäßig nur im Heimnetz.</p></div>
+      <div class="tl"><b>1.19.5–1.19.6</b><p>Sicherer: Container schreibgeschützt und ohne Linux-Rechte, strenge Content-Security-Policy, HereSphere-Passwort mit scrypt (einmal anmelden genügt), Intiface standardmäßig nur im Heimnetz.</p></div>
       <div class="tl"><b>1.19.4</b><p>Mehrere Satisfyer gleichzeitig mit eigener Stärke und eigenem Vorlauf, zwei Motoren nach Rhythmus und Tempo, Sanftanlauf, Sync-Anzeige, Geräte-Einstellungen an einem Ort, stabiler auf kleinen Servern.</p></div>
       <div class="tl"><b>1.19.3</b><p>Script-Intensität für beide Geräte (Original · Automatisch · Sanft · Intensiv) direkt am Video mit Vorschau, aufklappbare Einstellungen, Notaus mit Auto-Stopp, natürlicheres Bild, Update-Hinweis, Selbsttest beim Start, fertiges Docker-Image – und Selten-Genutztes entfernt.</p></div>
       <div class="tl"><b>1.19.2</b><p>Script-Standard „Automatisch“, aufgeräumter Script-Kasten, Feineinstellung im Geräte-Fenster, Hub unten/oben beim Selbststeuern, direktere Finger-Steuerung, gedrückt halten = 2× vor/zurück, nur 2D-Videos, neue Finale-Standards.</p></div>
@@ -429,13 +429,13 @@
     <h2>Mit Docker in fünf Minuten</h2>
     <div class="split">
       <ol class="steps">
-        <li>ZIP <code>handy-player-linux-v1.19.5.zip</code> von <a href="https://github.com/ScriptHost/funscript-player/releases/latest">GitHub (Releases)</a> herunterladen, auf den Server kopieren und entpacken.</li>
+        <li>ZIP <code>handy-player-linux-v1.19.6.zip</code> von <a href="https://github.com/ScriptHost/funscript-player/releases/latest">GitHub (Releases)</a> herunterladen, auf den Server kopieren und entpacken.</li>
         <li><code>.env.example</code> nach <code>.env</code> kopieren und <code>STASH_URL</code>, ggf. Port und Medienordner eintragen.</li>
         <li>Für den HQ-Stream die Intel-Grafik (<code>/dev/dri</code>) und die Gruppe <code>render</code> durchreichen.</li>
         <li>Starten – das fertige Image kommt von GitHub. Der Player läuft unter <code>http://server:8080</code>; für HTTPS einen Reverse Proxy davor setzen.</li>
       </ol>
       <div>
-<pre><code>unzip handy-player-linux-v1.19.5.zip
+<pre><code>unzip handy-player-linux-v1.19.6.zip
 cd handy-player
 cp .env.example .env   # einmal, dann anpassen
 docker compose pull && docker compose up -d

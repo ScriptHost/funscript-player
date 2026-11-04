@@ -2,6 +2,14 @@
 
 English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 1.19.6 – 04.11.2026
+
+- **HereSphere:** einmal mit Passwort anmelden genügt – die Anmeldung läuft nicht mehr nach 30 Tagen ab. Anmeldungen aus
+  1.19.5 gelten weiter; ein neues Passwort meldet weiterhin alle Geräte ab
+- **Release-Workflow:** GitHub Actions aktualisiert (checkout 7, setup-node 7, docker/login-action 4,
+  docker/build-push-action 7); Tests laufen jetzt bei jedem Push, Dependabot hält die Actions aktuell, `SECURITY.md`
+  erklärt vertrauliche Sicherheitsmeldungen
+
 ## 1.19.5 – 04.11.2026
 
 - **Container gehärtet:** `read_only`, `/tmp` als tmpfs und `cap_drop: ALL` in der docker-compose.yml – der Player kann

@@ -91,7 +91,7 @@ z. B. `- /srv/downloads:/media/Downloads:ro`. Video und Script brauchen denselbe
 In HereSphere im Browser `https://<player>/heresphere` öffnen. Standardmäßig nur VR-Videos; Kategorien *Alle mit Script*,
 gespeicherte Stash-Filter und Ordner. Die Handy steuert HereSphere selbst (Connection Key dort eintragen). Eine Anmeldung
 im Reverse Proxy muss für `/heresphere` ausgenommen sein; optional schützt ein Passwort die Schnittstelle. Abschaltbar
-unter ⚙️ → VR oder fest mit `HERESPHERE=off`. Eine Anmeldung mit Passwort gilt 30 Tage.
+unter ⚙️ → VR oder fest mit `HERESPHERE=off`. Mit Passwort meldet man sich einmal an; ein neues Passwort meldet alle Geräte ab.
 
 ## Bild
 
@@ -113,7 +113,7 @@ Verbindung über `/intiface` weiter (standardmäßig nur Heimnetz, mit `INTIFACE
 - Der Container läuft schreibgeschützt, mit `/tmp` als tmpfs, ohne Linux-Rechte (`cap_drop: ALL`) und mit
   `no-new-privileges`; schreiben kann er nur in sein Daten-Volume.
 - Eine strenge Content-Security-Policy erlaubt nur die eigenen Skripte des Players.
-- HereSphere-Passwort als scrypt-Hash gespeichert; eine Anmeldung gilt 30 Tage.
+- HereSphere-Passwort als scrypt-Hash gespeichert; ein neues Passwort meldet alle Geräte ab.
 
 ## Entwicklung
 
