@@ -41,19 +41,25 @@ jobs:
           if [ "$GITHUB_REF_TYPE" = "tag" ] && git tag -l --format="%(contents)" "$GITHUB_REF_NAME" | grep -qF "[alle Releases neu]"; then
             RECREATE=true; tags=$(git tag --sort=v:refname)
           fi
+          # Fehler einer Version als Hinweis (öffentlich lesbar, auch ohne Anmeldung) melden und weitermachen
+          fail=0
+          err() { echo "::error title=$1::$(tr '\n' ' ' < err.txt | cut -c1-400)"; fail=1; }
           for t in $tags; do
             if gh release view "$t" >/dev/null 2>&1; then
-              if [ "$RECREATE" = "true" ]; then gh release delete "$t" --yes; else echo "$t: Release gibt es schon"; continue; fi
+              if [ "$RECREATE" != "true" ]; then echo "$t: Release gibt es schon"; continue; fi
+              gh release delete "$t" --yes 2>err.txt || { err "$t löschen"; continue; }
             fi
             v="${t#v}"
             awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' changelog.en.md > notes.md
             [ -s notes.md ] || echo "Version $v" > notes.md
             printf '\n---\nDocker: `docker compose pull && docker compose up -d` · Image `ghcr.io/scripthost/funscript-player:%s`\n' "$v" >> notes.md
             zip="handy-player-linux-$t.zip"
-            git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github'
+            git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github' 2>err.txt || { err "$t ZIP"; continue; }
             if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
-            gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest
+            gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest 2>err.txt || { err "$t anlegen"; continue; }
+            echo "$t: Release erstellt"
           done
+          exit $fail
 
   image:
     # Docker-Image nur für einen neuen Tag (bzw. beim manuellen Lauf für den neuesten)
