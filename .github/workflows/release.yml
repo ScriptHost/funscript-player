@@ -44,10 +44,14 @@ jobs:
           # Fehler einer Version als Hinweis (öffentlich lesbar, auch ohne Anmeldung) melden und weitermachen
           fail=0
           err() { echo "::error title=$1::$(tr '\n' ' ' < err.txt | cut -c1-400)"; fail=1; }
+          # GitHub antwortet manchmal mit 502 – bis zu 4 Versuche
+          retry() { for i in 1 2 3 4; do "$@" 2>err.txt && return 0; sleep $((i * 10)); done; return 1; }
           for t in $tags; do
             if gh release view "$t" >/dev/null 2>&1; then
               if [ "$RECREATE" != "true" ]; then echo "$t: Release gibt es schon"; continue; fi
-              gh release delete "$t" --yes 2>err.txt || { err "$t löschen"; continue; }
+              # schon im neuen Format (englisch, mit Image-Hinweis)? dann bleibt es
+              if gh release view "$t" --json body -q .body | grep -qF "ghcr.io/scripthost/funscript-player"; then echo "$t: schon neu"; continue; fi
+              retry gh release delete "$t" --yes || { err "$t löschen"; continue; }
             fi
             v="${t#v}"
             awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' changelog.en.md > notes.md
@@ -56,7 +60,7 @@ jobs:
             zip="handy-player-linux-$t.zip"
             git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github' 2>err.txt || { err "$t ZIP"; continue; }
             if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
-            gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest 2>err.txt || { err "$t anlegen"; continue; }
+            retry gh release create "$t" "$zip" --title "$v" --notes-file notes.md $latest || { err "$t anlegen"; continue; }
             echo "$t: Release erstellt"
           done
           exit $fail
