@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 56" width="170" height="56" role="img" aria-label="Website ↗" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
-<defs>
-  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
-  
-</defs>
-<rect x="1" y="1" width="168" height="54" rx="14" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/><text x="85" y="35" text-anchor="middle" font-size="19" font-weight="600" fill="#e8eaed">Website ↗</text>
-</svg>

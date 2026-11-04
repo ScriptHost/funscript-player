@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/img/banner.svg" alt="Funscript Player" width="100%"></p>
 
-<p align="center"><a href="https://funscript-player.de"><b>Webseite</b></a> · <a href="CHANGELOG.md"><b>Änderungen</b></a> · <a href="https://funscript-player.de/dev.html"><b>Entwickler-Doku</b></a> · <a href="README.md"><b>🇬🇧 English</b></a></p>
+<p align="center"><a href="../../releases/latest"><b>Download</b></a> · <a href="CHANGELOG.md"><b>Änderungen</b></a> · <a href="website/dev.html"><b>Entwickler-Doku</b></a> · <a href="README.md"><b>🇬🇧 English</b></a></p>
 
 # Funscript Player
 
@@ -25,7 +25,8 @@ docker logs Handy-Player  # Start-Übersicht mit Selbsttest, endet mit „✓ be
 - Alle Server-Einstellungen stehen in der **`.env`**; die `docker-compose.yml` liest sie nur. Updates überschreiben die `.env` nie.
 - **Stash** am besten direkt über ein gemeinsames Docker-Netz ansprechen, z. B. `STASH_URL=http://Stash:9999`
   (Containername). Der Player gibt keine Stash-Adressen an den Browser weiter – ein öffentlicher DNS-Name ist nicht nötig.
-- Der Container läuft als Benutzer `node` (1000), **nie als root**; `PUID`/`PGID` ändern das.
+- Der Container läuft als Benutzer `node` (1000), **nie als root**; `PUID`/`PGID` ändern das. `PLAYER_MEM` (Standard 2g)
+  begrenzt den Arbeitsspeicher – läuft der Player voll, trifft es nur ihn, nicht Stash.
 - **HQ-Stream:** `/dev/dri` wird durchgereicht, `RENDER_GID` = GID der Host-Gruppe `render` (`getent group render`).
 
 ### Was liegt im Volume `handy-data`?
@@ -55,7 +56,8 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
   - **Sanft** – Hub 20–80 %, höchstens 240 %/s, Satisfyer schwächer und ruhiger
   - **Intensiv** – voller Hub, ruhige Stellen im doppelten/dreifachen Takt, Satisfyer kräftiger
 - Der Satisfyer braucht **kein eigenes Vibrations-Script** – er nutzt dasselbe Funscript wie die Handy. Springt oder lädt
-  das Video, ruhen beide Geräte.
+  das Video, ruhen beide Geräte. **Mehrere Satisfyer** gleichzeitig: jeder mit eigener Stärke und eigenem Vorlauf; bei zwei
+  Motoren folgt Motor 2 auf Wunsch dem Tempo. Die Geräte-Liste zeigt ⏱ die Bluetooth-Laufzeit, schwankt sie, wird der Status gelb.
 - **Videos ohne Funscript:** „Selbst steuern“ (Tempo, Hub unten/oben, Satisfyer-Stärke, Touch-Fläche) und
   **⏺ Mitschnitt zum Video** als eigenes Script (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: im Volume).
 - **🎮 Steuern:** Direktsteuerung, Touch-Fläche (Tempo oder 🧪 Position) und Pattern-Editor.
@@ -116,7 +118,7 @@ MEDIA_DIR=./testmedia DATA_DIR=./data node server.js   # → http://localhost:80
 node --test "test/*.test.js"                           # automatische Tests, ohne Pakete
 ```
 
-Technische Details: `docs/dev.html`. Änderungen: [CHANGELOG.md](CHANGELOG.md).
+Technische Details: `website/dev.html`. Änderungen: [CHANGELOG.md](CHANGELOG.md).
 
 ## Hinweise
 

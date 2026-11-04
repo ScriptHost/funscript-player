@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"          # nie root
     security_opt: [no-new-privileges:true]
+    # Speichergrenze: läuft der Player (z. B. mehrere HQ-Umwandlungen) voll, trifft es nur ihn – nicht Stash
+    mem_limit: ${PLAYER_MEM:-2g}
 
     # Erreichbar unter http://<server>:<PLAYER_PORT>. Für HTTPS (nötig für Bluetooth und „als App
     # installieren“) einen Reverse Proxy davor setzen, z. B. https://funscript-player.example.com -> Port 8080.
@@ -26,7 +28,7 @@ services:
       STASH_API_KEY: ${STASH_API_KEY:-}
       STASH_INSECURE: ${STASH_INSECURE:-}
       HQ_ACCEL: ${HQ_ACCEL:-}
-      HQ_MAX: ${HQ_MAX:-3}
+      HQ_MAX: ${HQ_MAX:-2}
       HERESPHERE: ${HERESPHERE:-}
       INTIFACE_LAN_ONLY: ${INTIFACE_LAN_ONLY:-}
       LOG_LEVEL: ${LOG_LEVEL:-}

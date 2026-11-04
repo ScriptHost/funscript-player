@@ -233,7 +233,7 @@ const SHARED_PREFS = new Set([
   'capSpeed', 'stopButton', 'autoStop', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeSmooth', 'vibeMap2', 'vibeSource',
   'bleKnownNames', 'scriptTools', 'scriptPreset', 'scenePresets', 'finale', 'hud',
   'selfMode', 'selfSpeed', 'selfVibe', 'sceneDev', 'vibeLeadAuto', 'touchHandy', 'touchVibe', 'touchHold', 'saveScripts', 'savedFilter', 'stashSort', 'onlyScripts',
-  'offsetInfo', 'scriptChoice', 'scriptPresetHandy', 'scriptPresetVibe', 'scriptIntensity', 'skipSec', 'selfStroke', 'selfLo', 'selfHi', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
+  'offsetInfo', 'scriptChoice', 'scriptPresetHandy', 'scriptIntensity', 'skipSec', 'selfLo', 'selfHi', 'touchMode', 'tooFast', 'handyMax', 'handyMaxAuto', 'hiddenFilters', 'browseTabs', 'barBtns',
 ]);
 const isSharedPref = (k) => SHARED_PREFS.has(k) || k.startsWith('savedFilter.');
 let prefsPending = {}, prefsTimer = null;
@@ -243,6 +243,13 @@ const store = {
     try { localStorage.setItem('hp.' + k, JSON.stringify(v)); } catch { /* egal */ }
     if (!isSharedPref(k)) return;
     prefsPending[k] = v === undefined ? null : v;
+    clearTimeout(prefsTimer);
+    prefsTimer = setTimeout(flushPrefs, 400);
+  },
+  // Schlüssel ganz löschen – hier und auf dem Server (prefs.json)
+  del(k) {
+    try { localStorage.removeItem('hp.' + k); } catch { /* egal */ }
+    prefsPending[k] = null;
     clearTimeout(prefsTimer);
     prefsTimer = setTimeout(flushPrefs, 400);
   },
@@ -270,6 +277,24 @@ window.addEventListener('pagehide', () => { if (Object.keys(prefsPending).length
     for (const [k, v] of Object.entries(prefs)) if (isSharedPref(k)) localStorage.setItem('hp.' + k, JSON.stringify(v));
   } catch { /* ohne Server: nur lokal */ }
 })();
+
+// 1.19.4: Schlüssel ohne Funktion aus den gemeinsamen Einstellungen löschen – prefs.json bleibt übersichtlich
+// (scriptPresetHandy erst in tools.js, selfStroke in selfctl.js – sie werden dort noch einmal umgerechnet)
+for (const k of ['presetLink', 'libLinks', 'showContinue', 'scriptPreset', 'scriptPresetVibe']) {
+  if (store.get(k, undefined) !== undefined) store.del(k);
+}
+
+// 1.19.4: JavaScript-Fehler im Browser an den Server melden – stehen dann in „docker logs“ (höchstens 5 je Seite)
+let errReports = 0;
+function reportError(msg) {
+  if (errReports++ >= 5) return;
+  fetch('/api/clientcheck', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+    body: JSON.stringify({ fails: [String(msg).slice(0, 200)], ua: navigator.userAgent }),
+  }).catch(() => {});
+}
+window.addEventListener('error', (e) => reportError(`${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`));
+window.addEventListener('unhandledrejection', (e) => reportError('Promise: ' + (e.reason?.message || e.reason)));
 
 function setStatus(state, text) {
   const el = $('status');

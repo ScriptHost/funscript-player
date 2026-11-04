@@ -2,6 +2,22 @@
 
 English version of [CHANGELOG.md](CHANGELOG.md) (German). The GitHub releases use this file.
 
+## 1.19.4 – 04.11.2026
+
+- **Several Satisfyers:** “＋ Connect another Satisfyer”; each has its own strength and its own lead (from its own
+  Bluetooth latency) – several stay in time together
+- **Two motors:** optionally motor 2 follows the tempo while motor 1 pulses with the rhythm (also via Intiface)
+- **Soft start:** after start, pause and STOP the Satisfyer ramps up within 0.5 s instead of jumping to full strength
+- **Sync display:** ⏱ Bluetooth latency per device; if it fluctuates a lot the status turns yellow with a hint
+- **Settings:** Handy and Satisfyer together under “🔌 Devices”
+- **More robust:** `HQ_MAX` 2 instead of 3 and a memory limit `PLAYER_MEM` (2g) in the compose file – if the player runs
+  out of memory, only the player is hit, not Stash
+- **Errors visible:** JavaScript errors from the browser and Stash/network errors (502–504) show up in `docker logs`
+- **Tidied up:** server routes as a table, duplicate code (heatmap, Stash actions) merged, unused CSS removed, obsolete
+  settings keys are deleted from `prefs.json`
+- **Release workflow:** tests run before the release and the image
+- **funscript-player.de** now redirects to the GitHub repository; the presentation page lives as source under `website/`
+
 ## 1.19.3 – 04.11.2026
 
 - **Script intensity, one choice for both devices:** Original · Automatic · Gentle · Intense. *Original* leaves the file

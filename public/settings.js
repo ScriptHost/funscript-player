@@ -83,12 +83,12 @@ function updateAdvHint() {
 $('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
 setAdvMode(store.get('advMode', false));
 
-// --- Einmal nach dem Update auf 1.19.3: was neu ist ------------------------
-if (!store.get('seen1193', false)) {
+// --- Einmal nach dem Update auf 1.19.4: was neu ist ------------------------
+if (!store.get('seen1194', false)) {
   $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen1193', true); };
+  const done = () => { $('whatsNew').hidden = true; store.set('seen1194', true); };
   $('whatsNewOk').addEventListener('click', done);
-  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setScript'); });
+  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setDevices'); });
 }
 
 // --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------

@@ -64,6 +64,70 @@ function sameOrigin(req) {
   } catch { return false; }
 }
 
+// Antworten und kleine Helfer für die Routen
+const json = (res, data, cache = 'no-store', status = 200) => {
+  res.writeHead(status, { 'Content-Type': MIME['.json'], 'Cache-Control': cache });
+  res.end(JSON.stringify(data));
+};
+const noContent = (res) => { res.writeHead(204); res.end(); };
+const needStash = () => { if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 }); };
+const userSrc = (url) => {
+  const src = url.searchParams.get('src') || '';
+  if (!/^(stash|media):/.test(src)) throw Object.assign(new Error('Ungültige Quelle'), { status: 400 });
+  return src;
+};
+
+// Fehlermeldungen aus dem Browser (stiller Selbsttest, JavaScript-Fehler) – höchstens 20 pro Minute in „docker logs“
+let clientLogs = { at: 0, n: 0 };
+async function clientReport(req, res) {
+  const r = JSON.parse((await readBody(req, 20000)) || '{}');
+  const fails = Array.isArray(r.fails) ? r.fails.slice(0, 20).map((f) => String(f).replace(/\s+/g, ' ').slice(0, 200)) : [];
+  if (Date.now() - clientLogs.at > 60000) clientLogs = { at: Date.now(), n: 0 };
+  if (fails.length && clientLogs.n++ < 20) logLine(`Oberfläche (${String(r.ua || '').replace(/\s+/g, ' ').slice(0, 60)}): ✗ ${fails.join(' · ')}`);
+  noContent(res);
+}
+
+// Feste Pfade: { pfad: { METHODE: (req, res, url) => … } }
+const ROUTES = {
+  '/api/store': {
+    GET: async (req, res) => json(res, await readStore()),
+    PUT: async (req, res) => { await writeStore(req); noContent(res); },
+  },
+  '/api/prefs': {
+    GET: async (req, res) => json(res, await readPrefs()),
+    PUT: async (req, res) => { await writePrefs(req); json(res, await readPrefs()); },
+  },
+  '/api/userscript': {
+    POST: async (req, res) => json(res, await saveUserScript(req)),
+    GET: async (req, res, url) => { const src = userSrc(url); return sendFile(req, res, (await ownScriptFile(src)) || userScriptFile(src)); },
+    DELETE: async (req, res, url) => { await deleteUserScript(userSrc(url)); noContent(res); },
+  },
+  // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
+  '/api/userscripts': { GET: async (req, res) => json(res, await ownScripts()) },
+  '/api/heat': { GET: async (req, res, url) => json(res, await scriptHeat(url.searchParams.get('src')), 'max-age=3600') },
+  '/api/settings': {
+    GET: async (req, res) => json(res, publicSettings()),
+    PUT: async (req, res) => { await writeSettings(req); json(res, publicSettings()); },
+  },
+  '/api/handycache': {
+    GET: async (req, res, url) => { const hit = await handyCacheGet(url.searchParams.get('k') || ''); json(res, hit || {}, 'no-store', hit ? 200 : 404); },
+    PUT: async (req, res) => { await handyCachePut(req); noContent(res); },
+  },
+  '/api/clientcheck': { POST: clientReport },
+  '/api/update': { GET: async (req, res) => json(res, await updateInfo()) },
+  '/api/library': {
+    GET: async (req, res) => json(res, (await libraryItems()).sort((a, b) => a.video.localeCompare(b.video, 'de', { numeric: true }))),
+  },
+  '/api/stash/status': { GET: async (req, res) => json(res, await stashStatus()) },
+  '/api/stash/saved-filters': { GET: async (req, res) => { needStash(); json(res, (await stashSavedFilters()).map(({ id, name }) => ({ id, name }))); } },
+  '/api/stash/filters': { GET: async (req, res) => { needStash(); json(res, await stashFilters()); } },
+  '/api/stash/scenes': { GET: async (req, res, url) => { needStash(); json(res, await stashScenes(url.searchParams)); } },
+  '/hq/stream': { GET: (req, res, url) => hqStream(req, res, url.searchParams) },
+  '/api/hq/status': { GET: async (req, res) => json(res, await hqStatus()) },
+  '/api/hq/probe': { GET: async (req, res, url) => json(res, await hqProbe(url.searchParams.get('src'))) },
+  '/api/hq/bench': { GET: async (req, res, url) => json(res, await hqBench(url.searchParams)) },
+};
+
 // LOG_LEVEL=debug: jede Anfrage; sonst nur langsame (> 1 s) API-Anfragen – Videos/Streams nicht
 const LOG_DEBUG = /^debug$/i.test(process.env.LOG_LEVEL || '');
 const handler = async (req, res) => {
@@ -90,86 +154,27 @@ const handler = async (req, res) => {
       throw Object.assign(new Error('Fremde Herkunft'), { status: 403 });
     }
 
-    if (pathname === '/api/store') {
-      if (req.method === 'PUT') {
-        await writeStore(req);
-        res.writeHead(204);
-        return res.end();
-      }
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(await readStore()));
+    // Feste Pfade aus der Tabelle (ROUTES), GET gilt auch für HEAD
+    const route = ROUTES[pathname];
+    if (route) {
+      const fn = route[req.method === 'HEAD' ? 'GET' : req.method];
+      if (!fn) throw Object.assign(new Error('Methode nicht erlaubt'), { status: 405 });
+      return await fn(req, res, url);
     }
 
     const sa = /^\/api\/stash\/scene\/(\d+)(?:\/(activity|play|rating|favorite|o|o-undo|marker))?$/.exec(pathname);
     if (sa) {
-      if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
-      if (sa[2] && req.method === 'POST') {
-        const result = await stashSceneAction(sa[1], sa[2], req);
-        res.writeHead(200, { 'Content-Type': MIME['.json'] });
-        return res.end(JSON.stringify(result || { ok: true }));
-      }
-      if (!sa[2] && req.method === 'GET') {
-        const scene = await stashScene(sa[1]);
-        res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-        return res.end(JSON.stringify(scene));
-      }
+      needStash();
+      if (sa[2] && req.method === 'POST') return json(res, (await stashSceneAction(sa[1], sa[2], req)) || { ok: true });
+      if (!sa[2] && req.method === 'GET') return json(res, await stashScene(sa[1]));
       throw Object.assign(new Error('Methode nicht erlaubt'), { status: 405 });
     }
 
     // HereSphere fragt per GET oder POST an. Bei Stash-Szenen enthält der POST ggf. eine
     // neue Bewertung (0–5) oder den Favoriten-Status – das wird nach Stash geschrieben.
-    if (pathname === '/api/prefs') {
-      if (req.method === 'PUT') await writePrefs(req);
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(await readPrefs()));
-    }
-    if (pathname === '/api/userscript') {
-      if (req.method === 'POST') {
-        const r = await saveUserScript(req);
-        res.writeHead(200, { 'Content-Type': MIME['.json'] });
-        return res.end(JSON.stringify(r));
-      }
-      const src = url.searchParams.get('src') || '';
-      if (!/^(stash|media):/.test(src)) throw Object.assign(new Error('Ungültige Quelle'), { status: 400 });
-      if (req.method === 'DELETE') {
-        await deleteUserScript(src);
-        res.writeHead(204);
-        return res.end();
-      }
-      return sendFile(req, res, (await ownScriptFile(src)) || userScriptFile(src));
-    }
-    if (pathname === '/api/userscripts') {
-      // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(await ownScripts()));
-    }
-    if (pathname === '/api/heat') {
-      const heat = await scriptHeat(url.searchParams.get('src'));
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'max-age=3600' });
-      return res.end(JSON.stringify(heat));
-    }
-
-    if (pathname === '/api/settings') {
-      if (req.method === 'PUT') await writeSettings(req);
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(publicSettings()));
-    }
-    if (pathname === '/api/handycache') {
-      if (req.method === 'PUT') {
-        await handyCachePut(req);
-        res.writeHead(204);
-        return res.end();
-      }
-      const hit = await handyCacheGet(url.searchParams.get('k') || '');
-      res.writeHead(hit ? 200 : 404, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(hit || {}));
-    }
-
-    // Abgeschaltet: keine Antwort unter /heresphere – die Ausnahme in der Proxy-Anmeldung kann dann weg
-    if ((pathname === '/heresphere' || pathname.startsWith('/heresphere/')) && !heresphereOn()) {
-      throw Object.assign(new Error('HereSphere ist abgeschaltet'), { status: 404 });
-    }
     if (pathname === '/heresphere' || pathname.startsWith('/heresphere/')) {
+      // Abgeschaltet: keine Antwort – die Ausnahme in der Proxy-Anmeldung kann dann weg
+      if (!heresphereOn()) throw Object.assign(new Error('HereSphere ist abgeschaltet'), { status: 404 });
       let body = {};
       try { body = JSON.parse((await readBody(req, 100000)) || '{}'); } catch { body = {}; }
       let data;
@@ -183,15 +188,15 @@ const handler = async (req, res) => {
         data = { access: -1, library: [] };
       } else if (pathname === '/heresphere' || pathname === '/heresphere/') data = await heresphereIndex(req);
       else if (/^\/heresphere\/stash\/\d+$/.test(pathname)) {
-        if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
+        needStash();
         const id = pathname.split('/').pop();
         data = await heresphereStash(req, id); // prüft vorher „nur VR“
         if (typeof body.rating === 'number') {
-          await stashSetRating(id, body.rating * 20).catch((e) => console.warn('HereSphere-Bewertung:', e.message));
+          await stashSetRating(id, body.rating * 20).catch((e) => logLine(`HereSphere-Bewertung nicht gespeichert: ${e.message}`));
           data.rating = body.rating;
         }
         if (typeof body.isFavorite === 'boolean') {
-          await stashSetFavorite(id, body.isFavorite).catch((e) => console.warn('HereSphere-Favorit:', e.message));
+          await stashSetFavorite(id, body.isFavorite).catch((e) => logLine(`HereSphere-Favorit nicht gespeichert: ${e.message}`));
           data.isFavorite = body.isFavorite;
         }
       } else if (pathname.startsWith('/heresphere/media/')) data = await heresphereMedia(req, pathname.slice('/heresphere/media/'.length), body.needsMediaSource !== false);
@@ -200,87 +205,23 @@ const handler = async (req, res) => {
       return res.end(JSON.stringify(data));
     }
 
-    // Stiller Selbsttest der Oberfläche (settings.js): meldet nur Fehler – stehen dann in „docker logs“
-    if (pathname === '/api/clientcheck' && req.method === 'POST') {
-      const r = JSON.parse((await readBody(req, 20000)) || '{}');
-      const fails = Array.isArray(r.fails) ? r.fails.slice(0, 20).map((f) => String(f).slice(0, 200)) : [];
-      if (fails.length) logLine(`Selbsttest Oberfläche (${String(r.ua || '').slice(0, 60)}): ✗ ${fails.join(' · ')}`);
-      res.writeHead(204);
-      return res.end();
-    }
-
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405);
       return res.end();
-    }
-
-    if (pathname === '/hq/stream') return await hqStream(req, res, url.searchParams);
-    if (pathname === '/api/hq/status' || pathname === '/api/hq/probe' || pathname === '/api/hq/bench') {
-      const data = pathname.endsWith('status') ? await hqStatus()
-        : pathname.endsWith('probe') ? await hqProbe(url.searchParams.get('src'))
-          : await hqBench(url.searchParams);
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(data));
-    }
-
-    if (pathname === '/api/stash/saved-filters') {
-      if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
-      const list = (await stashSavedFilters()).map(({ id, name }) => ({ id, name }));
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(list));
-    }
-
-    if (pathname === '/api/stash/filters') {
-      if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
-      const filters = await stashFilters();
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(filters));
-    }
-
-    if (pathname === '/api/update') {
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(await updateInfo()));
-    }
-
-    if (pathname === '/api/library') {
-      const items = await libraryItems();
-      items.sort((a, b) => a.video.localeCompare(b.video, 'de', { numeric: true }));
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(items));
-    }
-
-    if (pathname === '/api/stash/status') {
-      const status = await stashStatus();
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(status));
-    }
-
-    if (pathname === '/api/stash/scenes') {
-      if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
-      const scenes = await stashScenes(url.searchParams);
-      res.writeHead(200, { 'Content-Type': MIME['.json'], 'Cache-Control': 'no-store' });
-      return res.end(JSON.stringify(scenes));
     }
 
     // Durchgereicht werden nur diese Stash-Dateien: Videos, Funscript, Vorschauen, Spul-Sprites und Bilder
     const sm = /^\/stash\/(scene)\/(\d+)\/(stream|stream\.mp4|funscript|screenshot|preview|webp|vtt\/thumbs|vtt\/sprite)$/.exec(pathname)
       || /^\/stash\/(tag|performer|studio)\/(\d+)\/(image)$/.exec(pathname);
     if (sm) {
-      if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 });
+      needStash();
       url.searchParams.delete('hs'); // HereSphere-Token bleibt hier
       return await proxyStash(req, res, sm[1], sm[2], sm[3], url.search);
     }
 
-    if (pathname.startsWith('/media/')) {
-      const file = safeJoin(MEDIA_DIR, pathname.slice('/media/'.length));
-      if (!file) {
-        res.writeHead(403);
-        return res.end();
-      }
-      return sendFile(req, res, file);
-    }
-
-    const file = safeJoin(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname.slice(1));
+    // Dateien: /media/… aus den Videoordnern, sonst die Oberfläche
+    const file = pathname.startsWith('/media/') ? safeJoin(MEDIA_DIR, pathname.slice('/media/'.length))
+      : safeJoin(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname.slice(1));
     if (!file) {
       res.writeHead(403);
       return res.end();
@@ -289,6 +230,8 @@ const handler = async (req, res) => {
   } catch (err) {
     const status = err.status || (err instanceof SyntaxError ? 400 : 500);
     if (status === 500) console.error(err);
+    // Stash/Handy-Cache nicht erreichbar (502/503/504): auch in „docker logs“, sonst sieht man nur die Oberfläche
+    else if (status >= 502) logLine(`Fehler ${status}: ${req.method} ${req.url.split('?')[0]} – ${err.message}`);
     if (res.headersSent) return res.destroy();
     res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end(status === 500 ? 'Serverfehler' : err.message);

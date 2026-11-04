@@ -22,7 +22,18 @@ permissions:
   packages: write
 
 jobs:
+  # Erst testen – Release und Image gibt es nur, wenn alle Tests grün sind
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test "test/*.test.js"
+
   release:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,6 +86,7 @@ jobs:
 
   image:
     # Docker-Image nur für einen neuen Tag (bzw. beim manuellen Lauf für den neuesten)
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

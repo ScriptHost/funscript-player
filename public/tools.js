@@ -31,6 +31,7 @@ if (store.get('scriptIntensity', null) === null) {
   }
   store.set('scenePresets', map);
 }
+if (store.get('scriptPresetHandy', undefined) !== undefined) store.del('scriptPresetHandy'); // umgestellt – alter Schlüssel weg
 let presetDefault = presetFix(store.get('scriptIntensity', 'auto'));
 let localPreset = null; // Szene ohne festen Schlüssel (lokale Datei): nur bis zum nächsten Video
 
@@ -308,13 +309,7 @@ function drawPresetPreviews() {
     g.clearRect(0, 0, w, h);
     if (!script) return;
     const a = processScript(script.actions, typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy', c.parentElement.dataset.preset);
-    const total = a[a.length - 1].at || 1;
-    for (let i = 1; i < a.length; i++) {
-      const dt = a[i].at - a[i - 1].at;
-      if (dt <= 0) continue;
-      g.fillStyle = heatColor((Math.abs(a[i].pos - a[i - 1].pos) / dt) * 1000);
-      g.fillRect((a[i - 1].at / total) * w, 0, Math.max(1, (dt / total) * w), h);
-    }
+    paintHeat(g, a, a[a.length - 1].at || 1, w, h);
   });
 }
 

@@ -27,7 +27,10 @@ if (selfCtl.lo === null || selfCtl.hi === null) {
   const s = store.get('selfStroke', 100);
   selfCtl.lo = Math.round((100 - s) / 2);
   selfCtl.hi = 100 - selfCtl.lo;
+  store.set('selfLo', selfCtl.lo);
+  store.set('selfHi', selfCtl.hi);
 }
+if (store.get('selfStroke', undefined) !== undefined) store.del('selfStroke');
 const SELF_GAP = 10; // kleinster Abstand unten–oben in %
 
 const selfVideoLoaded = () => !!nowPlaying;

@@ -232,8 +232,7 @@ function drawOvBar() {
     }
     bctx.fillStyle = '#fff';
     bctx.fillRect(x - dpr, 0, 3 * dpr, h);
-    bctx.fillStyle = '#ffd54f';
-    for (const m of currentMarkers()) bctx.fillRect((m.seconds * 1000 / total) * w - dpr, 0, 2 * dpr, h * 0.35);
+    paintMarkers(bctx, total, w, h, dpr);
   }
   $('ovTime').textContent = `${fmtClock(seekPreview ?? mediaTime())} /${fmtClock(total / 1000)}${hq.active ? ' · HQ' : ''}`;
 }

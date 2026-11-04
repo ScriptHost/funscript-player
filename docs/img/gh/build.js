@@ -1,5 +1,5 @@
 // Grafiken für die GitHub-Seite (README) im Stil der Webseite – GitHub erlaubt dort kein CSS/JS, SVG-Bilder schon
-// (auch mit Animation). Texte wie auf funscript-player.de (englisch). Aufruf im Projektordner:
+// (auch mit Animation). Texte wie die Vorstellungs-Seite unter website/ (englisch). Aufruf im Projektordner:
 //   node docs/img/gh/build.js
 'use strict';
 const fs = require('fs');
@@ -51,7 +51,6 @@ function button(name, label, primary, w) {
     : `<rect x="1" y="1" width="${w - 2}" height="54" rx="14" fill="${C.card}" stroke="${C.line}" stroke-width="2"/><text x="${w / 2}" y="35" text-anchor="middle" font-size="19" font-weight="600" fill="${C.text}">${esc(label)}</text>`));
 }
 button('btn-install.svg', 'Install', true, 150);
-button('btn-website.svg', 'Website ↗', false, 170);
 button('btn-download.svg', 'Download ZIP', false, 190);
 
 // ---------- Live-Animation (wie auf der Webseite: Video läuft, Handy fährt, Satisfyer pulsiert) ----------

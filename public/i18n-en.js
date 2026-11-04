@@ -354,6 +354,26 @@ RX.push([/^(\d+) ruhige Stellen im mehrfachen Takt$/, '$1 calm passages at multi
   [/^Auto-Stopp: (\d+) min keine Bedienung: alles gestoppt\.$/, 'Auto-stop: $1 min without input: everything stopped.'],
   [/^Version (.*) ist da \(du hast (.*)\)\.$/, 'Version $1 is out (you have $2).'],
   [/^Handy-Cloud antwortet langsam \((\d+) ms\) – Befehle kommen verzögert an$/, 'Handy cloud is slow ($1 ms) – commands arrive late']);
+// 1.19.4
+P.push([`✨ Neu in 1.19.4`, `✨ New in 1.19.4`],
+  [`〰 <b>Mehrere Satisfyer</b> gleichzeitig – jeder mit eigener Stärke und eigenem Vorlauf, damit alle im Takt bleiben.`, `〰 <b>Several Satisfyers</b> at once – each with its own strength and lead, so all stay in time.`],
+  [`Zwei Motoren: auf Wunsch folgt Motor 2 dem Tempo, Motor 1 dem Rhythmus. Sanftanlauf nach Start, Pause und STOPP.`, `Two motors: optionally motor 2 follows the tempo, motor 1 the rhythm. Soft start after start, pause and STOP.`],
+  [`Sync-Anzeige: ⏱ Bluetooth-Laufzeit je Gerät, Status gelb, wenn die Verbindung schwankt.`, `Sync display: ⏱ Bluetooth latency per device, status turns yellow when the connection fluctuates.`],
+  [`⚙️ Handy und Satisfyer stehen jetzt zusammen unter „🔌 Geräte“.`, `⚙️ Handy and Satisfyer are now together under “🔌 Devices”.`],
+  [`🔌 Geräte`, `🔌 Devices`], [`↕ The Handy`, `↕ The Handy`],
+  [`Mehrere Satisfyer gleichzeitig: in der Geräte-Spalte (Status oben antippen) einfach „＋ Weiteren Satisfyer verbinden“. Jeder bekommt seine eigene Stärke und seinen eigenen Vorlauf – so bleiben alle gemeinsam im Takt.`,
+    `Several Satisfyers at once: in the device column (tap the status at the top) simply “＋ Connect another Satisfyer”. Each gets its own strength and lead – so all stay in time together.`],
+  [`Übersetzung Script → Vibration`, `Script → vibration`],
+  [`＋ Weiteren Satisfyer verbinden`, `＋ Connect another Satisfyer`], [`Stärke dieses Geräts`, `Strength of this device`],
+  [`Motor 2 wie Motor 1`, `Motor 2 like motor 1`], [`Motor 2 nach Tempo`, `Motor 2 by tempo`], [`Was der zweite Motor macht`, `What the second motor does`],
+  [`1 Motor`, `1 motor`], [`2 Motoren`, `2 motors`], [`Anzahl Motoren`, `Number of motors`],
+  [`Bluetooth schwankt – näher ans Gerät oder Hindernisse entfernen`, `Bluetooth fluctuates – move closer to the device or remove obstacles`],
+  [`Bluetooth-Laufzeit – wird mit Vorlauf ausgeglichen, im Takt`, `Bluetooth latency – compensated by the lead, in time`],
+  [`Bluetooth zum Satisfyer schwankt – Vibration kann leicht daneben liegen`, `Bluetooth to the Satisfyer fluctuates – vibration may be slightly off`]);
+RX.push([/^⚠ Bluetooth schwankt \(bis (\d+) ms\) – Vibration kann leicht daneben liegen\. Näher ans Gerät gehen\.$/, '⚠ Bluetooth fluctuates (up to $1 ms) – vibration may be slightly off. Move closer to the device.'],
+  [/^✓ Im Takt – Bluetooth-Laufzeit (\d+) ms, je Gerät automatisch ausgeglichen$/, '✓ In time – Bluetooth latency $1 ms, compensated automatically per device'],
+  [/^✓ Im Takt – Bluetooth-Laufzeit (\d+) ms, Vorlauf (-?\d+) ms$/, '✓ In time – Bluetooth latency $1 ms, lead $2 ms'],
+  [/^Oberfläche \((.*)\)$/, 'Interface ($1)']);
 const table = {};
 for (const [de, en] of P) table[de.replace(/\s+/g, ' ').trim()] = en;
 window.I18N_EN = table;

@@ -3,6 +3,10 @@
 // Neue/geänderte deutsche Texte: in der Konsole fspTexts() aufrufen und Schlüssel ergänzen.
 window.FSP_EN = {
   // 1.19.3
+  '82wvra': 'Download the ZIP <code>handy-player-linux-v1.19.4.zip</code> from <a href=\x22https://github.com/ScriptHost/funscript-player/releases/latest\x22>GitHub (Releases)</a>, copy it to the server and unpack it.',
+  // 1.19.3
+  '1n9cs1s': 'Several Satisfyers at once with their own strength and lead, two motors by rhythm and tempo, soft start, sync display, device settings in one place, more robust on small servers.',
+  // 1.19.3
   at0phf: 'One choice for Handy and Satisfyer: <b>Automatic</b> keeps fine movements and vibrations and only adapts what the motor can’t manage – small strokes are stretched to the full range. Want more? <b>Intense</b>. Calmer? <b>Gentle</b>. Per scene with a preview, files stay unchanged.',
   '6pvxck': 'Script too tame or too wild',
   '1hq3nj': '✗ rewrite it by hand',

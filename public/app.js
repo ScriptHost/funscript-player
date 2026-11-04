@@ -433,6 +433,21 @@ function duration() {
   return script ? script.actions[script.actions.length - 1].at : 0;
 }
 
+// Farbstreifen nach Tempo (Heatmap, Vorschau in den Intensitäts-Knöpfen)
+function paintHeat(g, a, total, w, h) {
+  for (let i = 1; i < a.length; i++) {
+    const dt = a[i].at - a[i - 1].at;
+    if (dt <= 0) continue;
+    g.fillStyle = heatColor((Math.abs(a[i].pos - a[i - 1].pos) / dt) * 1000);
+    g.fillRect((a[i - 1].at / total) * w, 0, Math.max(1, (dt / total) * w), h);
+  }
+}
+// Stash-Marker als gelbe Striche oben (Heatmap und Player-Leiste)
+function paintMarkers(g, total, w, h, dpr) {
+  g.fillStyle = '#ffd54f';
+  for (const m of currentMarkers()) g.fillRect((m.seconds * 1000 / total) * w - dpr, 0, 2 * dpr, h * 0.35);
+}
+
 let lastDrawn = -1;
 function drawHeatmap() {
   const dpr = window.devicePixelRatio || 1;
@@ -446,13 +461,7 @@ function drawHeatmap() {
     // Heatmap: Handy-Fassung, wenn eine Handy verbunden ist, sonst die des Satisfyers
     const a = toolActions(typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy');
     const x = (ms) => (ms / total) * w;
-    for (let i = 1; i < a.length; i++) {
-      const dt = a[i].at - a[i - 1].at;
-      if (dt <= 0) continue;
-      const speed = (Math.abs(a[i].pos - a[i - 1].pos) / dt) * 1000;
-      b.fillStyle = heatColor(speed);
-      b.fillRect(x(a[i - 1].at), 0, Math.max(1, x(a[i].at) - x(a[i - 1].at)), h);
-    }
+    paintHeat(b, a, total, w, h);
     b.strokeStyle = 'rgba(255,255,255,.55)';
     b.lineWidth = dpr;
     b.beginPath();
@@ -464,8 +473,7 @@ function drawHeatmap() {
   }
   // Stash-Marker als gelbe Striche oben
   if (total > 0) {
-    b.fillStyle = '#ffd54f';
-    for (const m of currentMarkers()) b.fillRect((m.seconds * 1000 / total) * w - dpr, 0, 2 * dpr, h * 0.35);
+    paintMarkers(b, total, w, h, dpr);
     // Für die Handy angepasste Stellen (Takt-Schutz): feine türkise Striche unten
     if (typeof adaptedMarks === 'function') {
       b.fillStyle = 'rgba(0, 229, 255, .95)';
@@ -601,10 +609,13 @@ function updateDevClasses() {
   document.body.classList.toggle('has-vibe', v);
   document.body.classList.toggle('has-dev', h || v);
   // Status oben: ein Wort für alle Geräte; Handy-Cloud spürbar langsam = gelb
-  const slow = handy.connected && Math.max(handy.rtt || 0, handy.lat || 0) > HANDY_SLOW_MS;
+  const handySlow = handy.connected && Math.max(handy.rtt || 0, handy.lat || 0) > HANDY_SLOW_MS;
+  const bleSlow = typeof vibeSlow === 'function' && vibeSlow();
+  const slow = handySlow || bleSlow;
   $('devState').textContent = h || v ? (slow ? 'verbunden · langsam' : 'verbunden') : 'getrennt';
   $('devState').className = 'pill ' + (h || v ? (slow ? 'busy' : 'on') : 'off');
-  $('devChip').title = slow ? `Handy-Cloud antwortet langsam (${Math.round(Math.max(handy.rtt || 0, handy.lat || 0))} ms) – Befehle kommen verzögert an` : 'Geräte – antippen für Verbinden, Offset, Hub, Stärke';
+  $('devChip').title = handySlow ? `Handy-Cloud antwortet langsam (${Math.round(Math.max(handy.rtt || 0, handy.lat || 0))} ms) – Befehle kommen verzögert an`
+    : bleSlow ? 'Bluetooth zum Satisfyer schwankt – Vibration kann leicht daneben liegen' : 'Geräte – antippen für Verbinden, Offset, Hub, Stärke';
   $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}Handy-Cloud: ${Math.round(Math.max(handy.rtt, handy.lat || 0))} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
   // Verbinden-Knopf zeigt den Zustand (verbunden = grau, „neu verbinden“)
   const btn = $('connect');

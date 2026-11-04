@@ -2,6 +2,22 @@
 
 English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 1.19.4 – 04.11.2026
+
+- **Mehrere Satisfyer:** „＋ Weiteren Satisfyer verbinden“; jeder hat seine eigene Stärke und seinen eigenen Vorlauf (aus der
+  eigenen Bluetooth-Laufzeit) – mehrere bleiben gemeinsam im Takt
+- **Zwei Motoren:** auf Wunsch folgt Motor 2 dem Tempo, Motor 1 pulsiert im Rhythmus (auch über Intiface)
+- **Sanftanlauf:** nach Start, Pause und STOPP fährt der Satisfyer in 0,5 s hoch statt schlagartig
+- **Sync-Anzeige:** ⏱ Bluetooth-Laufzeit je Gerät; schwankt sie stark, wird der Status gelb mit Hinweis
+- **Einstellungen:** Handy und Satisfyer zusammen unter „🔌 Geräte“
+- **Stabiler:** `HQ_MAX` 2 statt 3 und Speichergrenze `PLAYER_MEM` (2g) in der compose – läuft der Player voll, trifft es
+  nur ihn, nicht Stash
+- **Fehler sichtbar:** JavaScript-Fehler aus dem Browser und Stash-/Netzfehler (502–504) stehen in `docker logs`
+- **Aufgeräumt:** Server-Routen als Tabelle, doppelter Code (Heatmap, Stash-Aktionen) zusammengelegt, ungenutztes CSS
+  entfernt, alte Einstellungs-Schlüssel ohne Funktion werden aus `prefs.json` gelöscht
+- **Release-Workflow:** Tests laufen vor Release und Image
+- **funscript-player.de** leitet jetzt aufs GitHub-Repo weiter; die Vorstellungs-Seite liegt als Quelle unter `website/`
+
 ## 1.19.3 – 04.11.2026
 
 - **Script-Intensität, eine Auswahl für beide Geräte:** Original · Automatisch · Sanft · Intensiv. *Original* = Datei ganz

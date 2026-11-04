@@ -44,14 +44,12 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.3</h3>
+    <h3>✨ Neu in 1.19.4</h3>
     <ul>
-      <li>🎚 <b>Script-Intensität</b>: nur noch Original · Automatisch · Sanft · Intensiv – eine Auswahl für Handy und Satisfyer,
-        direkt am Video (mit Vorschau) und über 🎚 in der Player-Leiste. Sanft und Intensiv sind jetzt deutlich spürbar.</li>
-      <li>⚙️ Einstellungen aufklappbar, Erklärungen hinter ⓘ. „Sicherheit“ heißt jetzt <b>Notaus</b> – neu mit Auto-Stopp.</li>
-      <li>✨ Bild „Automatisch“ natürlicher: hochrechnen, kaum nachschärfen, Farben wie im Original.</li>
-      <li>Aufgeräumt: Fernbedienung, Script-Baukasten, Abschnitt anpassen, Demo-Modus, Weiterschauen, Knöpfe der Bibliothek
-        und die Sicherung sind raus – alles liegt im Volume <code>handy-data</code>.</li>
+      <li>〰 <b>Mehrere Satisfyer</b> gleichzeitig – jeder mit eigener Stärke und eigenem Vorlauf, damit alle im Takt bleiben.</li>
+      <li>Zwei Motoren: auf Wunsch folgt Motor 2 dem Tempo, Motor 1 dem Rhythmus. Sanftanlauf nach Start, Pause und STOPP.</li>
+      <li>Sync-Anzeige: ⏱ Bluetooth-Laufzeit je Gerät, Status gelb, wenn die Verbindung schwankt.</li>
+      <li>⚙️ Handy und Satisfyer stehen jetzt zusammen unter „🔌 Geräte“.</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -239,8 +237,7 @@
           <span id="advHint" class="hint-text"></span>
         </div>
         <nav id="setNav" class="set-nav" aria-label="Bereiche">
-          <a href="#setDevices">↕ Handy</a>
-          <a href="#setVibe">〰 Satisfyer</a>
+          <a href="#setDevices">🔌 Geräte</a>
           <a href="#setSafety">🛑 Notaus</a>
           <a href="#setScript">🎚 Script</a>
           <a href="#setFinale">🔥 Finale</a>
@@ -251,8 +248,10 @@
           <a href="#setSystem">ℹ️ System</a>
         </nav>
 
+        <!-- 1.19.4: Handy und Satisfyer in einem Bereich -->
         <details id="setDevices" class="card sec">
-          <summary><h2>↕ The Handy</h2></summary>
+          <summary><h2>🔌 Geräte</h2></summary>
+          <h3 class="sec-sub">↕ The Handy</h3>
           <label>Connection Key
             <input id="key" type="password" autocomplete="off" spellcheck="false">
           </label>
@@ -281,12 +280,11 @@
             spürst du, dass deine mehr schafft, Automatik aus und höher stellen.</p>
           <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein. Touch-Fläche:
             <b>Tempo</b> = Finger-Höhe ist das Tempo der Stöße, <b>Position 🧪</b> = die Handy folgt deinem Finger (Beta).</p>
-        </details>
-
-        <details id="setVibe" class="card sec">
-          <summary><h2>〰 Satisfyer</h2></summary>
+          <h3 id="setVibe" class="sec-sub">〰 Satisfyer</h3>
+          <p class="hint-text">Mehrere Satisfyer gleichzeitig: in der Geräte-Spalte (Status oben antippen) einfach „＋ Weiteren Satisfyer verbinden“.
+            Jeder bekommt seine eigene Stärke und seinen eigenen Vorlauf – so bleiben alle gemeinsam im Takt.</p>
           <label class="adv check"><input id="vibeAll" type="checkbox"> Beim Verbinden alle Bluetooth-Geräte anzeigen</label>
-          <h3>Übersetzung Script → Vibration</h3>
+          <h4>Übersetzung Script → Vibration</h4>
           <label>Berechnung
             <select id="vibeMap">
               <option value="rhythm">Rhythmus: pulsiert mit jedem Stoß, stärker bei Tempo</option>

@@ -1,16 +1,15 @@
-<!-- Grafiken: docs/img/gh/ (erzeugt mit `node docs/img/gh/build.js`, Stil und Texte wie funscript-player.de) -->
+<!-- Grafiken: docs/img/gh/ (erzeugt mit `node docs/img/gh/build.js`, Stil wie die Vorstellungs-Seite unter website/) -->
 <p align="center">
-  <a href="https://funscript-player.de"><img src="docs/img/gh/hero.svg" alt="Self-hosted · in the browser – Your video. Your devices. Perfectly in sync. A Funscript player that drives The Handy and the Satisfyer at the same time – from any script, right from your Stash library." width="100%"></a>
+  <a href="../../releases/latest"><img src="docs/img/gh/hero.svg" alt="Self-hosted · in the browser – Your video. Your devices. Perfectly in sync. A Funscript player that drives The Handy and the Satisfyer at the same time – from any script, right from your Stash library." width="100%"></a>
 </p>
 
 <p align="center">
   <a href="#-quick-start"><img src="docs/img/gh/btn-install.svg" alt="Install" height="48"></a>&nbsp;
-  <a href="https://funscript-player.de"><img src="docs/img/gh/btn-website.svg" alt="Website" height="48"></a>&nbsp;
   <a href="../../releases/latest"><img src="docs/img/gh/btn-download.svg" alt="Download ZIP" height="48"></a>
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.3-e0457b?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.4-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
@@ -47,7 +46,7 @@
 | | |
 |---|---|
 | 🎚 **One script, every device** | Pick the intensity once for Handy and Satisfyer: **Original** (untouched), **Automatic** (small strokes stretched, what the motor can't manage adapted – still exactly in time), **Gentle** or **Intense** – per scene right at the video, with a mini heatmap preview. |
-| 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. |
+| 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. Several Satisfyers at once, each with its own strength and lead; two motors can split into rhythm and tempo. |
 | ⏱️ **Sync that stays in time** | Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× playback. |
 | ✋ **Your own scripts** | Control the devices yourself while watching (slider, quick picks, touch pad), record it as a script, replace just a section later. Originals are never overwritten. |
 | 📚 **Library** | Stash scenes and folder videos with heatmap, intensity filter, 🔥 highlights, saved Stash filters, 2D-only mode, mini player, picture-in-picture. |
@@ -80,7 +79,8 @@ docker logs Handy-Player  # startup summary with self-check, ends with “✓ be
 - **Media folders** are commented out by default (Stash only). Every folder under `/media/<name>` becomes a source; a video
   and its script share the same name (`Name.mp4` + `Name.funscript`).
 - **HQ stream:** `/dev/dri` is passed through, `RENDER_GID` = GID of the host group `render` (`getent group render`).
-- The container runs as user `node` (1000), never as root; `PUID`/`PGID` change it.
+- The container runs as user `node` (1000), never as root; `PUID`/`PGID` change it. `PLAYER_MEM` (default 2g) caps
+  its memory – if the player runs out, only the player is hit, not Stash.
 
 ### What lives in the `handy-data` volume?
 
@@ -121,7 +121,7 @@ node --test "test/*.test.js"                           # automated tests, no pac
 
 At startup the container checks itself (data folder, stored files, every UI script and control, script intensity) –
 see `docker logs`. For development, `?selbsttest` runs typical flows with a simulated Handy. Technical details:
-`docs/dev.html` (English/German switch). Release history: [CHANGELOG.en.md](CHANGELOG.en.md) (German: [CHANGELOG.md](CHANGELOG.md)).
+`website/dev.html` (English/German switch). Release history: [CHANGELOG.en.md](CHANGELOG.en.md) (German: [CHANGELOG.md](CHANGELOG.md)).
 
 ## Notes
 
@@ -133,10 +133,9 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
 ---
 
 <p align="center">
-  <a href="https://funscript-player.de"><b>Website</b></a> ·
   <a href="../../releases"><b>Releases</b></a> ·
   <a href="CHANGELOG.en.md"><b>Changelog</b></a> ·
-  <a href="https://funscript-player.de/dev.html"><b>Developer docs</b></a> ·
+  <a href="website/dev.html"><b>Developer docs</b></a> ·
   <a href="../../issues/new/choose"><b>Report a bug / idea</b></a> ·
   <a href="README.de.md"><b>🇩🇪 Deutsch</b></a>
 </p>

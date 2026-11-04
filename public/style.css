@@ -81,11 +81,6 @@ video { width: 100%; height: 100%; display: block; }
   display: block;
 }
 
-.nowplaying {
-  margin: 8px 0 12px;
-  color: var(--muted);
-  word-break: break-word;
-}
 .sep { margin: 0 6px; }
 
 .card {
@@ -161,7 +156,7 @@ button:disabled { opacity: .6; cursor: wait; }
 #library li.active { background: var(--accent); color: #fff; }
 #library li small { display: block; color: var(--muted); font-size: 12px; }
 #library li.active small { color: #ffd6e4; }
-#library li.noscript { opacity: .55; }
+
 #library .empty { color: var(--muted); cursor: default; }
 
 /* Reiter */
@@ -248,8 +243,6 @@ table.steps { width: 100%; border-collapse: collapse; margin: 10px 0; }
 .steps td select, .steps td input { margin: 0; }
 .steps td:last-child { width: 1%; }
 .steps td:last-child button { width: auto; margin: 0; padding: 4px 9px; background: transparent; color: var(--muted); border: 1px solid var(--line); }
-.progress { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin: 4px 0 12px; }
-.progress div { height: 100%; width: 0; background: var(--accent); }
 
 /* Not-Aus */
 .estop { background: #c62828; color: #fff; font-weight: 700; letter-spacing: .5px; }
@@ -271,23 +264,6 @@ table.steps { width: 100%; border-collapse: collapse; margin: 10px 0; }
 }
 body.fs-open .fab-stop { display: none; }
 
-#markerSelect { width: auto; max-width: 100%; margin: 6px 0 0; padding: 4px 6px; font-size: 13px; }
-
-/* Vollbild-Knopf im normalen Player */
-.fs-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: auto;
-  margin: 0;
-  padding: 6px 10px;
-  font-size: 18px;
-  line-height: 1;
-  background: rgba(0,0,0,.55);
-  color: #fff;
-  z-index: 2;
-}
-
 /* Vollbild: Container füllt den ganzen Bildschirm (echtes Fullscreen oder Ersatz auf dem iPhone) */
 .drop.fs {
   position: fixed;
@@ -303,7 +279,7 @@ body.fs-open .fab-stop { display: none; }
 }
 .drop.fs video { object-fit: contain; }
 .drop.fs[data-fit=cover] video { object-fit: cover; }
-.drop.fs .fs-btn { display: none; }
+
 body.fs-open { overflow: hidden; }
 
 /* Eigene Bedienung: sobald ein Video geladen ist (inline und im Vollbild) */
@@ -396,21 +372,18 @@ body.no-stop-btn #ovStop { display: none; }
 
 /* ===================== Seitengerüst: Modi + Seiten ===================== */
 header { position: sticky; top: 0; z-index: 50; background: var(--bg); padding-top: calc(12px + env(safe-area-inset-top)); }
-.modes { display: flex; gap: 4px; margin-right: auto; margin-left: 12px; background: var(--card); padding: 4px; border-radius: 10px; border: 1px solid var(--line); }
-.modes button { width: auto; margin: 0; padding: 7px 14px; background: transparent; color: var(--muted); font-weight: 600; }
-.modes button.active { background: var(--accent); color: #fff; }
+
 @media (max-width: 700px) {
   header { flex-wrap: wrap; gap: 8px; }
   h1 { font-size: 16px; }
-  .modes { order: 3; width: 100%; margin: 0; }
-  .modes button { flex: 1; padding: 8px 4px; font-size: 13px; }
+
   .pills { font-size: 12px; }
   .pill { padding: 2px 8px; font-size: 12px; }
 }
 
 /* Geräte-Spalte nur im Sync-Modus (Player) und im Steuer-Modus */
 body[data-mode=stream] .sync-only { display: none !important; }
-body:not([data-mode=stream]) .stream-only { display: none !important; }
+
 aside { min-width: 0; }
 .view[hidden] { display: none !important; }
 
@@ -424,7 +397,6 @@ aside { min-width: 0; }
 [data-panel][hidden] { display: none !important; }
 
 .hint-text.warn { color: var(--warn); }
-.small-check { font-size: 13px; margin-top: -6px; }
 
 /* ===================== Bibliothek ===================== */
 .libbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
@@ -530,12 +502,6 @@ aside { min-width: 0; }
 .ov-row .ov-pop .stars button.on, .ov-pop .stars:hover button { color: #ffc400; }
 .ov-row .ov-pop .stars button:hover ~ button { color: rgba(255,255,255,.35); }
 .ov-row #ovFav.active { background: #c2185b; }
-/* 1.8: Fernbedienung */
-#remoteState.warn { color: #ffb74d; }
-/* Fernbedienung hat kein eigenes Video: Standbild statt Bild, Bild-/Ton-Knöpfe aus */
-body.remote-on #ovEnh, body.remote-on #ovFit, body.remote-on #ovMute,
-body.remote-on #openImageSettings, body.remote-on .enh { display: none !important; }
-body.remote-on .drop video { opacity: 1 !important; object-fit: contain; }
 
 /* 1.9: Einstellungen mit Bereichs-Leiste, Links aus der Geräte-Spalte */
 .set-nav {
@@ -570,13 +536,9 @@ body.remote-on .drop video { opacity: 1 !important; object-fit: contain; }
 #fabStop[hidden] ~ .now-bar { right: calc(12px + env(safe-area-inset-right)); }
 body.fs-open .now-bar { display: none; }
 
-
-/* 1.11: Script-Anpassung pro Szene */
-.preset-info { min-width: 0; }
 .preset-help { margin: 6px 0; padding-left: 18px; }
 .preset-help li { margin-bottom: 3px; }
 #presetDefault button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-#toolCustom[hidden] { display: none; }
 
 /* Wenig Platz: Leiste bricht in eine zweite Zeile um, statt Knöpfe zusammenzuquetschen */
 .ov-row { flex-wrap: wrap; row-gap: 6px; }
@@ -597,8 +559,7 @@ body.hud-off-quality #openImageSettings { display: none !important; }
 #imageSettings .seg { flex-wrap: wrap; margin-bottom: 12px; }
 #imageSettings .seg button { flex: 1 1 auto; width: auto; padding: 7px 10px; }
 #imageSettings .seg button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.nav-settings { margin-left: 4px !important; }
-@media (max-width: 700px) { .nav-settings .lbl { display: none; } .nav-settings { flex: 0 0 auto !important; padding: 8px 12px !important; } }
+
 #view-settings .card { margin-bottom: 16px; }
 #view-settings h3 { font-size: 14px; margin: 14px 0 8px; color: var(--muted); }
 .page-title { font-size: 20px; margin: 4px 0 14px; }
@@ -635,13 +596,10 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 /* 1.19.2: viele Knöpfe (Standard je Gerät) brechen um statt die Seite seitlich verschiebbar zu machen */
 .seg.preset-default { flex-wrap: wrap; }
 .seg.preset-default button { flex: 1 1 auto; white-space: nowrap; }
-.libopts { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
-.libopts label.check { margin: 0; }
-.libopts select { width: auto; margin: 0; padding: 4px 6px; font-size: 13px; }
+
 #library li.scene { display: flex; gap: 8px; align-items: center; }
 #library li.scene img { width: 88px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; background: var(--bg); flex-shrink: 0; }
 #library li.scene div { min-width: 0; }
-#libMore { width: 100%; margin-top: 8px; }
 
 /* Vibrator */
 .pills { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -650,8 +608,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .devices li.empty { color: var(--muted); font-size: 13px; border: 0; }
 .devices label.check { margin: 0; }
 .devices small { color: var(--muted); font-size: 12px; }
-.devrow { display: flex; gap: 6px; margin-top: 6px; }
-.devrow select { margin: 0; flex: 1; }
+.devrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.devrow select { margin: 0; flex: 1 1 120px; min-width: 0; }
 .meter { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; margin: 0 0 12px; }
 .meter div { height: 100%; width: 0; background: var(--accent); transition: width .1s linear; }
 details { margin-bottom: 12px; }
@@ -676,7 +634,6 @@ header .pill::after { content: " ▾"; font-size: 10px; opacity: .7; }
 .menu button { margin: 0; padding: 10px 12px; background: none; color: var(--text); text-align: left; font-weight: 500; border-radius: 8px; }
 .menu button:hover, .menu button.active { background: var(--bg); }
 .menu button small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
-.menu .menu-sync { margin: 4px 0 0; padding: 10px 12px; border-top: 1px solid var(--line); font-size: 14px; }
 
 /* Geräte-Fenster */
 #devices.sheet { display: none; }
@@ -827,17 +784,12 @@ body.mini-on.mini-right #drop { left: auto; right: calc(12px + env(safe-area-ins
 body.mini-on #drop .overlay, body.mini-on #drop .hint { display: none !important; }
 body.mini-on .mini-ctl { display: flex; position: absolute; right: 6px; bottom: 6px; gap: 6px; z-index: 6; }
 .mini-ctl button { width: auto; margin: 0; padding: 6px 10px; background: rgba(0,0,0,.65); color: #fff; border-radius: 8px; font-size: 14px; }
-body.remote-on #ovPip { display: none !important; }
 
 /* 1.16: Mitschnitt zum Video */
 .self-rec { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; }
 .self-rec button { width: auto; margin: 0; }
 .self-rec button[hidden] { display: none; }
 #selfRec.recording { background: #c62828; color: #fff; }
-
-/* 1.16: Fernbedienung – Lautstärke, Anzeige am Bildschirm */
-.remote-vol { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
-.remote-vol input { width: 110px; margin: 0; }
 
 /* 1.17: Mini-Player schließen */
 .mini-ctl #miniClose { background: rgba(160,20,40,.8); }
@@ -888,7 +840,7 @@ body.dev-open #finaleBtn { display: none !important; }
 .sb-choice[hidden] { display: none; }
 .sb-presets { display: grid; gap: 4px; }
 .sb-info { font-size: 12px; color: var(--muted); }
-body.has-dev:not(.has-handy) .sb-handy, body.has-dev:not(.has-vibe) .sb-vibe { display: none; }
+
 /* 1.19.2: drei gleich breite Werkzeug-Knöpfe, Symbol über kurzem Text; Zurück/Löschen über die ganze Breite */
 .sb-own { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
 .sb-own button { width: auto; margin: 0; }
@@ -896,7 +848,7 @@ body.has-dev:not(.has-handy) .sb-handy, body.has-dev:not(.has-vibe) .sb-vibe { d
 .sb-own .sb-tool { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; font-size: 13px; }
 .sb-own .sb-tool .ic { font-size: 18px; line-height: 1; }
 .sb-own button[hidden] { display: none; }
-.sb-lbl { white-space: nowrap; }
+
 /* Offset kompakt */
 .offset-row { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; color: var(--muted); }
 .offset-row > span { flex: 1; }
@@ -974,6 +926,14 @@ details.sec[open] > summary::after { transform: rotate(90deg); }
 details.sec[open] > summary { margin-bottom: 12px; }
 /* Erklärtexte hinter ⓘ */
 details.more-info { margin: 0 0 10px; }
+/* 1.19.4: Unterbereiche in „Geräte“; Satisfyer-Liste mit Stärke je Gerät und Sync-Anzeige */
+.sec-sub { margin: 18px 0 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+details.sec[open] > summary + .sec-sub { margin-top: 0; padding-top: 0; border-top: 0; }
+#view-settings h4 { margin: 12px 0 6px; font-size: 14px; color: var(--muted); }
+.dev-sync { color: var(--ok); }
+.dev-sync.slow { color: var(--warn); }
+.dev-gain { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.dev-gain input { grid-column: 1 / -1; margin: 0; }
 details.more-info > summary { display: inline-block; cursor: pointer; list-style: none; color: var(--muted); font-size: 13px; padding: 2px 0; }
 details.more-info > summary::-webkit-details-marker { display: none; }
 details.more-info[open] > summary { color: var(--text); }
