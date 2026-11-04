@@ -38,7 +38,7 @@ Wird es gelöscht, startet der Player wirklich neu (auch die Browser vergessen d
 |---|---|
 | `prefs.json` | Gemeinsame Einstellungen aller Geräte: Connection Key, Application ID, Offsets und Hub je Szene, Script-Intensität, Satisfyer-Übersetzung, Notaus … |
 | `store.json` | Patterns (🎮 Steuern → Patterns) |
-| `settings.json` | Server-Schalter aus der Oberfläche: HereSphere an/aus, „nur VR“, HereSphere-Passwort (als Hash), Intiface nur Heimnetz |
+| `settings.json` | Server-Schalter aus der Oberfläche: HereSphere an/aus, „nur VR“, HereSphere-Passwort (als scrypt-Hash), Intiface nur Heimnetz |
 | `scripts/` + `userscripts.json` | Eigene Scripts (Touch-Aufnahmen, Mitschnitte) zu Stash-Szenen und das Verzeichnis aller eigenen Scripts |
 | `handy-cache.json` | Merkliste schon hochgeladener Scripts (schnellerer Start) |
 
@@ -91,7 +91,7 @@ z. B. `- /srv/downloads:/media/Downloads:ro`. Video und Script brauchen denselbe
 In HereSphere im Browser `https://<player>/heresphere` öffnen. Standardmäßig nur VR-Videos; Kategorien *Alle mit Script*,
 gespeicherte Stash-Filter und Ordner. Die Handy steuert HereSphere selbst (Connection Key dort eintragen). Eine Anmeldung
 im Reverse Proxy muss für `/heresphere` ausgenommen sein; optional schützt ein Passwort die Schnittstelle. Abschaltbar
-unter ⚙️ → VR oder fest mit `HERESPHERE=off`.
+unter ⚙️ → VR oder fest mit `HERESPHERE=off`. Eine Anmeldung mit Passwort gilt 30 Tage.
 
 ## Bild
 
@@ -103,13 +103,17 @@ Browser nur ein Hauch Schärfe (WebGL, AMD CAS) und Farbtreppen glätten – Far
 
 Direkt per Bluetooth aus dem Browser (Chrome/Edge auf Android/PC, iPhone: App „Bluefy“) – braucht HTTPS.
 Alternativ über **Intiface Central** (auch: Handy per Bluetooth ohne Internet); bei HTTPS leitet der Server die
-Verbindung über `/intiface` weiter (nur private IP-Adressen, mit `INTIFACE_LAN_ONLY=1` nur Heimnetz).
+Verbindung über `/intiface` weiter (standardmäßig nur Heimnetz, mit `INTIFACE_LAN_ONLY=1` fest; nur Port 12345, weitere über `INTIFACE_PORTS`).
 
 ## Sicherheit
 
 - Keine Anmeldung im Player als Standard – hinter einem geschützten Proxy oder nur im Heimnetz betreiben, oder
   `AUTH_USER`/`AUTH_PASS` setzen (Basic Auth).
 - Der Server nimmt Änderungen nur von der eigenen Seite an (Herkunftsprüfung) und lässt sich nicht einbetten.
+- Der Container läuft schreibgeschützt, mit `/tmp` als tmpfs, ohne Linux-Rechte (`cap_drop: ALL`) und mit
+  `no-new-privileges`; schreiben kann er nur in sein Daten-Volume.
+- Eine strenge Content-Security-Policy erlaubt nur die eigenen Skripte des Players.
+- HereSphere-Passwort als scrypt-Hash gespeichert; eine Anmeldung gilt 30 Tage.
 
 ## Entwicklung
 

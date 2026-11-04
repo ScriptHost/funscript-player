@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.4-e0457b?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.5-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
@@ -91,7 +91,7 @@ starts fresh (browsers forget the shared settings too).
 |---|---|
 | `prefs.json` | Settings shared by all devices: connection key, Application ID, offsets and stroke per scene, script intensity, Satisfyer translation, emergency stop … |
 | `store.json` | Patterns (🎮 Control → Patterns) |
-| `settings.json` | Server switches from the UI: HereSphere on/off, VR only, HereSphere password (hashed), Intiface LAN only |
+| `settings.json` | Server switches from the UI: HereSphere on/off, VR only, HereSphere password (scrypt hash), Intiface LAN only |
 | `scripts/` + `userscripts.json` | Own scripts (touch recordings, recordings along the video) for Stash scenes and the index of all own scripts |
 | `handy-cache.json` | Scripts already uploaded to the Handy (faster start) |
 
@@ -110,7 +110,12 @@ Every settings section is collapsible; fine-tuning (Satisfyer translation, pictu
 - No login in the player by default – run it behind a protected proxy or in your home network only, or set
   `AUTH_USER`/`AUTH_PASS` (basic auth).
 - The server only accepts changes from its own page (origin check) and can’t be embedded in other sites.
-- `INTIFACE_LAN_ONLY=1` restricts the Intiface forwarding to 192.168.x / 10.x.
+- Intiface forwarding: home-network addresses only by default (192.168.x / 10.x; fixed with `INTIFACE_LAN_ONLY=1`),
+  port 12345 only – allow more with `INTIFACE_PORTS` (comma-separated).
+- The container runs read-only, with `/tmp` as tmpfs, without Linux capabilities (`cap_drop: ALL`) and with
+  `no-new-privileges`; it only writes to its data volume.
+- A strict Content Security Policy only allows the player's own scripts.
+- HereSphere password: stored as a scrypt hash; a login is valid for 30 days.
 
 ## Development
 

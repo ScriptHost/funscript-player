@@ -79,7 +79,7 @@
       await wait(1800);
       check('Script-Bereich am Video sichtbar', !$('scriptBox').hidden, $('sbName').textContent);
       const activeInt = document.querySelector('#scriptBox [data-preset-scene] button.active')?.dataset.preset;
-      check('Script-Intensität: Standard aktiv, vier Knöpfe', activeInt === presetDefault && document.querySelectorAll('#scriptBox [data-preset-scene] button').length === 4, activeInt);
+      check('Script-Intensität: Wahl der Szene aktiv, vier Knöpfe', activeInt === currentPreset() && document.querySelectorAll('#scriptBox [data-preset-scene] button').length === 4, activeInt);
       $('ovInt').click();
       check('🎚 in der Player-Leiste öffnet die Intensität', !$('intPop').hidden);
       document.body.click();

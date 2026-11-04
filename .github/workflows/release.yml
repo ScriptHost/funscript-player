@@ -32,8 +32,27 @@ jobs:
           node-version: 22
       - run: node --test "test/*.test.js"
 
+  # Container so starten, wie die docker-compose.yml es vorgibt (schreibgeschützt, ohne Linux-Rechte),
+  # und prüfen, dass Selbsttest und Oberfläche laufen
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build und Start
+        run: |
+          docker build -q -t fsp-test .
+          docker run -d --name fsp --read-only --tmpfs /tmp --cap-drop ALL \
+            --security-opt no-new-privileges:true --memory 2g -v fsp-data:/app/data -p 8080:8080 fsp-test
+          for i in $(seq 1 60); do docker logs fsp 2>&1 | grep -q "bereit" && break; sleep 1; done
+          docker logs fsp 2>&1
+          docker logs fsp 2>&1 | grep -q "bereit"
+          r=$(docker logs fsp 2>&1 | grep -oE "Selbsttest: [0-9]+/[0-9]+" | cut -d' ' -f2)
+          [ -n "$r" ] && [ "${r%/*}" = "${r#*/}" ]
+          curl -fsS http://localhost:8080/healthz
+          curl -fsS http://localhost:8080/ | grep -q "boot.js"
+
   release:
-    needs: test
+    needs: [test, container]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -86,7 +105,7 @@ jobs:
 
   image:
     # Docker-Image nur für einen neuen Tag (bzw. beim manuellen Lauf für den neuesten)
-    needs: test
+    needs: [test, container]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

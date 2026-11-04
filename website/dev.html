@@ -237,7 +237,7 @@
       <tr><td><span class="m get">GET</span></td><td><code>/api/update</code></td><td><code>{ current, latest, url, available }</code> – neuestes Release auf GitHub</td></tr>
       <tr><td><span class="m post">POST</span></td><td><code>/api/clientcheck</code></td><td>Stiller Selbsttest der Oberfläche: <code>{ fails, ua }</code>, Fehler landen in <code>docker logs</code></td></tr>
       <tr><td><span class="m get">GET</span></td><td><code>/api/heat?src=stash:&lt;id&gt;|media:&lt;pfad&gt;</code></td><td>Intensität eines Scripts: 48 Abschnitte mit mittlerem Tempo + Durchschnitt (für die Kacheln)</td></tr>
-      <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/settings</code></td><td>Server-Einstellungen (<code>{ heresphere, hsVrOnly, hsPassword, intifaceLan }</code>, gespeichert in <code>data/settings.json</code>; vom Passwort nur Salz + Hash)</td></tr>
+      <tr><td><span class="m get">GET</span> <span class="m put">PUT</span></td><td><code>/api/settings</code></td><td>Server-Einstellungen (<code>{ heresphere, hsVrOnly, hsPassword, intifaceLan }</code>, gespeichert in <code>data/settings.json</code>; vom Passwort nur Salz + scrypt-Hash, Token gilt 30 Tage)</td></tr>
     </table>
     </div>
   </section>
@@ -260,7 +260,8 @@
       <tr><td><code>HQ_ACCEL</code> · <code>HQ_DEVICE</code></td><td>auto · /dev/dri/renderD128</td><td><code>vaapi</code> oder <code>cpu</code>; Grafikgerät</td></tr>
       <tr><td><code>HQ_MAX</code></td><td>2</td><td>Gleichzeitige HQ-Umwandlungen</td></tr>
       <tr><td><code>HERESPHERE</code></td><td>an</td><td><code>off</code> = HereSphere fest aus (sonst in der Oberfläche schaltbar)</td></tr>
-      <tr><td><code>INTIFACE_LAN_ONLY</code></td><td>–</td><td><code>1</code> = Intiface-Weiterleitung fest nur 192.168.x / 10.x (sonst in der Oberfläche schaltbar)</td></tr>
+      <tr><td><code>INTIFACE_LAN_ONLY</code></td><td>–</td><td><code>1</code> = Intiface-Weiterleitung fest nur 192.168.x / 10.x (sonst in der Oberfläche schaltbar, Standard seit 1.19.5: an)</td></tr>
+      <tr><td><code>INTIFACE_PORTS</code></td><td>12345</td><td>Erlaubte Intiface-Ports, mit Komma getrennt</td></tr>
       <tr><td><code>FFMPEG</code> · <code>FFPROBE</code></td><td>ffmpeg · ffprobe</td><td>Pfade zu den Programmen</td></tr>
       <tr><td><code>AUTH_USER</code> · <code>AUTH_PASS</code></td><td>–</td><td>Optionale Basic-Auth (sonst über den Reverse Proxy absichern)</td></tr>
       <tr><td><code>TLS_PFX</code> (+<code>_PASS</code>) / <code>TLS_CERT</code> + <code>TLS_KEY</code></td><td>–</td><td>Direkt HTTPS ohne Reverse Proxy</td></tr>

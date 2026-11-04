@@ -374,6 +374,11 @@ RX.push([/^⚠ Bluetooth schwankt \(bis (\d+) ms\) – Vibration kann leicht dan
   [/^✓ Im Takt – Bluetooth-Laufzeit (\d+) ms, je Gerät automatisch ausgeglichen$/, '✓ In time – Bluetooth latency $1 ms, compensated automatically per device'],
   [/^✓ Im Takt – Bluetooth-Laufzeit (\d+) ms, Vorlauf (-?\d+) ms$/, '✓ In time – Bluetooth latency $1 ms, lead $2 ms'],
   [/^Oberfläche \((.*)\)$/, 'Interface ($1)']);
+// 1.19.5
+P.push([`✨ Neu in 1.19.5`, `✨ New in 1.19.5`],
+  [`🔒 <b>Sicherer:</b> der Container läuft schreibgeschützt und ohne Linux-Rechte, die Oberfläche mit strenger Content-Security-Policy.`, `🔒 <b>More secure:</b> the container runs read-only and without Linux capabilities, the interface with a strict Content Security Policy.`],
+  [`🥽 HereSphere-Passwort jetzt mit scrypt gespeichert, die Anmeldung gilt 30 Tage – danach einmal neu anmelden.`, `🥽 HereSphere password now stored with scrypt, the login is valid for 30 days – then log in again once.`],
+  [`〰 Intiface: standardmäßig nur Adressen im Heimnetz und nur Port 12345 (weitere über <code>INTIFACE_PORTS</code>).`, `〰 Intiface: by default only home-network addresses and only port 12345 (more via <code>INTIFACE_PORTS</code>).`]);
 const table = {};
 for (const [de, en] of P) table[de.replace(/\s+/g, ' ').trim()] = en;
 window.I18N_EN = table;

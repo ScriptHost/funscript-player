@@ -2,6 +2,18 @@
 
 English version of [CHANGELOG.md](CHANGELOG.md) (German). The GitHub releases use this file.
 
+## 1.19.5 – 04.11.2026
+
+- **Hardened container:** `read_only`, `/tmp` as tmpfs and `cap_drop: ALL` in docker-compose.yml – the player can only
+  write to its data volume
+- **Content Security Policy:** the interface only loads its own scripts (no more inline scripts), connections only to the
+  player, the Handy cloud and Intiface
+- **HereSphere password:** stored with scrypt instead of SHA-256 (old passwords are converted at the next login); the login
+  expires after 30 days. After the update HereSphere asks for the password once more
+- **Intiface:** “home-network addresses only” is now the default (also for existing installations), only port 12345 is
+  allowed – more via `INTIFACE_PORTS` in .env
+- **Release workflow:** starts the container read-only before every release and checks the self-test and the interface
+
 ## 1.19.4 – 04.11.2026
 
 - **Several Satisfyers:** “＋ Connect another Satisfyer”; each has its own strength and its own lead (from its own

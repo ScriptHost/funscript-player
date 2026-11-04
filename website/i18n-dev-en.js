@@ -126,4 +126,7 @@ window.FSP_EN = {
   '14ibidg': 'Reading Funscripts, script automation (analysis, jitter, stroke, speed limit), touch recording as tempo/position, intensity summary, beat guard with vibration exception, half tempo, model detection. The functions are read straight from the browser files (<code>loadFunctions</code> in <code>test/helpers.js</code>).',
   '1ymg6of': 'Starts <code>server.js</code> with test folders: start page, library, shared settings, intensity, own scripts (replace own, never originals, delete), backup, remote relay via server-sent events, HereSphere switch, “VR only” and password, origin check and security headers, upload cache.',
   '241c8v': 'Funscript Player · developer docs', hc3yj1: '<a href=\x22index.html\x22>← back to the features</a>',
+  '1cp8qyb': "<code>1</code> = Intiface forwarding fixed to 192.168.x / 10.x only (otherwise switchable in the UI, default since 1.19.5: on)",
+  '1ilcob7': "Allowed Intiface ports, comma-separated",
+  '1819g1m': "Server settings (<code>{ heresphere, hsVrOnly, hsPassword, intifaceLan }</code>, stored in <code>data/settings.json</code>; of the password only salt + scrypt hash, token valid for 30 days)",
 };

@@ -9,6 +9,10 @@ services:
     restart: unless-stopped
     user: "${PUID:-1000}:${PGID:-1000}"          # nie root
     security_opt: [no-new-privileges:true]
+    # 1.19.5: gehärtet – Dateisystem nur lesbar (geschrieben wird nur ins Volume und nach /tmp), keine Sonderrechte
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
     # Speichergrenze: läuft der Player (z. B. mehrere HQ-Umwandlungen) voll, trifft es nur ihn – nicht Stash
     mem_limit: ${PLAYER_MEM:-2g}
 
@@ -31,6 +35,7 @@ services:
       HQ_MAX: ${HQ_MAX:-2}
       HERESPHERE: ${HERESPHERE:-}
       INTIFACE_LAN_ONLY: ${INTIFACE_LAN_ONLY:-}
+      INTIFACE_PORTS: ${INTIFACE_PORTS:-}
       LOG_LEVEL: ${LOG_LEVEL:-}
       TZ: ${TZ:-Europe/Berlin}
 

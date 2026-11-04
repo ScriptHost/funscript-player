@@ -2,6 +2,18 @@
 
 English: [CHANGELOG.en.md](CHANGELOG.en.md)
 
+## 1.19.5 – 04.11.2026
+
+- **Container gehärtet:** `read_only`, `/tmp` als tmpfs und `cap_drop: ALL` in der docker-compose.yml – der Player kann
+  nur noch in sein Daten-Volume schreiben
+- **Content-Security-Policy:** die Oberfläche lädt nur noch eigene Skripte (keine Inline-Skripte mehr), Verbindungen nur
+  zum Player, zur Handy-Cloud und zu Intiface
+- **HereSphere-Passwort:** mit scrypt statt SHA-256 gespeichert (alte Passwörter werden beim nächsten Anmelden umgestellt);
+  die Anmeldung läuft nach 30 Tagen ab. Nach dem Update fragt HereSphere einmal neu nach dem Passwort
+- **Intiface:** „Nur Adressen im Heimnetz“ ist jetzt Standard (auch für bestehende Installationen), erlaubt ist nur Port
+  12345 – weitere über `INTIFACE_PORTS` in der .env
+- **Release-Workflow:** startet den Container vor jedem Release schreibgeschützt und prüft Selbsttest und Oberfläche
+
 ## 1.19.4 – 04.11.2026
 
 - **Mehrere Satisfyer:** „＋ Weiteren Satisfyer verbinden“; jeder hat seine eigene Stärke und seinen eigenen Vorlauf (aus der

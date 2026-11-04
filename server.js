@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const { AUTH_PASS, AUTH_USER, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION } = require('./lib/config');
 const { readBody, safeJoin, sendFile } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
-const { heresphereOn, hsAuthorized, hsHash, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
+const { heresphereOn, hsAuthorized, hsCheckPassword, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashStatus } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
@@ -49,7 +49,13 @@ const tls = tlsOptions();
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
-  'Content-Security-Policy': "frame-ancestors 'self'",
+  // 1.19.5: Content-Security-Policy – nur eigene Skripte (keine eingeschleusten), Verbindungen nur zum eigenen Server,
+  // zur Handy-Cloud und zu Intiface (ws:// im Heimnetz, wenn der Player ohne HTTPS läuft)
+  'Content-Security-Policy': [
+    "default-src 'self'", "script-src 'self'", "style-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:",
+    "connect-src 'self' https://www.handyfeeling.com ws: wss:", "object-src 'none'", "base-uri 'self'", "form-action 'self'",
+    "frame-ancestors 'self'",
+  ].join('; '),
   'Referrer-Policy': 'same-origin',
 };
 // Kommt die Anfrage von dieser Seite? Ohne Origin (z. B. curl, Apps) gilt sie als eigene.
@@ -180,9 +186,7 @@ const handler = async (req, res) => {
       let data;
       if (pathname === '/heresphere/auth') {
         // Anmeldung aus HereSphere (Benutzername egal) -> Token, das HereSphere bei jeder Anfrage mitschickt
-        const p = serverSettings.hsPass;
-        const ok = !p || hsHash(p.salt, String(body.password || '')) === p.hash;
-        data = ok ? { 'auth-token': hsToken(), access: 1 } : { 'auth-token': '', access: -1 };
+        data = hsCheckPassword(String(body.password || '')) ? { 'auth-token': hsToken(), access: 1 } : { 'auth-token': '', access: -1 };
       } else if (!hsAuthorized(req, url)) {
         // -1 = Anmeldung nötig: HereSphere fragt dann nach Benutzer und Passwort
         data = { access: -1, library: [] };
@@ -242,10 +246,13 @@ const server = tls ? https.createServer(tls, handler) : http.createServer(handle
 
 // WebSocket-Weiterleitung /intiface?target=IP:PORT -> ws://IP:PORT (Intiface Central auf dem Smartphone).
 // Nötig, weil eine HTTPS-Seite keine unverschlüsselte ws://-Verbindung öffnen darf.
-// Erlaubt sind nur private IPv4-Adressen; mit „nur Heimnetz“ (⚙️ → Geräte / INTIFACE_LAN_ONLY)
+// Erlaubt sind nur private IPv4-Adressen; mit „nur Heimnetz“ (Standard seit 1.19.5, ⚙️ → Geräte / INTIFACE_LAN_ONLY)
 // nur 192.168.x und 10.x – also keine Docker-Netze (172.x) und nichts im Container selbst (127.x).
 const PRIVATE_IP = /^(10\.\d+|192\.168|172\.(1[6-9]|2\d|3[01])|127\.\d+)\.\d+\.\d+$/;
 const LAN_IP = /^(10\.\d+|192\.168)\.\d+\.\d+$/;
+// 1.19.5: nur der Intiface-Port (Standard 12345, mehrere mit Komma in INTIFACE_PORTS) – so wird die
+// Weiterleitung kein Tunnel zu beliebigen Diensten im Netz
+const INTIFACE_PORTS = new Set((process.env.INTIFACE_PORTS || '12345').split(',').map((p) => Number(p.trim())).filter(Boolean));
 
 server.on('upgrade', (req, socket, head) => {
   const fail = (code, text) => socket.end(`HTTP/1.1 ${code} ${text}\r\nConnection: close\r\n\r\n`);
@@ -255,7 +262,7 @@ server.on('upgrade', (req, socket, head) => {
   if (!authOk(req)) return fail(401, 'Unauthorized');
   if (!sameOrigin(req)) return fail(403, 'Forbidden'); // keine Verbindung von fremden Webseiten
   const m = /^([\d.]+):(\d{1,5})$/.exec(url.searchParams.get('target') || '');
-  if (!m || !(intifaceLanOnly() ? LAN_IP : PRIVATE_IP).test(m[1]) || Number(m[2]) > 65535) return fail(400, 'Bad Request');
+  if (!m || !(intifaceLanOnly() ? LAN_IP : PRIVATE_IP).test(m[1]) || !INTIFACE_PORTS.has(Number(m[2]))) return fail(400, 'Bad Request');
 
   const upstream = net.connect(Number(m[2]), m[1]);
   upstream.setTimeout(5000, () => upstream.destroy(new Error('timeout')));

@@ -44,12 +44,11 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.4</h3>
+    <h3>✨ Neu in 1.19.5</h3>
     <ul>
-      <li>〰 <b>Mehrere Satisfyer</b> gleichzeitig – jeder mit eigener Stärke und eigenem Vorlauf, damit alle im Takt bleiben.</li>
-      <li>Zwei Motoren: auf Wunsch folgt Motor 2 dem Tempo, Motor 1 dem Rhythmus. Sanftanlauf nach Start, Pause und STOPP.</li>
-      <li>Sync-Anzeige: ⏱ Bluetooth-Laufzeit je Gerät, Status gelb, wenn die Verbindung schwankt.</li>
-      <li>⚙️ Handy und Satisfyer stehen jetzt zusammen unter „🔌 Geräte“.</li>
+      <li>🔒 <b>Sicherer:</b> der Container läuft schreibgeschützt und ohne Linux-Rechte, die Oberfläche mit strenger Content-Security-Policy.</li>
+      <li>🥽 HereSphere-Passwort jetzt mit scrypt gespeichert, die Anmeldung gilt 30 Tage – danach einmal neu anmelden.</li>
+      <li>〰 Intiface: standardmäßig nur Adressen im Heimnetz und nur Port 12345 (weitere über <code>INTIFACE_PORTS</code>).</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -765,7 +764,6 @@
   <script src="selfctl.js"></script>
   <script src="touchpad.js"></script>
   <script src="settings.js"></script>
-  <script>I18N.start();</script>
-  <script>if (/[?&]selbsttest\b/.test(location.search)) document.write('<script src="selftest.js"><\/script>');</script>
+  <script src="boot.js"></script>
 </body>
 </html>
