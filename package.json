@@ -4,7 +4,7 @@
   "description": "Only for the code check on GitHub (ESLint). The player itself has no dependencies.",
   "license": "AGPL-3.0-only",
   "devDependencies": {
-    "eslint": "^9.0.0",
-    "globals": "^15.0.0"
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0"
   }
 }
