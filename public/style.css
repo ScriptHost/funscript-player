@@ -744,7 +744,6 @@ body:not(.has-vibe) #devices [data-panel="dev:vibe"] > :not(.conn) { display: no
 body:not(.has-dev) #devCommon, body:not(.has-dev) #finaleBtn { display: none; }
 body:not(.has-dev):not(.dev-open) #stopAll, body.no-stop-btn:not(.dev-open) #stopAll { display: none; }
 .dev-common { margin-bottom: 8px; padding-bottom: 2px; border-bottom: 1px solid var(--line); }
-.dev-common .dev-fine { margin: 2px 0 6px; }
 body:not(.has-dev) #vibePause { display: none; }
 body:not(.has-dev) .dev-stop-row, body.no-stop-btn:not(.dev-open) .dev-stop-row { grid-template-columns: 1fr; }
 .sync-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; padding: 8px 12px; border: 1px solid #ffb74d; border-radius: 10px; color: #ffb74d; font-size: 14px; }
@@ -855,6 +854,11 @@ body.dev-open #finaleBtn { display: none !important; }
 .offset-row > span { flex: 1; }
 .offset-row button { width: 34px; height: 28px; margin: 0; padding: 0; flex: 0 0 auto; }
 .offset-row output { min-width: 56px; text-align: center; color: var(--text); font-variant-numeric: tabular-nums; }
+/* 1.19.9: Offset zugeklappt – nur „Offset +40 ms ›“, aufgeklappt −/+, ↺, Einmessen */
+.off-box > summary { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; color: var(--muted); cursor: pointer; }
+.off-box > summary output { color: var(--text); font-variant-numeric: tabular-nums; }
+.off-box[open] > summary { margin-bottom: 6px; }
+.off-box .tools-calib { margin-top: 6px; }
 /* 1.19.8: ↺ hat immer seinen Platz (unsichtbar) – sonst rutscht er nach „+“ genau unter den Finger */
 .offset-row .offset-reset[hidden] { display: block; visibility: hidden; }
 body:not(.adv-on) .offset-slider { display: none; }
@@ -866,7 +870,6 @@ body:not(.adv-on) .offset-slider { display: none; }
 .dev-key { margin: 8px 0; }
 .dev-key summary { font-size: 13px; }
 .dev-key .copyrow, .dev-key input { margin-top: 6px; }
-.audio-info[hidden] { display: none; }
 /* Meldungszeile im Geräte-Kasten entfällt – Rückmeldungen als Einblendung bzw. am Regler */
 #log { display: none !important; }
 
@@ -963,3 +966,7 @@ body[data-view=player].hud-off-devices:not(.dev-open) #devices .script-box { mar
 body[data-view=player].hud-off-devices:not(.dev-open) #devices:has(#scriptBox[hidden]) { display: none !important; }
 /* 1.19.8: Kopf des Script-Bereichs ohne Inhalt (Scriptname ausgeblendet, keine Wahl Original/Eigenes) – keine Leerzeile */
 body.hud-off-script .sb-head:has(#sbChoice[hidden]) { display: none; }
+.off-box > summary { list-style: none; }
+.off-box > summary::-webkit-details-marker { display: none; }
+.off-box > summary::after { content: '›'; margin-left: auto; font-size: 20px; line-height: 1; transition: transform .15s; }
+.off-box[open] > summary::after { transform: rotate(90deg); }

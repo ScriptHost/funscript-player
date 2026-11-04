@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.8-e0457b?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.9-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
@@ -48,8 +48,8 @@
 | 🎚 **One script, every device** | Pick the intensity once for Handy and Satisfyer: **Original** (untouched), **Automatic** (small strokes stretched, what the motor can't manage adapted – still exactly in time), **Gentle** or **Intense** – per scene right at the video, with a mini heatmap preview. |
 | 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. Several Satisfyers at once, each with its own strength and lead; two motors can split into rhythm and tempo. |
 | ⏱️ **Sync that stays in time** | Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× playback. |
-| 🎵 **Follow sound (beta)** | Videos without a script: Handy and Satisfyer follow the volume and rhythm of the soundtrack. |
-| 👆 **Swipe in fullscreen** | Left/right half up/down – volume, Satisfyer strength, Handy stroke or both devices, configurable per half. |
+| 👆 **Swipe in fullscreen** | Left/right half up/down – Handy stroke, Satisfyer strength, both devices or volume, configurable per half. |
+| 🔌 **Honest status** | “Connected” is checked for real (on return and every minute) and reconnects; if a device drops mid-video, the video pauses. Satisfyer battery in the device list. |
 | 📲 **Like an app** | Install it as an app with one tap, or put the whole app in fullscreen in the browser; leaving the app while the video plays opens picture-in-picture. |
 | ✋ **Your own scripts** | Control the devices yourself while watching (slider, quick picks, touch pad), record it as a script, replace just a section later. Originals are never overwritten. |
 | 📚 **Library** | Stash scenes and folder videos with heatmap, intensity filter, 🔥 highlights, saved Stash filters, 2D-only mode, mini player, picture-in-picture. |

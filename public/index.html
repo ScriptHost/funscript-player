@@ -44,11 +44,11 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.8</h3>
+    <h3>✨ Neu in 1.19.9</h3>
     <ul>
-      <li>👆 <b>Wischen im Vollbild:</b> links Lautstärke, rechts Stärke beider Geräte – einstellbar unter ⚙️ → Anzeige.</li>
-      <li>🎵 „Nach Ton“ steuert jetzt auch die Handy. 📲 Als App installieren oder die ganze App im Vollbild (⚙️ → Anzeige).</li>
-      <li><b>Neue Standards:</b> STOPP-Knöpfe am Video und Stopp bei Bildschirmsperre sind aus – Esc und „Alles stoppen“ im Geräte-Fenster gehen immer, einschalten unter ⚙️ → Notaus. −/+ ist raus (Doppeltippen springt).</li>
+      <li>🔌 „Verbunden“ stimmt jetzt: Der Player prüft die Geräte und verbindet neu. Reißt eins mitten im Video ab, hält das Video an.</li>
+      <li>Offset am Video zugeklappt – antippen zum Ändern. Wischen im Vollbild: links Hub Handy, rechts Stärke Satisfyer. 🔋 Akku in der Geräte-Liste.</li>
+      <li>Bild-in-Bild bleibt nicht mehr grau hängen. „Nach Ton“ ist raus; Satisfyer-Steuerung und Application ID stehen unter ⚙️ → Geräte.</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
   </div>
@@ -184,11 +184,9 @@
           <div id="selfRow" class="self-row" hidden>
             <div class="self-head">
               <span>Kein Funscript</span>
-              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button><button data-self="audio" title="Handy und Satisfyer folgen Lautstärke und Rhythmus des Tons">🎵 Nach Ton 🧪</button></span>
+              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button></span>
               <button id="selfResume" class="small" hidden>↩ Script wieder abspielen</button>
             </div>
-            <!-- 1.19.7 (Beta): Satisfyer folgt dem Ton des Videos (audiovibe.js) -->
-            <p id="audioInfo" class="hint-text audio-info" hidden></p>
             <div id="selfCtl" class="self-ctl" hidden>
               <p class="hint-text self-none">Kein Gerät verbunden – oben auf den Status tippen und verbinden.</p>
               <div class="self-dev self-handy">
@@ -285,6 +283,13 @@
           <p class="hint-text">Mehrere Satisfyer gleichzeitig: in der Geräte-Spalte (Status oben antippen) einfach „＋ Weiteren Satisfyer verbinden“.
             Jeder bekommt seine eigene Stärke und seinen eigenen Vorlauf – so bleiben alle gemeinsam im Takt.</p>
           <label class="adv check"><input id="vibeAll" type="checkbox"> Beim Verbinden alle Bluetooth-Geräte anzeigen</label>
+          <!-- 1.19.9: aus dem Geräte-Bereich am Video hierher; bei „Manuell“ bleibt der Stärke-Regler am Video -->
+          <label>Steuerung
+            <select id="vibeSource">
+              <option value="script">Folgt Video / Pattern / Direktsteuerung</option>
+              <option value="manual">Manuell (Stärke von Hand, am Video)</option>
+            </select>
+          </label>
           <h4>Übersetzung Script → Vibration</h4>
           <label>Berechnung
             <select id="vibeMap">
@@ -327,6 +332,7 @@
 
         <details id="setSafety" class="card sec">
           <summary><h2>🛑 Notaus</h2></summary>
+          <label class="check"><input id="pauseOnLoss" type="checkbox" checked> Video anhalten, wenn ein Gerät mitten im Video die Verbindung verliert</label>
           <label class="check"><input id="stopHidden" type="checkbox"> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
           <label>Automatisch stoppen, wenn nichts bedient wird und kein Video läuft
             <select id="autoStop">
@@ -492,7 +498,7 @@
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
           <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
-          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter – im Vollbild und auf der Player-Seite (sofern der Browser es zulässt)</label>
+          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (aus dem Vollbild)</label>
           <!-- 1.19.8: wie eine installierte App -->
           <label id="appFsRow" class="check"><input id="appFs" type="checkbox"> Im Browser die ganze App im Vollbild (ohne Browserleiste) – beginnt beim ersten Antippen, die Zurück-Geste beendet es</label>
           <button id="installApp" class="small secondary" hidden>📲 Als App installieren</button>
@@ -687,7 +693,9 @@
 
         <!-- Für alle verbundenen Geräte -->
         <div id="devCommon" class="dev-common">
-          <!-- 1.19.2: Offset kompakt mit −/+ (10 ms); Schieber nur mit „Erweiterte Einstellungen“ -->
+          <!-- 1.19.9: Offset zugeklappt – zu ist nichts drückbar (−/+ wurden beim Schauen aus Versehen getroffen) -->
+          <details id="offBox" class="off-box">
+          <summary>Offset <output id="offsetSum">0 ms</output></summary>
           <div class="offset-row" title="Video-Offset für Handy und Satisfyer">
             <span>Offset</span>
             <button id="offMinus" class="small secondary" aria-label="Offset −10 ms">−</button>
@@ -696,10 +704,8 @@
             <button id="offsetReset" class="small secondary offset-reset" hidden title="Offset dieser Szene verwerfen – wieder der allgemeine Wert">↺</button>
           </div>
           <input id="offset" class="offset-slider" type="range" min="-500" max="500" step="10" value="0" aria-label="Video-Offset">
-          <details class="dev-fine" data-fine="common">
-            <summary>Feineinstellung Offset</summary>
-            <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
-            <p class="hint-text">Nur nötig, wenn ein Script spürbar daneben liegt – Verzögerungen der Geräte gleicht der Player selbst aus.</p>
+          <button id="calibBtn" class="small secondary wide tools-calib" title="Im Takt der Stöße tippen – der Player berechnet den Versatz (Taste T)">🎯 Offset per Takt einmessen</button>
+          <p class="hint-text">Nur nötig, wenn ein Script spürbar daneben liegt – Verzögerungen der Geräte gleicht der Player selbst aus.</p>
           </details>
         </div>
 
@@ -712,7 +718,8 @@
               <summary>🔑 Verbindung (Connection Key)</summary>
               <span class="copyrow"><input id="keyDev" type="password" autocomplete="off" spellcheck="false" aria-label="Connection Key" placeholder="Connection Key">
                 <button id="keyDevSave" class="small secondary">Verbinden</button></span>
-              <input id="appIdDev" type="text" autocomplete="off" spellcheck="false" aria-label="Application ID" placeholder="Application ID (optional – Handy-API v3)">
+              <!-- 1.19.9: Application ID nur in den Einstellungen -->
+              <p class="hint-text">Ohne Application ID nutzt der Player die Handy-API v2. Für v3 (läuft auch bei 0,5×–2× im Takt) die ID unter <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
             </details>
             <!-- 1.19.7: Neu synchronisieren nur noch hier (nicht mehr in der Player-Leiste; Taste S bleibt) -->
             <button id="resyncBtn" class="small secondary wide" title="Taste S">⟳ Neu synchronisieren</button>
@@ -739,12 +746,6 @@
             <p id="vibeLat" class="hint-text"></p>
           </div>
 
-          <label>Steuerung
-            <select id="vibeSource">
-              <option value="script">Folgt Video / Pattern / Direktsteuerung</option>
-              <option value="manual">Manuell</option>
-            </select>
-          </label>
           <label id="vibeLevelRow">Stärke <output id="vibeLevelVal">0 %</output>
             <input id="vibeLevel" type="range" min="0" max="100" value="0">
           </label>
@@ -799,7 +800,6 @@
   <script src="tools.js"></script>
   <script src="stroker.js"></script>
   <script src="selfctl.js"></script>
-  <script src="audiovibe.js"></script>
   <script src="touchpad.js"></script>
   <script src="settings.js"></script>
   <script src="boot.js"></script>

@@ -65,7 +65,7 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
 - **Status oben antippen** öffnet das Geräte-Fenster – Handy verbinden (Connection Key und Application ID gleich dort
   unter „🔑 Verbindung“), ⟳ Neu synchronisieren, Satisfyer per Bluetooth.
   Wird die Handy-Cloud langsam, wird der Status gelb.
-- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität (Automatisch zuerst), Offset −/+, Hub der Handy, Stärke min/max
+- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität (Automatisch zuerst), Offset (zugeklappt, antippen für −/+), Hub der Handy, Stärke min/max
   und Übersetzung des Satisfyers, Finale, Pause, Alles stoppen.
 - **Script-Intensität** – eine Auswahl für Handy und Satisfyer, pro Szene am Video (vier Knöpfe mit Mini-Heatmap);
   Standard unter ⚙️ → Script:
@@ -78,9 +78,10 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
   Motoren folgt Motor 2 auf Wunsch dem Tempo. Die Geräte-Liste zeigt ⏱ die Bluetooth-Laufzeit, schwankt sie, wird der Status gelb.
 - **Videos ohne Funscript:** „Selbst steuern“ (Tempo, Hub unten/oben, Satisfyer-Stärke, Touch-Fläche) und
   **⏺ Mitschnitt zum Video** als eigenes Script (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: im Volume).
-  🧪 Beta **„🎵 Nach Ton“**: Handy und Satisfyer folgen Lautstärke und Rhythmus des Tons.
 - **Vollbild:** Doppeltippen links/rechts springt 5/10 s, gedrückt halten = 2× bzw. rückwärts. **Wischen** hoch/runter
-  je Bildhälfte: Lautstärke, Stärke Satisfyer, Hub Handy oder beide Geräte (⚙️ → Anzeige).
+  je Bildhälfte (Standard: links Hub Handy, rechts Stärke Satisfyer; auch Lautstärke oder beide Geräte – ⚙️ → Anzeige).
+- **Status, der stimmt:** „verbunden“ wird beim Zurückkommen und jede Minute wirklich geprüft und bei Bedarf neu
+  verbunden. Reißt ein Gerät mitten im Video ab, hält das Video an (⚙️ → Notaus). 🔋 Akku der Satisfyer in der Geräte-Liste.
 - **Wie eine App:** „📲 Als App installieren“ (⚙️ → Anzeige, auch im Willkommen) oder im Browser „ganze App im Vollbild“.
   App verlassen, während das Video läuft = Bild-in-Bild (sofern der Browser es zulässt).
 - **🎮 Steuern:** Direktsteuerung, Touch-Fläche (Tempo oder 🧪 Position) und Pattern-Editor.
@@ -102,8 +103,9 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
 
 Beim Start prüft sich der Container selbst – Datenordner, gespeicherte Dateien, alle Skripte der Oberfläche, jedes
 Bedienelement und die Script-Intensität. Das Ergebnis steht in `docker logs` („Self-test: 9/9 ok“). Die Oberfläche
-prüft sich beim Laden still und meldet nur Fehler an den Server. Für die Entwicklung: `?selbsttest` spielt typische
-Abläufe mit einer simulierten Handy durch.
+prüft sich beim Laden still und meldet nur Fehler an den Server. `?selbsttest` spielt typische Abläufe mit einer
+simulierten Handy durch – seit 1.19.9 automatisch vor jedem Release in Chrome auf GitHub, zusammen mit einem
+Übersetzungs-Test und ESLint.
 
 ## Ordner einbinden
 

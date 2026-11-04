@@ -2,6 +2,24 @@
 
 The GitHub release notes are taken from this file.
 
+## 1.19.9 – 04.11.2026
+
+- **Fix – picture-in-picture:** leaving the app from the player page put the video into an invisible picture-in-picture
+  (grey “playing as picture in picture”, sound kept running). Picture-in-picture is requested from fullscreen only again,
+  and a stuck one is ended when you come back
+- **Health check:** “connected” is verified on return (after more than 20 s in the background) and every minute – the
+  Handy via the cloud, Satisfyers via Bluetooth – and reconnects automatically
+- **Device drops mid-video → video pauses** with a hint (⚙️ → Emergency stop, on by default)
+- **Satisfyer battery** per device in the device list, warning once below 15 %
+- **Soft stop:** on pause, seeking or the end of the video the Satisfyer fades out within ~0.5 s (Esc / Stop everything
+  stay immediate)
+- **Offset collapsed** at the video (“Offset +40 ms ›”, tap to change) – no more accidental −/+
+- **Swipe defaults:** left Handy stroke, right Satisfyer strength (volume only on request)
+- **Moved to settings:** Satisfyer “Control” (follow / manual) and the Application ID (device window links there)
+- **Removed:** “🎵 Follow sound” and about 160 unused translations and leftovers of earlier features
+- **Quality checks on GitHub:** a translation test (every German UI text has an English one), the browser self-test in
+  headless Chrome before every release, and ESLint
+
 ## 1.19.8 – 04.11.2026
 
 - **Swipe in fullscreen:** up/down on the left or right half – volume, Satisfyer strength, Handy stroke or both devices;

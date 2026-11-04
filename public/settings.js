@@ -91,7 +91,7 @@ $('welcomeOk').addEventListener('click', () => { showWelcome(false); store.set('
 $('welcomeConnect').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); openDevices(); });
 $('welcomeAgain').addEventListener('click', () => showWelcome());
 if (freshInstall && !store.get('seenWelcome', false)) {
-  store.set('seen1198', true); // statt „Neu in …“
+  store.set('seen1199', true); // statt „Neu in …“
   showWelcome();
 }
 
@@ -137,10 +137,10 @@ document.addEventListener('click', (e) => {
   if ($('appFs').checked && !e.target.closest('#ovFs, #ovHit, video, #ovPip, #appFs')) enterAppFs();
 }, true);
 
-// --- Einmal nach dem Update auf 1.19.8: was neu ist ------------------------
-if (!store.get('seen1198', false)) {
+// --- Einmal nach dem Update auf 1.19.9: was neu ist ------------------------
+if (!store.get('seen1199', false)) {
   $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen1198', true); };
+  const done = () => { $('whatsNew').hidden = true; store.set('seen1199', true); };
   $('whatsNewOk').addEventListener('click', done);
   $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setPlayer'); });
 }

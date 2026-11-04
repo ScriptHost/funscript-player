@@ -284,7 +284,7 @@ let freshInstall = false;
 
 // 1.19.4: Schlüssel ohne Funktion aus den gemeinsamen Einstellungen löschen – prefs.json bleibt übersichtlich
 // (scriptPresetHandy erst in tools.js, selfStroke in selfctl.js – sie werden dort noch einmal umgerechnet)
-for (const k of ['presetLink', 'libLinks', 'showContinue', 'scriptPreset', 'scriptPresetVibe']) {
+for (const k of ['presetLink', 'libLinks', 'showContinue', 'scriptPreset', 'scriptPresetVibe', 'fine.common', 'seen1195', 'seen1197', 'seen1198']) { // 1.19.9: + Reste
   if (store.get(k, undefined) !== undefined) store.del(k);
 }
 

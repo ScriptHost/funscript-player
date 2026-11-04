@@ -48,11 +48,13 @@ order – later ones may use earlier ones, the other way round only at runtime (
 | `enhance.js` · `hq.js` | Picture enhancement via WebGL · HQ stream from the server (seeking restarts the conversion) |
 | `finale.js` · `tools.js` | Finale · script intensity for both devices: original/auto/soft/intense (`processScript`, `multiplyCalm`, `presetVibeShape`), per scene, previews, offset calibration |
 | `stroker.js` | Stroker devices via Intiface (e.g. the Handy over Bluetooth) |
-| `audiovibe.js` | 🧪 “Follow sound” (beta): video → Web Audio `AnalyserNode`; `audioVibeLevel()` gives `targetLevel()` a 0–1 level from loudness above the running average plus onsets; `audioHandySpeed()` smooths it (~0.8 s) into Handy tempo steps of 10 for `selfHampLevel()`. The `AudioContext` is only created on a click (otherwise the video would play muted); all media is same-origin, so the analyser gets real samples |
-| `selfctl.js` · `touchpad.js` | “Control yourself” (`selfCtl.mode`: `off` / `self` / `audio`) for videos without a Funscript · touch area (tempo or 🧪 position via HDSP, at most 2 commands in flight, slower on HTTP 429), ⏺ recording |
+| `audiovibe.js` (removed in 1.19.9) | 🧪 “Follow sound” (beta): video → Web Audio `AnalyserNode`; `audioVibeLevel()` gives `targetLevel()` a 0–1 level from loudness above the running average plus onsets; `audioHandySpeed()` smooths it (~0.8 s) into Handy tempo steps of 10 for `selfHampLevel()`. The `AudioContext` is only created on a click (otherwise the video would play muted); all media is same-origin, so the analyser gets real samples |
+| `selfctl.js` · `touchpad.js` | “Control yourself” (`selfCtl.mode`: `off` / `self`) for videos without a Funscript · touch area (tempo or 🧪 position via HDSP, at most 2 commands in flight, slower on HTTP 429), ⏺ recording |
 | `settings.js` | Settings page: collapsible sections, ⓘ explanations, picture/HQ, player display, update notice, “new in” dialog, welcome dialog (only on a fresh install: `freshInstall` from `handy.js` = nothing stored in the browser nor on the server), install as app (`beforeinstallprompt`, otherwise a hint) and “whole app in fullscreen” (`appFs`, next tap), reset |
 | `selftest.js` | Developer self-test in the browser: append `?selbsttest` to the address – runs typical flows with a simulated Handy |
-| `test/` | Automated tests with Node built-ins |
+| `test/` | Automated tests with Node built-ins: server, script logic, `i18n.test.js` (every German UI text has an English entry), `browser.test.js` (runs `?selbsttest` in headless Chrome via the DevTools protocol, fixtures in `test/fixtures/`; skipped locally without Chrome, required on GitHub) |
+| `eslint.config.js` | ESLint, only on GitHub (`npm i --no-save eslint@9 globals@15 && npx eslint .`). All top-level names of the UI scripts are registered as shared globals, so typos are caught without flagging cross-file names |
+| Health check | `checkDevices()` in `app.js` (on return after > 20 s and every minute): Handy `/connected`, Satisfyer `checkVibes()` → `dev.lost()` (one reconnect at a time); `deviceLost()` pauses the video if enabled (`pauseOnLoss`) |
 
 ## Core concepts
 

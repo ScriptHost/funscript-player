@@ -8,7 +8,8 @@
 //   Zieht der Finger eher seitlich, bleibt alles wie bisher (Tippen, Doppeltippen, Halten).
 // ===========================================================================
 const SWIPE_ACTIONS = ['off', 'volume', 'vibe', 'handy', 'both'];
-const swipeCfg = { left: store.get('swipeLeft', 'volume'), right: store.get('swipeRight', 'both') };
+// 1.19.9: Standard links Hub Handy, rechts Stärke Satisfyer (Lautstärke nur noch auf Wunsch)
+const swipeCfg = { left: store.get('swipeLeft', 'handy'), right: store.get('swipeRight', 'vibe') };
 for (const side of ['left', 'right']) {
   const sel = $(side === 'left' ? 'swipeLeft' : 'swipeRight');
   if (!SWIPE_ACTIONS.includes(swipeCfg[side])) swipeCfg[side] = 'off';

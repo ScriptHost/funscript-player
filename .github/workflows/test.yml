@@ -18,4 +18,6 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - run: node --test "test/*.test.js"
+      - run: node --test "test/*.test.js"   # inkl. Browser-Selbsttest in Chrome (test/browser.test.js)
+      # Code-Prüfung (1.19.9): nur hier, nicht im Image
+      - run: npm i --no-save --no-audit --no-fund eslint@9 globals@15 && npx eslint .

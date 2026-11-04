@@ -31,13 +31,14 @@ function loadFunctions(file, names, extra = '') {
   return Object.fromEntries(names.map((n) => [n, (...args) => JSON.parse(JSON.stringify(fns[n](...args)))]));
 }
 
-// Startet server.js mit eigenen Test-Ordnern auf einem freien Port
-async function startServer(env = {}) {
+// Startet server.js mit eigenen Test-Ordnern auf einem freien Port; prepare(media) legt vorher Dateien an
+async function startServer(env = {}, prepare = null) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fsp-test-'));
   const media = path.join(tmp, 'media');
   const data = path.join(tmp, 'data');
   fs.mkdirSync(path.join(media, 'Filme'), { recursive: true });
   fs.mkdirSync(data);
+  if (prepare) prepare(media);
   const port = 20000 + Math.floor(Math.random() * 20000);
   const proc = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
     env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', MEDIA_DIR: media, DATA_DIR: data, STASH_URL: '', ...env },

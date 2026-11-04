@@ -584,7 +584,7 @@ const updateKeyHint = () => { $('keyHint').hidden = !!$('key').value.trim(); };
 $('key').addEventListener('input', updateKeyHint);
 $('key').addEventListener('change', () => { if ($('key').value.trim()) connectHandy(); });
 updateKeyHint();
-// 1.19.7: Key und Application ID auch im Geräte-Fenster (🔑 Verbindung) – gespiegelt zu ⚙️ → Geräte
+// 1.19.7: Key auch im Geräte-Fenster (🔑 Verbindung) – gespiegelt zu ⚙️ → Geräte (Application ID seit 1.19.9 nur dort)
 function mirrorField(mirror, src) {
   $(mirror).value = $(src).value;
   for (const ev of ['input', 'change']) {
@@ -593,7 +593,6 @@ function mirrorField(mirror, src) {
   }
 }
 mirrorField('keyDev', 'key');
-mirrorField('appIdDev', 'appId');
 $('keyDevSave').addEventListener('click', () => { if (!$('connect').disabled) connectHandy(); }); // „change“ beim Verlassen des Felds verbindet schon
 // Ohne Key gleich aufgeklappt
 $('keyBox').open = !$('key').value.trim();
@@ -646,7 +645,7 @@ function updateDevClasses() {
   }
   // Video ohne Funscript und „Keine Steuerung“: Geräte-Regler und Geräte-Knöpfe sind nutzlos
   const loaded = !!nowPlaying;
-  document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode !== 'off'));
+  document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode === 'self'));
   // Hinweis im Player: Gerät da, Video mit Script, aber Sync aus
   $('syncHint').hidden = !(h || v) || !script || appMode !== 'stream' || document.body.dataset.view !== 'player';
 }
@@ -714,11 +713,20 @@ video.addEventListener('leavepictureinpicture', () => {
 });
 // Aus dem Vollbild in den Hintergrund: das Video selbst ins kleine Fenster
 // (sonst nimmt Android den ganzen Vollbild-Bereich – der bleibt im Hintergrund schwarz).
-// 1.19.8: auch von der Player-Seite ohne Vollbild – ob der Browser das ohne Antippen erlaubt, entscheidet er selbst.
+// 1.19.9: wieder nur aus dem Video-Vollbild – von der Player-Seite schaltete Chrome (Android) das Video auf
+// Bild-in-Bild, zeigte aber kein Fenster; zurück in der App blieb es grau. Ein so hängendes Bild-in-Bild
+// beendet der Player beim Zurückkommen selbst.
+let autoPipAt = 0;
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'hidden' || !$('autoPip').checked || !videoPlaying()) return;
-  if (!document.pictureInPictureElement && (document.fullscreenElement || document.body.dataset.view === 'player')) {
-    video.requestPictureInPicture().catch(() => {});
+  if (document.visibilityState === 'visible') {
+    if (autoPipAt && document.pictureInPictureElement === video) document.exitPictureInPicture().catch(() => {});
+    autoPipAt = 0;
+    return;
+  }
+  if (!$('autoPip').checked || !videoPlaying()) return;
+  if (!document.pictureInPictureElement && document.fullscreenElement === video) {
+    autoPipAt = Date.now();
+    video.requestPictureInPicture().catch(() => { autoPipAt = 0; });
   }
 });
 
@@ -808,6 +816,8 @@ function showOffsetInfo() {
   const date = info?.at ? ' ' + new Date(info.at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) : '';
   $('offsetVal').textContent += scene ? (info?.how === 'calib' ? ` · Szene · 🎯 eingemessen${date}` : ' · Szene') : '';
   $('offsetReset').hidden = !scene;
+  const v = Number($('offset').value);
+  $('offsetSum').textContent = `${v > 0 ? '+' : ''}${v} ms${scene ? ' · Szene' : ''}`;
 }
 function loadOffsetForVideo() {
   loadSceneDev();
@@ -891,6 +901,44 @@ $('invert').addEventListener('change', () => {
   store.set('invert', $('invert').checked);
   if (handy.owner === 'video') resync();
 });
+
+// 1.19.9: Health Check – „verbunden“ wirklich prüfen: beim Zurückkommen (nach > 20 s im Hintergrund) und
+// jede Minute. Handy: die Cloud fragen, ob sie online ist; Satisfyer: Bluetooth-Verbindung (vibe.js checkVibes).
+let hiddenAt = 0, healthBusy = false;
+async function checkDevices() {
+  if (healthBusy) return;
+  healthBusy = true;
+  try {
+    if (handy.connected) {
+      let ok;
+      try { ok = !!(await handy.req('GET', '/connected')).connected; } catch (e) { ok = e.kind === 'limit'; }
+      if (!ok && handy.connected) {
+        handy.connected = false;
+        setStatus('off', 'getrennt');
+        if (typeof updateDevClasses === 'function') updateDevClasses();
+        deviceLost('Handy');
+        autoRetries = 0;
+        connectHandy(true);
+      }
+    }
+    if (typeof checkVibes === 'function') checkVibes();
+  } finally { healthBusy = false; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (hiddenAt && Date.now() - hiddenAt > 20000) checkDevices();
+  hiddenAt = 0;
+});
+setInterval(() => { if (!document.hidden) checkDevices(); }, 60000);
+
+// 1.19.9: Reißt ein Gerät mitten im Video ab, hält das Video an (⚙️ → Notaus, abschaltbar) – sonst läuft es ohne Geräte weiter
+function deviceLost(name) {
+  if (!$('pauseOnLoss').checked || document.hidden || !videoPlaying()) return;
+  video.pause();
+  log(`${name} getrennt – Video angehalten. Oben auf den Status tippen, um neu zu verbinden.`, true);
+}
+$('pauseOnLoss').checked = store.get('pauseOnLoss', true);
+$('pauseOnLoss').addEventListener('change', () => store.set('pauseOnLoss', $('pauseOnLoss').checked));
 
 // Drag & Drop + Dateiauswahl
 const drop = $('drop');

@@ -31,6 +31,8 @@ if (selfCtl.lo === null || selfCtl.hi === null) {
   store.set('selfHi', selfCtl.hi);
 }
 if (store.get('selfStroke', undefined) !== undefined) store.del('selfStroke');
+// 1.19.9: „🎵 Nach Ton“ gibt es nicht mehr – wer es gewählt hatte, landet bei „Keine Steuerung“
+if (selfCtl.mode !== 'self' && selfCtl.mode !== 'off') { selfCtl.mode = 'off'; store.set('selfMode', 'off'); }
 const SELF_GAP = 10; // kleinster Abstand unten–oben in %
 
 const selfVideoLoaded = () => !!nowPlaying;
@@ -41,11 +43,8 @@ function selfActive() {
 }
 const selfSpeed = () => Math.min(selfCtl.speed, Number($('capSpeed').value));
 
-// 1.19.8: „🎵 Nach Ton“ läuft (Video ohne Script spielt) – die Handy folgt dem Ton (audiovibe.js)
-const audioActive = () => selfCtl.mode === 'audio' && !script && selfVideoLoaded() && videoPlaying();
 // Für stroker.js (Handy per Bluetooth) über control.js hampLevel()
 function selfHampLevel() {
-  if (audioActive()) { const s = audioHandySpeed(); return s > 0 ? s / 100 : null; }
   return selfActive() && selfCtl.handyOn && selfSpeed() > 0 ? selfSpeed() / 100 : null;
 }
 // Für vibe.js: eigene Stärke statt Script (null = nicht zuständig)
@@ -54,14 +53,14 @@ function selfVibeLevel() {
 }
 // Für den STOPP-Knopf / Bildschirm-wach-halten
 function selfRunning() {
-  return (selfActive() && ((selfCtl.handyOn && selfSpeed() > 0) || selfCtl.vibe > 0)) || (audioActive() && selfCtl.sent > 0);
+  return selfActive() && ((selfCtl.handyOn && selfSpeed() > 0) || selfCtl.vibe > 0);
 }
 
 function selfUI() {
   // Nur mit verbundenem Gerät – oder wenn „Selbst steuern“ gewählt ist (dann mit Hinweis zum Verbinden).
   // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
   $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
-    || !(selfCtl.mode !== 'off' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
+    || !(selfCtl.mode === 'self' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
   document.querySelector('.self-head > span').textContent = typeof suspended !== 'undefined' && suspended ? 'Script angehalten' : 'Kein Funscript';
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';

@@ -51,7 +51,7 @@ function effectiveActions(actions) {
 }
 
 function finSave() {
-  const { active, timer, ...save } = fin;
+  const { active, timer, ...save } = fin; // eslint-disable-line no-unused-vars -- Laufzeitwerte nicht speichern
   store.set('finale', save);
 }
 

@@ -170,10 +170,11 @@ async function attachBleDevice(device) {
     // Bricht Bluetooth ab, bis zu 5× neu verbinden, bevor das Gerät entfernt wird.
     // Android trennt bei Bildschirmsperre/App-Wechsel; im Hintergrund scheitert jeder Versuch –
     // deshalb erst neu verbinden, wenn die Seite wieder sichtbar ist (sonst musste man neu koppeln).
-    device.addEventListener('gattserverdisconnected', async () => {
+    const recover = async () => {
       clearInterval(dev.keepalive);
       dev.tx = null;
       if (dev.closed) return;
+      if (typeof deviceLost === 'function') deviceLost(dev.name);
       if (document.hidden) {
         log(`${dev.name}: getrennt – verbindet neu, sobald der Player wieder sichtbar ist.`, true);
         await new Promise((resolve) => {
@@ -210,10 +211,22 @@ async function attachBleDevice(device) {
           return;
         } catch { /* weiter warten */ }
       }
-    });
+    };
+    // 1.19.9: auch der Health Check (checkVibes) stößt das an – nie zwei Wiederverbindungen gleichzeitig
+    dev.lost = () => {
+      if (dev.recovering) return;
+      dev.recovering = true;
+      recover().finally(() => { dev.recovering = false; });
+    };
+    device.addEventListener('gattserverdisconnected', dev.lost);
     log(`${dev.name} verbunden.`);
   }
   renderVibe();
+}
+
+// 1.19.9: Health Check (app.js) – Android meldet eine abgerissene Verbindung im Hintergrund nicht immer
+function checkVibes() {
+  for (const dev of bleDevices) if (dev.device?.gatt && !dev.device.gatt.connected && dev.lost) dev.lost();
 }
 
 // Beim Start: schon einmal erlaubte Satisfyer wieder verbinden (Chrome kennt sie über getDevices)
@@ -413,6 +426,10 @@ function renderVibe() {
   $('vibeScan').textContent = vibe.scanning ? 'Suche läuft …' : 'In Intiface nach Geräten suchen';
   $('vibeScan').disabled = vibe.scanning;
   const bat = devices.map((d) => d.battery).filter((b) => Number.isFinite(b));
+  // 1.19.9: Akku knapp – einmal je Gerät melden
+  for (const d of devices) {
+    if (Number.isFinite(d.battery) && d.battery < 15 && !d.batWarned) { d.batWarned = true; log(`${d.name}: Akku ${d.battery} % – bald laden.`, true); }
+  }
   setVibeStatus(devices.length ? 'on' : 'off', devices.length ? `${devices.length} Gerät(e)${bat.length ? ` · 🔋 ${Math.min(...bat)} %` : ''}` : 'getrennt');
 
   const ul = $('vibeDevices');
@@ -435,7 +452,7 @@ function renderVibe() {
       store.set('vibeOff', [...off]);
     });
     const small = document.createElement('small');
-    small.textContent = ` ${dev.kind}`;
+    small.textContent = ` ${dev.kind}${Number.isFinite(dev.battery) ? ` · 🔋 ${dev.battery} %` : ''}`;
     // Sync-Anzeige (1.19.4): Bluetooth-Laufzeit dieses Geräts, gelb wenn sie stark schwankt
     const sync = Object.assign(document.createElement('small'), { className: 'dev-sync' });
     dev.syncEl = sync;
@@ -594,13 +611,6 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
   // „Selbst steuern“ am Video (ohne Funscript): eigene Stärke, „Maximum“ gilt auch hier
   const own = typeof selfVibeLevel === 'function' ? selfVibeLevel() : null;
   if (own !== null) return Math.min(own * 100, Number($('vibeMax').value)) / 100;
-  // 🧪 „Nach Ton“ (Video ohne Funscript): Lautheit des Tons wie ein Script über Stärke min/max
-  const audio = typeof audioVibeLevel === 'function' ? audioVibeLevel() : null;
-  if (audio !== null) {
-    if (audio < 0.01) return 0;
-    const lo = Number($('vibeMin').value) / 100, hi = Number($('vibeMax').value) / 100;
-    return (lo + (hi - lo) * audio) * Number($('vibeScene').value) / 100;
-  }
   // „Maximum“ ist auch die Sicherheitsgrenze für die manuelle Stärke
   if ($('vibeSource').value === 'manual') return Math.min(Number($('vibeLevel').value), Number($('vibeMax').value)) / 100;
 
@@ -660,10 +670,11 @@ setInterval(async () => {
     const ramp = dev.rampAt ? Math.min(1, (now - dev.rampAt) / RAMP_MS) : 1;
     t1 *= ramp;
     t2 *= ramp;
-    // Pause, Not-Aus oder kein Script: sofort aus; sonst auch nach unten weich
-    const stopNow = !t1 && !t2 && (vibePaused || !even || !hasSource);
-    dev.cur = stopNow ? 0 : (dev.cur || 0) * smooth + t1 * (1 - smooth);
-    dev.cur2 = !split ? dev.cur : stopNow ? 0 : (dev.cur2 || 0) * 0.6 + t2 * 0.4; // Tempo ruhiger
+    // Not-Aus / ❚❚: sofort aus. 1.19.9: Pause, Spulen, Videoende (keine Quelle mehr) weich in ≈ 0,5 s aus.
+    const stopNow = !t1 && !t2 && (vibePaused || (hasSource && !even));
+    const fadeOut = !t1 && !t2 && !hasSource && !vibePaused;
+    dev.cur = stopNow ? 0 : fadeOut ? (dev.cur || 0) * 0.6 : (dev.cur || 0) * smooth + t1 * (1 - smooth);
+    dev.cur2 = !split ? dev.cur : stopNow ? 0 : fadeOut ? (dev.cur2 || 0) * 0.6 : (dev.cur2 || 0) * 0.6 + t2 * 0.4; // Tempo ruhiger
     if (dev.cur < 0.01) dev.cur = 0;
     if (dev.cur2 < 0.01) dev.cur2 = 0;
     if (dev.enabled) top = Math.max(top, dev.cur, dev.cur2);
