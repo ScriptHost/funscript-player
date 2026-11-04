@@ -1,4 +1,4 @@
-<!-- Grafiken: docs/img/gh/ (erzeugt mit `node docs/img/gh/build.js`, Stil wie die Vorstellungs-Seite unter website/) -->
+<!-- Grafiken: docs/img/gh/ (erzeugt mit `node docs/img/gh/build.js`) -->
 <p align="center">
   <a href="../../releases/latest"><img src="docs/img/gh/hero.svg" alt="Self-hosted · in the browser – Your video. Your devices. Perfectly in sync. A Funscript player that drives The Handy and the Satisfyer at the same time – from any script, right from your Stash library." width="100%"></a>
 </p>
@@ -126,7 +126,7 @@ node --test "test/*.test.js"                           # automated tests, no pac
 
 At startup the container checks itself (data folder, stored files, every UI script and control, script intensity) –
 see `docker logs`. For development, `?selbsttest` runs typical flows with a simulated Handy. Technical details:
-`website/dev.html` (English/German switch). Release history: [CHANGELOG.en.md](CHANGELOG.en.md) (German: [CHANGELOG.md](CHANGELOG.md)).
+[DEVELOPMENT.md](DEVELOPMENT.md). Release history: [CHANGELOG.en.md](CHANGELOG.en.md) (German: [CHANGELOG.md](CHANGELOG.md)).
 
 ## Notes
 
@@ -140,7 +140,7 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
 <p align="center">
   <a href="../../releases"><b>Releases</b></a> ·
   <a href="CHANGELOG.en.md"><b>Changelog</b></a> ·
-  <a href="website/dev.html"><b>Developer docs</b></a> ·
+  <a href="DEVELOPMENT.md"><b>Developer docs</b></a> ·
   <a href="../../issues/new/choose"><b>Report a bug / idea</b></a> ·
   <a href="README.de.md"><b>🇩🇪 Deutsch</b></a>
 </p>

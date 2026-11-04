@@ -1,5 +1,5 @@
 // Grafiken für die GitHub-Seite (README) im Stil der Webseite – GitHub erlaubt dort kein CSS/JS, SVG-Bilder schon
-// (auch mit Animation). Texte wie die Vorstellungs-Seite unter website/ (englisch). Aufruf im Projektordner:
+// (auch mit Animation). Texte englisch. Aufruf im Projektordner:
 //   node docs/img/gh/build.js
 'use strict';
 const fs = require('fs');

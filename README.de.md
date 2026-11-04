@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/img/banner.svg" alt="Funscript Player" width="100%"></p>
 
-<p align="center"><a href="../../releases/latest"><b>Download</b></a> · <a href="CHANGELOG.md"><b>Änderungen</b></a> · <a href="website/dev.html"><b>Entwickler-Doku</b></a> · <a href="README.md"><b>🇬🇧 English</b></a></p>
+<p align="center"><a href="../../releases/latest"><b>Download</b></a> · <a href="CHANGELOG.md"><b>Änderungen</b></a> · <a href="DEVELOPMENT.md"><b>Entwickler-Doku</b></a> · <a href="README.md"><b>🇬🇧 English</b></a></p>
 
 # Funscript Player
 
@@ -122,7 +122,7 @@ MEDIA_DIR=./testmedia DATA_DIR=./data node server.js   # → http://localhost:80
 node --test "test/*.test.js"                           # automatische Tests, ohne Pakete
 ```
 
-Technische Details: `website/dev.html`. Änderungen: [CHANGELOG.md](CHANGELOG.md).
+Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [CHANGELOG.md](CHANGELOG.md).
 
 ## Hinweise
 
