@@ -1,6 +1,7 @@
 # Changelog
 
-The GitHub release notes are taken from this file (one `## x.y.z` section per release).
+The GitHub release notes are taken from this file (one `## x.y.z` section per release). It lists what users notice;
+changes to the build pipeline, code checks and repository files are left out.
 
 **Versioning (from 2.0.0 on):** `MAJOR.MINOR.PATCH` – a new major for big breaks (new interface, renamed container…),
 a new minor for a batch of features, a patch only for bug fixes. Every push to `main` additionally builds the test image
@@ -20,19 +21,17 @@ GitHub (release, git tag, Docker image) – older ones were removed when the ver
 - **Devices window:** one “Connect” button instead of two; shows whether Handy API v2 or v3 is in use
 - Clearer texts for “keep the Handy in time” and for calibrating the offset (tap when the video reaches the lowest point)
 - Swipe defaults from 1.19.8 (left volume, right both) are switched once to left Handy stroke, right Satisfyer strength
-- Code check: ESLint 10 and globals 17 (Dependabot), minimatch ≥ 11.0.1 (GHSA-g3hv-75wg-m249) – only the check on GitHub,
-  not in the image; SECURITY.md shorter, with a direct reporting link
 
 ## 1.19.10 – 04.11.2026
 
-Security fixes from GitHub code scanning (CodeQL) – all low risk:
+Security fixes – all low risk:
 
 - `/api/version` now requires the login like everything else (only `/healthz` stays open for the Docker healthcheck)
 - Logs: line breaks and control characters are stripped from everything written to `docker logs`, so log lines can't be faked
 - Stash filters and own-script keys: names like `__proto__` are rejected
 - HereSphere: passwords from before 1.19.5 (SHA-256) are no longer accepted – if HereSphere asks again, set the password
   once more under ⚙️ → VR
-- Code scanning ignores tests and the README graphics script; Stash IDs in requests are always encoded
+- Stash IDs in requests are always encoded
 
 ## 1.19 – 01.–04.11.2026: polish, safety, Docker
 
