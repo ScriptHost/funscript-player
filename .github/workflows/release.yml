@@ -1,4 +1,4 @@
-# Release je Versions-Tag: ZIP (handy-player-linux-vX.Y.Z.zip) + englischer Text aus CHANGELOG.en.md (Stand main)
+# Release je Versions-Tag: ZIP (handy-player-linux-vX.Y.Z.zip) + Text aus CHANGELOG.md (englisch, Stand main)
 # + Docker-Image auf GitHub (ghcr.io/scripthost/funscript-player:X.Y.Z und :latest).
 #   Neuer Tag            -> nur dieser.
 #   Manuell (Actions -> Release -> Run workflow):
@@ -65,7 +65,7 @@ jobs:
           RECREATE: ${{ inputs.recreate }}
         run: |
           git fetch --force --tags -q   # Tag-Nachrichten vollständig (checkout macht den Tag sonst „leicht“)
-          git show origin/main:CHANGELOG.en.md > changelog.en.md
+          git show origin/main:CHANGELOG.md > changelog.en.md
           newest=$(git tag --sort=v:refname | tail -1)
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then tags="$GITHUB_REF_NAME"; else tags=$(git tag --sort=v:refname); fi
           if [ "$GITHUB_REF_TYPE" = "tag" ] && git tag -l --format="%(contents)" "$GITHUB_REF_NAME" | grep -qF "[alle Releases neu]"; then

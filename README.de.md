@@ -122,7 +122,7 @@ MEDIA_DIR=./testmedia DATA_DIR=./data node server.js   # → http://localhost:80
 node --test "test/*.test.js"                           # automatische Tests, ohne Pakete
 ```
 
-Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [CHANGELOG.md](CHANGELOG.md).
+Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [CHANGELOG.md](CHANGELOG.md) (englisch).
 
 ## Hinweise
 

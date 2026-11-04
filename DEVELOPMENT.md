@@ -161,8 +161,8 @@ Without Stash everything works with the folders. Web Bluetooth works on `localho
   English translations in `public/i18n-en.js`.
 - **Safety first:** everything that moves devices must be stoppable via `emergencyStop()` and stop when the connection
   is lost.
-- **Release:** `VERSION`, `CHANGELOG.md` + `CHANGELOG.en.md`, README; tag `vX.Y.Z` → the workflow runs the tests, starts
-  the container read-only, then publishes the release (ZIP + notes from `CHANGELOG.en.md`) and the Docker image.
+- **Release:** `VERSION`, `CHANGELOG.md` (English), README; tag `vX.Y.Z` → the workflow runs the tests, starts
+  the container read-only, then publishes the release (ZIP + notes from `CHANGELOG.md`) and the Docker image.
 
 ## Tests
 

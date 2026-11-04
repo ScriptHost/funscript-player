@@ -1,351 +1,278 @@
-# Änderungen
+# Changelog
 
-English: [CHANGELOG.en.md](CHANGELOG.en.md)
+The GitHub release notes are taken from this file.
 
 ## 1.19.6 – 04.11.2026
 
-- **HereSphere:** einmal mit Passwort anmelden genügt – die Anmeldung läuft nicht mehr nach 30 Tagen ab. Anmeldungen aus
-  1.19.5 gelten weiter; ein neues Passwort meldet weiterhin alle Geräte ab
-- **Release-Workflow:** GitHub Actions aktualisiert (checkout 7, setup-node 7, docker/login-action 4,
-  docker/build-push-action 7); Tests laufen jetzt bei jedem Push, Dependabot hält die Actions aktuell, `SECURITY.md`
-  erklärt vertrauliche Sicherheitsmeldungen
+- **HereSphere:** logging in once with the password is enough – the login no longer expires after 30 days. Logins from
+  1.19.5 stay valid; a new password still logs out all devices
+- **Release workflow:** GitHub Actions updated (checkout 7, setup-node 7, docker/login-action 4,
+  docker/build-push-action 7); tests now run on every push, Dependabot keeps the actions up to date, `SECURITY.md`
+  explains confidential security reports
 
 ## 1.19.5 – 04.11.2026
 
-- **Container gehärtet:** `read_only`, `/tmp` als tmpfs und `cap_drop: ALL` in der docker-compose.yml – der Player kann
-  nur noch in sein Daten-Volume schreiben
-- **Content-Security-Policy:** die Oberfläche lädt nur noch eigene Skripte (keine Inline-Skripte mehr), Verbindungen nur
-  zum Player, zur Handy-Cloud und zu Intiface
-- **HereSphere-Passwort:** mit scrypt statt SHA-256 gespeichert (alte Passwörter werden beim nächsten Anmelden umgestellt);
-  die Anmeldung läuft nach 30 Tagen ab. Nach dem Update fragt HereSphere einmal neu nach dem Passwort
-- **Intiface:** „Nur Adressen im Heimnetz“ ist jetzt Standard (auch für bestehende Installationen), erlaubt ist nur Port
-  12345 – weitere über `INTIFACE_PORTS` in der .env
-- **Release-Workflow:** startet den Container vor jedem Release schreibgeschützt und prüft Selbsttest und Oberfläche
+- **Hardened container:** `read_only`, `/tmp` as tmpfs and `cap_drop: ALL` in docker-compose.yml – the player can only
+  write to its data volume
+- **Content Security Policy:** the interface only loads its own scripts (no more inline scripts), connections only to the
+  player, the Handy cloud and Intiface
+- **HereSphere password:** stored with scrypt instead of SHA-256 (old passwords are converted at the next login); the login
+  expires after 30 days. After the update HereSphere asks for the password once more
+- **Intiface:** “home-network addresses only” is now the default (also for existing installations), only port 12345 is
+  allowed – more via `INTIFACE_PORTS` in .env
+- **Release workflow:** starts the container read-only before every release and checks the self-test and the interface
 
 ## 1.19.4 – 04.11.2026
 
-- **Mehrere Satisfyer:** „＋ Weiteren Satisfyer verbinden“; jeder hat seine eigene Stärke und seinen eigenen Vorlauf (aus der
-  eigenen Bluetooth-Laufzeit) – mehrere bleiben gemeinsam im Takt
-- **Zwei Motoren:** auf Wunsch folgt Motor 2 dem Tempo, Motor 1 pulsiert im Rhythmus (auch über Intiface)
-- **Sanftanlauf:** nach Start, Pause und STOPP fährt der Satisfyer in 0,5 s hoch statt schlagartig
-- **Sync-Anzeige:** ⏱ Bluetooth-Laufzeit je Gerät; schwankt sie stark, wird der Status gelb mit Hinweis
-- **Einstellungen:** Handy und Satisfyer zusammen unter „🔌 Geräte“
-- **Stabiler:** `HQ_MAX` 2 statt 3 und Speichergrenze `PLAYER_MEM` (2g) in der compose – läuft der Player voll, trifft es
-  nur ihn, nicht Stash
-- **Fehler sichtbar:** JavaScript-Fehler aus dem Browser und Stash-/Netzfehler (502–504) stehen in `docker logs`
-- **Aufgeräumt:** Server-Routen als Tabelle, doppelter Code (Heatmap, Stash-Aktionen) zusammengelegt, ungenutztes CSS
-  entfernt, alte Einstellungs-Schlüssel ohne Funktion werden aus `prefs.json` gelöscht
-- **Release-Workflow:** Tests laufen vor Release und Image
-- **funscript-player.de** leitet jetzt aufs GitHub-Repo weiter; die Vorstellungs-Seite liegt als Quelle unter `website/`
+- **Several Satisfyers:** “＋ Connect another Satisfyer”; each has its own strength and its own lead (from its own
+  Bluetooth latency) – several stay in time together
+- **Two motors:** optionally motor 2 follows the tempo while motor 1 pulses with the rhythm (also via Intiface)
+- **Soft start:** after start, pause and STOP the Satisfyer ramps up within 0.5 s instead of jumping to full strength
+- **Sync display:** ⏱ Bluetooth latency per device; if it fluctuates a lot the status turns yellow with a hint
+- **Settings:** Handy and Satisfyer together under “🔌 Devices”
+- **More robust:** `HQ_MAX` 2 instead of 3 and a memory limit `PLAYER_MEM` (2g) in the compose file – if the player runs
+  out of memory, only the player is hit, not Stash
+- **Errors visible:** JavaScript errors from the browser and Stash/network errors (502–504) show up in `docker logs`
+- **Tidied up:** server routes as a table, duplicate code (heatmap, Stash actions) merged, unused CSS removed, obsolete
+  settings keys are deleted from `prefs.json`
+- **Release workflow:** tests run before the release and the image
+- **funscript-player.de** now redirects to the GitHub repository; the presentation page lives as source under `website/`
 
 ## 1.19.3 – 04.11.2026
 
-- **Script-Intensität, eine Auswahl für beide Geräte:** Original · Automatisch · Sanft · Intensiv. *Original* = Datei ganz
-  unverändert, *Sanft* spürbar sanfter (Hub 20–80 %, max. 240 %/s, Satisfyer schwächer und ruhiger), *Intensiv* spürbar
-  stärker (voller Hub, ruhige Stellen im doppelten/dreifachen Takt, Satisfyer kräftiger). Pro Szene direkt am Video – vier
-  Knöpfe mit Mini-Heatmap als Vorschau – oder über 🎚 in der Player-Leiste. „Original + Takt-Schutz“, „Eigene“ und
-  „getrennt einstellen“ entfallen (alte Wahl wird einmalig übernommen)
-- **Spulen/Laden:** Handy und Satisfyer ruhen, solange das Video springt oder lädt, statt dem Bild vorauszuvibrieren
-- **Selbst steuern:** die Touch-Fläche folgt dem Stärke-Regler darüber
-- **Bild „Automatisch“ natürlicher:** Hochrechnen auf dem Server nur leicht entrauscht und kaum geschärft, im Browser
-  höchstens 25 % Schärfe, Kontrast und Farbe unverändert
-- **Einstellungen:** jeder Bereich aufklappbar, Erklärungen hinter ⓘ; „Sicherheit“ heißt jetzt **Notaus**, neu mit
-  **Auto-Stopp** nach X Minuten ohne Bedienung (wenn kein Video läuft)
-- **Status gelb**, wenn die Handy-Cloud langsam antwortet
-- **„Update verfügbar“** in ⚙️ → System (und Punkt an der Version), sobald es auf GitHub ein neueres Release gibt
-- **Selbsttest beim Start** in `docker logs` (Server, Skripte der Oberfläche, alle Bedienelemente, Script-Intensität); die
-  Oberfläche prüft sich still und meldet nur Fehler – der Knopf ist weg (`?selbsttest` bleibt für die Entwicklung)
-- **Einstellungen: der Server ist maßgeblich** – ein gelöschtes Volume `handy-data` ist ein echter Neuanfang (der Browser
-  lädt seine alten Kopien, z. B. den Connection Key, nicht mehr hoch)
-- **Entfernt:** Fernbedienung, Script-Baukasten, „Abschnitt anpassen“, Demo-Modus, Weiterschauen, Knöpfe der Bibliothek
-  (Zufall, FapTap, Pornhub, Datei, eigene Links), Sicherung (alles liegt im Volume `handy-data`), Windows-Skripte, Option
-  „Vollbild nur mit dem Video“ (jetzt immer)
-- **Docker:** compose ohne Traefik (Port 8080, beliebiger Reverse Proxy davor), fertiges Image auf GitHub
-  (`ghcr.io/scripthost/funscript-player`) – Update mit `docker compose pull && docker compose up -d`
-- GitHub-Releases auf Englisch, neu erzeugt aus CHANGELOG.en.md
+- **Script intensity, one choice for both devices:** Original · Automatic · Gentle · Intense. *Original* leaves the file
+  untouched, *Gentle* is clearly softer (stroke 20–80 %, max. 240 %/s, weaker and smoother Satisfyer), *Intense* is clearly
+  stronger (full stroke, calm passages at double/triple tempo, stronger Satisfyer). Pick it per scene right at the video –
+  four buttons with a mini heatmap preview – or via 🎚 in the player bar. “Original + beat guard”, “Custom” and the
+  “set separately” option are gone (old choices are migrated once).
+- **Seeking / buffering:** Handy and Satisfyer pause while the video jumps or loads instead of vibrating ahead of the picture
+- **Control it yourself:** the touch area follows the strength slider above it
+- **Picture “Automatic” more natural:** server upscaling only lightly denoised and barely sharpened, browser sharpening at
+  most 25 %, no contrast/colour boost
+- **Settings:** every section collapsible, explanations behind ⓘ; “Safety” is now **Emergency stop** with a new
+  **auto-stop** after X minutes without input (and no video playing)
+- **Status turns yellow** when the Handy cloud answers slowly
+- **“Update available”** in ⚙️ → System (and a dot on the version) when GitHub has a newer release
+- **Self-check at startup** in `docker logs` (server, UI scripts, every control present, script intensity); the UI checks
+  itself silently and only reports errors – the self-test button is gone (`?selbsttest` still works for development)
+- **The server is the source of truth for settings:** a deleted `handy-data` volume really starts fresh (the browser no
+  longer re-uploads its old copies, e.g. the connection key)
+- **Removed:** remote control (cast to another device), script builder, “adjust section”, demo mode, continue watching,
+  library buttons (random, FapTap, Pornhub, file, own links), backup/restore (everything lives in the `handy-data` volume),
+  Windows install scripts, the “fullscreen only the video” option (now always on)
+- **Docker:** compose without Traefik (port 8080, put any reverse proxy in front), ready-made image on GitHub
+  (`ghcr.io/scripthost/funscript-player`) – update with `docker compose pull && docker compose up -d`
+- GitHub releases in English, rebuilt from this file
 
 ## 1.19.2 – 01.11.2026
 
-- Standards: Scripts laufen auch bei der Handy **Automatisch** (änderbar unter ⚙️ → Script); 🔥 Finale neu: Hub 10–80 %, Vibration 50 %, halbes Tempo, nach 240 s zurück – alte Standardwerte werden einmalig umgestellt, Hinweis „Neu in 1.19.2“
-- Behoben: **Hub max sprang auf 90 zurück** (wurde nur je Szene gespeichert) – gilt jetzt allgemein, einmalig 90 → 100
-- Selbst steuern: **Hub unten / Hub oben** statt „Hublänge“ um die Mitte
-- Finger-Steuerung direkter: Position wartet nicht mehr auf die Handy-Cloud (alle 100 ms der neueste Wert, Fahrzeit ab 150 ms, nur echtes Zittern geglättet), Tempo-Änderungen gehen sofort raus
-- Gedrückt halten am Video: rechts **2× schneller**, links **rückwärts** im selben Tempo (beim HQ-Stream: Sprung beim Loslassen)
-- Script-Kasten am Video aufgeräumt: „Script“ + Auswahl in einer Zeile, ✋ Selbst · 🔥 Intensiv · ✂ Abschnitt als gleich große Knöpfe, Offset mit −/+ (Schieber unter „Erweitert“), Pause neben STOPP
-- „Feineinstellung Handy“ (Neu synchronisieren, Hub min/max) nur noch im Geräte-Fenster (Status oben antippen)
-- ⚙️ → Bibliothek: **Nur 2D-Videos zeigen** (Stash-Tag „2D“, je Gerät)
-- Einstellungen am Smartphone ließen sich seitlich verschieben (Knopfreihe zu breit) – behoben; Hilfetext zu „Automatisch“ und Finale korrigiert
-- Selbsttest: 11 Prüfungen (Hub unten/oben, Feineinstellung im Geräte-Fenster)
+- Defaults: scripts now play **Automatic** on the Handy too (changeable in ⚙️ → Script); new 🔥 finale defaults: stroke
+  10–80 %, vibration 50 %, half tempo, back after 240 s – old defaults migrated once, “New in 1.19.2” notice
+- Fixed: **max stroke jumped back to 90** (was only saved per scene) – now global, migrated 90 → 100 once
+- Control it yourself: **stroke bottom / top** instead of “stroke length” around the middle
+- Finger control more direct: position no longer waits for the Handy cloud (newest value every 100 ms, travel time from
+  150 ms, only real jitter smoothed), tempo changes are sent immediately
+- Press and hold on the video: right = **2× speed**, left = **rewind** at the same pace (HQ stream: jumps on release)
+- Script box at the video tidied up; offset with −/+ (slider under “Advanced”), pause next to STOP
+- “Handy fine-tuning” (resync, stroke min/max) only in the device window (tap the status at the top)
+- ⚙️ → Library: **show only 2D videos** (Stash tag “2D”, per device)
+- Settings on phones could be dragged sideways – fixed; help texts corrected
+- Self-test: 11 checks
 
 ## 1.19.1 – 01.11.2026
 
-- Webseite: neuer Einstieg – kurz & groß („Dein Video. Deine Geräte. Perfekt im Takt.“), Animation als eigener Abschnitt darunter
+- Website: new hero – short and big (“Your video. Your devices. Perfectly in sync.”), animation as its own section
 
 ## 1.19.0 – 01.11.2026
 
-Ausführlich: [RELEASE-NOTES-1.19.0.md](release-notes/RELEASE-NOTES-1.19.0.md)
-
-- Behoben: Mitschnitt im Positions-Modus, altes Standbild beim Videowechsel, Mini-Player beim Scrollen, Script-Infos trotz Ausblenden; Option „Vollbild nur mit dem Video“ für automatisches Bild-in-Bild
-- Steuerung: Finger-Position flüssiger, Hublänge im Tempo-Modus, „Zurück zum Script“, gedrückt halten zum Spulen, Vib-Zustand, Hub live, Bluetooth als Rückfall
-- Oberfläche: ein Status (verbunden/getrennt), Bild-Popup, Bibliothek-Knöpfe und eigene Links, Intensitäts-Filter mit „nur Funscript“, Szeneninfos direkt, kleinerer Titel, Selbsttest-Knopf mit Bericht, Demo-Modus
-- Scripts: gemeinsames Preset für Handy + Satisfyer, 🔥 intensivste Stelle, ✂ Abschnitt anpassen
-- Satisfyer kräftiger, Probe-Vibration, Standards 0/100 %
-- docker-compose.yml aufgeräumt; Vorstellung ohne echtes Geräte-Verbinden
+- Fixed: recording in position mode, old still frame when switching videos, mini player while scrolling, script info
+  despite being hidden; option “fullscreen only the video” for automatic picture-in-picture
+- Control: smoother finger position, stroke length in tempo mode, “back to script”, press and hold to seek, vibe state,
+  live stroke, Bluetooth as fallback
+- UI: one status (connected/disconnected), picture popup, library buttons and own links, intensity filter with
+  “Funscript only”, scene info directly, smaller title, self-test button with report, demo mode
+- Scripts: shared preset for Handy + Satisfyer, 🔥 hottest spot, ✂ adjust section
+- Stronger Satisfyer, test vibration, defaults 0/100 %
+- docker-compose.yml tidied up
 
 ## 1.18.2 – 01.11.2026
 
-- Entwickler-Seite mit DE/EN-Schalter (docs/i18n-dev-en.js)
-- README auf Englisch (README.md), deutsche Fassung als README.de.md; Release-Notes 1.18 auf Englisch
+- Developer page with DE/EN switch
+- README in English (README.md), German version as README.de.md; release notes 1.18 in English
 
 ## 1.18.1 – 01.11.2026
 
-- Korrektur: Startseite „Nicht gefunden“ und Version „dev“ (Pfade nach dem Aufteilen des Servers)
-- Korrektur: Stash „https is not defined“ (fehlende Einbindung in lib/stash.js)
-- Test für Startseite und Versionsnummer ergänzt
+- Fix: start page “not found” and version “dev” (paths after splitting the server)
+- Fix: Stash “https is not defined”
+- Test for start page and version number
 
 ## 1.18.0 – 01.11.2026
 
-- Handy standardmäßig „Original + Takt-Schutz“ (Vibrationen bleiben, nur Unschaffbares angepasst), Satisfyer „Automatisch“ – Anpassung je Gerät, angepasste Stellen in der Heatmap
-- Eigene Scripts: markiert (✋), Original/eigenes wählbar, neu aufnehmen (Abschnitt oder ganz), löschen; Originale nie überschrieben
-- Script-Bereich im Geräte-Kasten; Meldungszeile weg; Offset mit „🎯 eingemessen“ + ↺; 🎯/✋ auf Kacheln
-- Touch „Position“ mit Application ID korrigiert (0–1); Touch-Fläche zeigt Regler-Wert; Sprungweite 5/10 s
-- Bild-in-Bild: aus Vollbild nicht mehr schwarz, Wiedergabe läuft beim Zurückkehren weiter, kein doppelter Mini-Player
-- Erweiterte Einstellungen, Sicherung herunterladen/einspielen, Hinweis „Neu in 1.18“, Englisch (Sprache nach Gerät)
-- Status ohne doppelten Gerätenamen („↕ aus“), „Als Bildschirm anbieten“ standardmäßig aus, Finale-Standard sanfter, Finale nicht im Popup
-- Docker: Gesundheits-Check alle 5 s (Traefik wartete bis 30 s), Start-Übersicht + „✓ bereit“ in docker logs, langsame Anfragen, Einstellungen in .env (.env.example)
-- Server in lib/ aufgeteilt, Bibliothek gemerkt, Altlasten entfernt, Selbsttest (?selbsttest), Vorstellung mit Kopf-Animation und Smartphone-Ansicht
+- Handy defaults to “original + beat guard” (vibrations stay, only the impossible is adapted), Satisfyer “Automatic” –
+  adapted spots shown in the heatmap
+- Own scripts: marked (✋), choose original/own, record again (section or whole), delete; originals never overwritten
+- Script area in the device box; offset with “🎯 calibrated” + ↺; 🎯/✋ on tiles
+- Touch “position” with Application ID fixed (0–1); touch area shows the slider value; skip 5/10 s
+- Picture-in-picture: no longer black from fullscreen, playback continues on return
+- Advanced settings, backup download/restore, “New in 1.18” notice, English UI (language by device)
+- Docker: health check every 5 s, startup summary ending in “✓ bereit” in docker logs, slow requests logged, settings in
+  `.env` (`.env.example`)
+- Server split into `lib/`, self-test (`?selbsttest`)
 
 ## 1.17.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.17.0.md](release-notes/RELEASE-NOTES-1.17.0.md)
-
-- Mini-Player schließen (✕); App verlassen = Bild-in-Bild (abschaltbar); Schwarzbild nach Vollbild behoben
-- Player-Leiste anpassbar (ein-/ausblenden, Reihenfolge); nutzlose Knöpfe blenden sich selbst aus
-- Ohne Funscript + „Keine Steuerung“ keine Geräte-Regler; „Selbst steuern“ nur mit verbundenen Geräten;
-  Feineinstellung eingeklappt; Offset-Standard 0
-- Verbinden-Knopf mit Zustand, klare Fehlermeldungen, Satisfyer verbindet sich länger neu
-- Schneller Start: hochgeladene Scripts merkt sich der Server
-- Handy-Modell erkennen, Höchsttempo einstellbar; zu schnelle Stellen: „Hub kürzen“ oder „voller Hub, halbes Tempo“;
-  Zählung korrigiert
-- 🧪 Touch-Fläche: Tempo | Position (Handy folgt dem Finger)
-- Bibliothek: Reiter und gespeicherte Stash-Filter ausblendbar (Studios standardmäßig aus); Spul-Vorschau ohne schwarzes Kästchen
-- HereSphere: optionales Passwort, „nur VR“ als Einstellung (auch für einzelne Szenen), schneller auf der Brille
-- Sicherheit: Herkunftsprüfung, Schutz-Header, Intiface optional nur Heimnetz, Scripts nur neben Videos;
-  optional eigener Docker-Benutzer
+- Close the mini player (✕); leaving the app = picture-in-picture (can be turned off); black picture after fullscreen fixed
+- Player bar customisable (show/hide, order); useless buttons hide themselves
+- Without Funscript + “no control” no device sliders; “control it yourself” only with connected devices
+- Connect button shows its state, clear error messages, Satisfyer reconnects longer
+- Faster start: the server remembers uploaded scripts
+- Handy model detection, adjustable top speed; too-fast passages: “shorten stroke” or “full stroke, half tempo”
+- 🧪 Touch area: tempo | position (Handy follows your finger)
+- Library: tabs and saved Stash filters can be hidden; seek preview without black box
+- HereSphere: optional password, “VR only” as a setting, faster on the headset
+- Security: origin check, security headers, Intiface optionally LAN only, scripts only next to videos; optional own
+  Docker user
 
 ## 1.16.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.16.0.md](release-notes/RELEASE-NOTES-1.16.0.md)
-
-- Eine Status-Anzeige für beide Geräte; Verbinden nur im Geräte-Fenster oben
-- Unter dem Video ein gemeinsamer Bereich ohne Reiter – nur für verbundene Geräte; Offset gilt auch für den Satisfyer
-- Sync („Geräte folgen dem Video“) ist Standard, Schalter nur in den Einstellungen, Hinweis im Player
-- „Selbst steuern“ immer sichtbar (mit Gerät), auch beim „nur schauen“; **Mitschnitt zum Video** als eigenes Script
-- Touch-Steuerung aus der Beta, mit ⏺ Aufnahme (Pattern / .funscript / zum Video); Beta: Aufnahme als Position
-- Script-Automatik je Gerät (Handy gekürzt, Satisfyer ungekürzt); Hub und Satisfyer-Stärke pro Szene
-- Bibliothek: Intensität filtern/sortieren; Mini-Player beim Stöbern; ⧉ Bild-in-Bild
-- Satisfyer-Akku, gemessene Verzögerung (Vorlauf automatisch), Bluetooth „Alle Geräte“ direkt, Zeitgrenze
-- Fernbedienung: Lautstärke, „Ferngesteuert von …“ mit Trennen; STOPP-Option koppelt „Alles stoppen“
-- Kompakte Kopfzeile nur am Smartphone, Pixel-Erkennung repariert; Domain `handy.${DOMAIN}`
-- Automatische Tests (`node --test "test/*.test.js"`)
+- One status for both devices; connecting only in the device window at the top
+- Below the video one shared area – only for connected devices; offset also applies to the Satisfyer
+- Sync (“devices follow the video”) is the default
+- “Control it yourself” always available (with a device); **recording along the video** as an own script
+- Touch control out of beta, with ⏺ recording (pattern / .funscript / to the video)
+- Script automation per device (Handy shortened, Satisfyer unshortened); stroke and Satisfyer strength per scene
+- Library: filter/sort by intensity; mini player while browsing; ⧉ picture-in-picture
+- Satisfyer battery, measured delay (automatic lead), Bluetooth “all devices” directly
+- Remote control: volume, “remote controlled by …” with disconnect
+- Automated tests (`node --test "test/*.test.js"`)
 
 ## 1.15.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.15.0.md](release-notes/RELEASE-NOTES-1.15.0.md)
-
-- **Handy-API v3:** mit Application ID (⚙️ → Geräte) läuft die Handy auch bei 0,5× … 2× im Takt; ohne ID wie bisher v2
-- **Einstellungen für alle Geräte gleich** (Key, Offsets, Satisfyer-Übersetzung, Sicherheit …) – auf dem Server;
-  Bild, Kopfzeile und Bildschirmsperre bleiben pro Gerät
-- **Intensität auf einen Blick:** schmale Heatmap-Leiste auf jeder Kachel mit Funscript
-- Pixel-Smartphones: „Kompakt neben der Kamera“ standardmäßig an
-- 🧪 **Beta: Touch-Steuerung** (⚙️ → Geräte, Standard aus): Finger-Fläche unter 🎮 Steuern und bei „Selbst steuern“
+- **Handy API v3:** with an Application ID the Handy stays in sync at 0.5× … 2×; without ID API v2 as before
+- **Settings shared by all devices** (key, offsets, Satisfyer translation, safety …) – stored on the server; picture,
+  header and screen lock stay per device
+- **Intensity at a glance:** thin heatmap strip on every tile with a Funscript
+- Pixel phones: “compact next to the camera” on by default
+- 🧪 Beta: touch control
 
 ## 1.14.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.14.0.md](release-notes/RELEASE-NOTES-1.14.0.md)
-
-- Neu: **Selbst steuern** für Videos ohne Funscript – unter dem Video „Aus · Selbst steuern“,
-  dann Handy-Geschwindigkeit (Start/Stopp, Schnellwahl) und Satisfyer-Stärke, solange das Video läuft.
-  Pause hält an, STOPP wie immer, Wahl wird gemerkt
-- Zeile „⚡ Scriptname (N Punkte)“ unter ⚙️ → Anzeige schaltbar, Standard aus
-- „🔄 Geräte folgen dem Video“ in ⚙️ → Geräte ganz oben (und im Menü), nicht mehr am Video
-- Doku-Webseite: „ein Funscript für beide Geräte“, Sync-Animation mit Original / Automatisch
+- New: **control it yourself** for videos without Funscript – Handy speed and Satisfyer strength while the video plays
+- Line “⚡ script name (N points)” switchable, off by default
+- “🔄 Devices follow the video” at the top of ⚙️ → Devices
+- Website: “one Funscript for both devices”, sync animation
 
 ## 1.13.0 – 31.10.2026
 
-- **Geräte-Steuerung wieder am Video:** im Player stehen Verbinden, Neu synchronisieren, Offset, Hub,
-  Satisfyer-Stärke/Pause, Finale und Alles stoppen fest unter dem Video (am PC rechts daneben).
-  Abschaltbar unter ⚙️ → Anzeige. Connection Key und Einmaliges bleiben in den Einstellungen
-  (Warum: 1.12 hatte zu viel weggeräumt – beim Schauen braucht man diese Regler direkt)
-- Status oben antippen: im Player springt die Seite zum Geräte-Bereich, sonst öffnet sich das Pop-up
-- **HereSphere abschaltbar** (⚙️ → VR-Brille, gilt für alle Geräte; fest aus mit `HERESPHERE=off`).
-  Aus = der Server antwortet unter `/heresphere` nicht mehr, die Ausnahme in der Proxy-Anmeldung kann weg
-- **Titel „Funscript Player“ antippen:** zur Bibliothek – steht man dort und läuft ein Video, zurück zum Video
-- Stash-Szenen zeigen bis zum Play ihr Vorschaubild statt Schwarz
-- Zeile „Bild / HQ – Einstellungen“ wieder standardmäßig an; mehr Abstand im Geräte-Fenster
+- **Device controls back at the video** (connect, resync, offset, stroke, Satisfyer strength/pause, finale, stop all);
+  can be turned off in ⚙️ → Display
+- **HereSphere can be switched off** (`HERESPHERE=off` to lock it)
+- Tap the title “Funscript Player”: to the library – or back to the running video
+- Stash scenes show their screenshot until play
 
 ## 1.12.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.12.0.md](release-notes/RELEASE-NOTES-1.12.0.md)
-
-- **Ruhigere Oberfläche:** oben nur noch Handy-/Satisfyer-Status und Menü ☰
-  - Status antippen öffnet das Geräte-Fenster (Verbinden, Offset, Hub, Stärke, Finale, Alles stoppen) –
-    die Geräte-Spalte neben/unter dem Video ist weg
-  - Streamen/Sync ist jetzt der Schalter „🔄 Geräte folgen dem Video“; Steuern und Einstellungen im Menü
-  - Darsteller, Tags, Marker und Beschreibung unter „Mehr zur Szene“; Zeile „Bild/HQ“ standardmäßig aus
-  - Meldungen erscheinen kurz als Einblendung
-  - Smartphone: Status kompakt („↕ verbunden“), Kopfzeile einzeilig
-- **HereSphere zeigt nur VR-Videos:** Stash-Szenen mit mindestens einem VR-Tag, Ordner-Videos mit
-  VR-Kennung im Dateinamen; leere Kategorien entfallen
+- **Calmer interface:** only Handy/Satisfyer status and menu ☰ at the top; tapping the status opens the device window
+- Stream/sync is now the switch “🔄 Devices follow the video”; control and settings in the menu
+- Performers, tags, markers and description under “More about the scene”; messages as short toasts
+- **HereSphere shows only VR videos**
 
 ## 1.11.0 – 31.10.2026
 
-- Neu: **Script-Automatik mit Presets** – Original · Automatisch · Sanft · Intensiv · Eigene.
-  „Automatisch“ (Standard) prüft jedes Script und ändert nur, was nötig ist: Zitterbewegungen
-  (< 3 %) entfernen, zu kleinen Hub (< 70 %) strecken, für die Handy zu schnelle Stellen kürzen,
-  bei stark wechselndem Tempo den Satisfyer beruhigen
-  (Warum: jedes Script hat andere Schwächen – feste Haken passten nie für alle)
-- Unter dem Video steht, was angepasst wurde; das Preset lässt sich **pro Szene** ändern und wird gemerkt
-- Zu schnelle Stellen werden jetzt zur Mitte hin verkleinert (z. B. 23–77 %) statt nach unten zu rutschen
-- Wer bisher eigene Haken gesetzt hatte, startet mit „Eigene“ – es ändert sich nichts ungefragt
+- New: **script automation with presets** – Original · Automatic · Gentle · Intense · Custom; “Automatic” checks every
+  script and only changes what is necessary
+- Below the video you see what was adapted; the preset can be changed **per scene** and is remembered
+- Too-fast passages are shrunk towards the middle instead of sliding down
 
 ## 1.10.0 – 31.10.2026
 
-- Neuer Name: **Funscript Player** (statt „Handy Player“) – in Kopfzeile, Browser-Tab, App-Name beim
-  Installieren, Intiface, Anmeldefenster und Doku
-  (Warum: der Player spielt Funscripts und steuert mehr als nur die Handy)
-- Technische Namen bleiben gleich (Container `Handy-Player`, Traefik-Router, Ordner, ZIP-Dateinamen),
-  damit ein Update nichts an der bestehenden Installation ändert
-- Doku-Webseite: Abbildungen, ausführlichere Funktionen, Entwickler-Doku (`docs/dev.html`)
+- New name: **Funscript Player** (instead of “Handy Player”)
+- Technical names stay the same (container `Handy-Player`, folders, ZIP names) so an update changes nothing in an
+  existing installation
+- Website: illustrations, more detailed features, developer docs
 
 ## 1.9.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.9.0.md](release-notes/RELEASE-NOTES-1.9.0.md)
-
-- **Einstellungen neu geordnet** mit Bereichs-Leiste oben (Geräte, Sicherheit, Bild, Script, Fernbedienung,
-  Anzeige, Bibliothek, System). Connection Key, Script umkehren, Bluetooth, Satisfyer-Übersetzung,
-  Intiface und Sicherheit sind aus der Geräte-Spalte dorthin gewandert; die Spalte zeigt nur noch,
-  was man beim Schauen braucht
-- **Video, Handy und Satisfyer laufen weiter** in Bibliothek und Einstellungen; unten erscheint
-  „Läuft gerade“ mit Play/Pause und „Zum Video“
-- Neues Video: kein kurzes Aufblitzen des alten Bildes mehr; der Player öffnet oben beim Video
-- Satisfyer: nach Bildschirmsperre/App-Wechsel automatisch neu verbinden, statt neu koppeln zu müssen
-- Satisfyer: neuer Regler **Gleichmäßigkeit** (glättet die Vibration über bis zu 1,5 s)
-- Bibliothek: **jeder Modus merkt sich seinen Stash-Filter** – Streamen startet mit „2D“, Sync mit „2D Script“
-- Kopfzeile optional kompakt: Status links/rechts neben der Kamera (⚙️ → Anzeige)
-- Feature-Übersicht als Webseite: `docs/index.html`
+- **Settings reorganised** with a section bar at the top; the device column only shows what you need while watching
+- **Video, Handy and Satisfyer keep running** in library and settings (“now playing” bar)
+- New video: no flash of the old picture; the player opens at the top
+- Satisfyer: reconnects automatically after screen lock / app switch; new **smoothness** slider
+- Library: every mode remembers its Stash filter
+- Optional compact header next to the camera
 
 ## 1.8.0 – 31.10.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.8.0.md](release-notes/RELEASE-NOTES-1.8.0.md)
-
-- Neu: **Fernbedienung** – Video am TV/PC, Bedienung und Satisfyer am Smartphone.
-  In der Bibliothek „📺 Abspielen auf“ den Bildschirm wählen; Abgleich über den Server
-- Satisfyer (und Handy, falls dort verbunden) folgen am Smartphone dem Script im Takt des Bildschirms
-- ⚙️ → Fernbedienung: Gerät als Bildschirm anbieten, Gerätename
+- New: **remote control** – video on the TV/PC, controls and Satisfyer on the phone
 
 ## 1.7.0 – 31.10.2026
 
-- Neu: **★ / 💦 / 📍 direkt in der Player-Leiste**, auch im Vollbild (nur bei Stash-Szenen).
-  ★ öffnet ein kleines Feld mit Sternen, Favorit ♥ und „O −1“; 💦 zählt +1, 📍 setzt einen Marker.
-  Abschaltbar unter ⚙️ → Anzeige im Player
-  (Warum: im Vollbild kam man bisher nicht an Bewertung, O-Zähler und Marker heran)
-- Player-Leiste bricht bei wenig Platz in eine zweite Zeile um, statt Knöpfe zusammenzuquetschen
-- Roter STOPP-Knopf über dem Video abschaltbar (Geräte → Sicherheit); Esc, „Alles stoppen“ und
-  Stopp bei Bildschirmsperre bleiben (Warum: Wunsch – der Knopf kann im Bild stören)
-- „Vibrator“ heißt in der Oberfläche jetzt „Satisfyer“ (Statusanzeige oben und Reiter)
+- New: **★ / 💦 / 📍 right in the player bar**, also in fullscreen (Stash scenes only)
+- Player bar wraps into a second line instead of squeezing buttons
+- Red STOP button over the video can be turned off; Esc, “stop all” and stop on screen lock stay
+- “Vibrator” is now called “Satisfyer” in the interface
 
 ## 1.6.0 – 01.11.2026
 
-- Bluetooth-Suche findet den Satisfyer ohne „Alle Geräte anzeigen“: Namen „Power Masturbator“,
-  „SF…“, „Satisfyer…“; einmal über „Alle Geräte“ gewählte Namen merkt sich der Player
-  (Warum: der Power Masturbator meldet sich nicht als „SF …“, wie es die Buttplug-Liste vermuten ließ)
-- Neu in ⚙️ Einstellungen → **Anzeige im Player**: Datum/Länge, Bewertung/Favorit/O, Studio/Darsteller,
-  Tags, Marker-Liste, Beschreibung und Bild-Zeile einzeln ein-/ausblenden.
-  Standard: Tags, Studio/Darsteller und Beschreibung aus (Warum: beim normalen Schauen nicht nötig)
+- Bluetooth search finds the Satisfyer without “show all devices” (“Power Masturbator”, “SF…”, “Satisfyer…”); names
+  picked once are remembered
+- New ⚙️ → **Display in the player**: show/hide date, rating, studio/performers, tags, markers, description, picture line
 
 ## 1.5.1 – 01.11.2026
 
-- Streamen: „⚡ nur mit Funscript“ ausgeblendet, es werden immer alle Videos gezeigt
-  (Warum: beim reinen Schauen spielt das Script keine Rolle; im Sync-Modus bleibt der Filter)
-- Separate Heatmap unter dem Video entfernt – die Player-Leiste zeigt Heatmap, Marker und Vorschau
-  bereits (Warum: war doppelt)
+- Streaming: “⚡ Funscript only” hidden, all videos are shown
+- Separate heatmap below the video removed (the player bar already shows it)
 
 ## 1.5.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.5.0.md](release-notes/RELEASE-NOTES-1.5.0.md)
-
-- Handy per Bluetooth über Intiface als Offline-Weg (Bewegungsgeräte mit Positionssteuerung)
-- Funktioniert mit Video-Sync, Patterns, Direktsteuerung, Finale, Hub, Offset, Not-Aus
-- Bluetooth-Vorlauf einstellbar
+- Handy via Bluetooth through Intiface as an offline path (works with sync, patterns, direct control, finale, stroke,
+  offset, emergency stop); adjustable Bluetooth lead
 
 ## 1.4.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.4.0.md](release-notes/RELEASE-NOTES-1.4.0.md)
-
-- Zurückschreiben in Stash: Sterne, Favorit (Tag), O-Zähler, Marker setzen (Taste P)
-- HereSphere: Bewertung und Favorit werden nach Stash geschrieben
-- Script-Werkzeuge (standardmäßig aus): Hub strecken, Spitzen glätten
-- Offset per Takt einmessen (Taste T)
+- Write back to Stash: stars, favourite (tag), O counter, set markers (key P)
+- HereSphere: rating and favourite are written to Stash
+- Script tools: stretch stroke, smooth peaks
+- Calibrate the offset by tapping the beat (key T)
 
 ## 1.3.2 – 01.11.2026
 
-- „Weiterschauen“-Reihe ist jetzt ein Schalter in ⚙️ Einstellungen → Bibliothek, **standardmäßig aus**
-  (Warum: nicht jeder möchte sie oben in der Bibliothek sehen)
+- “Continue watching” row is now a switch, off by default
 
 ## 1.3.1 – 01.11.2026
 
-- Link rechts in der Bibliothek je nach Modus: **Streamen** → „Pornhub ↗“, **Sync** → „FapTap ↗“
-  (Warum: beim reinen Schauen braucht man keine Script-Seite, beim Sync schon)
+- Link in the library depends on the mode: streaming → Pornhub, sync → FapTap
 
 ## 1.3.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.3.0.md](release-notes/RELEASE-NOTES-1.3.0.md)
-
-- 🔥 Finale mit zwei Varianten: „Komplett lösen“ oder „Script weiter, sanfter“
-- „Sanfter“: kleinerer Hub, Vibration als einstellbarer Anteil, optional halbes Tempo (bleibt im Takt)
-- Mit echter Handy getestet (Sync funktioniert)
+- 🔥 Finale with two variants: “detach completely” or “keep the script, gentler”
+- Tested with a real Handy
 
 ## 1.2.0 – 01.11.2026
 
-Ausführlich mit Begründungen: [RELEASE-NOTES-1.2.0.md](release-notes/RELEASE-NOTES-1.2.0.md)
-
-- Sync-Auto-Korrektur (30 s Position, 5 min Uhrabgleich, nach App-Wechsel) + ⟳-Knopf (Taste S)
-- Vorschaubilder beim Spulen aus Stash-Sprites
-- Bildqualität: ein Schalter „Automatisch – bestes Bild“, Einzelregler unter „Erweitert“
-- Handy verbindet beim Start automatisch; gekoppelte Satisfyer werden wieder verbunden
-- Lesbare Titel aus Dateinamen, wenn kein Stash-Titel gepflegt ist
-- HQ schaltet bei Ruckeln automatisch eine Stufe zurück
-- 🔥 Finale-Knopf (Taste O): Script entkoppelt, langsam/flach, einstellbar
-- Offset pro Szene, „Weiterschauen“-Reihe
+- Sync auto-correction (position every 30 s, clock every 5 min, after app switch) + ⟳ button (key S)
+- Seek previews from Stash sprites
+- Picture quality: one switch “Automatic – best picture”, single sliders under “Advanced”
+- Handy connects automatically at start; paired Satisfyers reconnect
+- Readable titles from file names; HQ steps down automatically on stutter
+- 🔥 Finale button (key O); offset per scene; “continue watching” row
 
 ## 1.1.0 – 31.10.2026
 
-- **Ordner direkt einbinden**: jeder Ordner unter `/media/<Name>` ist eine eigene Quelle (Bibliothek + HereSphere),
-  neueste zuerst, „Neu“-Markierung für Dateien der letzten 7 Tage
-- **HereSphere** (VR): API unter `/heresphere` mit Kategorien (Alle mit Script, gespeicherte Stash-Filter,
-  Ordner), Vorschaubildern/-videos, Tags, Markern, Funscripts; VR-Format aus Dateinamen/Tags
-- **Vibrator „Rhythmus“** (neuer Standard): pulsiert mit jedem Stoß, Tempo bestimmt die Stärke;
-  schnellere Aktualisierung (60 ms), keine Glättung im Rhythmus-Modus
-- **HQ „Auto“** (neuer Standard): verbessert nur, wenn das Video kleiner als der Bildschirm ist;
-  4K und VR werden nie heruntergerechnet; Zielauflösung passend zum Gerät
-- **⚙️ Einstellungen**: Bild & Qualität, VR/HereSphere-Adresse, Bibliothek (Startquelle, eingebundene
-  Ordner, Vorschauvideos), System-Infos, Zurücksetzen
+- **Folders as sources** (`/media/<name>`), newest first, “new” badge
+- **HereSphere** (VR) API under `/heresphere` with categories, previews, tags, markers, Funscripts
+- **Vibrator “rhythm”** (new default): pulses with every stroke
+- **HQ “Auto”** (new default): only enhances when the video is smaller than the screen
+- **⚙️ Settings**: picture & quality, VR address, library, system info
 
-## 1.0.0 – 31.10.2026 (Zwischenstand)
+## 1.0.0 – 31.10.2026 (snapshot)
 
-Erste festgehaltene Version.
+First recorded version.
 
-- **Modi**: Streamen, Sync (Video + Geräte), Steuern (Direkt, Patterns, Script-Baukasten)
-- **The Handy** per WLAN (API v2, Connection Key): Video-Sync, Direktsteuerung (HAMP), Patterns/Scripts (HSSP),
-  Offset, Hub-Begrenzung, Script umkehren
-- **Vibrator** (Satisfyer u. a.) per Web Bluetooth oder Intiface Central; Script → Vibration nach
-  Geschwindigkeit oder Position, Bluetooth-Diagnose, automatisches Neuverbinden
-- **Bibliothek**: Stash (Kacheln, Vorschauvideos, Tags/Darsteller/Studios, Filter-Chips, gespeicherte
-  Stash-Filter, Zufall) und lokaler Ordner; Weiterschauen, Marker, Play-Count an Stash
-- **Player**: eigene Bedienleiste mit Heatmap und Markern, Vollbild fürs Smartphone (Füllen/Einpassen),
-  Tastenkürzel, App-Installation (PWA), Bildschirm bleibt an
-- **Bildverbesserung** im Browser (bikubisch + AMD CAS, Farbe, Anti-Banding, Vorher/Nachher)
-- **HQ-Stream** vom Server über Intel Quick Sync (VAAPI) bzw. CPU, mit Leistungstest
-- **Sicherheit**: Not-Aus (Knopf, Esc, Bildschirmsperre), Geschwindigkeits- und Vibrationsgrenzen
-- **Betrieb**: Docker (Traefik-Labels, /dev/dri) und Windows (Skripte, Autostart, HTTPS)
+- **Modes**: streaming, sync (video + devices), control (direct, patterns, script builder)
+- **The Handy** via Wi-Fi (API v2): video sync, direct control, patterns/scripts, offset, stroke limits, invert
+- **Vibrator** (Satisfyer and others) via Web Bluetooth or Intiface Central
+- **Library**: Stash and a local folder; continue watching, markers, play count to Stash
+- **Player**: own controls with heatmap and markers, phone fullscreen, shortcuts, installable app (PWA)
+- **Picture enhancement** in the browser (bicubic + AMD CAS); **HQ stream** via Intel Quick Sync
+- **Safety**: emergency stop (button, Esc, screen lock), speed and vibration limits
+- **Operation**: Docker and Windows
