@@ -49,8 +49,16 @@ jobs:
           for t in $tags; do
             if gh release view "$t" >/dev/null 2>&1; then
               if [ "$RECREATE" != "true" ]; then echo "$t: Release gibt es schon"; continue; fi
-              # schon im neuen Format (englisch, mit Image-Hinweis)? dann bleibt es
-              if gh release view "$t" --json body -q .body | grep -qF "ghcr.io/scripthost/funscript-player"; then echo "$t: schon neu"; continue; fi
+              # schon im neuen Format (englisch, mit Image-Hinweis)? dann bleibt es – ein Entwurf (entsteht, wenn
+              # ein Tag neu gesetzt wird oder GitHub beim Anlegen hängt) wird veröffentlicht
+              if gh release view "$t" --json body -q .body | grep -qF "ghcr.io/scripthost/funscript-player"; then
+                if [ "$(gh release view "$t" --json isDraft -q .isDraft)" = "true" ]; then
+                  if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
+                  retry gh release edit "$t" --draft=false $latest || err "$t veröffentlichen"
+                  echo "$t: Entwurf veröffentlicht"
+                else echo "$t: schon neu"; fi
+                continue
+              fi
               retry gh release delete "$t" --yes || { err "$t löschen"; continue; }
             fi
             v="${t#v}"
