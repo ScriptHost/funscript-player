@@ -1,10 +1,10 @@
-# OpenSSF Scorecard: automatischer Sicherheits-Check des Repos (Workflows, Abhängigkeiten, Pflege …).
+# OpenSSF Scorecard: automatischer Sicherheits-Check des Repos (Workflows, Abhängigkeiten, Pflege …) – einmal pro Woche
+# und bei Änderungen am Branch-Schutz (seit 1.19.11 nicht mehr bei jedem Push).
 # Ergebnis öffentlich auf scorecard.dev (Abzeichen im README), Einzelheiten unter „Security → Code scanning“.
 name: Scorecard
 
 on:
-  push:
-    branches: [main]
+  branch_protection_rule:
   schedule:
     - cron: '31 5 * * 1'
   workflow_dispatch:

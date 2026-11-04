@@ -1,12 +1,13 @@
-# Sicherheits-Analyse von GitHub (CodeQL) – bei jedem Push auf main, bei Pull Requests und einmal pro Woche.
+# Sicherheits-Analyse von GitHub (CodeQL) – bei jedem Release-Tag, bei Pull Requests und einmal pro Woche
+# (seit 1.19.11 nicht mehr bei jedem Push: spart Läufe, ein neuer Fund fällt spätestens nach einer Woche auf).
 # Funde erscheinen im Reiter „Security → Code scanning“ (nur für Berechtigte sichtbar).
 name: CodeQL
 
 on:
   push:
-    branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
+    tags: ['v*']
   pull_request:
+  workflow_dispatch:
   schedule:
     - cron: '17 4 * * 1'
 
