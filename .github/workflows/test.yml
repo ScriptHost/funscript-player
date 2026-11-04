@@ -1,0 +1,21 @@
+# Tests bei jedem Push auf main und bei Pull Requests – Fehler fallen so schon vor dem Release-Tag auf
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'website/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test "test/*.test.js"

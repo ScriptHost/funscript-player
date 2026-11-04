@@ -1,0 +1,14 @@
+# Hält die GitHub-Actions und das Node-Basis-Image aktuell (einmal im Monat ein Pull Request)
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    ignore:
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
