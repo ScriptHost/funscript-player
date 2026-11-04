@@ -2,6 +2,23 @@
 
 The GitHub release notes are taken from this file.
 
+## 1.19.7 – 04.11.2026
+
+- **🧪 Follow sound (beta):** videos without a script get “🎵 Follow sound” below the video – the Satisfyer follows the
+  volume and rhythm of the soundtrack (Web Audio, strength min/max apply, STOP as always)
+- **At the video:** Handy stroke (min/max) and Satisfyer strength min/max plus translation, shown only for connected
+  devices; the connection key and Application ID can also be entered in the device window (“🔑 Connection”)
+- **Player bar tidied up:** 🎚 intensity, ✨ picture and ⟳ re-sync are gone – intensity and picture sit below the
+  video, ⟳ moved under the Handy connection in the device window (key S still works)
+- **New defaults:** auto-stop off (was 10 min), picture enhancement “Auto” (once switched for everyone, own custom
+  values stay), rating/favourite/O/marker below the video and in the bar off – choices you already saved are kept
+- **Welcome:** a short three-step welcome on a fresh install (can be shown again under ⚙️ → Display)
+- **Fixes:** switching videos no longer leaves the pause symbol on the play button; after a page reload the Handy
+  retries the automatic connection (3 s, 10 s, 30 s) instead of staying disconnected
+- **Docker:** container renamed to `Funscript-Player`, volume to `funscript-data` (fixed name) – existing installations
+  copy their data over once, see README “Upgrading from 1.19.6 or older”; docker-compose.yml, .env.example, Dockerfile
+  comments and the startup log in `docker logs` are now English
+
 ## 1.19.6 – 04.11.2026
 
 - **HereSphere:** logging in once with the password is enough – the login no longer expires after 30 days. Logins from

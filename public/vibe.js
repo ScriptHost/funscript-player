@@ -502,9 +502,17 @@ $('vibeMap').value = store.get('vibeMap2', 'rhythm');
 $('vibeSource').addEventListener('change', () => { store.set('vibeSource', $('vibeSource').value); updateVibeOutputs(); });
 $('vibeMap').addEventListener('change', () => store.set('vibeMap2', $('vibeMap').value));
 
+// 1.19.7: Übersetzung und Stärke min/max auch am Video (Feineinstellung Satisfyer) – gespiegelt zu ⚙️ → Geräte
+$('dvMap').replaceChildren(...[...$('vibeMap').options].map((o) => new Option(o.text.split(':')[0], o.value)));
+mirrorField('dvMap', 'vibeMap');
+mirrorField('dvMin', 'vibeMin');
+mirrorField('dvMax', 'vibeMax');
+['dvMin', 'dvMax'].forEach((id) => $(id).addEventListener('input', updateVibeOutputs));
+
 function updateVibeOutputs() {
-  $('vibeMinVal').textContent = `${$('vibeMin').value} %`;
-  $('vibeMaxVal').textContent = `${$('vibeMax').value} %`;
+  $('vibeMinVal').textContent = $('dvMinVal').textContent = `${$('vibeMin').value} %`;
+  $('vibeMaxVal').textContent = $('dvMaxVal').textContent = `${$('vibeMax').value} %`;
+  $('vibeSummary').textContent = `· ${$('vibeMin').value}–${$('vibeMax').value} %`;
   $('vibeFullVal').textContent = `${$('vibeFull').value} %/s`;
   $('vibeLeadVal').textContent = `${$('vibeLead').value} ms`;
   $('vibeLevelVal').textContent = `${$('vibeLevel').value} %`;
@@ -586,6 +594,13 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
   // „Selbst steuern“ am Video (ohne Funscript): eigene Stärke, „Maximum“ gilt auch hier
   const own = typeof selfVibeLevel === 'function' ? selfVibeLevel() : null;
   if (own !== null) return Math.min(own * 100, Number($('vibeMax').value)) / 100;
+  // 🧪 „Nach Ton“ (Video ohne Funscript): Lautheit des Tons wie ein Script über Stärke min/max
+  const audio = typeof audioVibeLevel === 'function' ? audioVibeLevel() : null;
+  if (audio !== null) {
+    if (audio < 0.01) return 0;
+    const lo = Number($('vibeMin').value) / 100, hi = Number($('vibeMax').value) / 100;
+    return (lo + (hi - lo) * audio) * Number($('vibeScene').value) / 100;
+  }
   // „Maximum“ ist auch die Sicherheitsgrenze für die manuelle Stärke
   if ($('vibeSource').value === 'manual') return Math.min(Number($('vibeLevel').value), Number($('vibeMax').value)) / 100;
 

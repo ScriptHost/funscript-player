@@ -206,6 +206,8 @@ updateMute();
 
 video.addEventListener('play', () => { $('ovPlay').textContent = '❚❚'; showOverlay(); });
 video.addEventListener('pause', () => { $('ovPlay').textContent = '▶'; showOverlay(); });
+// 1.19.7: Videowechsel – load() hält das alte Video an, ohne „pause“ zu melden; sonst bliebe ❚❚ stehen
+['emptied', 'loadstart'].forEach((ev) => video.addEventListener(ev, () => { $('ovPlay').textContent = video.paused ? '▶' : '❚❚'; }));
 
 // Zeitleiste mit Heatmap und Markern; tippen/ziehen zum Springen
 const bar = $('ovBar');
@@ -340,10 +342,11 @@ document.addEventListener('visibilitychange', () => {
 // Ein laufendes Video mit Script zählt als „dabei“ – nur Direktsteuerung, Patterns, manuelle Stärke usw.
 let lastInput = Date.now();
 ['pointerdown', 'keydown', 'input', 'wheel'].forEach((ev) => document.addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
-$('autoStop').value = String(store.get('autoStop', 10));
+// 1.19.7: Standard „nie“ (vorher 10 min) – STOPP-Knopf, Esc und Stopp bei Bildschirmsperre bleiben
+$('autoStop').value = String(store.get('autoStop', 0));
 $('autoStop').addEventListener('change', () => store.set('autoStop', Number($('autoStop').value)));
 setInterval(() => {
-  const min = Number(store.get('autoStop', 10));
+  const min = Number(store.get('autoStop', 0));
   if (!min || videoPlaying() || !anyRunning() || Date.now() - lastInput < min * 60000) return;
   emergencyStop(`Auto-Stopp: ${min} min keine Bedienung`);
   lastInput = Date.now();

@@ -31,7 +31,8 @@ document.addEventListener('hq-ready', renderQualityMode);
 
 // --- Anzeige im Player -----------------------------------------------------------
 // Standard: was man beim normalen Schauen braucht; Tags, Studio/Darsteller, Beschreibung aus.
-const HUD_DEFAULT = { devices: true, meta: true, script: false, actions: true, baractions: true, people: false, tags: false, markers: true, details: false, quality: true };
+// 1.19.7: Stash-Aktionen (unter dem Video und in der Leiste) standardmäßig aus – gespeicherte Wahl bleibt
+const HUD_DEFAULT = { devices: true, meta: true, script: false, actions: false, baractions: false, people: false, tags: false, markers: true, details: false, quality: true };
 const hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
 function applyHud() {
   for (const [k, on] of Object.entries(hud)) document.body.classList.toggle('hud-off-' + k, !on);
@@ -83,27 +84,35 @@ function updateAdvHint() {
 $('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
 setAdvMode(store.get('advMode', false));
 
-// --- Einmal nach dem Update auf 1.19.5: was neu ist ------------------------
-if (!store.get('seen1195', false)) {
+// --- 1.19.7: Willkommen beim ersten Start (Neuinstallation), in ⚙️ → Anzeige wieder aufrufbar ------------
+function showWelcome(on = true) { $('welcome').hidden = !on; if (on) $('whatsNew').hidden = true; }
+$('welcomeOk').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); });
+$('welcomeConnect').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); openDevices(); });
+$('welcomeAgain').addEventListener('click', () => showWelcome());
+if (freshInstall && !store.get('seenWelcome', false)) {
+  store.set('seen1197', true); // statt „Neu in …“
+  showWelcome();
+}
+
+// --- Einmal nach dem Update auf 1.19.7: was neu ist ------------------------
+if (!store.get('seen1197', false)) {
   $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen1195', true); };
+  const done = () => { $('whatsNew').hidden = true; store.set('seen1197', true); };
   $('whatsNewOk').addEventListener('click', done);
-  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setDevices'); });
+  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setPlayer'); });
 }
 
 // --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------
 const BAR_BTNS = [
   ['skip', '−/+ Sekunden springen', ['ovBack', 'ovFwd']],
   ['mute', '🔊 Ton an/aus', ['ovMute']],
-  ['sync', '⟳ Handy neu synchronisieren', ['ovSync']],
   ['finale', '🔥 Finale', ['ovFinale']],
   ['vibe', 'Vib ❚❚ Geräte pausieren', ['ovVibe']],
-  ['int', '🎚 Script-Intensität', ['ovInt']],
-  ['enh', '✨ Bild (Verbesserung an/aus)', ['ovEnh']],
   ['fit', 'Einpassen / Füllen (im Vollbild am iPhone)', ['ovFit']],
   ['pip', '⧉ Bild-in-Bild', ['ovPip']],
 ];
 const barCfg = Object.assign({ order: BAR_BTNS.map((b) => b[0]), off: [] }, store.get('barBtns', {}));
+barCfg.order = barCfg.order.filter((k) => BAR_BTNS.some((b) => b[0] === k)); // 1.19.7: 🎚, ✨ und ⟳ entfallen
 for (const [k] of BAR_BTNS) if (!barCfg.order.includes(k)) barCfg.order.push(k); // neue Knöpfe hinten
 function applyBar() {
   for (const k of barCfg.order) {
@@ -300,7 +309,7 @@ setTimeout(() => {
     }
     toolCache = {};
   } catch (e) { fails.push('Intensität: ' + e.message); }
-  for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox', 'intPop']) if (!$(id)) fails.push('fehlt: #' + id);
+  for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox']) if (!$(id)) fails.push('fehlt: #' + id);
   if (fails.length) fetch('/api/clientcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fails, ua: navigator.userAgent }) }).catch(() => {});
 }, 5000);
 

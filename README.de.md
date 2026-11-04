@@ -14,7 +14,7 @@ unzip handy-player-linux-vX.Y.Z.zip && cd handy-player
 cp .env.example .env      # einmal: STASH_URL, ggf. Port und Medienordner eintragen
 nano .env
 docker compose pull && docker compose up -d
-docker logs Handy-Player  # Start-Übersicht mit Selbsttest, endet mit „✓ bereit“
+docker logs Funscript-Player  # Start-Übersicht mit Selbsttest (englisch), endet mit „✓ ready“
 ```
 
 - Erreichbar unter `http://<server>:8080` (`PLAYER_PORT` in der `.env`). Für **HTTPS** – nötig für Bluetooth und
@@ -29,7 +29,23 @@ docker logs Handy-Player  # Start-Übersicht mit Selbsttest, endet mit „✓ be
   begrenzt den Arbeitsspeicher – läuft der Player voll, trifft es nur ihn, nicht Stash.
 - **HQ-Stream:** `/dev/dri` wird durchgereicht, `RENDER_GID` = GID der Host-Gruppe `render` (`getent group render`).
 
-### Was liegt im Volume `handy-data`?
+### Update von 1.19.6 oder älter: Container und Volume heißen jetzt anders
+
+Seit 1.19.7 heißt der Container `Funscript-Player` und das Volume `funscript-data` (vorher `Handy-Player` und
+`<Ordner>_handy-data`). Ein neues Volume startet leer – die alten Daten (Key, Einstellungen, eigene Scripts) einmal
+hinüberkopieren:
+
+```bash
+docker volume ls | grep handy-data          # alten Namen finden, z. B. handy-player_handy-data
+docker stop Handy-Player && docker rm Handy-Player
+docker volume create funscript-data
+docker run --rm -v handy-player_handy-data:/from -v funscript-data:/to alpine cp -a /from/. /to/
+docker compose pull && docker compose up -d
+```
+
+Läuft alles, kann das alte Volume weg: `docker volume rm handy-player_handy-data`.
+
+### Was liegt im Volume `funscript-data`?
 
 Alles, was der Player selbst speichert – eine Sicherung dieses Volumes ist eine Sicherung von allem.
 Wird es gelöscht, startet der Player wirklich neu (auch die Browser vergessen dann die gemeinsamen Einstellungen).
@@ -46,11 +62,13 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
 
 ## Aufbau
 
-- **Status oben antippen** öffnet das Geräte-Fenster – Handy verbinden, Satisfyer per Bluetooth, Hub, Neu synchronisieren.
+- **Status oben antippen** öffnet das Geräte-Fenster – Handy verbinden (Connection Key und Application ID gleich dort
+  unter „🔑 Verbindung“), ⟳ Neu synchronisieren, Satisfyer per Bluetooth.
   Wird die Handy-Cloud langsam, wird der Status gelb.
-- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität, Offset −/+, Stärke, Finale, Pause, Alles stoppen.
-- **Script-Intensität** – eine Auswahl für Handy und Satisfyer, pro Szene am Video (vier Knöpfe mit Mini-Heatmap) oder
-  über 🎚 in der Player-Leiste; Standard unter ⚙️ → Script:
+- **Am Video** stehen nur die Regler der verbundenen Geräte: Script-Intensität, Offset −/+, Hub der Handy, Stärke min/max
+  und Übersetzung des Satisfyers, Finale, Pause, Alles stoppen.
+- **Script-Intensität** – eine Auswahl für Handy und Satisfyer, pro Szene am Video (vier Knöpfe mit Mini-Heatmap);
+  Standard unter ⚙️ → Script:
   - **Original** – genau die Datei
   - **Automatisch** – streckt kleinen Hub, passt an, was die Handy nicht schafft (bleibt exakt im Takt)
   - **Sanft** – Hub 20–80 %, höchstens 240 %/s, Satisfyer schwächer und ruhiger
@@ -60,6 +78,7 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
   Motoren folgt Motor 2 auf Wunsch dem Tempo. Die Geräte-Liste zeigt ⏱ die Bluetooth-Laufzeit, schwankt sie, wird der Status gelb.
 - **Videos ohne Funscript:** „Selbst steuern“ (Tempo, Hub unten/oben, Satisfyer-Stärke, Touch-Fläche) und
   **⏺ Mitschnitt zum Video** als eigenes Script (Ordner: daneben, wenn ohne `:ro` eingebunden; Stash: im Volume).
+  🧪 Beta **„🎵 Nach Ton“**: der Satisfyer folgt Lautstärke und Rhythmus des Tons.
 - **🎮 Steuern:** Direktsteuerung, Touch-Fläche (Tempo oder 🧪 Position) und Pattern-Editor.
 - **Bibliothek:** Stash-Szenen und Ordner-Videos mit Heatmap-Leiste, Intensitäts-Filter, Tags/Darsteller/Studios,
   gespeicherte Stash-Filter, „nur 2D“ je Gerät, Mini-Player beim Stöbern.
@@ -71,13 +90,13 @@ Pro Gerät (im Browser) bleiben nur Bild/HQ, Sprache, Kopfzeile, Bildschirmsperr
 
 - Roter STOPP-Knopf, Esc-Taste oder „Alles stoppen“ halten Video, Handy, Patterns und Satisfyer sofort an.
 - Automatisch bei Bildschirmsperre / App-Wechsel (abschaltbar).
-- **Auto-Stopp:** keine Bedienung und kein laufendes Video → nach 5/10/20/30 Minuten alles aus (⚙️ → Notaus, Standard 10).
+- **Auto-Stopp:** keine Bedienung und kein laufendes Video → nach 5/10/20/30 Minuten alles aus (⚙️ → Notaus, Standard: nie).
 - Grenzen: max. Geschwindigkeit der Direktsteuerung, „Maximum“ beim Satisfyer.
 
 ## Selbsttest
 
 Beim Start prüft sich der Container selbst – Datenordner, gespeicherte Dateien, alle Skripte der Oberfläche, jedes
-Bedienelement und die Script-Intensität. Das Ergebnis steht in `docker logs` („Selbsttest: 9/9 ok“). Die Oberfläche
+Bedienelement und die Script-Intensität. Das Ergebnis steht in `docker logs` („Self-test: 9/9 ok“). Die Oberfläche
 prüft sich beim Laden still und meldet nur Fehler an den Server. Für die Entwicklung: `?selbsttest` spielt typische
 Abläufe mit einer simulierten Handy durch.
 

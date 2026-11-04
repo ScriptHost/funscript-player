@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.19.6-e0457b?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.19.7-e0457b?style=flat-square">
   <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
   <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
@@ -28,7 +28,7 @@
 
 <p align="center">
   <img src="docs/img/gh/h-look.svg" alt="See it – the player as it looks today" width="100%">
-  <img src="docs/img/player-1.19.3.svg" alt="Funscript Player 1.19.3 on a phone: player with script box and library" width="100%">
+  <img src="docs/img/player-1.19.7.svg" alt="Funscript Player 1.19.7 on a phone: player with script box and library" width="100%">
 </p>
 
 <p align="center">
@@ -48,11 +48,12 @@
 | 🎚 **One script, every device** | Pick the intensity once for Handy and Satisfyer: **Original** (untouched), **Automatic** (small strokes stretched, what the motor can't manage adapted – still exactly in time), **Gentle** or **Intense** – per scene right at the video, with a mini heatmap preview. |
 | 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. Several Satisfyers at once, each with its own strength and lead; two motors can split into rhythm and tempo. |
 | ⏱️ **Sync that stays in time** | Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× playback. |
+| 🎵 **Follow sound (beta)** | Videos without a script: the Satisfyer follows the volume and rhythm of the soundtrack. |
 | ✋ **Your own scripts** | Control the devices yourself while watching (slider, quick picks, touch pad), record it as a script, replace just a section later. Originals are never overwritten. |
 | 📚 **Library** | Stash scenes and folder videos with heatmap, intensity filter, 🔥 highlights, saved Stash filters, 2D-only mode, mini player, picture-in-picture. |
 | ✨ **Natural picture** | Small videos are upscaled on the server (Intel Quick Sync / VAAPI) and lightly denoised; colours stay as in the original. More sharpness on request. |
 | 🥽 **VR** | HereSphere API for VR headsets – ratings and favourites go back to Stash. |
-| 🛑 **Emergency stop** | STOP button everywhere, Esc, devices stop when the screen locks, auto-stop after X minutes without input. |
+| 🛑 **Emergency stop** | STOP button everywhere, Esc, devices stop when the screen locks, optional auto-stop after X minutes without input. |
 
 <p align="center"><img src="docs/img/gh/h-install.svg" alt="Installation – Docker in five minutes" width="100%"></p>
 
@@ -65,7 +66,7 @@ unzip handy-player-linux-vX.Y.Z.zip && cd handy-player
 cp .env.example .env      # once: set STASH_URL, port and media folders if any
 nano .env
 docker compose pull && docker compose up -d
-docker logs Handy-Player  # startup summary with self-check, ends with “✓ bereit” (ready)
+docker logs Funscript-Player  # startup summary with self-check, ends with “✓ ready”
 ```
 
 - The player listens on `http://<server>:8080` (`PLAYER_PORT`). For **HTTPS** – needed for Bluetooth and “install as
@@ -82,7 +83,22 @@ docker logs Handy-Player  # startup summary with self-check, ends with “✓ be
 - The container runs as user `node` (1000), never as root; `PUID`/`PGID` change it. `PLAYER_MEM` (default 2g) caps
   its memory – if the player runs out, only the player is hit, not Stash.
 
-### What lives in the `handy-data` volume?
+### Upgrading from 1.19.6 or older: container and volume were renamed
+
+Since 1.19.7 the container is called `Funscript-Player` and the volume `funscript-data` (before: `Handy-Player` and
+`<folder>_handy-data`). A new volume starts empty – copy your old data (key, settings, own scripts) over once:
+
+```bash
+docker volume ls | grep handy-data          # find the old name, e.g. handy-player_handy-data
+docker stop Handy-Player && docker rm Handy-Player
+docker volume create funscript-data
+docker run --rm -v handy-player_handy-data:/from -v funscript-data:/to alpine cp -a /from/. /to/
+docker compose pull && docker compose up -d
+```
+
+Once everything works, the old volume can go: `docker volume rm handy-player_handy-data`.
+
+### What lives in the `funscript-data` volume?
 
 Everything the player stores – back up this volume and you have backed up everything. Delete it and the player really
 starts fresh (browsers forget the shared settings too).

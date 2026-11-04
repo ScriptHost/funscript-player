@@ -326,8 +326,8 @@ P.push([`Geräte – antippen für Verbinden, Offset, Hub, Stärke`, `Devices �
     `<b>Automatic</b> – stretches scripts with a small stroke to the full range; what the Handy can’t manage is adapted so it stays exactly in time (fine vibrations stay).`],
   [`<b>Sanft</b> – Hub 20–80 %, höchstens 240 %/s, Satisfyer schwächer und ruhiger.`, `<b>Gentle</b> – stroke 20–80 %, at most 240 %/s, Satisfyer weaker and smoother.`],
   [`<b>Intensiv</b> – voller Hub, ruhige Stellen im doppelten oder dreifachen Takt, Satisfyer kräftiger.`, `<b>Intense</b> – full stroke, calm passages at double or triple tempo, Satisfyer stronger.`],
-  [`Gilt für Handy und Satisfyer zusammen und rechnet nur beim Abspielen um – deine Dateien bleiben unverändert. Pro Szene wählst du am Video (Script-Bereich oder 🎚 in der Player-Leiste); das wird wie der Offset gemerkt.`,
-    `Applies to Handy and Satisfyer together and only recalculates during playback – your files stay unchanged. Per scene you choose at the video (script area or 🎚 in the player bar); it is remembered like the offset.`],
+  [`Gilt für Handy und Satisfyer zusammen und rechnet nur beim Abspielen um – deine Dateien bleiben unverändert. Pro Szene wählst du am Video im Script-Bereich; das wird wie der Offset gemerkt.`,
+    `Applies to Handy and Satisfyer together and only recalculates during playback – your files stay unchanged. Per scene you choose in the script area at the video; it is remembered like the offset.`],
   [`🎯 Offset per Takt einmessen: in der Geräte-Spalte unter „Feineinstellung Offset“ oder Taste T, während das Video läuft.`, `🎯 Calibrate the offset by tapping the beat: in the device column under “Offset fine-tuning” or key T while the video plays.`],
   [`Wählt pro Video selbst: Ist das Video kleiner als dein Bildschirm, rechnet der Server es hoch und entrauscht leicht (4K/VR bleiben Original); im Browser nur ein Hauch Schärfe und Farbtreppen glätten – Farben und Kontrast bleiben wie im Original. Ruckelt es, wird automatisch eine Stufe zurückgeschaltet.`,
     `Decides per video: if the video is smaller than your screen, the server upscales it and denoises lightly (4K/VR stay original); in the browser just a touch of sharpness and debanding – colours and contrast stay as in the original. If it stutters, it steps down automatically.`],
@@ -343,10 +343,10 @@ P.push([`Geräte – antippen für Verbinden, Offset, Hub, Stärke`, `Devices �
   [`Aus: Der Server antwortet unter <code>/heresphere</code> nicht – die Ausnahme in deiner Proxy-Anmeldung kann weg. Gilt für alle Geräte.`, `Off: the server does not answer under <code>/heresphere</code> – the exception in your proxy login can go. Applies to all devices.`],
   [`ⓘ So geht's`, `ⓘ How it works`], [`Alle mit Script`, `All with script`],
   [`⬆ Update verfügbar`, `⬆ Update available`], [`Was ist neu? ↗`, `What's new? ↗`],
-  [`Aktualisieren: <code>docker compose pull &amp;&amp; docker compose up -d</code> – deine Einstellungen liegen im Volume <code>handy-data</code> und bleiben.`,
-    `Update: <code>docker compose pull &amp;&amp; docker compose up -d</code> – your settings live in the volume <code>handy-data</code> and stay.`],
-  [`Alles, was der Player speichert (Einstellungen, eigene Scripts, Offsets, Patterns), liegt auf dem Server im Docker-Volume <code>handy-data</code> – eine Sicherung davon ist eine Sicherung von allem. Beim Start prüft sich der Player selbst; das Ergebnis steht in <code>docker logs</code>.`,
-    `Everything the player stores (settings, own scripts, offsets, patterns) lives on the server in the Docker volume <code>handy-data</code> – backing it up backs up everything. At startup the player checks itself; the result is in <code>docker logs</code>.`],
+  [`Aktualisieren: <code>docker compose pull &amp;&amp; docker compose up -d</code> – deine Einstellungen liegen im Volume <code>funscript-data</code> und bleiben.`,
+    `Update: <code>docker compose pull &amp;&amp; docker compose up -d</code> – your settings live in the volume <code>funscript-data</code> and stay.`],
+  [`Alles, was der Player speichert (Einstellungen, eigene Scripts, Offsets, Patterns), liegt auf dem Server im Docker-Volume <code>funscript-data</code> – eine Sicherung davon ist eine Sicherung von allem. Beim Start prüft sich der Player selbst; das Ergebnis steht in <code>docker logs</code>.`,
+    `Everything the player stores (settings, own scripts, offsets, patterns) lives on the server in the Docker volume <code>funscript-data</code> – backing it up backs up everything. At startup the player checks itself; the result is in <code>docker logs</code>.`],
   [`Hub 20–80 %`, `stroke 20–80 %`], [`schwächer, ruhiger`, `weaker, smoother`], [`stärker`, `stronger`],
   [`Script-Intensität für diese Szene`, `Script intensity for this scene`], [`verbunden · langsam`, `connected · slow`]);
 RX.push([/^(\d+) ruhige Stellen im mehrfachen Takt$/, '$1 calm passages at multiple tempo'],
@@ -379,6 +379,26 @@ P.push([`✨ Neu in 1.19.5`, `✨ New in 1.19.5`],
   [`🔒 <b>Sicherer:</b> der Container läuft schreibgeschützt und ohne Linux-Rechte, die Oberfläche mit strenger Content-Security-Policy.`, `🔒 <b>More secure:</b> the container runs read-only and without Linux capabilities, the interface with a strict Content Security Policy.`],
   [`🥽 HereSphere-Passwort jetzt mit scrypt gespeichert – einmal anmelden genügt.`, `🥽 HereSphere password now stored with scrypt – logging in once is enough.`],
   [`〰 Intiface: standardmäßig nur Adressen im Heimnetz und nur Port 12345 (weitere über <code>INTIFACE_PORTS</code>).`, `〰 Intiface: by default only home-network addresses and only port 12345 (more via <code>INTIFACE_PORTS</code>).`]);
+// 1.19.7
+P.push([`✨ Neu in 1.19.7`, `✨ New in 1.19.7`],
+  [`🎵 <b>Beta:</b> Videos ohne Script – unter dem Video „🎵 Nach Ton“: der Satisfyer folgt Lautstärke und Rhythmus.`, `🎵 <b>Beta:</b> videos without a script – below the video “🎵 Follow sound”: the Satisfyer follows volume and rhythm.`],
+  [`Am Video: Hub der Handy, Stärke und Übersetzung des Satisfyers; der Connection Key steht auch im Geräte-Fenster.`, `At the video: Handy stroke, Satisfyer strength and translation; the connection key is also in the devices window.`],
+  [`Aufgeräumt: 🎚, ✨ und ⟳ sind aus der Player-Leiste raus (Intensität und Bild unter dem Video, ⟳ im Geräte-Fenster), Auto-Stopp ist standardmäßig aus, Bild steht auf „Auto“.`, `Tidied up: 🎚, ✨ and ⟳ left the player bar (intensity and picture below the video, ⟳ in the devices window), auto-stop is off by default, picture is set to “Auto”.`],
+  [`👋 Willkommen beim Funscript Player`, `👋 Welcome to Funscript Player`], [`Willkommen`, `Welcome`],
+  [`🔌 <b>Gerät verbinden:</b> oben auf den Status tippen – The Handy mit dem Connection Key, Satisfyer per Bluetooth.`, `🔌 <b>Connect a device:</b> tap the status at the top – The Handy with its connection key, Satisfyer via Bluetooth.`],
+  [`📚 <b>Video wählen:</b> in der Bibliothek, ⚡ = mit Funscript.`, `📚 <b>Pick a video:</b> in the library, ⚡ = with Funscript.`],
+  [`▶ <b>Abspielen:</b> die Geräte laufen mit dem Video mit. <b>■ STOPP</b> hält sofort alles an.`, `▶ <b>Play:</b> the devices move along with the video. <b>■ STOP</b> halts everything immediately.`],
+  [`Alles Weitere unter ⚙️ Einstellungen – dort auch die Sprache.`, `Everything else is under ⚙️ Settings – including the language.`],
+  [`Gerät verbinden`, `Connect device`], [`Los geht's`, `Let's go`], [`👋 Willkommen nochmal zeigen`, `👋 Show welcome again`],
+  [`nie (Standard)`, `never (default)`], [`🎵 Nach Ton 🧪`, `🎵 Follow sound 🧪`], [`Satisfyer folgt Lautstärke und Rhythmus des Tons`, `Satisfyer follows the volume and rhythm of the sound`],
+  [`🧪 Beta: Kein Satisfyer verbunden – oben auf den Status tippen und verbinden.`, `🧪 Beta: no Satisfyer connected – tap the status at the top and connect.`],
+  [`🧪 Beta: Kein Ton erkannt – bei diesem Video liefert der Browser den Ton nicht (fremde Adresse) oder es ist still.`, `🧪 Beta: no sound detected – the browser does not provide the sound for this video (other address), or it is silent.`],
+  [`🧪 Beta: Der Satisfyer folgt Lautstärke und Rhythmus des Tons. Stärke min/max am Satisfyer, STOPP wie immer. Die Handy läuft dabei nicht.`, `🧪 Beta: the Satisfyer follows the volume and rhythm of the sound. Strength min/max at the Satisfyer, STOP as always. The Handy does not move in this mode.`],
+  [`Zuerst den Connection Key eintragen (gleich hier darunter).`, `First enter the connection key (right below).`],
+  [`🔑 Verbindung (Connection Key)`, `🔑 Connection (connection key)`], [`Application ID (optional – Handy-API v3)`, `Application ID (optional – Handy API v3)`],
+  [`Feineinstellung Satisfyer`, `Satisfyer fine-tuning`], [`Übersetzung`, `Translation`], [`Übersetzung Script → Vibration`, `Translation script → vibration`],
+  [`Stärke min`, `Strength min`], [`Stärke max`, `Strength max`], [`Rhythmus`, `Rhythm`], [`Nach Geschwindigkeit`, `By speed`]);
+RX.push([/^Vibration nach Ton geht in diesem Browser nicht: (.*)$/, 'Follow sound does not work in this browser: $1']);
 const table = {};
 for (const [de, en] of P) table[de.replace(/\s+/g, ' ').trim()] = en;
 window.I18N_EN = table;

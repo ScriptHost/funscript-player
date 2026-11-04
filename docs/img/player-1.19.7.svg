@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="496 16 758 728" width="758" height="728" role="img" aria-label="Funscript Player 1.19.2 on a phone: player with script box and library">
-  <!-- Nachbau der echten Oberfläche 1.19.3 (Farben aus public/style.css) – Player und Bibliothek am Smartphone -->
+  <!-- Nachbau der echten Oberfläche 1.19.7 (Farben aus public/style.css) – Player und Bibliothek am Smartphone -->
   <defs>
     <linearGradient id="heat" x1="0" x2="1">
       <stop offset="0" stop-color="#1e90ff"/><stop offset=".16" stop-color="#28c864"/><stop offset=".3" stop-color="#f0d228"/>
@@ -17,14 +17,14 @@
   <g font-family="Segoe UI, Inter, system-ui, -apple-system, Roboto, sans-serif" fill="#e6e8eb">
     <!-- Text links -->
     <text x="72" y="150" font-size="44" font-weight="800">Funscript <tspan fill="#e0457b">Player</tspan></text>
-    <text x="74" y="190" font-size="20" fill="#8b929c">Version 1.19.3 – as it looks today</text>
+    <text x="74" y="190" font-size="20" fill="#8b929c">Version 1.19.7 – as it looks today</text>
     <g font-size="19">
       <text x="74" y="262">↕ The Handy + 〰 Satisfyer from one script</text>
       <text x="74" y="302">🎚 Original · Automatic · Gentle · Intense</text>
       <text x="74" y="342">✋ Control yourself and record it</text>
       <text x="74" y="382">🔥 Heatmap, hottest spots, Finale</text>
       <text x="74" y="422">📚 Stash + folders, intensity, 2D-only</text>
-      <text x="74" y="462">■ STOP always within reach, auto-stop</text>
+      <text x="74" y="462">🎵 Follow sound (beta), ■ STOP always at hand</text>
     </g>
 
     <!-- ================= Telefon 1: Player ================= -->
@@ -47,8 +47,7 @@
           <rect x="10" y="250" width="28" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="14" y="266">−10</text>
           <rect x="42" y="250" width="28" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="45" y="266">+10</text>
           <text x="78" y="266">0:23 / 1:00</text>
-          <rect x="176" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="181" y="266">🔊</text>
-          <rect x="202" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="207" y="266">⟳</text>
+          <rect x="202" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="206" y="266">🔊</text>
           <rect x="228" y="250" width="22" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="232" y="266">🔥</text>
           <rect x="254" y="250" width="38" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="259" y="266">Vib ❚❚</text>
           <rect x="296" y="250" width="24" height="24" rx="6" fill="#ffffff" fill-opacity=".12"/><text x="302" y="266">⛶</text>
@@ -75,7 +74,7 @@
         <rect x="182" y="488" width="30" height="26" rx="6" fill="#2a2e36"/><text x="197" y="506" font-size="13" text-anchor="middle">−</text>
         <text x="245" y="506" font-size="12" text-anchor="middle">+40 ms</text>
         <rect x="280" y="488" width="30" height="26" rx="6" fill="#2a2e36"/><text x="295" y="506" font-size="13" text-anchor="middle">+</text>
-        <text x="20" y="534" font-size="11" fill="#8b929c">▸ Fine-tune offset</text>
+        <text x="20" y="534" font-size="11" fill="#8b929c">▸ Fine-tune offset    ▸ Fine-tune Handy · stroke 0–100 %</text>
         <line x1="20" y1="550" x2="310" y2="550" stroke="#2c313a"/>
         <rect x="20" y="560" width="290" height="30" rx="7" fill="#6d2a8c"/><text x="165" y="580" font-size="12" font-weight="600" text-anchor="middle">🔥 Finale (gentler)</text>
         <rect x="20" y="600" width="140" height="32" rx="7" fill="#2a2e36"/><text x="90" y="621" font-size="12" font-weight="600" text-anchor="middle">❚❚ Pause</text>
@@ -88,7 +87,7 @@
       <rect x="-10" y="-10" width="350" height="700" rx="34" fill="#000" stroke="#2c313a"/>
       <g clip-path="url(#scr)">
         <rect width="330" height="680" fill="#111317"/>
-        <text x="12" y="33" font-size="14" font-weight="700">Funscript Player <tspan font-size="10" font-weight="400" fill="#8b929c">v1.19.3</tspan></text>
+        <text x="12" y="33" font-size="14" font-weight="700">Funscript Player <tspan font-size="10" font-weight="400" fill="#8b929c">v1.19.7</tspan></text>
         <rect x="216" y="14" width="66" height="26" rx="13" fill="none" stroke="#2c313a"/><text x="226" y="32" font-size="12" fill="#3fb950">connected</text>
         <rect x="290" y="12" width="28" height="28" rx="7" fill="#1b1e24" stroke="#2c313a"/><text x="297" y="32" font-size="16">☰</text>
         <line x1="0" y1="52" x2="330" y2="52" stroke="#2c313a"/>

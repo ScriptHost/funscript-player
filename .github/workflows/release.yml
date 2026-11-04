@@ -43,10 +43,10 @@ jobs:
           docker build -q -t fsp-test .
           docker run -d --name fsp --read-only --tmpfs /tmp --cap-drop ALL \
             --security-opt no-new-privileges:true --memory 2g -v fsp-data:/app/data -p 8080:8080 fsp-test
-          for i in $(seq 1 60); do docker logs fsp 2>&1 | grep -q "bereit" && break; sleep 1; done
+          for i in $(seq 1 60); do docker logs fsp 2>&1 | grep -q "✓ ready" && break; sleep 1; done
           docker logs fsp 2>&1
-          docker logs fsp 2>&1 | grep -q "bereit"
-          r=$(docker logs fsp 2>&1 | grep -oE "Selbsttest: [0-9]+/[0-9]+" | cut -d' ' -f2)
+          docker logs fsp 2>&1 | grep -q "✓ ready"
+          r=$(docker logs fsp 2>&1 | grep -oE "Self-test: [0-9]+/[0-9]+" | cut -d' ' -f2)
           [ -n "$r" ] && [ "${r%/*}" = "${r#*/}" ]
           curl -fsS http://localhost:8080/healthz
           curl -fsS http://localhost:8080/ | grep -q "boot.js"

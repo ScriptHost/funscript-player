@@ -800,9 +800,9 @@ body.mini-on .mini-ctl { display: flex; position: absolute; right: 6px; bottom: 
 
 /* 1.17: Video ohne Funscript + „Keine Steuerung“ -> Geräte-Regler und Geräte-Knöpfe weg */
 body.dev-idle[data-view=player]:not(.dev-open) #devices,
-body.dev-idle #ovSync, body.dev-idle #ovFinale, body.dev-idle #ovVibe { display: none !important; }
+body.dev-idle #ovFinale, body.dev-idle #ovVibe { display: none !important; }
 /* Knöpfe ohne passendes Gerät */
-body:not(.has-handy) #ovSync, body:not(.has-dev) #ovVibe, body:not(.has-dev) #ovFinale { display: none !important; }
+body:not(.has-handy) #resyncBtn, body:not(.has-dev) #ovVibe, body:not(.has-dev) #ovFinale { display: none !important; }
 /* Leiste: vom Nutzer ausgeblendete Knöpfe */
 .ov-row .bar-off { display: none !important; }
 .bar-options { list-style: none; padding: 0; margin: 0 0 12px; }
@@ -860,7 +860,11 @@ body:not(.adv-on) .offset-slider { display: none; }
 .dev-stop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
 .dev-stop-row button { width: 100%; margin: 0; }
 /* 1.19.2: Feineinstellung Handy (Neu synchronisieren, Hub) nur im Geräte-Fenster über den Status oben, nicht am Video */
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices .dev-fine[data-fine="handy"] { display: none; }
+/* 1.19.7: Hub (Handy) und Stärke/Übersetzung (Satisfyer) wieder auch am Video – nur bei verbundenem Gerät (has-handy/has-vibe) */
+.dev-key { margin: 8px 0; }
+.dev-key summary { font-size: 13px; }
+.dev-key .copyrow, .dev-key input { margin-top: 6px; }
+.audio-info[hidden] { display: none; }
 /* Meldungszeile im Geräte-Kasten entfällt – Rückmeldungen als Einblendung bzw. am Regler */
 #log { display: none !important; }
 
@@ -874,7 +878,9 @@ body:not(.adv-on) #view-settings .adv { display: none !important; }
   box-shadow: 0 10px 30px rgba(0,0,0,.5); font-size: 14px; }
 .whatsnew[hidden] { display: none; }
 .whatsnew h3 { margin: 0 0 6px; }
-.whatsnew ul { margin: 0 0 10px; padding-left: 18px; }
+.whatsnew ul, .whatsnew ol { margin: 0 0 10px; padding-left: 18px; }
+.whatsnew ol li { margin: 4px 0; }
+.whatsnew p { margin: 0 0 10px; }
 .whatsnew .actions { display: flex; gap: 8px; }
 .whatsnew button { width: auto; margin: 0; }
 /* 1.18: Selbsttest (?selbsttest) */
@@ -908,13 +914,9 @@ body.hud-off-script #sbName, body.hud-off-script .sb-info { display: none !impor
 .scene-more.single > summary { display: none; }
 /* 1.19.3: Script-Intensität – vier Knöpfe mit Mini-Heatmap (so sieht das Script mit dieser Wahl aus) */
 .int-seg { display: grid; grid-template-columns: repeat(2, 1fr); margin: 0; }
-.int-pop .int-seg { grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 420px) { .int-pop .int-seg { grid-template-columns: repeat(2, 1fr); } }
 .int-seg button { min-width: 0; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 6px 5px; font-size: 13px; }
 .int-seg button canvas { display: block; width: 100%; height: 5px; border-radius: 2px; background: var(--line); }
 .int-seg button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.int-pop .pop-title { font-weight: 600; margin-bottom: 8px; }
-.int-pop .pop-title small { font-weight: 400; color: var(--muted); }
 
 /* 1.19.3: Einstellungen aufklappbar – zu = nur die Überschrift */
 details.sec { padding-top: 12px; padding-bottom: 12px; margin-bottom: 10px; }
@@ -944,3 +946,12 @@ details.more-info > .hint-text, details.more-info > ul, details.more-info > ol {
 .update-box a { margin-left: 6px; font-size: 13px; }
 #appVersion.has-update { cursor: pointer; color: var(--accent); }
 #appVersion.has-update::after { content: ' ⬆'; }
+
+/* 1.19.7: Script-Intensität immer am Video – auch wenn „Geräte-Steuerung am Video“ aus ist (dann nur der Script-Bereich) */
+body[data-view=player].hud-off-devices:not(.dev-open) #devices.sheet {
+  display: block; position: static; width: auto; max-height: none; overflow: visible; box-shadow: none; border-radius: 0; padding: 0;
+}
+body[data-view=player].hud-off-devices:not(.dev-open) #devices.sheet > .card { border-radius: 12px; }
+body[data-view=player].hud-off-devices:not(.dev-open) #devices .card > :not(#scriptBox) { display: none !important; }
+body[data-view=player].hud-off-devices:not(.dev-open) #devices .script-box { margin: 0; padding: 0; border: 0; }
+body[data-view=player].hud-off-devices:not(.dev-open) #devices:has(#scriptBox[hidden]) { display: none !important; }

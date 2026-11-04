@@ -262,16 +262,20 @@ function flushPrefs() {
 window.addEventListener('pagehide', () => { if (Object.keys(prefsPending).length) flushPrefs(); });
 
 // Beim Laden: gemeinsame Einstellungen vom Server übernehmen – synchron, weil die anderen
-// Skripte sie sofort lesen. Seit 1.19.3 ist der Server (Volume handy-data) maßgeblich: Was er nicht
+// Skripte sie sofort lesen. Seit 1.19.3 ist der Server (Volume funscript-data, bis 1.19.6 handy-data) maßgeblich: Was er nicht
 // hat, löscht der Browser – ein gelöschtes Volume ist ein echter Neuanfang (vorher lud der Browser
 // seine alten Kopien, z. B. den Connection Key, wieder hoch).
+// 1.19.7: Neuinstallation = dieses Gerät hat nichts gespeichert und der Server auch nicht (Willkommen, settings.js)
+let freshInstall = false;
 (function loadSharedPrefs() {
+  const freshDevice = !Object.keys(localStorage).some((k) => k.startsWith('hp.'));
   try {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', '/api/prefs', false);
     xhr.send();
     if (xhr.status !== 200) return;
     const prefs = JSON.parse(xhr.responseText || '{}');
+    freshInstall = freshDevice && !Object.keys(prefs).length;
     Object.keys(localStorage).filter((k) => k.startsWith('hp.') && isSharedPref(k.slice(3)) && !(k.slice(3) in prefs))
       .forEach((k) => localStorage.removeItem(k));
     for (const [k, v] of Object.entries(prefs)) if (isSharedPref(k)) localStorage.setItem('hp.' + k, JSON.stringify(v));

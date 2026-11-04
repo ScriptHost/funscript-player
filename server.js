@@ -89,7 +89,7 @@ async function clientReport(req, res) {
   const r = JSON.parse((await readBody(req, 20000)) || '{}');
   const fails = Array.isArray(r.fails) ? r.fails.slice(0, 20).map((f) => String(f).replace(/\s+/g, ' ').slice(0, 200)) : [];
   if (Date.now() - clientLogs.at > 60000) clientLogs = { at: Date.now(), n: 0 };
-  if (fails.length && clientLogs.n++ < 20) logLine(`Oberfläche (${String(r.ua || '').replace(/\s+/g, ' ').slice(0, 60)}): ✗ ${fails.join(' · ')}`);
+  if (fails.length && clientLogs.n++ < 20) logLine(`Interface (${String(r.ua || '').replace(/\s+/g, ' ').slice(0, 60)}): ✗ ${fails.join(' · ')}`);
   noContent(res);
 }
 
@@ -141,7 +141,7 @@ const handler = async (req, res) => {
   res.on('finish', () => {
     const ms = Date.now() - t0;
     if (LOG_DEBUG || (ms > 1000 && /^\/(api|heresphere)/.test(req.url))) {
-      logLine(`${ms > 1000 ? 'langsam' : 'Anfrage'}: ${req.method} ${req.url.split('?')[0]} → ${res.statusCode} in ${ms} ms`);
+      logLine(`${ms > 1000 ? 'slow' : 'request'}: ${req.method} ${req.url.split('?')[0]} → ${res.statusCode} in ${ms} ms`);
     }
   });
   try {
@@ -196,11 +196,11 @@ const handler = async (req, res) => {
         const id = pathname.split('/').pop();
         data = await heresphereStash(req, id); // prüft vorher „nur VR“
         if (typeof body.rating === 'number') {
-          await stashSetRating(id, body.rating * 20).catch((e) => logLine(`HereSphere-Bewertung nicht gespeichert: ${e.message}`));
+          await stashSetRating(id, body.rating * 20).catch((e) => logLine(`HereSphere rating not saved: ${e.message}`));
           data.rating = body.rating;
         }
         if (typeof body.isFavorite === 'boolean') {
-          await stashSetFavorite(id, body.isFavorite).catch((e) => logLine(`HereSphere-Favorit nicht gespeichert: ${e.message}`));
+          await stashSetFavorite(id, body.isFavorite).catch((e) => logLine(`HereSphere favourite not saved: ${e.message}`));
           data.isFavorite = body.isFavorite;
         }
       } else if (pathname.startsWith('/heresphere/media/')) data = await heresphereMedia(req, pathname.slice('/heresphere/media/'.length), body.needsMediaSource !== false);
@@ -235,7 +235,7 @@ const handler = async (req, res) => {
     const status = err.status || (err instanceof SyntaxError ? 400 : 500);
     if (status === 500) console.error(err);
     // Stash/Handy-Cache nicht erreichbar (502/503/504): auch in „docker logs“, sonst sieht man nur die Oberfläche
-    else if (status >= 502) logLine(`Fehler ${status}: ${req.method} ${req.url.split('?')[0]} – ${err.message}`);
+    else if (status >= 502) logLine(`Error ${status}: ${req.method} ${req.url.split('?')[0]} – ${err.message}`);
     if (res.headersSent) return res.destroy();
     res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end(status === 500 ? 'Serverfehler' : err.message);
@@ -281,30 +281,30 @@ server.on('upgrade', (req, socket, head) => {
   upstream.on('error', (err) => {
     if (!socket.destroyed && socket.bytesWritten === 0) fail(502, 'Bad Gateway');
     else socket.destroy();
-    console.warn(`Intiface ${m[1]}:${m[2]} nicht erreichbar: ${err.message}`);
+    console.warn(`Intiface ${m[1]}:${m[2]} not reachable: ${err.message}`);
   });
   socket.on('close', () => upstream.destroy());
 });
 
-// Start-Übersicht in „docker logs“: was gefunden wurde, was erreichbar ist – und wann der Player bereit ist
+// Start-Übersicht in „docker logs“ (seit 1.19.7 englisch): was gefunden wurde, was erreichbar ist – und wann der Player bereit ist
 const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${msg}`);
 server.listen(PORT, HOST, async () => {
-  logLine(`Funscript Player ${VERSION} – lauscht auf ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
-  if (!AUTH_USER) logLine('Hinweis: keine Anmeldung gesetzt (AUTH_USER/AUTH_PASS) – nur hinter einem geschützten Proxy oder im Heimnetz betreiben.');
-  logLine(`Bibliothek: lese ${MEDIA_DIR} …`);
+  logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
+  if (!AUTH_USER) logLine('Note: no login set (AUTH_USER/AUTH_PASS) – run it only behind a protected proxy or on your home network.');
+  logLine(`Library: reading ${MEDIA_DIR} …`);
   const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashStatus() : null, hqStatus()]);
   if (lib.status === 'fulfilled') {
-    const roots = new Set(lib.value.map((it) => it.root || '(Hauptordner)'));
-    logLine(`Bibliothek: ${lib.value.length} Videos, ${lib.value.filter((it) => it.script).length} mit Funscript, ${roots.size} Ordner – eingelesen in ${libraryScanMs()} ms`);
-  } else logLine(`Bibliothek: Fehler – ${lib.reason?.message}`);
-  if (!STASH_URL) logLine('Stash: nicht eingerichtet');
-  else if (stash.value?.ok) logLine(`Stash: verbunden (${STASH_URL}, Version ${stash.value.version || '?'})`);
-  else logLine(`Stash: NICHT erreichbar (${STASH_URL}) – ${stash.value?.error || stash.reason?.message || 'unbekannt'}`);
-  logLine(`HQ-Stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel-Grafik (VAAPI)' : 'CPU') : 'nicht verfügbar (kein ffmpeg)'}`);
-  const checks = await runSelfcheck().catch((e) => [{ name: 'Selbsttest', ok: false, info: e.message }]);
+    const roots = new Set(lib.value.map((it) => it.root || '(main folder)'));
+    logLine(`Library: ${lib.value.length} videos, ${lib.value.filter((it) => it.script).length} with Funscript, ${roots.size} folders – scanned in ${libraryScanMs()} ms`);
+  } else logLine(`Library: error – ${lib.reason?.message}`);
+  if (!STASH_URL) logLine('Stash: not configured');
+  else if (stash.value?.ok) logLine(`Stash: connected (${STASH_URL}, version ${stash.value.version || '?'})`);
+  else logLine(`Stash: NOT reachable (${STASH_URL}) – ${stash.value?.error || stash.reason?.message || 'unknown'}`);
+  logLine(`HQ stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel graphics (VAAPI)' : 'CPU') : 'not available (no ffmpeg)'}`);
+  const checks = await runSelfcheck().catch((e) => [{ name: 'Self-test', ok: false, info: e.message }]);
   const bad = checks.filter((c) => !c.ok);
-  logLine(`Selbsttest: ${checks.length - bad.length}/${checks.length} ok${bad.length ? '' : ' (Server, Oberfläche, Script-Intensität)'}`);
+  logLine(`Self-test: ${checks.length - bad.length}/${checks.length} ok${bad.length ? '' : ' (server, interface, script intensity)'}`);
   for (const c of bad) logLine(`  ✗ ${c.name}${c.info ? ' – ' + c.info : ''}`);
-  logLine(`HereSphere: ${heresphereOn() ? (serverSettings.hsPass ? 'an, mit Passwort' : 'an') : 'aus'} · Intiface: ${intifaceLanOnly() ? 'nur Heimnetz' : 'private Adressen'}`);
-  logLine('✓ bereit');
+  logLine(`HereSphere: ${heresphereOn() ? (serverSettings.hsPass ? 'on, with password' : 'on') : 'off'} · Intiface: ${intifaceLanOnly() ? 'home network only' : 'private addresses'}`);
+  logLine('✓ ready');
 });

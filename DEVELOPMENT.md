@@ -30,7 +30,7 @@ order – later ones may use earlier ones, the other way round only at runtime (
 
 | File | Purpose |
 |---|---|
-| `server.js` | Routes table (`ROUTES`), login, security headers incl. CSP, origin check, Intiface WebSocket forwarding, startup summary and slow requests in `docker logs` |
+| `server.js` | Routes table (`ROUTES`), login, security headers incl. CSP, origin check, Intiface WebSocket forwarding, startup summary and slow requests in `docker logs` (English; the release workflow greps for `✓ ready` and `Self-test: n/n`) |
 | `lib/config.js` · `lib/util.js` | Environment variables and constants · safe paths (`safeJoin`), `readBody`, `sendFile` with range, `cleanTitle` |
 | `lib/library.js` | Folder library, cached; rescanned when the folders change (`librarySignature`) or in the background after 30 s |
 | `lib/settings.js` | Server settings (HereSphere, scrypt password hash and signed token, Intiface home-network only) |
@@ -48,8 +48,9 @@ order – later ones may use earlier ones, the other way round only at runtime (
 | `enhance.js` · `hq.js` | Picture enhancement via WebGL · HQ stream from the server (seeking restarts the conversion) |
 | `finale.js` · `tools.js` | Finale · script intensity for both devices: original/auto/soft/intense (`processScript`, `multiplyCalm`, `presetVibeShape`), per scene, previews, offset calibration |
 | `stroker.js` | Stroker devices via Intiface (e.g. the Handy over Bluetooth) |
-| `selfctl.js` · `touchpad.js` | “Control yourself” for videos without a Funscript · touch area (tempo or 🧪 position via HDSP, at most 2 commands in flight, slower on HTTP 429), ⏺ recording |
-| `settings.js` | Settings page: collapsible sections, ⓘ explanations, picture/HQ, player display, update notice, “new in” dialog, reset |
+| `audiovibe.js` | 🧪 “Follow sound” (beta): video → Web Audio `AnalyserNode`; `audioVibeLevel()` gives `targetLevel()` a 0–1 level from loudness above the running average plus onsets. The `AudioContext` is only created on a click (otherwise the video would play muted); all media is same-origin, so the analyser gets real samples |
+| `selfctl.js` · `touchpad.js` | “Control yourself” (`selfCtl.mode`: `off` / `self` / `audio`) for videos without a Funscript · touch area (tempo or 🧪 position via HDSP, at most 2 commands in flight, slower on HTTP 429), ⏺ recording |
+| `settings.js` | Settings page: collapsible sections, ⓘ explanations, picture/HQ, player display, update notice, “new in” dialog, welcome dialog (only on a fresh install: `freshInstall` from `handy.js` = nothing stored in the browser nor on the server), reset |
 | `selftest.js` | Developer self-test in the browser: append `?selbsttest` to the address – runs typical flows with a simulated Handy |
 | `test/` | Automated tests with Node built-ins |
 
@@ -66,6 +67,10 @@ pauses).
 **Script chain.** `script.actions` → `toolActions()` (intensity: analysis + adjustment in `tools.js`, per scene in
 `scenePresets`) → `sendActions()` (finale “half tempo”) → Handy (CSV via HSSP) or Satisfyer. The heatmap shows
 `toolActions()`.
+
+**Mirrored controls.** Fields that appear twice (connection key / Application ID in the device window, Satisfyer
+strength min/max and translation at the video) are mirrors of the settings fields: `mirrorField(mirror, src)` in
+`app.js` copies the value and re-dispatches `input`/`change` on the original, so only one place stores and reacts.
 
 **Vibration.** `scriptSource()` returns `{ actions, ms }` from control or video. Each Satisfyer has its own loop:
 `targetLevel()` computes a strength 0–1, it is smoothed and only sent on change, ahead by the device's own Bluetooth

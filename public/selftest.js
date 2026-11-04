@@ -80,16 +80,15 @@
       check('Script-Bereich am Video sichtbar', !$('scriptBox').hidden, $('sbName').textContent);
       const activeInt = document.querySelector('#scriptBox [data-preset-scene] button.active')?.dataset.preset;
       check('Script-Intensität: Wahl der Szene aktiv, vier Knöpfe', activeInt === currentPreset() && document.querySelectorAll('#scriptBox [data-preset-scene] button').length === 4, activeInt);
-      $('ovInt').click();
-      check('🎚 in der Player-Leiste öffnet die Intensität', !$('intPop').hidden);
       document.body.click();
       check('Finale-Knopf nicht im Geräte-Fenster', (() => { openDevices(); const v = getComputedStyle($('finaleBtn')).display === 'none'; closeDevices(); return v; })());
       const fine = document.querySelector('.dev-fine[data-fine="handy"]');
-      check('Feineinstellung Handy nur im Geräte-Fenster (Status oben), nicht am Video', (() => {
-        const atVideo = getComputedStyle(fine).display === 'none';
-        openDevices(); const inSheet = getComputedStyle(fine).display !== 'none'; closeDevices();
-        return atVideo && inSheet;
-      })());
+      // 1.19.7: Hub am Video und im Geräte-Fenster; ⟳ nur noch unter der Verbindung im Geräte-Fenster
+      check('Feineinstellung Handy am Video, ⟳ nur im Geräte-Fenster', (() => {
+        const atVideo = getComputedStyle(fine).display !== 'none' && !$('resyncBtn').getClientRects().length;
+        openDevices('handy'); const inSheet = !!$('resyncBtn').getClientRects().length; closeDevices();
+        return atVideo && inSheet && !$('ovSync');
+      })(), `Hub am Video: ${getComputedStyle(fine).display}, ⟳ am Video: ${$('resyncBtn').getClientRects().length > 0}`);
       // Mini-Player schließen
       video.muted = true;
       await video.play().catch(() => {});

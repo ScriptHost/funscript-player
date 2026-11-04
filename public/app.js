@@ -538,6 +538,8 @@ document.querySelectorAll('details.dev-fine').forEach((d) => {
 });
 updateOutputs();
 
+const AUTO_RETRY_S = [3, 10, 30];
+let autoRetries = 0;
 async function connectHandy(auto = false) {
   const key = $('key').value.trim();
   if (!key) return auto ? undefined : openSettings('setDevices');
@@ -552,12 +554,18 @@ async function connectHandy(auto = false) {
     setStatus('on', 'verbunden');
     const api = handy.v3 ? ' (Handy-API v3)' : '';
     log(auto ? `Handy automatisch verbunden${api}.` : `Verbunden${api}.`);
+    autoRetries = 0;
     await applySlide();
     if (script) await preloadScript();
   } catch (e) {
     // Beim Start einfach ausgeschaltet = kein Fehler, nur „aus“
     if (auto && e.kind === 'offline') setStatus('off', 'aus');
     else setStatus(auto ? 'off' : 'err', handyErrText(e));
+    // 1.19.7: Nach dem Neuladen ist die Handy-Cloud manchmal kurz nicht bereit (oder bremst wegen vieler Anfragen) –
+    // automatisch noch ein paar Mal versuchen statt getrennt zu bleiben
+    if (auto && ['net', 'offline', 'limit'].includes(e.kind) && autoRetries < AUTO_RETRY_S.length) {
+      setTimeout(() => { if (!handy.connected && $('key').value.trim()) connectHandy(true); }, AUTO_RETRY_S[autoRetries++] * 1000);
+    }
     log((auto ? 'Automatisches Verbinden fehlgeschlagen: ' : '') + (e.message || e) + ' – oben auf den Status tippen und „Verbinden“.', true);
   } finally {
     btn.disabled = false;
@@ -576,6 +584,19 @@ const updateKeyHint = () => { $('keyHint').hidden = !!$('key').value.trim(); };
 $('key').addEventListener('input', updateKeyHint);
 $('key').addEventListener('change', () => { if ($('key').value.trim()) connectHandy(); });
 updateKeyHint();
+// 1.19.7: Key und Application ID auch im Geräte-Fenster (🔑 Verbindung) – gespiegelt zu ⚙️ → Geräte
+function mirrorField(mirror, src) {
+  $(mirror).value = $(src).value;
+  for (const ev of ['input', 'change']) {
+    $(mirror).addEventListener(ev, () => { $(src).value = $(mirror).value; $(src).dispatchEvent(new Event(ev)); });
+    $(src).addEventListener(ev, () => { if ($(mirror).value !== $(src).value) $(mirror).value = $(src).value; });
+  }
+}
+mirrorField('keyDev', 'key');
+mirrorField('appIdDev', 'appId');
+$('keyDevSave').addEventListener('click', () => { if (!$('connect').disabled) connectHandy(); }); // „change“ beim Verlassen des Felds verbindet schon
+// Ohne Key gleich aufgeklappt
+$('keyBox').open = !$('key').value.trim();
 
 // ---------------------------------------------------------------------------
 // „Läuft gerade“: unten in Bibliothek/Einstellungen/Steuern, solange ein Video geladen ist
@@ -625,7 +646,7 @@ function updateDevClasses() {
   }
   // Video ohne Funscript und „Keine Steuerung“: Geräte-Regler und Geräte-Knöpfe sind nutzlos
   const loaded = !!nowPlaying;
-  document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode === 'self'));
+  document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode !== 'off'));
   // Hinweis im Player: Gerät da, Video mit Script, aber Sync aus
   $('syncHint').hidden = !(h || v) || !script || appMode !== 'stream' || document.body.dataset.view !== 'player';
 }
@@ -740,7 +761,6 @@ async function manualResync() {
   }
 }
 $('resyncBtn').addEventListener('click', manualResync);
-$('ovSync').addEventListener('click', manualResync);
 document.addEventListener('keydown', (e) => { if (e.key === 's' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) manualResync(); });
 
 // Alle 30 s die Position neu senden (ersetzt die Laufzeit der Handy durch die echte Videoposition)

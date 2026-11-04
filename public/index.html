@@ -44,13 +44,24 @@
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.5</h3>
+    <h3>✨ Neu in 1.19.7</h3>
     <ul>
-      <li>🔒 <b>Sicherer:</b> der Container läuft schreibgeschützt und ohne Linux-Rechte, die Oberfläche mit strenger Content-Security-Policy.</li>
-      <li>🥽 HereSphere-Passwort jetzt mit scrypt gespeichert – einmal anmelden genügt.</li>
-      <li>〰 Intiface: standardmäßig nur Adressen im Heimnetz und nur Port 12345 (weitere über <code>INTIFACE_PORTS</code>).</li>
+      <li>🎵 <b>Beta:</b> Videos ohne Script – unter dem Video „🎵 Nach Ton“: der Satisfyer folgt Lautstärke und Rhythmus.</li>
+      <li>Am Video: Hub der Handy, Stärke und Übersetzung des Satisfyers; der Connection Key steht auch im Geräte-Fenster.</li>
+      <li>Aufgeräumt: 🎚, ✨ und ⟳ sind aus der Player-Leiste raus (Intensität und Bild unter dem Video, ⟳ im Geräte-Fenster), Auto-Stopp ist standardmäßig aus, Bild steht auf „Auto“.</li>
     </ul>
     <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
+  </div>
+  <!-- 1.19.7: Willkommen beim ersten Start (nur Neuinstallation; ⚙️ → Anzeige zeigt es wieder) -->
+  <div id="welcome" class="whatsnew welcome" hidden role="dialog" aria-label="Willkommen">
+    <h3>👋 Willkommen beim Funscript Player</h3>
+    <ol>
+      <li>🔌 <b>Gerät verbinden:</b> oben auf den Status tippen – The Handy mit dem Connection Key, Satisfyer per Bluetooth.</li>
+      <li>📚 <b>Video wählen:</b> in der Bibliothek, ⚡ = mit Funscript.</li>
+      <li>▶ <b>Abspielen:</b> die Geräte laufen mit dem Video mit. <b>■ STOPP</b> hält sofort alles an.</li>
+    </ol>
+    <p>Alles Weitere unter ⚙️ Einstellungen – dort auch die Sprache.</p>
+    <div class="actions"><button id="welcomeConnect" class="small">Gerät verbinden</button><button id="welcomeOk" class="small secondary">Los geht's</button></div>
   </div>
 
   <main>
@@ -138,11 +149,8 @@
                   </span>
                 </span>
                 <button id="ovMute" title="Ton an/aus (M)">🔊</button>
-                <button id="ovSync" class="sync-only" title="Handy neu synchronisieren (S)">⟳</button>
                 <button id="ovFinale" class="sync-only finale-btn" title="Finale: ruhiger – Modus in den Einstellungen (O)">🔥</button>
                 <button id="ovVibe" class="sync-only" title="Vibration pausieren">Vib ❚❚</button>
-                <button id="ovInt" class="sync-only" title="Script-Intensität für diese Szene">🎚</button>
-                <button id="ovEnh" title="Bildverbesserung umschalten">✨</button>
                 <button id="ovFit" title="Bild füllen / einpassen">Einpassen</button>
                 <button id="ovPip" title="Bild-in-Bild – schwebt auch über anderen Apps" hidden>⧉</button>
                 <button id="ovFs" title="Vollbild (F)">⛶</button>
@@ -158,13 +166,7 @@
           <div class="seg"><button data-preset="natural">Natürlich</button><button data-preset="sharp">Schärfer</button><button data-preset="max">Maximal</button></div>
           <a href="#" data-settings="imageSettings">Alle Bild-Einstellungen …</a>
         </div>
-        <!-- 1.19.3: Script-Intensität für diese Szene, aus der Player-Leiste (🎚) -->
-        <div id="intPop" class="img-pop int-pop" hidden>
-          <div class="pop-title">🎚 Script-Intensität <small>– für diese Szene</small></div>
-          <div class="seg int-seg" data-preset-scene><button data-preset="original">Original<canvas></canvas></button><button data-preset="auto">Automatisch<canvas></canvas></button><button data-preset="soft">Sanft<canvas></canvas></button><button data-preset="intense">Intensiv<canvas></canvas></button></div>
-          <a href="#" data-settings="setScript">Standard und Erklärung …</a>
-        </div>
-        <button id="openImageSettings" class="small secondary quality-link">✨ Bild: <b id="enhState">Natürlich</b> · HQ: <b id="hqLabel">Auto</b> – Einstellungen</button>
+        <button id="openImageSettings" class="small secondary quality-link">✨ Bild: <b id="enhState">Auto</b> · HQ: <b id="hqLabel">Auto</b> – Einstellungen</button>
 
         <div class="sceneinfo">
           <h2 id="videoName">Kein Video</h2>
@@ -184,9 +186,11 @@
           <div id="selfRow" class="self-row" hidden>
             <div class="self-head">
               <span>Kein Funscript</span>
-              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button></span>
+              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button><button data-self="audio" title="Satisfyer folgt Lautstärke und Rhythmus des Tons">🎵 Nach Ton 🧪</button></span>
               <button id="selfResume" class="small" hidden>↩ Script wieder abspielen</button>
             </div>
+            <!-- 1.19.7 (Beta): Satisfyer folgt dem Ton des Videos (audiovibe.js) -->
+            <p id="audioInfo" class="hint-text audio-info" hidden></p>
             <div id="selfCtl" class="self-ctl" hidden>
               <p class="hint-text self-none">Kein Gerät verbunden – oben auf den Status tippen und verbinden.</p>
               <div class="self-dev self-handy">
@@ -328,7 +332,7 @@
           <label class="check"><input id="stopHidden" type="checkbox" checked> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
           <label>Automatisch stoppen, wenn nichts bedient wird und kein Video läuft
             <select id="autoStop">
-              <option value="0">nie</option>
+              <option value="0">nie (Standard)</option>
               <option value="5">nach 5 Minuten</option>
               <option value="10">nach 10 Minuten</option>
               <option value="20">nach 20 Minuten</option>
@@ -361,7 +365,7 @@
             <li><b>Intensiv</b> – voller Hub, ruhige Stellen im doppelten oder dreifachen Takt, Satisfyer kräftiger.</li>
           </ul>
           <p class="hint-text">Gilt für Handy und Satisfyer zusammen und rechnet nur beim Abspielen um – deine Dateien bleiben
-            unverändert. Pro Szene wählst du am Video (Script-Bereich oder 🎚 in der Player-Leiste); das wird wie der Offset gemerkt.</p>
+            unverändert. Pro Szene wählst du am Video im Script-Bereich; das wird wie der Offset gemerkt.</p>
           <label class="adv">Stellen, die für die Handy zu schnell sind
             <select id="tooFast">
               <option value="shorten">Hub kürzen – jeder Stoß bleibt, dafür etwas kürzer</option>
@@ -489,6 +493,7 @@
           <label>Sprache
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
+          <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
           <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter</label>
           <p class="hint-text">Vollbild zeigt nur das Video mit der Bedienleiste des Browsers – so geht beim Verlassen der App
             automatisch das kleine Fenster auf (Android). Not-Aus im Vollbild: Esc bzw. zurück, dann STOPP.</p>
@@ -564,11 +569,11 @@
           <div id="updateBox" class="update-box" hidden>
             <b>⬆ Update verfügbar</b> <span id="updateText"></span>
             <a id="updateLink" href="#" target="_blank" rel="noopener">Was ist neu? ↗</a>
-            <p class="hint-text">Aktualisieren: <code>docker compose pull &amp;&amp; docker compose up -d</code> – deine Einstellungen liegen im Volume <code>handy-data</code> und bleiben.</p>
+            <p class="hint-text">Aktualisieren: <code>docker compose pull &amp;&amp; docker compose up -d</code> – deine Einstellungen liegen im Volume <code>funscript-data</code> und bleiben.</p>
           </div>
           <dl id="sysInfo" class="sysinfo"></dl>
           <p class="hint-text">Alles, was der Player speichert (Einstellungen, eigene Scripts, Offsets, Patterns), liegt auf dem Server im
-            Docker-Volume <code>handy-data</code> – eine Sicherung davon ist eine Sicherung von allem. Beim Start prüft sich der Player
+            Docker-Volume <code>funscript-data</code> – eine Sicherung davon ist eine Sicherung von allem. Beim Start prüft sich der Player
             selbst; das Ergebnis steht in <code>docker logs</code>.</p>
           <button id="resetLocal" class="adv small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
         </details>
@@ -691,12 +696,20 @@
         <div data-panel="dev:handy">
           <div class="conn">
             <button id="connect">Verbinden</button>
-            <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key in <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
+            <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key eintragen (gleich hier darunter).</p>
+            <!-- 1.19.7: Key direkt im Geräte-Fenster (gleiches Feld wie ⚙️ → Geräte) -->
+            <details id="keyBox" class="dev-key">
+              <summary>🔑 Verbindung (Connection Key)</summary>
+              <span class="copyrow"><input id="keyDev" type="password" autocomplete="off" spellcheck="false" aria-label="Connection Key" placeholder="Connection Key">
+                <button id="keyDevSave" class="small secondary">Verbinden</button></span>
+              <input id="appIdDev" type="text" autocomplete="off" spellcheck="false" aria-label="Application ID" placeholder="Application ID (optional – Handy-API v3)">
+            </details>
+            <!-- 1.19.7: Neu synchronisieren nur noch hier (nicht mehr in der Player-Leiste; Taste S bleibt) -->
+            <button id="resyncBtn" class="small secondary wide" title="Taste S">⟳ Neu synchronisieren</button>
             <p id="handyLat" class="hint-text"></p>
           </div>
           <details class="dev-fine" data-fine="handy">
             <summary>Feineinstellung Handy <small id="hubSummary" class="muted"></small></summary>
-            <button id="resyncBtn" class="small secondary wide">⟳ Neu synchronisieren</button>
             <label>Hub min <output id="minVal">0 %</output>
               <input id="slideMin" type="range" min="0" max="100" value="0">
             </label>
@@ -729,6 +742,19 @@
           <label>Stärke für diese Szene <output id="vibeSceneVal">100 %</output>
             <input id="vibeScene" type="range" min="10" max="100" step="5" value="100">
           </label>
+          <!-- 1.19.7: Stärke und Übersetzung auch am Video (gespiegelt zu ⚙️ → Geräte) -->
+          <details class="dev-fine" data-fine="vibe">
+            <summary>Feineinstellung Satisfyer <small id="vibeSummary" class="muted"></small></summary>
+            <label>Übersetzung
+              <select id="dvMap" aria-label="Übersetzung Script → Vibration"></select>
+            </label>
+            <label>Stärke min <output id="dvMinVal"></output>
+              <input id="dvMin" type="range" min="0" max="100" value="0">
+            </label>
+            <label>Stärke max <output id="dvMaxVal"></output>
+              <input id="dvMax" type="range" min="0" max="100" value="100">
+            </label>
+          </details>
           <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Übersetzung, Gleichmäßigkeit, Intiface … in den Einstellungen</a>
         </div>
 
@@ -762,6 +788,7 @@
   <script src="tools.js"></script>
   <script src="stroker.js"></script>
   <script src="selfctl.js"></script>
+  <script src="audiovibe.js"></script>
   <script src="touchpad.js"></script>
   <script src="settings.js"></script>
   <script src="boot.js"></script>

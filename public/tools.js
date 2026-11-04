@@ -313,9 +313,6 @@ function drawPresetPreviews() {
   });
 }
 
-// Player-Leiste: 🎚 öffnet die Auswahl über dem Video
-$('ovInt').addEventListener('click', (e) => { e.stopPropagation(); $('intPop').hidden = !$('intPop').hidden; drawPresetPreviews(); });
-document.addEventListener('click', (e) => { if (!$('intPop').hidden && !e.target.closest('#intPop, #ovInt')) $('intPop').hidden = true; });
 
 $('tooFast').value = tools.tooFast;
 $('tooFast').addEventListener('change', () => { tools.tooFast = $('tooFast').value; toolsChanged(); });

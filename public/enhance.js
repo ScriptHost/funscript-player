@@ -377,7 +377,6 @@ function enhApply() {
   $('enh_deband').checked = values.deband;
   $('enh_compare').checked = s.compare;
   $('enhSliders').classList.toggle('dim', s.preset === 'off');
-  $('ovEnh').textContent = `✨ ${ENH_LABEL[s.preset]}`;
   $('enhState').textContent = !enh.ok ? 'Nicht verfügbar (kein WebGL)' : ENH_LABEL[s.preset];
   enh.dirty = true;
 }
@@ -406,19 +405,18 @@ $('enh_deband').addEventListener('change', () => {
 });
 $('enh_compare').addEventListener('change', () => { enh.settings.compare = $('enh_compare').checked; enhApply(); });
 
-// ✨ im Player: Stufen durchschalten
-// ✨ im Player: bestes Bild (Auto) <-> Original – schaltet Browser-Verbesserung und HQ-Stream gemeinsam
-$('ovEnh').addEventListener('click', () => {
-  const next = enh.settings.preset === 'off' ? 'auto' : 'off';
-  if (typeof setQualityMode === 'function') setQualityMode(next); else enhSetPreset(next);
-  showOverlay();
-});
 
 video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.dirty = true; enh.rebuilds = 0; });
 ['seeked', 'loadeddata', 'resize'].forEach((ev) => video.addEventListener(ev, () => { enh.dirty = true; }));
 window.addEventListener('resize', () => { enh.dirty = true; });
 
 Object.assign(enh.settings, store.get('enhance', {}));
+// 1.19.7: einmalig auf „Auto“ – ältere Versionen hatten „Natürlich“ als Standard gespeichert (eigene Werte bleiben)
+if (!store.get('enhAuto1197', false)) {
+  if (enh.settings.preset !== 'custom') enh.settings.preset = 'auto';
+  if (store.get('hqPreset2', 'auto') !== 'off') store.set('hqPreset2', 'auto');
+  store.set('enhAuto1197', true);
+}
 enh.ok = enhInit();
 enhApply();
 requestAnimationFrame(enhLoop);

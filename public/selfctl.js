@@ -58,7 +58,7 @@ function selfUI() {
   // Nur mit verbundenem Gerät – oder wenn „Selbst steuern“ gewählt ist (dann mit Hinweis zum Verbinden).
   // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
   $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
-    || !(selfCtl.mode === 'self' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
+    || !(selfCtl.mode !== 'off' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
   document.querySelector('.self-head > span').textContent = typeof suspended !== 'undefined' && suspended ? 'Script angehalten' : 'Kein Funscript';
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
@@ -126,7 +126,7 @@ document.addEventListener('handy-owner', (e) => {
 document.querySelectorAll('#selfSeg button').forEach((b) => b.addEventListener('click', () => {
   selfCtl.mode = b.dataset.self;
   store.set('selfMode', selfCtl.mode);
-  if (selfCtl.mode === 'off') selfCtl.handyOn = false;
+  if (selfCtl.mode !== 'self') selfCtl.handyOn = false;
   selfTick();
 }));
 $('selfHandy').addEventListener('click', () => {
