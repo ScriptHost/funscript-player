@@ -1,7 +1,7 @@
 'use strict';
 
 // ESLint (1.19.9) – läuft nur auf GitHub (Workflow „Tests“), nicht im Image. Lokal:
-//   npm i --no-save eslint@9 globals@15 && npx eslint .
+//   npm ci && npx eslint .   (Versionen fest in package-lock.json)
 // Die Skripte der Oberfläche teilen sich EINEN globalen Namensraum (klassische <script>-Dateien in fester
 // Reihenfolge). Damit ESLint Tippfehler in Namen findet, ohne gemeinsame Namen anzumeckern, werden alle
 // Namen, die eine Datei auf oberster Ebene anlegt, für die anderen als bekannt eingetragen.

@@ -24,7 +24,7 @@ Open `http://localhost:8080`. Bluetooth (Satisfyer) works on `localhost` or over
 
 ```bash
 node --test "test/*.test.js"                          # server, script logic, translations, browser self-test
-npm i --no-save eslint@9 globals@15 && npx eslint .   # code check (only needed locally if you want it)
+npm ci && npx eslint .                               # code check (versions pinned in package-lock.json)
 ```
 
 The browser self-test needs Chrome or Edge; without one it is skipped locally (on GitHub it always runs). Open
