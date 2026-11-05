@@ -306,7 +306,7 @@ export function init() {
   $('welcomeConnect').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); openDevices(); });
   $('welcomeAgain').addEventListener('click', () => showWelcome());
   if (freshInstall && !store.get('seenWelcome', false)) {
-    store.set('seen11911', true); // statt „Neu in …“
+    store.set('seen200', true); // statt „Neu in …“
     showWelcome();
   }
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; renderInstall(); });
@@ -325,9 +325,9 @@ export function init() {
     if ($('appFs').checked && !e.target.closest('#ovFs, #ovHit, video, #ovPip, #appFs')) enterAppFs();
   }, true);
   // --- Einmal nach dem Update auf 1.19.11: was neu ist ------------------------
-  if (!store.get('seen11911', false)) {
+  if (!store.get('seen200', false)) {
     $('whatsNew').hidden = false;
-    const done = () => { $('whatsNew').hidden = true; store.set('seen11911', true); };
+    const done = () => { $('whatsNew').hidden = true; store.set('seen200', true); };
     $('whatsNewOk').addEventListener('click', done);
     $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setLook'); });
   }

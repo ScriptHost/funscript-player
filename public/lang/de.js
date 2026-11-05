@@ -4,6 +4,15 @@ export default {
   'menu.control': 'Steuern',
   'menu.controlHint': 'Direkt, Patterns, Touch-Fläche',
 
+  // Dialog „Neu in dieser Version“
+  'new.label': 'Neu in dieser Version',
+  'new.title': 'Neu in 2.0',
+  'new.design': '<b>Neues Design</b> – vier Bereiche: Bibliothek, Player, Geräte, Einstellungen (am Smartphone als Leiste unten).',
+  'new.player': '<b>Player:</b> Script, Intensität, Offset und Finale direkt neben dem Video; Geräte als Balken darunter.',
+  'new.settings': '<b>Einstellungen</b> nach Bereichen sortiert. <b>Steuern</b> (Direkt, Patterns, Touch-Fläche) liegt jetzt im Geräte-Fenster.',
+  'new.ok': 'Verstanden',
+  'new.view': 'Einstellungen ansehen',
+
   // Navigation (4 Bereiche)
   'nav.label': 'Bereiche',
   'nav.library': 'Bibliothek',

@@ -5,6 +5,15 @@ export default {
   'menu.control': 'Control',
   'menu.controlHint': 'Direct, patterns, touch area',
 
+  // „New in this version“ dialog (once after the update)
+  'new.label': 'New in this version',
+  'new.title': 'New in 2.0',
+  'new.design': '<b>New design</b> – four areas: Library, Player, Devices, Settings (on the smartphone as a bar at the bottom).',
+  'new.player': '<b>Player:</b> script, intensity, offset and finale right next to the video; devices as bars below.',
+  'new.settings': '<b>Settings</b> sorted into areas. <b>Control</b> (direct, patterns, touch area) is now in the device window.',
+  'new.ok': 'Got it',
+  'new.view': 'View settings',
+
   // Navigation (4 areas)
   'nav.label': 'Areas',
   'nav.library': 'Library',

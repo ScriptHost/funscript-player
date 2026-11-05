@@ -45,14 +45,15 @@
     <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
-  <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="Neu in dieser Version">
-    <h3>✨ Neu in 1.19.11</h3>
+  <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="New in this version" data-i18n-aria-label="new.label">
+    <h3>✨ <span data-i18n="new.title">New in 2.0</span></h3>
     <ul>
-      <li>⛶ Das <b>eigene Vollbild</b> ist zurück – mit STOPP, Finale, Ton und Einpassen/Füllen. Wischen zeigt den Wert mitten im Bild.</li>
-      <li>Weniger Meldungen beim Start: Verbinden läuft still, nur der Status oben zeigt es. Beim Videostart erst das Vorschaubild.</li>
-      <li>Mitschnitt klappt auch nur mit dem Satisfyer; im Geräte-Fenster steht, ob Handy-API v2 oder v3 läuft.</li>
+      <li data-i18n-html="new.design"><b>New design</b> – four areas: Library, Player, Devices, Settings (on the smartphone as a bar at the bottom).</li>
+      <li data-i18n-html="new.player"><b>Player:</b> script, intensity, offset and finale right next to the video; devices as bars below.</li>
+      <li data-i18n-html="new.settings"><b>Settings</b> sorted into areas. <b>Control</b> (direct, patterns, touch area) is now in the device window.</li>
     </ul>
-    <div class="actions"><button id="whatsNewOk" class="small">Verstanden</button><button id="whatsNewSet" class="small secondary">Einstellungen ansehen</button></div>
+    <div class="actions"><button id="whatsNewOk" class="small" data-i18n="new.ok">Got it</button><button id="whatsNewSet" class="small secondary" data-i18n="new.view">View settings</button></div>
+  </div>
   </div>
   <!-- 1.19.7: Willkommen beim ersten Start (nur Neuinstallation; ⚙️ → Anzeige zeigt es wieder) -->
   <div id="welcome" class="whatsnew welcome" hidden role="dialog" aria-label="Willkommen">
