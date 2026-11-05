@@ -131,8 +131,15 @@ const ROUTES = {
   },
   '/api/userscript': {
     POST: async (req, res) => json(res, await saveUserScript(req)),
-    GET: async (req, res, url) => { const src = userSrc(url); return sendFile(req, res, (await ownScriptFile(src)) || userScriptFile(src)); },
-    DELETE: async (req, res, url) => { await deleteUserScript(userSrc(url)); noContent(res); },
+    // ?name=… = benanntes eigenes Script (2.0), ohne = das eine eigene Script der Szene
+    GET: async (req, res, url) => {
+      const src = userSrc(url), name = url.searchParams.get('name');
+      if (name === null) return sendFile(req, res, (await ownScriptFile(src)) || userScriptFile(src));
+      const file = await ownScriptFile(src, name);
+      if (!file) throw Object.assign(new Error('Kein eigenes Script'), { status: 404 });
+      return sendFile(req, res, file);
+    },
+    DELETE: async (req, res, url) => { const name = url.searchParams.get('name'); await deleteUserScript(userSrc(url), name ?? undefined); noContent(res); },
   },
   // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
   '/api/userscripts': { GET: async (req, res) => json(res, await ownScripts()) },

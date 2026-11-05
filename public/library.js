@@ -503,34 +503,38 @@ export let scriptMeta = { src: '', hasOrig: false, hasOwn: false, own: false, or
 export let suspended = null; // Script, das für „Selbst steuern / neu aufnehmen“ angehalten ist
 
 // 2.0: Auswahl je Szene (scriptChoice): 'orig' = Original, 'own' = eigenes Script, 'alt:<Name>' = weiteres Script
-// neben dem Video (clip.soft.funscript). Ohne Wahl: eigenes Script, sonst Original.
+// neben dem Video (clip.soft.funscript), 'own:<Name>' = über 📂 geladenes, benanntes eigenes Script (Server).
+// Ohne Wahl: eigenes Script, sonst Original.
 function scriptOptions() {
   const m = scriptMeta;
   return [
     ...(m.hasOrig ? [{ id: 'orig', label: tr('⚡ Original') }] : []),
     ...(m.alts || []).map((a) => ({ id: 'alt:' + a.name, label: '⚡ ' + a.name, url: a.url, name: a.name })),
-    ...(m.hasOwn ? [{ id: 'own', label: tr('✋ Eigenes') }] : []),
+    ...(m.hasOwn ? [{ id: 'own', label: t('player.ownShort') }] : []),
+    ...(m.named || []).map((n) => ({ id: 'own:' + n, label: '✋ ' + n, ownName: n })),
   ];
 }
 async function loadSceneScript(src, origName, origUrl, alts = []) {
   suspended = null;
   const own = ownList[src];
   const ownInFolder = own?.where === 'folder'; // dann IST die Datei neben dem Video das eigene Script
-  scriptMeta = { src, hasOrig: !!origUrl && !ownInFolder, hasOwn: !!own, own: false, ownAt: own?.at || 0, origName, origUrl, alts, choice: '' };
+  scriptMeta = { src, hasOrig: !!origUrl && !ownInFolder, hasOwn: !!own?.where, own: false, ownAt: own?.at || 0, origName, origUrl, alts, choice: '',
+    named: Object.keys(own?.named || {}).sort((a, b) => a.localeCompare(b)) };
   const opts = scriptOptions();
   const want = store.get('scriptChoice', {})[src];
   const pick = opts.find((o) => o.id === want) || opts.find((o) => o.id === 'own') || opts[0];
   if (!pick) { clearScript(); return renderScriptBox(); }
   const useOwn = pick.id === 'own';
   try {
-    const res = await fetch(useOwn ? '/api/userscript?src=' + encodeURIComponent(src) : pick.url || origUrl);
+    const res = await fetch(useOwn ? '/api/userscript?src=' + encodeURIComponent(src)
+      : pick.ownName ? '/api/userscript?src=' + encodeURIComponent(src) + '&name=' + encodeURIComponent(pick.ownName) : pick.url || origUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     if (nowKey() !== src) return;
     scriptMeta.own = useOwn;
     scriptMeta.choice = pick.id;
     // Beim Wechsel mitten im Video läuft es an derselben Stelle weiter (loadScript synchronisiert neu)
-    loadScript(text, useOwn ? '✋ Eigenes Script' : pick.name ? `${origName ? origName.replace(/.funscript$/i, '') : 'Funscript'} · ${pick.name}` : origName);
+    loadScript(text, useOwn ? '✋ Eigenes Script' : pick.ownName ? '✋ ' + pick.ownName : pick.name ? `${origName ? origName.replace(/.funscript$/i, '') : 'Funscript'} · ${pick.name}` : origName);
   } catch (e) {
     if (nowKey() !== src) return;
     clearScript();
@@ -552,13 +556,13 @@ function sceneAlts(src, alts) {
 
 // Script-Bereich im Geräte-Kasten
 export function renderScriptBox() {
-  const show = !!(script || suspended || scriptMeta.hasOwn) && !!nowKey();
+  const show = !!nowKey(); // 2.0: immer bei Szenen aus der Bibliothek – 📂 lädt weitere Scripts dazu
   $('scriptBox').hidden = !show;
   $('selfResume').hidden = $('sbResume').hidden = !suspended;
   if (!show) return;
   const date = scriptMeta.ownAt ? new Date(scriptMeta.ownAt).toLocaleDateString(lang) : '';
   $('sbName').textContent = suspended ? t('player.suspended')
-    : script ? (scriptMeta.own ? (date ? t('player.ownFrom', { date }) : t('player.own')) : `⚡ ${script.name}`) + ' · ' + t('player.points', { n: script.actions.length })
+    : script ? (scriptMeta.own ? (date ? t('player.ownFrom', { date }) : t('player.own')) : scriptMeta.choice.startsWith('own:') ? script.name : `⚡ ${script.name}`) + ' · ' + t('player.points', { n: script.actions.length })
       : t('player.noScript');
   const opts = scriptOptions();
   $('sbChoice').hidden = opts.length < 2 || !!suspended;
@@ -570,7 +574,7 @@ export function renderScriptBox() {
   document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', b.dataset.choice === scriptMeta.choice));
   document.querySelector('.sb-presets').hidden = !script;
   $('sbSelf').hidden = $('sbHot').hidden = !script;
-  $('sbDelete').hidden = !scriptMeta.hasOwn;
+  $('sbDelete').hidden = !(scriptMeta.choice === 'own' || scriptMeta.choice.startsWith('own:')) || !!suspended;
 }
 $('sbChoice').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-choice]');
@@ -603,14 +607,39 @@ $('selfResume').addEventListener('click', resumeScript);
 $('sbResume').addEventListener('click', resumeScript);
 
 $('sbDelete').addEventListener('click', async () => {
-  if (!confirm('Dein eigenes Script zu diesem Video löschen? Ein Original-Funscript bleibt erhalten.')) return;
+  const name = scriptMeta.choice.startsWith('own:') ? scriptMeta.choice.slice(4) : null;
+  if (!confirm(name ? t('player.deleteNamedAsk', { name }) : t('player.deleteOwnAsk'))) return;
   try {
-    const res = await fetch('/api/userscript?src=' + encodeURIComponent(scriptMeta.src), { method: 'DELETE' });
+    const res = await fetch('/api/userscript?src=' + encodeURIComponent(scriptMeta.src) + (name ? '&name=' + encodeURIComponent(name) : ''), { method: 'DELETE' });
     if (!res.ok) throw new Error(await res.text());
     await refreshOwn();
     log('🗑 Eigenes Script gelöscht.');
     loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
   } catch (e) { log('Löschen: ' + e.message, true); }
+});
+
+// 📂 Weiteres Script zu dieser Szene laden und unter einem Namen behalten (nur auf dem Player-Server)
+$('sbFile').addEventListener('click', () => $('sbFileInput').click());
+$('sbFileInput').addEventListener('change', async () => {
+  const file = $('sbFileInput').files[0];
+  $('sbFileInput').value = '';
+  const src = nowKey();
+  if (!file || !src) return;
+  try {
+    const funscript = JSON.parse(await file.text());
+    if (!Array.isArray(funscript?.actions) || !funscript.actions.length) throw new Error(t('player.fileNoActions'));
+    const name = prompt(t('player.namePrompt'), file.name.replace(/\.funscript$/i, '').slice(0, 40))?.trim();
+    if (!name) return;
+    const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, name, funscript }) });
+    if (!res.ok) throw new Error(await res.text());
+    const r = await res.json();
+    await refreshOwn();
+    const map = store.get('scriptChoice', {});
+    map[src] = 'own:' + r.name;
+    store.set('scriptChoice', map);
+    log(r.replaced ? t('player.fileReplaced', { name: r.name }) : t('player.fileSaved', { name: r.name }));
+    if (nowKey() === src) loadSceneScript(src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
+  } catch (e) { log(t('player.fileError', { msg: e.message }), true); }
 });
 
 // 🔥 Die drei intensivsten Stellen (10-s-Abschnitte mit dem meisten Weg) der Reihe nach anspringen

@@ -70,6 +70,35 @@ test('Eigenes Script: neben das Video, eigenes ersetzen, Original nie anfassen, 
   assert.strictEqual((await fetch(srv.base + '/api/userscript?src=media:Filme/mit.mp4', { method: 'DELETE' })).status, 404);
 });
 
+test('2.0: benannte eigene Scripts je Szene (own:<Name>)', async () => {
+  const a = { actions: [{ at: 0, pos: 0 }, { at: 300, pos: 100 }] };
+  const b = { actions: [{ at: 0, pos: 50 }, { at: 600, pos: 60 }] };
+  const src = 'stash:77';
+  let r = await (await put('/api/userscript', { src, name: 'sanft', funscript: a }, 'POST')).json();
+  assert.deepStrictEqual([r.where, r.name, r.replaced], ['server', 'sanft', false]);
+  r = await (await put('/api/userscript', { src, name: 'Lange Fassung', funscript: b }, 'POST')).json();
+  r = await (await put('/api/userscript', { src, name: 'sanft', funscript: b }, 'POST')).json();
+  assert.ok(r.replaced, 'gleicher Name ersetzt');
+  const q = (name) => srv.base + '/api/userscript?src=' + encodeURIComponent(src) + '&name=' + encodeURIComponent(name);
+  assert.deepStrictEqual((await (await fetch(q('sanft'))).json()).actions, b.actions);
+  assert.strictEqual((await fetch(q('fehlt'))).status, 404);
+  let own = (await (await fetch(srv.base + '/api/userscripts')).json())[src];
+  assert.deepStrictEqual(Object.keys(own.named).sort(), ['Lange Fassung', 'sanft']);
+  assert.ok(!own.where, 'kein Haupt-Script');
+  // Haupt-Script dazu – die benannten bleiben
+  await put('/api/userscript', { src, funscript: a }, 'POST');
+  own = (await (await fetch(srv.base + '/api/userscripts')).json())[src];
+  assert.strictEqual(own.where, 'server');
+  assert.strictEqual(Object.keys(own.named).length, 2);
+  // Ungültige Namen
+  for (const name of ['', '   ', '__proto__']) assert.strictEqual((await put('/api/userscript', { src, name, funscript: a }, 'POST')).status, 400);
+  // Löschen einzeln, zuletzt verschwindet der Eintrag
+  assert.strictEqual((await fetch(q('sanft'), { method: 'DELETE' })).status, 204);
+  assert.strictEqual((await fetch(q('Lange Fassung'), { method: 'DELETE' })).status, 204);
+  assert.strictEqual((await fetch(srv.base + '/api/userscript?src=' + src, { method: 'DELETE' })).status, 204);
+  assert.ok(!(src in await (await fetch(srv.base + '/api/userscripts')).json()));
+});
+
 test('Eigenes Script nur neben Videos', async () => {
   fs.writeFileSync(path.join(srv.media, 'Filme', 'notiz.txt'), 'x');
   const r = await put('/api/userscript', { src: 'media:Filme/notiz.txt', funscript: { actions: [] } }, 'POST');
