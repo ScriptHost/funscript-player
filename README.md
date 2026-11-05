@@ -127,10 +127,23 @@ starts fresh (browsers forget the shared settings too).
 Every settings section is collapsible; fine-tuning (Satisfyer translation, picture, finale, display …) appears with
 **⚙️ → Settings → Show advanced settings**. ⚙️ → System shows **“Update available”** when GitHub has a newer release.
 
+## Network & privacy
+
+- **The container needs no internet access.** It only talks to Stash (usually in your own network) and serves the
+  player to your browser. The only exception is the optional update check (asks GitHub at most every 6 h for the
+  newest release) – switch it off with `UPDATE_CHECK=off`.
+- **The Handy is controlled by your device, not by the server.** The browser on your phone/PC talks directly to the
+  Handy cloud (handyfeeling.com) – with your connection key and the script of the current video, because the Handy
+  plays scripts from there. The player server never sends anything to the Handy cloud.
+- The connection key is stored on the player server (data volume) so all your devices know it – it only goes out
+  from your browser to the Handy cloud.
+- **Satisfyer** connect via Bluetooth directly from the browser, or through Intiface Central in your home network –
+  no cloud involved. The Handy can also run via Bluetooth through Intiface, then without the Handy cloud.
+
 ## Security
 
-- No login in the player by default – run it behind a protected proxy or in your home network only, or set
-  `AUTH_USER`/`AUTH_PASS` (basic auth).
+- Login is required since 2.0: set `AUTH_USER`/`AUTH_PASS` (basic auth) – or `LOGIN=off` on purpose, e.g. behind a
+  reverse proxy with its own login.
 - The server only accepts changes from its own page (origin check) and can’t be embedded in other sites.
 - Intiface forwarding: home-network addresses only by default (192.168.x / 10.x; fixed with `INTIFACE_LAN_ONLY=1`),
   port 12345 only – allow more with `INTIFACE_PORTS` (comma-separated).

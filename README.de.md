@@ -133,10 +133,23 @@ Direkt per Bluetooth aus dem Browser (Chrome/Edge auf Android/PC, iPhone: App �
 Alternativ über **Intiface Central** (auch: Handy per Bluetooth ohne Internet); bei HTTPS leitet der Server die
 Verbindung über `/intiface` weiter (standardmäßig nur Heimnetz, mit `INTIFACE_LAN_ONLY=1` fest; nur Port 12345, weitere über `INTIFACE_PORTS`).
 
+## Netzwerk & Datenschutz
+
+- **Der Container braucht kein Internet.** Er spricht nur mit Stash (meist im eigenen Netz) und liefert den Player an
+  deinen Browser. Einzige Ausnahme ist die optionale Update-Prüfung (fragt höchstens alle 6 h bei GitHub nach der
+  neuesten Version) – abschaltbar mit `UPDATE_CHECK=off`.
+- **Die Handy steuert dein Gerät, nicht der Server.** Der Browser auf Smartphone/PC spricht direkt mit der
+  Handy-Cloud (handyfeeling.com) – mit deinem Connection Key und dem Script des aktuellen Videos, denn die Handy spielt
+  Scripts von dort ab. Der Player-Server selbst schickt nichts an die Handy-Cloud.
+- Der Connection Key liegt auf dem Player-Server (Daten-Volume), damit alle deine Geräte ihn kennen – hinaus geht er
+  nur von deinem Browser zur Handy-Cloud.
+- **Satisfyer** verbinden sich per Bluetooth direkt aus dem Browser oder über Intiface Central im Heimnetz – ohne
+  Cloud. Auch die Handy kann per Bluetooth über Intiface laufen, dann ganz ohne Handy-Cloud.
+
 ## Sicherheit
 
-- Keine Anmeldung im Player als Standard – hinter einem geschützten Proxy oder nur im Heimnetz betreiben, oder
-  `AUTH_USER`/`AUTH_PASS` setzen (Basic Auth).
+- Anmeldung ist seit 2.0 Pflicht: `AUTH_USER`/`AUTH_PASS` setzen (Basic Auth) – oder bewusst `LOGIN=off`, z. B. hinter
+  einem Reverse Proxy mit eigener Anmeldung.
 - Der Server nimmt Änderungen nur von der eigenen Seite an (Herkunftsprüfung) und lässt sich nicht einbetten.
 - Der Container läuft schreibgeschützt, mit `/tmp` als tmpfs, ohne Linux-Rechte (`cap_drop: ALL`) und mit
   `no-new-privileges`; schreiben kann er nur in sein Daten-Volume.
