@@ -203,3 +203,20 @@ test('2.0: Beispielpasswort change-me gilt nicht', async () => {
     assert.match(await r.text(), /change-me/);
   } finally { s.stop(); }
 });
+
+test('2.0: mehrere Scripts je Video (Varianten), Achsen zählen nicht', async () => {
+  const s = await startServer({}, (media) => {
+    for (const f of ['multi.mp4', 'multi.funscript', 'multi.soft.funscript', 'multi.roll.funscript', 'nur.mp4', 'nur.hard.funscript']) {
+      fs.writeFileSync(path.join(media, 'Filme', f), f.endsWith('.funscript') ? '{"actions":[]}' : 'x');
+    }
+  });
+  try {
+    const lib = await (await fetch(s.base + '/api/library')).json();
+    const multi = lib.find((it) => it.video === 'Filme/multi.mp4');
+    assert.strictEqual(multi.script, 'Filme/multi.funscript');
+    assert.deepStrictEqual(multi.scripts, [{ name: 'soft', script: 'Filme/multi.soft.funscript' }]);
+    const nur = lib.find((it) => it.video === 'Filme/nur.mp4');
+    assert.strictEqual(nur.script, 'Filme/nur.hard.funscript');
+    assert.strictEqual(nur.scripts, undefined);
+  } finally { s.stop(); }
+});

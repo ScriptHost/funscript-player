@@ -436,7 +436,8 @@ async function openFolderItem(it) {
   loadVideo(mediaUrl(it.video), it.name, 'media:' + it.video);
   nowPlaying = { kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder };
   $('sceneMeta').textContent = it.folder ? `Ordner: ${it.folder}` : 'Bibliotheksordner';
-  loadSceneScript('media:' + it.video, it.script ? it.script.split('/').pop() : '', it.script ? mediaUrl(it.script) : '');
+  loadSceneScript('media:' + it.video, it.script ? it.script.split('/').pop() : '', it.script ? mediaUrl(it.script) : '',
+    (it.scripts || []).map((v) => ({ name: v.name, url: mediaUrl(v.script) })));
 }
 
 // ---------------------------------------------------------------------------
@@ -489,20 +490,35 @@ function tileBadge(src, hasScript) {
 let scriptMeta = { src: '', hasOrig: false, hasOwn: false, own: false, origName: '', origUrl: '' };
 let suspended = null; // Script, das für „Selbst steuern / neu aufnehmen“ angehalten ist
 
-async function loadSceneScript(src, origName, origUrl) {
+// 2.0: Auswahl je Szene (scriptChoice): 'orig' = Original, 'own' = eigenes Script, 'alt:<Name>' = weiteres Script
+// neben dem Video (clip.soft.funscript). Ohne Wahl: eigenes Script, sonst Original.
+function scriptOptions() {
+  const m = scriptMeta;
+  return [
+    ...(m.hasOrig ? [{ id: 'orig', label: tr('⚡ Original') }] : []),
+    ...(m.alts || []).map((a) => ({ id: 'alt:' + a.name, label: '⚡ ' + a.name, url: a.url, name: a.name })),
+    ...(m.hasOwn ? [{ id: 'own', label: tr('✋ Eigenes') }] : []),
+  ];
+}
+async function loadSceneScript(src, origName, origUrl, alts = []) {
   suspended = null;
   const own = ownList[src];
   const ownInFolder = own?.where === 'folder'; // dann IST die Datei neben dem Video das eigene Script
-  scriptMeta = { src, hasOrig: !!origUrl && !ownInFolder, hasOwn: !!own, own: false, ownAt: own?.at || 0, origName, origUrl };
-  const useOwn = scriptMeta.hasOwn && (!scriptMeta.hasOrig || store.get('scriptChoice', {})[src] !== 'orig');
-  if (!useOwn && !origUrl) { clearScript(); return renderScriptBox(); }
+  scriptMeta = { src, hasOrig: !!origUrl && !ownInFolder, hasOwn: !!own, own: false, ownAt: own?.at || 0, origName, origUrl, alts, choice: '' };
+  const opts = scriptOptions();
+  const want = store.get('scriptChoice', {})[src];
+  const pick = opts.find((o) => o.id === want) || opts.find((o) => o.id === 'own') || opts[0];
+  if (!pick) { clearScript(); return renderScriptBox(); }
+  const useOwn = pick.id === 'own';
   try {
-    const res = await fetch(useOwn ? '/api/userscript?src=' + encodeURIComponent(src) : origUrl);
+    const res = await fetch(useOwn ? '/api/userscript?src=' + encodeURIComponent(src) : pick.url || origUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     if (nowKey() !== src) return;
     scriptMeta.own = useOwn;
-    loadScript(text, useOwn ? '✋ Eigenes Script' : origName);
+    scriptMeta.choice = pick.id;
+    // Beim Wechsel mitten im Video läuft es an derselben Stelle weiter (loadScript synchronisiert neu)
+    loadScript(text, useOwn ? '✋ Eigenes Script' : pick.name ? `${origName ? origName.replace(/.funscript$/i, '') : 'Funscript'} · ${pick.name}` : origName);
   } catch (e) {
     if (nowKey() !== src) return;
     clearScript();
@@ -521,18 +537,26 @@ function renderScriptBox() {
   $('sbName').textContent = suspended ? '✋ Selbst steuern – Script angehalten'
     : script ? (scriptMeta.own ? `✋ Eigenes Script${date ? ' vom ' + date : ''}` : `⚡ ${script.name}`) + ` · ${script.actions.length} Punkte`
       : 'Kein Script';
-  $('sbChoice').hidden = !(scriptMeta.hasOrig && scriptMeta.hasOwn) || !!suspended;
-  document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', (b.dataset.choice === 'own') === scriptMeta.own));
+  const opts = scriptOptions();
+  $('sbChoice').hidden = opts.length < 2 || !!suspended;
+  // Knöpfe je verfügbarem Script (Original, Varianten, Eigenes) – das neue Design ersetzt das später
+  if ($('sbChoice').dataset.ids !== opts.map((o) => o.id).join('|')) {
+    $('sbChoice').dataset.ids = opts.map((o) => o.id).join('|');
+    $('sbChoice').replaceChildren(...opts.map((o) => { const b = el('button', { type: 'button' }, o.label); b.dataset.choice = o.id; return b; }));
+  }
+  document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', b.dataset.choice === scriptMeta.choice));
   document.querySelector('.sb-presets').hidden = !script;
   $('sbSelf').hidden = $('sbHot').hidden = !script;
   $('sbDelete').hidden = !scriptMeta.hasOwn;
 }
-document.querySelectorAll('#sbChoice button').forEach((b) => b.addEventListener('click', () => {
+$('sbChoice').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-choice]');
+  if (!b) return;
   const map = store.get('scriptChoice', {});
   map[scriptMeta.src] = b.dataset.choice;
   store.set('scriptChoice', map);
-  loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl);
-}));
+  loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
+});
 
 // Script anhalten -> „Selbst steuern“ mit ⏺ Mitschnitt; ↩ spielt es wieder
 $('sbSelf').addEventListener('click', () => {
@@ -562,7 +586,7 @@ $('sbDelete').addEventListener('click', async () => {
     if (!res.ok) throw new Error(await res.text());
     await refreshOwn();
     log('🗑 Eigenes Script gelöscht.');
-    loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl);
+    loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
   } catch (e) { log('Löschen: ' + e.message, true); }
 });
 
@@ -618,7 +642,7 @@ async function saveScriptToLibrary(actions, mode = 'all') {
     map[src] = 'own';
     store.set('scriptChoice', map);
     suspended = null;
-    scriptMeta = { ...scriptMeta, src, hasOwn: true, own: true, ownAt: Date.now() };
+    scriptMeta = { ...scriptMeta, src, hasOwn: true, own: true, ownAt: Date.now(), choice: 'own' };
     loadScript(JSON.stringify(funscript), '✋ Eigenes Script');
     renderScriptBox();
     log(r.replaced ? '💾 Eigenes Script ersetzt – läuft ab jetzt synchron mit.'

@@ -113,3 +113,27 @@ test('Intensitäts-Zusammenfassung: 48 Abschnitte, ruhig < schnell', () => {
   assert.strictEqual(calm.bins.length, 48);
   assert.ok(calm.avg < 120 && hot.avg > 250);
 });
+
+test('2.0 Intensiv: kleine, langsame Stöße auf vollen Hub – trotzdem machbar', () => {
+  const { loadPresets, topSpeed } = require('../lib/selfcheck');
+  const run = loadPresets(450);
+  const a = [];
+  let t = 0;
+  for (let i = 0; i < 6; i++) { a.push({ at: t, pos: i % 2 ? 100 : 0 }); t += 400; }
+  for (let i = 0; i < 10; i++) { a.push({ at: t, pos: i % 2 ? 65 : 35 }); t += 1000; } // klein und langsam
+  const intense = run(a, 'handy', 'intense');
+  const calm = intense.filter((x) => x.at >= 2400);
+  assert.ok(Math.min(...calm.map((x) => x.pos)) <= 2 && Math.max(...calm.map((x) => x.pos)) >= 98, 'voller Hub');
+  assert.ok(topSpeed(intense) <= 452);
+});
+
+test('2.0 Aufwärmen: Handy unten und langsam, Satisfyer bekommt das Script', () => {
+  const { loadPresets, sampleScript, topSpeed } = require('../lib/selfcheck');
+  const run = loadPresets(450);
+  const a = sampleScript();
+  const w = run(a, 'handy', 'auto', true);
+  assert.ok(w.every((x) => x.pos >= 0 && x.pos <= 20), 'unten');
+  assert.ok(topSpeed(w) === 0 || topSpeed(w) <= 15, 'langsam');
+  assert.ok(w[w.length - 1].at >= a[a.length - 1].at, 'ganze Länge');
+  assert.ok(run(a, 'vibe', 'auto', true).length > 2);
+});

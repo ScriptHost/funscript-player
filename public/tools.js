@@ -173,6 +173,45 @@ function multiplyCalm(a, maxSpeed) {
   }
   return { actions: out, added };
 }
+// 2.0 „Intensiv“: jeden Stoß Richtung vollen Hub verlängern – Spitzen nach oben, Täler nach unten –, aber nur so
+// weit, wie das Tempo (0,9 × Höchsttempo) es zulässt: Beide Enden einer Bewegung teilen sich den Spielraum.
+// Vibrationen (kleiner Hub) und Haltepunkte bleiben.
+function expandStrokes(a, maxSpeed) {
+  const room = (p, x) => { // Spielraum je Ende dieser Bewegung in %
+    const dt = Math.abs(x.at - p.at), d = Math.abs(x.pos - p.pos);
+    return d > VIB_AMP && dt > 0 ? Math.max(0, ((maxSpeed * 0.9 * dt) / 1000 - d) / 2) : 0;
+  };
+  let changed = 0;
+  const out = a.map((x, i) => {
+    const p = a[i - 1], n = a[i + 1];
+    if (!p || !n) return x;
+    const peak = x.pos > p.pos && x.pos > n.pos, valley = x.pos < p.pos && x.pos < n.pos;
+    if (!peak && !valley) return x;
+    const r = Math.min(room(p, x), room(x, n));
+    const pos = peak ? Math.min(100, Math.round(x.pos + r)) : Math.max(0, Math.round(x.pos - r));
+    if (Math.abs(pos - x.pos) >= 3) changed++;
+    return pos === x.pos ? x : { at: x.at, pos };
+  });
+  return { actions: out, changed };
+}
+
+// 2.0 Aufwärmen: die Handy ganz unten, langsam (0–20 %, ein Weg 1,5 s) – eigener ruhiger Rhythmus über die ganze
+// Videolänge, damit Spulen und Sync wie gewohnt funktionieren. Der Satisfyer läuft nur ganz leicht (presetVibeShape).
+const WARMUP = { lo: 0, hi: 20, ms: 1500 };
+let warmup = false;
+function warmupActions(actions) {
+  const end = (actions[actions.length - 1]?.at || 0) + WARMUP.ms;
+  const out = [];
+  for (let at = 0, i = 0; at <= end; at += WARMUP.ms, i++) out.push({ at, pos: i % 2 ? WARMUP.hi : WARMUP.lo });
+  return out;
+}
+function setWarmup(on) {
+  warmup = !!on;
+  toolCache = {};
+  toolsChanged();
+  log(warmup ? '🌱 Aufwärmen: Handy ganz unten und langsam, Satisfyer ganz leicht – nochmal tippen zum Beenden.' : '🌱 Aufwärmen beendet – das Script läuft wieder.');
+}
+
 // Hub um die Mitte skalieren (Sanft: kleiner)
 const scaleAround = (a, k, mid = 50) => a.map((x) => ({ at: x.at, pos: Math.max(0, Math.min(100, Math.round(mid + (x.pos - mid) * k))) }));
 
@@ -182,7 +221,7 @@ const scaleAround = (a, k, mid = 50) => a.map((x) => ({ at: x.at, pos: Math.max(
 // preset: zum Ausprobieren (Vorschau in den Knöpfen) – sonst das der Szene.
 function processScript(actions, target = 'handy', preset = currentPreset()) {
   if (!actions) return actions;
-  const key = `${tools.tooFast}|${handyMaxSpeedSafe()}`;
+  const key = `${tools.tooFast}|${handyMaxSpeedSafe()}|${warmup}`;
   const slot = preset === currentPreset() ? target : `${target}:${preset}`;
   const hit = toolCache[slot];
   if (hit && hit.src === actions && hit.key === key && hit.preset === preset) return hit.actions;
@@ -194,7 +233,10 @@ function processScript(actions, target = 'handy', preset = currentPreset()) {
   const handyTarget = target === 'handy';
   const st = preset === 'original' ? null : analyzeScript(out);
 
-  if (st) {
+  if (warmup && handyTarget) {
+    out = warmupActions(actions);
+    notes.push('Aufwärmen: unten, langsam');
+  } else if (st) {
     const max = handyMaxSpeedSafe();
     const range = st.hi - st.lo;
     // Satisfyer: Zittern glätten, wenn es viel davon gibt (die Handy behält feine Vibrationen)
@@ -211,6 +253,8 @@ function processScript(actions, target = 'handy', preset = currentPreset()) {
       notes.push('Hub 20–80 %');
     }
     if (preset === 'intense') {
+      const x = expandStrokes(out, max);
+      if (x.changed) { out = x.actions; notes.push(`${x.changed} Stöße auf vollen Hub verlängert`); }
       const m = multiplyCalm(out, max);
       if (m.added) { out = m.actions; notes.push(`${m.added} ruhige Stellen im mehrfachen Takt`); }
     }
@@ -259,6 +303,7 @@ function presetVibeEven() {
 }
 // Stärke des Satisfyers je Preset (raw 0–1 -> 0–1): Sanft schwächer und weicher, Intensiv kräftiger
 function presetVibeShape(raw) {
+  if (warmup) return 0.2 * raw; // Aufwärmen: ganz leicht
   const p = script ? currentPreset() : 'auto';
   if (p === 'soft') return 0.7 * raw ** 1.3;
   if (p === 'intense') return Math.min(1, 1.25 * raw ** 0.75);
@@ -273,6 +318,7 @@ function toolsChanged() {
   const info = presetInfoParts();
   $('toolInfo').textContent = script ? `Aktuelles Video: ${tr(SCRIPT_PRESETS[cur])} – Handy: ${info.handy} · Satisfyer: ${info.vibe}` : '';
   $('sbInfo').textContent = script ? presetInfoText() : '';
+  $('sbWarm').classList.toggle('active', warmup);
   if (typeof renderScriptBox === 'function') renderScriptBox();
   drawPresetPreviews();
   drawHeatmap();
@@ -298,6 +344,7 @@ function setScenePreset(p) {
 }
 document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.addEventListener('click', () => setScenePreset(b.dataset.preset)));
 video.addEventListener('emptied', () => { localPreset = null; });
+$('sbWarm').addEventListener('click', () => setWarmup(!warmup));
 
 // 🧪 Vorschau in den Knöpfen: Mini-Heatmap, wie das Script mit diesem Preset aussieht
 function drawPresetPreviews() {
