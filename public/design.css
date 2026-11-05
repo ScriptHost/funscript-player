@@ -110,7 +110,7 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 .ui-chip.on { background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6); }
 
 /* ---------- Balken: <div class="ui-bar handy"><i style="--v: 72%"></i></div> ---------- */
-.ui-bar { position: relative; height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; color: var(--accent); }
+.ui-bar { display: block; position: relative; height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; color: var(--accent); }
 .ui-bar.handy { color: var(--handy); }
 .ui-bar.vibe { color: var(--vibe); }
 .ui-bar.neon > i { background: var(--neon); }
@@ -162,6 +162,62 @@ body.motion .ui-bar > i { transition: width .25s ease-out; }
   .whatsnew { bottom: calc(16px + var(--nav-h)); }
   body.mini-on #drop { top: calc(100svh - 12px - var(--nav-h) - min(44vw, 340px) * 9 / 16); }
   body.dev-open #devices.sheet { bottom: var(--nav-h); max-height: calc(78dvh - var(--nav-h)); }
+}
+
+/* =============================================================================
+   Player (Phase 4)
+   ============================================================================= */
+/* Das Geräte-Fenster dockt nicht mehr an – der Player hat seine eigene rechte Spalte */
+main { grid-template-columns: minmax(0, 1fr) !important; max-width: 1600px; }
+.pl:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s5); align-items: start; }
+.pl-main { min-width: 0; }
+.pl-side { display: flex; flex-direction: column; gap: var(--s3); min-width: 0; }
+.pl .back { display: none; }               /* zurück = Navigation */
+#drop { border-radius: var(--radius); border: 1px solid var(--line); }
+#heatmap { border-radius: 6px; box-shadow: var(--glow-accent); }
+
+/* Script-Karte */
+.script-box { margin: 0; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
+.script-box .sb-head { margin-bottom: var(--s2); }
+.script-box .sb-name { font-size: 11px; text-transform: none; letter-spacing: 0; color: var(--text); font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-warm { flex: none; padding: 4px 10px; }
+.sb-choice { margin-bottom: var(--s2); flex-wrap: wrap; }
+.sb-choice[hidden] { display: none; }
+.ui-seg button.active { background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6), var(--glow-accent); }
+.int-seg { display: flex; }
+.int-seg button { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 6px 4px 5px; min-height: 44px; }
+.int-seg button canvas { display: block; width: 100%; height: 4px; border-radius: 2px; background: var(--line); }
+.sb-info { display: block; margin-top: var(--s1); }
+.sb-own { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s3); }
+.sb-own .ui-chip { min-height: 32px; cursor: pointer; }
+.sb-own .ui-btn { width: 100%; }
+.sb-own [hidden] { display: none !important; }
+.script-box .dev-common { margin: var(--s3) 0 0; padding: var(--s2) 0 0; border-bottom: 0; border-top: 1px solid var(--line); }
+.off-box > summary { display: flex; align-items: center; gap: var(--s2); min-height: 36px; color: var(--muted); font-size: 13px; margin: 0; }
+.offset-row { display: flex; align-items: center; justify-content: center; gap: var(--s3); margin: var(--s2) 0; }
+.offset-row output { min-width: 70px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Geräte-Dock */
+.pl-dock { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.pl-dev { display: block; width: 100%; margin: 0; text-align: left; color: var(--text); font: inherit; cursor: pointer; }
+.pl-dev:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.pl-dev .ui-label { margin-bottom: var(--s2); }
+.pl-dev .ui-label > span { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-transform: none; letter-spacing: 0; font-size: 13px; white-space: nowrap; }
+.pl-dev .ui-label small { font-size: 11px; text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+body:not(.has-handy) #dockHandy, body:not(.has-vibe) #dockVibe, body.has-dev #dockConnect { display: none; }
+body.has-handy:not(.has-vibe) .pl-dock, body.has-vibe:not(.has-handy) .pl-dock { grid-template-columns: 1fr; }
+.pl-connect { grid-column: 1 / -1; }
+body.hud-off-devices .pl-dock { display: none; }
+.pl-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.pl-row .ui-btn { width: 100%; }
+.pl-row:not(:has(.ui-btn:not([hidden]))) { display: none; }
+body:not(.has-dev) .pl-row { display: none; }
+#finaleBtn { margin: 0; }
+#finaleBtn.running { border-color: var(--vibe); color: #fff; box-shadow: var(--glow-accent); }
+
+@media (max-width: 900px) {
+  .pl:not([hidden]) { grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+  main { padding: var(--s2) var(--s3); }
 }
 
 /* Weniger Bewegung gewünscht → keine Übergänge, auch wenn „Bewegung“ an ist */

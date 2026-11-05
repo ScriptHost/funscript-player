@@ -85,14 +85,14 @@ import { selfCtl, selfStrokeRange } from './selfctl.js';
       const activeInt = document.querySelector('#scriptBox [data-preset-scene] button.active')?.dataset.preset;
       check('Script-Intensität: Wahl der Szene aktiv, vier Knöpfe', activeInt === currentPreset() && document.querySelectorAll('#scriptBox [data-preset-scene] button').length === 4, activeInt);
       document.body.click();
-      check('Finale-Knopf nicht im Geräte-Fenster', (() => { openDevices(); const v = getComputedStyle($('finaleBtn')).display === 'none'; closeDevices(); return v; })());
-      const fine = document.querySelector('.dev-fine[data-fine="handy"]');
-      // 1.19.7: Hub am Video und im Geräte-Fenster; ⟳ nur noch unter der Verbindung im Geräte-Fenster
-      check('Feineinstellung Handy am Video, ⟳ nur im Geräte-Fenster', (() => {
-        const atVideo = getComputedStyle(fine).display !== 'none' && !$('resyncBtn').getClientRects().length;
-        openDevices('handy'); const inSheet = !!$('resyncBtn').getClientRects().length; closeDevices();
-        return atVideo && inSheet && !$('ovSync');
-      })(), `Hub am Video: ${getComputedStyle(fine).display}, ⟳ am Video: ${$('resyncBtn').getClientRects().length > 0}`);
+      // 2.0: Script-Karte, Finale und Pause am Video (nicht im Geräte-Fenster); Hub und ⟳ im Geräte-Fenster
+      check('Script, Finale, Pause am Video – nicht im Geräte-Fenster', ['scriptBox', 'finaleBtn', 'vibePause'].every((id) => $(id).closest('.pl-side') && !$('devices').contains($(id))));
+      check('Geräte-Fenster ist zu, solange der Player läuft (dockt nicht mehr an)', getComputedStyle($('devices')).display === 'none');
+      check('Hub und ⟳ im Geräte-Fenster', (() => {
+        openDevices('handy');
+        const ok = !!document.querySelector('.dev-fine[data-fine="handy"]').getClientRects().length || !document.body.classList.contains('has-handy');
+        const v = ok && $('devices').contains($('resyncBtn')) && !$('ovSync'); closeDevices(); return v;
+      })());
       // Mini-Player schließen
       video.muted = true;
       await video.play().catch(() => {});

@@ -7,6 +7,7 @@ import {
 } from './app.js';
 import { showOverlay } from './fullscreen.js';
 import { tr } from './tools.js';
+import { lang, t } from './lang.js';
 import { selfCtl, selfUI } from './selfctl.js';
 modulesReady.add('library');
 
@@ -555,10 +556,10 @@ export function renderScriptBox() {
   $('scriptBox').hidden = !show;
   $('selfResume').hidden = $('sbResume').hidden = !suspended;
   if (!show) return;
-  const date = scriptMeta.ownAt ? new Date(scriptMeta.ownAt).toLocaleDateString('de-DE') : '';
-  $('sbName').textContent = suspended ? '✋ Selbst steuern – Script angehalten'
-    : script ? (scriptMeta.own ? `✋ Eigenes Script${date ? ' vom ' + date : ''}` : `⚡ ${script.name}`) + ` · ${script.actions.length} Punkte`
-      : 'Kein Script';
+  const date = scriptMeta.ownAt ? new Date(scriptMeta.ownAt).toLocaleDateString(lang) : '';
+  $('sbName').textContent = suspended ? t('player.suspended')
+    : script ? (scriptMeta.own ? (date ? t('player.ownFrom', { date }) : t('player.own')) : `⚡ ${script.name}`) + ' · ' + t('player.points', { n: script.actions.length })
+      : t('player.noScript');
   const opts = scriptOptions();
   $('sbChoice').hidden = opts.length < 2 || !!suspended;
   // Knöpfe je verfügbarem Script (Original, Varianten, Eigenes) – das neue Design ersetzt das später

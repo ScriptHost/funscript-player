@@ -115,7 +115,9 @@
       </section>
 
       <!-- ================= Player ================= -->
-      <section id="view-player" class="view" hidden>
+      <!-- 2.0: links (PC) bzw. oben (Smartphone) das Video, daneben bzw. darunter Script, Geräte, Finale/Pause -->
+      <section id="view-player" class="view pl" hidden>
+       <div class="pl-main">
         <button id="backToLib" class="back">← Bibliothek</button>
         <div id="drop" class="drop" data-fit="cover">
           <video id="video" playsinline preload="metadata"></video>
@@ -236,6 +238,58 @@
             <p id="sceneDetails" class="details"></p>
           </details>
         </div>
+       </div>
+
+        <aside class="pl-side" aria-label="Script and devices" data-i18n-aria-label="player.side">
+          <!-- Script dieser Szene: Auswahl, Intensität, Aufwärmen, eigenes Script, Offset -->
+          <div id="scriptBox" class="ui-card script-box sync-only" hidden>
+            <div class="ui-label sb-head"><span id="sbName" class="sb-name"></span>
+              <button id="sbWarm" class="ui-chip sb-warm" type="button" aria-pressed="false" title="Warm-up: The Handy at the bottom and slow, Satisfyer very light – on/off" data-i18n-title="player.warmupTitle">🌱 <span data-i18n="player.warmup">Warm-up</span></button></div>
+            <div id="sbChoice" class="ui-seg sb-choice" hidden></div>
+            <div class="sb-presets">
+              <div class="ui-seg int-seg" data-preset-scene title="For this scene – default under ⚙️ → Script" data-i18n-title="player.intensityTitle"><button data-preset="auto"><span data-i18n="player.int.auto">Auto</span><canvas></canvas></button><button data-preset="original"><span data-i18n="player.int.original">Original</span><canvas></canvas></button><button data-preset="soft"><span data-i18n="player.int.soft">Soft</span><canvas></canvas></button><button data-preset="intense"><span data-i18n="player.int.intense">Intense</span><canvas></canvas></button></div>
+              <small id="sbInfo" class="sb-info"></small>
+            </div>
+            <div class="sb-own">
+              <button id="sbResume" class="ui-btn" hidden>↩ <span data-i18n="player.resume">Back to the script</span></button>
+              <button id="sbSelf" class="ui-chip sb-tool" title="Pause the script and control yourself – record a new one with ⏺" data-i18n-title="player.selfTitle">✋ <span data-i18n="player.self">Control yourself</span></button>
+              <button id="sbHot" class="ui-chip sb-tool" title="Jumps to the 3 most intense parts in turn" data-i18n-title="player.hotTitle">🔥 <span data-i18n="player.hot">Highlights</span></button>
+              <button id="sbDelete" class="ui-chip sb-del" hidden>🗑 <span data-i18n="player.deleteOwn">Delete own script</span></button>
+            </div>
+            <!-- Offset zugeklappt – zu ist nichts drückbar (−/+ wurden beim Schauen aus Versehen getroffen) -->
+            <div id="devCommon" class="dev-common">
+              <details id="offBox" class="off-box">
+              <summary><span data-i18n="player.offset">Offset</span> <output id="offsetSum">0 ms</output></summary>
+              <div class="offset-row" title="Video offset for The Handy and Satisfyer" data-i18n-title="player.offsetTitle">
+                <button id="offMinus" class="ui-btn round" aria-label="Offset −10 ms">−</button>
+                <output id="offsetVal">0 ms</output>
+                <button id="offPlus" class="ui-btn round" aria-label="Offset +10 ms">+</button>
+                <button id="offsetReset" class="ui-btn round offset-reset" hidden title="Discard this scene's offset – back to the general value" data-i18n-title="player.offsetReset">↺</button>
+              </div>
+              <input id="offset" class="offset-slider" type="range" min="-500" max="500" step="10" value="0" aria-label="Video offset" data-i18n-aria-label="player.offsetTitle">
+              <button id="calibBtn" class="ui-btn wide tools-calib" title="Tap at the lowest point of every stroke in the video (key T)" data-i18n-title="player.calibTitle">🎯 <span data-i18n="player.calib">Measure offset by tapping</span></button>
+              <p class="hint-text" data-i18n-html="player.calibHelp">Let the video play, watch the <b>video</b> and tap exactly when the lowest point is reached (about 8×). Only needed if a script is noticeably off – the player compensates device delays by itself.</p>
+              </details>
+            </div>
+          </div>
+
+          <!-- Geräte: ruhige Balken (⚙️ → Anzeige: „Bewegung“ = Balken folgen dem Gerät); antippen = Geräte-Fenster -->
+          <div id="plDock" class="pl-dock">
+            <button id="dockHandy" class="ui-card pl-dev" data-dev="handy">
+              <span class="ui-label"><span><i class="ui-dot handy"></i> The Handy</span><small id="dockHandyVal"></small></span>
+              <span class="ui-bar handy"><i></i></span>
+            </button>
+            <button id="dockVibe" class="ui-card pl-dev" data-dev="vibe">
+              <span class="ui-label"><span><i class="ui-dot vibe"></i> Satisfyer</span><small id="dockVibeVal"></small></span>
+              <span class="ui-bar vibe"><i></i></span>
+            </button>
+            <button id="dockConnect" class="ui-btn wide pl-connect">◎ <span data-i18n="player.connect">Connect devices</span></button>
+          </div>
+          <div class="pl-row">
+            <button id="finaleBtn" class="ui-btn finale-btn">🔥 Finale</button>
+            <button id="vibePause" class="ui-btn">❚❚ <span data-i18n="player.pause">Pause</span></button>
+          </div>
+        </aside>
       </section>
 
       <!-- ================= Einstellungen ================= -->
@@ -688,43 +742,6 @@
           <button data-sub="handy" class="active">The Handy</button>
           <button data-sub="vibe">Satisfyer</button>
         </nav>
-        <!-- Script dieser Szene: welches läuft, Anpassung je Gerät, eigenes Script verwalten -->
-        <div id="scriptBox" class="script-box sync-only" hidden>
-          <div class="sb-head"><span id="sbName" class="sb-name"></span>
-            <span id="sbChoice" class="seg sb-choice" hidden><button data-choice="orig">⚡ Original</button><button data-choice="own">✋ Eigenes</button></span></div>
-          <!-- Intensität dieser Szene (Handy und Satisfyer zusammen); die Farbstreifen zeigen, wie das Script dann aussieht -->
-          <div class="sb-presets">
-            <div class="seg int-seg" data-preset-scene title="Gilt für diese Szene – Standard unter ⚙️ → Script"><button data-preset="auto">Automatisch<canvas></canvas></button><button data-preset="original">Original<canvas></canvas></button><button data-preset="soft">Sanft<canvas></canvas></button><button data-preset="intense">Intensiv<canvas></canvas></button></div>
-            <small id="sbInfo" class="sb-info"></small>
-          </div>
-          <div class="sb-own">
-            <button id="sbResume" class="small" hidden>↩ Zurück zum Script</button>
-            <button id="sbSelf" class="small secondary sb-tool" title="Script anhalten und selbst steuern – mit ⏺ neu aufnehmen"><span class="ic">✋</span>Selbst</button>
-            <button id="sbDelete" class="small secondary" hidden>🗑 Eigenes Script löschen</button>
-            <button id="sbWarm" class="small secondary sb-tool" title="Aufwärmen: Handy ganz unten und langsam, Satisfyer ganz leicht – an/aus"><span class="ic">🌱</span>Aufwärmen</button>
-            <button id="sbHot" class="small secondary sb-tool" title="Springt der Reihe nach zu den 3 intensivsten Stellen"><span class="ic">🔥</span>Höhepunkte</button>
-          </div>
-        </div>
-        <p id="devNone" class="hint-text dev-none">Kein Gerät verbunden – oben auf <b>↕</b> (Handy) oder <b>〰</b> (Satisfyer) tippen.</p>
-
-        <!-- Für alle verbundenen Geräte -->
-        <div id="devCommon" class="dev-common">
-          <!-- 1.19.9: Offset zugeklappt – zu ist nichts drückbar (−/+ wurden beim Schauen aus Versehen getroffen) -->
-          <details id="offBox" class="off-box">
-          <summary>Offset <output id="offsetSum">0 ms</output></summary>
-          <div class="offset-row" title="Video-Offset für Handy und Satisfyer">
-            <span>Offset</span>
-            <button id="offMinus" class="small secondary" aria-label="Offset −10 ms">−</button>
-            <output id="offsetVal">0 ms</output>
-            <button id="offPlus" class="small secondary" aria-label="Offset +10 ms">+</button>
-            <button id="offsetReset" class="small secondary offset-reset" hidden title="Offset dieser Szene verwerfen – wieder der allgemeine Wert">↺</button>
-          </div>
-          <input id="offset" class="offset-slider" type="range" min="-500" max="500" step="10" value="0" aria-label="Video-Offset">
-          <button id="calibBtn" class="small secondary wide tools-calib" title="Bei jedem Stoß im Video am tiefsten Punkt tippen (Taste T)">🎯 Offset per Takt einmessen</button>
-          <p class="hint-text">Video laufen lassen, aufs <b>Video</b> schauen und bei jedem Stoß genau dann tippen, wenn der tiefste Punkt erreicht ist (etwa 8×). Nur nötig, wenn ein Script spürbar daneben liegt – Verzögerungen der Geräte gleicht der Player selbst aus.</p>
-          </details>
-        </div>
-
         <div data-panel="dev:handy">
           <div class="conn">
             <button id="connect">Verbinden</button>
@@ -785,9 +802,7 @@
           <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Übersetzung, Gleichmäßigkeit, Intiface … in den Einstellungen</a>
         </div>
 
-        <button id="finaleBtn" class="finale-btn wide">🔥 Finale</button>
         <div class="dev-stop-row">
-          <button id="vibePause" class="secondary">❚❚ Pausieren</button>
           <button id="stopAll" class="estop">■ Alles stoppen</button>
         </div>
         <p id="log" class="log"></p>

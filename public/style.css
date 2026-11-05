@@ -687,15 +687,6 @@ header .pill .ic { display: none; }
 }
 @media (max-width: 420px) { header h1 { display: none; } }
 
-/* 1.13: Geräte-Steuerung am Video (Player-Seite, abschaltbar unter ⚙️ → Anzeige) */
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices.sheet {
-  display: block; position: static; width: auto; max-height: none; overflow: visible; box-shadow: none; border-radius: 0; padding: 0;
-}
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices.sheet > .card { border-radius: 12px; }
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) .sheet-close { display: none; }
-@media (min-width: 901px) {
-  body[data-view=player]:not(.hud-off-devices):not(.dev-open) main { grid-template-columns: minmax(0, 1fr) 340px; max-width: 1600px; }
-}
 #homeBtn { cursor: pointer; }
 
 /* 1.14: Selbst steuern (Videos ohne Funscript) */
@@ -735,10 +726,6 @@ body:not(.has-handy) .tpl-handy, body:not(.has-vibe) .tpl-vibe { display: none !
 
 /* 1.16: Geräte-Bereich – Verbinden nur im Status-Fenster, sonst nur verbundene Geräte */
 .dev-none { display: none; }
-body[data-view=player]:not(.dev-open):not(.has-dev) .dev-none { display: block; }
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices nav.subtabs,
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices .conn { display: none !important; }
-body[data-view=player]:not(.hud-off-devices):not(.dev-open) #devices [data-panel][hidden] { display: block !important; }
 body:not(.has-handy) #devices [data-panel="dev:handy"] > :not(.conn),
 body:not(.has-vibe) #devices [data-panel="dev:vibe"] > :not(.conn) { display: none !important; }
 body:not(.has-dev) #devCommon, body:not(.has-dev) #finaleBtn { display: none; }
@@ -799,8 +786,7 @@ body.mini-on .mini-ctl { display: flex; position: absolute; right: 6px; bottom: 
 .seek-preview.time-only span { position: static; transform: none; display: block; font-size: 13px; padding: 2px 8px; }
 
 /* 1.17: Video ohne Funscript + „Keine Steuerung“ -> Geräte-Regler und Geräte-Knöpfe weg */
-body.dev-idle[data-view=player]:not(.dev-open) #devices,
-body.dev-idle #ovFinale, body.dev-idle #ovVibe { display: none !important; }
+body.dev-idle #ovFinale, body.dev-idle #ovVibe, body.dev-idle[data-view=player] #plDock, body.dev-idle .pl-row { display: none !important; }
 /* Knöpfe ohne passendes Gerät */
 body:not(.has-handy) #resyncBtn, body:not(.has-dev) #ovVibe, body:not(.has-dev) #ovFinale { display: none !important; }
 /* Leiste: vom Nutzer ausgeblendete Knöpfe */
@@ -828,10 +814,9 @@ body:not(.has-handy) .tp-mode { display: none; }
 /* 1.17: Reiter der Stash-Bibliothek ausblendbar */
 .browse button.tab-off { display: none; }
 /* 1.18: Finale nicht im Geräte-Fenster (Popup) – nur am Video */
-body.dev-open #finaleBtn { display: none !important; }
 /* 1.18: Script-Bereich im Geräte-Kasten (welches Script, Anpassung je Gerät, eigenes Script) */
 .script-box { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
-.script-box[hidden], body.dev-open .script-box { display: none !important; }
+.script-box[hidden] { display: none !important; }
 .sb-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
 .sb-name { font-weight: 600; font-size: 14px; }
 .sb-choice { display: inline-flex; width: auto; margin: 0; }
@@ -965,14 +950,6 @@ details.more-info > .hint-text, details.more-info > ul, details.more-info > ol {
 @keyframes spin { to { transform: rotate(360deg); } }
 #installApp[hidden], #welcomeInstall[hidden], #appFsRow[hidden] { display: none; }
 
-/* 1.19.7: Script-Intensität immer am Video – auch wenn „Geräte-Steuerung am Video“ aus ist (dann nur der Script-Bereich) */
-body[data-view=player].hud-off-devices:not(.dev-open) #devices.sheet {
-  display: block; position: static; width: auto; max-height: none; overflow: visible; box-shadow: none; border-radius: 0; padding: 0;
-}
-body[data-view=player].hud-off-devices:not(.dev-open) #devices.sheet > .card { border-radius: 12px; }
-body[data-view=player].hud-off-devices:not(.dev-open) #devices .card > :not(#scriptBox) { display: none !important; }
-body[data-view=player].hud-off-devices:not(.dev-open) #devices .script-box { margin: 0; padding: 0; border: 0; }
-body[data-view=player].hud-off-devices:not(.dev-open) #devices:has(#scriptBox[hidden]) { display: none !important; }
 /* 1.19.8: Kopf des Script-Bereichs ohne Inhalt (Scriptname ausgeblendet, keine Wahl Original/Eigenes) – keine Leerzeile */
 body.hud-off-script .sb-head:has(#sbChoice[hidden]) { display: none; }
 .off-box > summary { list-style: none; }

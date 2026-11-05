@@ -326,7 +326,8 @@ export function toolsChanged() {
   const info = presetInfoParts();
   $('toolInfo').textContent = script ? `Aktuelles Video: ${tr(SCRIPT_PRESETS[cur])} – Handy: ${info.handy} · Satisfyer: ${info.vibe}` : '';
   $('sbInfo').textContent = script ? presetInfoText() : '';
-  $('sbWarm').classList.toggle('active', warmup);
+  $('sbWarm').classList.toggle('on', warmup);
+  $('sbWarm').setAttribute('aria-pressed', String(warmup));
   if (modulesReady.has('library')) renderScriptBox();
   drawPresetPreviews();
   drawHeatmap();
