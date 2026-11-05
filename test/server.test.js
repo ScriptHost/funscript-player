@@ -188,7 +188,7 @@ test('HereSphere abschaltbar', async () => {
 });
 
 test('Mit Anmeldung: nur /healthz ist offen, die Versionsnummer nicht (1.19.10)', async () => {
-  const auth = await startServer({ AUTH_USER: 'u', AUTH_PASS: 'p' });
+  const auth = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'p' });
   try {
     assert.strictEqual((await fetch(auth.base + '/healthz')).status, 200);
     assert.strictEqual((await fetch(auth.base + '/api/version')).status, 401);
@@ -198,7 +198,7 @@ test('Mit Anmeldung: nur /healthz ist offen, die Versionsnummer nicht (1.19.10)'
 });
 
 test('2.0: Bremse gegen Durchprobieren (Anmeldung und HereSphere)', async () => {
-  const s = await startServer({ AUTH_USER: 'u', AUTH_PASS: 'p' });
+  const s = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'p' });
   const basic = (pw) => ({ Authorization: 'Basic ' + Buffer.from('u:' + pw).toString('base64') });
   try {
     for (let i = 0; i < 10; i++) assert.strictEqual((await fetch(s.base + '/api/version', { headers: basic('falsch') })).status, 401);
@@ -230,6 +230,21 @@ test('2.0: Beispielpasswort change-me gilt nicht', async () => {
     const r = await fetch(s.base + '/', { headers: { Authorization: 'Basic ' + Buffer.from('admin:change-me').toString('base64') } });
     assert.strictEqual(r.status, 503);
     assert.match(await r.text(), /change-me/);
+  } finally { s.stop(); }
+});
+
+test('2.0: LOGIN=off gewinnt – AUTH_USER/AUTH_PASS zählen dann nicht', async () => {
+  const s = await startServer({ LOGIN: 'off', AUTH_USER: '<benutzername>', AUTH_PASS: '<passwort>' });
+  try {
+    assert.strictEqual((await fetch(s.base + '/api/version')).status, 200, 'ohne Anmeldung offen');
+  } finally { s.stop(); }
+});
+
+test('2.0: Platzhalter <…> aus der Vorlage zählen als leer', async () => {
+  const s = await startServer({ LOGIN: '', AUTH_USER: '<benutzername>', AUTH_PASS: '<passwort>' });
+  try {
+    // Anmeldung gilt als nicht eingerichtet -> Erklärseite statt Passwortabfrage mit „<benutzername>“
+    assert.strictEqual((await fetch(s.base + '/')).status, 503);
   } finally { s.stop(); }
 });
 
