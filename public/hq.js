@@ -215,6 +215,7 @@ $('hqBench').addEventListener('click', async () => {
     const s = await (await fetch('/api/hq/status')).json();
     hqState.available = s.available;
     hqState.accel = s.accel || '';
+    hqState.gpu = s.gpu?.state || ''; // 2.0: Intel-Status für ⚙️ → System
     $('hqBox').hidden = !s.available;
     $('hqInfo').textContent = s.available
       ? `Umwandlung über ${HQ_ACCEL_LABEL[s.accel] || s.accel}. Auto-Ziel für dieses Gerät: ${screenTarget()}p.`

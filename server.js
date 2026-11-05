@@ -12,7 +12,7 @@ const path = require('path');
 const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
-const { heresphereOn, hsAuthorized, hsCheckPassword, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
+const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashStatus } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
@@ -184,7 +184,16 @@ const handler = async (req, res) => {
       res.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...SECURITY_HEADERS });
       return res.end(LOGIN_PAGE);
     }
-    if (!checkAuth(req, res)) return;
+    // 2.0: HereSphere mit der normalen Adresse → gleich zur VR-Bibliothek. Vor der Anmeldung, denn HereSphere kann
+    // keine Browser-Anmeldung; umgeleitet wird nur genau „/“, alles andere bleibt hinter der Anmeldung.
+    if (req.url.split('?')[0] === '/' && (req.method === 'GET' || req.method === 'HEAD') && /HereSphere/i.test(req.headers['user-agent'] || '') && hsRedirectOn()) {
+      res.writeHead(302, { Location: '/heresphere', 'Cache-Control': 'no-store' });
+      return res.end();
+    }
+    // 2.0: HereSphere kann keine Browser-Anmeldung. Mit eigenem HereSphere-Passwort prüft der Player /heresphere selbst
+    // (Token je Anfrage) – dann gilt die Anmeldung dort nicht. Ohne Passwort bleibt auch /heresphere hinter der Anmeldung.
+    const hsOwnLogin = /^\/heresphere(\/|$)/.test(req.url.split('?')[0]) && heresphereOn() && !!serverSettings.hsPass;
+    if (!hsOwnLogin && !checkAuth(req, res)) return;
     // 1.19.10: Versionsnummer erst nach der Anmeldung (CodeQL #17)
     if (req.url === '/api/version') {
       res.writeHead(200, { 'Content-Type': MIME['.json'] });

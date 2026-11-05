@@ -73,22 +73,37 @@ function showView(view) {
 
 // Einstellungen: eigene Seite, ändert den Modus nicht. Video, Handy und Satisfyer laufen weiter;
 // zurück geht es über die „Läuft gerade“-Leiste unten oder die Modus-Knöpfe.
+// 2.0: Startliste mit 6 Bereichen, jeder Bereich eine eigene Seite (page = null → Liste)
+export function showSetPage(page) {
+  $('setHome').hidden = !!page;
+  document.querySelectorAll('#view-settings .set-page').forEach((p) => { p.hidden = p.dataset.page !== page; });
+  document.body.dataset.setPage = page || '';
+  window.dispatchEvent(new Event('hp:setpage'));
+}
+// section = Element-ID irgendwo in den Einstellungen (z. B. setDevices, setVR) – öffnet die passende Seite
 export function openSettings(section) {
   showView('settings');
+  const el = section ? $(section) : null;
   // Ziel liegt bei den erweiterten Einstellungen -> diese einblenden
-  if (section && $(section)?.closest('.adv') && modulesReady.has('settings')) setAdvMode(true);
+  if (el?.closest('.adv') && modulesReady.has('settings')) setAdvMode(true);
+  showSetPage(el?.closest('.set-page')?.dataset.page || null);
   // Zugeklappte Bereiche auf dem Weg zum Ziel öffnen
-  for (let d = section && $(section)?.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
-  if (section) $(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  for (let d = el?.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
+  if (el && !el.matches('.set-page > .sec:first-of-type')) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   else window.scrollTo(0, 0);
 }
-// Links in die Einstellungen (Geräte-Spalte, Bereichs-Leiste) – ohne die Adresse (#player) zu ändern
+// Links in die Einstellungen (Geräte-Spalte, Player) – ohne die Adresse (#player) zu ändern
 document.addEventListener('click', (e) => {
-  const a = e.target.closest('[data-settings], #setNav a');
-  if (!a) return;
-  e.preventDefault();
-  closeDevices();
-  openSettings(a.dataset.settings || a.getAttribute('href').slice(1));
+  const a = e.target.closest('[data-settings]');
+  if (a) {
+    e.preventDefault();
+    closeDevices();
+    return openSettings(a.dataset.settings);
+  }
+  const item = e.target.closest('#view-settings .set-item, #view-settings .set-back');
+  if (!item) return;
+  showSetPage(item.dataset.page || null);
+  window.scrollTo(0, 0);
 });
 $('navSettings').addEventListener('click', () => (document.body.dataset.view === 'settings' ? setMode(appMode) : openSettings()));
 // Bild-Popup unter dem Video (alle Einstellungen über den Link darin)

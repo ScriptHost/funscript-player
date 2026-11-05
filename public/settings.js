@@ -1,6 +1,6 @@
 import './touchpad.js'; // Ladereihenfolge wie bisher – siehe boot.js
 import { modulesReady } from './state.js';
-import { lang, setLang } from './lang.js';
+import { lang, setLang, t } from './lang.js';
 import { $, freshInstall, log, store } from './handy.js';
 import { openDevices, openSettings } from './app.js';
 import { folderRoots, lib, librarySources, renderSavedFilters, setBrowse, setSource } from './library.js';
@@ -28,12 +28,10 @@ function renderQualityMode() {
   const mode = enh.settings.preset === 'auto' && hqState.preset === 'auto' ? 'auto'
     : enh.settings.preset === 'off' && hqState.preset === 'off' ? 'off' : 'custom';
   document.querySelectorAll('#qualityMode button').forEach((b) => b.classList.toggle('active', b.dataset.q === mode));
-  $('qualityInfo').textContent = mode === 'custom'
-    ? 'Eigene Einstellungen aktiv (siehe „Erweitert“). „Automatisch“ stellt wieder alles auf das beste Bild.'
-    : mode === 'off' ? 'Original ohne jede Bearbeitung.' : QUALITY_AUTO_TEXT;
+  $('qualityInfo').textContent = mode === 'custom' ? t('settings.img.infoCustom')
+    : mode === 'off' ? t('settings.img.infoOff') : t('settings.img.infoAuto');
   if (mode === 'custom') $('qualityAdvanced').open = true;
 }
-const QUALITY_AUTO_TEXT = $('qualityInfo').textContent;
 document.querySelectorAll('#qualityMode button').forEach((b) => b.addEventListener('click', () => setQualityMode(b.dataset.q)));
 // Änderungen unter „Erweitert“ spiegeln
 $('imageSettings').addEventListener('click', () => setTimeout(renderQualityMode, 50));
@@ -58,23 +56,15 @@ applyHud();
 $('langSel').value = lang;
 $('langSel').addEventListener('change', () => setLang($('langSel').value));
 
-// --- Aufklappen (1.19.3): Bereiche zu, Erklärtexte hinter ⓘ ----------------------------------------
-// Offene Bereiche merkt sich jedes Gerät. Aufeinanderfolgende Erklärtexte landen unter einem ⓘ.
-const openSecs = new Set(store.get('setOpen', []));
-document.querySelectorAll('#view-settings details.sec').forEach((d) => {
-  d.open = openSecs.has(d.id);
-  d.addEventListener('toggle', () => {
-    if (d.open) openSecs.add(d.id); else openSecs.delete(d.id);
-    store.set('setOpen', [...openSecs]);
-  });
-});
+// --- Erklärtexte hinter ⓘ (1.19.3) – aufeinanderfolgende landen unter einem ⓘ ---------------------
+// (2.0: Bereiche sind eigene Seiten statt Aufklapper – settings.js / showSetPage in app.js)
 document.querySelectorAll('#view-settings p.hint-text:not([id]), #view-settings ul.preset-help').forEach((p) => {
-  if (p.closest('details.more-info, .hud-options, .adv-bar')) return;
+  if (p.closest('details.more-info, .hud-options, .set-quick')) return;
   const prev = p.previousElementSibling;
   const adv = p.classList.contains('adv');
   if (prev?.matches('details.more-info') && prev.classList.contains('adv') === adv) { prev.append(p); p.classList.remove('adv'); return; }
   const d = Object.assign(document.createElement('details'), { className: 'more-info' + (adv ? ' adv' : '') });
-  d.append(Object.assign(document.createElement('summary'), { textContent: 'ⓘ Erklärung' }));
+  d.append(Object.assign(document.createElement('summary'), { textContent: t('settings.explain') }));
   p.replaceWith(d);
   d.append(p);
   p.classList.remove('adv');
@@ -89,8 +79,7 @@ export function setAdvMode(on) {
 }
 // Hinweis, solange die erweiterten Einstellungen ausgeblendet sind (sie gelten trotzdem)
 function updateAdvHint() {
-  $('advHint').textContent = document.body.classList.contains('adv-on') ? ''
-    : 'Ausgeblendet: Feinheiten zu Handy, Satisfyer, Bild, Finale, Anzeige – sie gelten trotzdem.';
+  $('advHint').textContent = document.body.classList.contains('adv-on') ? '' : t('settings.advHint');
 }
 $('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
 setAdvMode(store.get('advMode', false));
@@ -152,7 +141,7 @@ if (!store.get('seen11911', false)) {
   $('whatsNew').hidden = false;
   const done = () => { $('whatsNew').hidden = true; store.set('seen11911', true); };
   $('whatsNewOk').addEventListener('click', done);
-  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setPlayer'); });
+  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setLook'); });
 }
 
 // --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------
@@ -250,10 +239,16 @@ function showServerSettings(s) {
   $('hsOn').disabled = !!s.heresphereLocked;
   $('hsBox').hidden = !s.heresphere;
   $('hsOffHint').hidden = s.heresphere;
-  if (s.heresphereLocked) $('hsOffHint').textContent = 'Abgeschaltet über HERESPHERE=off in der docker-compose.yml.';
+  $('hsOffHint').textContent = s.heresphereLocked ? t('settings.vr.locked') : t('settings.vr.offHint');
+  $('hsRedirect').checked = s.hsRedirect !== false;
   $('hsVrOnly').checked = s.hsVrOnly !== false;
   $('hsPassClear').hidden = !s.hsPassword;
-  $('hsPassInfo').textContent = s.hsPassword ? '🔒 Passwort gesetzt – HereSphere fragt beim ersten Öffnen danach.' : 'Kein Passwort – frei erreichbar.';
+  $('hsPassInfo').textContent = s.hsPassword ? t('settings.vr.passSet') : t('settings.vr.passNone');
+  // Anmeldung im Player an: HereSphere kommt nur mit eigenem Passwort hinein (es kann keine Browser-Anmeldung)
+  $('hsLoginHint').hidden = !(s.login && !s.hsPassword);
+  $('hsLoginHint').textContent = t('settings.vr.loginHint');
+  $('setSubVr').textContent = !s.heresphere ? t('settings.vr.subOff')
+    : s.hsPassword ? t('settings.vr.subPass') : t('settings.vr.subOn');
   $('intifaceLan').checked = !!s.intifaceLan;
   $('intifaceLan').disabled = !!s.intifaceLanLocked;
   $('intifaceLanHint').hidden = !s.intifaceLanLocked;
@@ -264,10 +259,11 @@ async function putSettings(patch, msg) {
     if (!res.ok) throw new Error(await res.text());
     showServerSettings(await res.json());
     if (msg) log(msg);
-  } catch (e) { log('Einstellung nicht gespeichert: ' + e.message, true); }
+  } catch (e) { log(t('settings.notSaved', { error: e.message }), true); }
 }
 fetch('/api/settings').then((r) => r.json()).then(showServerSettings).catch(() => {});
-$('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? 'HereSphere eingeschaltet.' : 'HereSphere abgeschaltet.'));
+$('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? t('settings.vr.logOn') : t('settings.vr.logOff')));
+$('hsRedirect').addEventListener('change', () => putSettings({ hsRedirect: $('hsRedirect').checked }, $('hsRedirect').checked ? t('settings.vr.logRedirectOn') : t('settings.vr.logRedirectOff')));
 $('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? 'HereSphere: nur VR-Videos.' : 'HereSphere: alle Videos.'));
 $('hsPassSave').addEventListener('click', () => {
   const pw = $('hsPass').value;
@@ -280,12 +276,12 @@ $('intifaceLan').addEventListener('change', () => putSettings({ intifaceLan: $('
 $('hsCopy').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText($('hsUrl').value);
-    $('hsCopy').textContent = 'Kopiert ✓';
+    $('hsCopy').textContent = t('settings.vr.copied');
   } catch {
     $('hsUrl').select();
-    $('hsCopy').textContent = 'Markiert – Strg+C';
+    $('hsCopy').textContent = t('settings.vr.selected');
   }
-  setTimeout(() => { $('hsCopy').textContent = 'Kopieren'; }, 2000);
+  setTimeout(() => { $('hsCopy').textContent = t('settings.vr.copy'); }, 2000);
 });
 
 // --- Bibliothek --------------------------------------------------------------
@@ -294,20 +290,20 @@ $('setHoverPreview').addEventListener('change', () => store.set('hoverPreview', 
 
 function renderLibrarySettings() {
   const sel = $('setStartSource');
-  sel.replaceChildren(...librarySources().map((s) => new Option(s.label.replace('📁 ', 'Ordner: '), s.id)));
+  sel.replaceChildren(...librarySources().map((s) => new Option(s.label.replace('📁 ', t('settings.lib.folderPrefix')), s.id)));
   sel.value = store.get('libSource', sel.options[0]?.value || '');
 
   const ul = $('setFolders');
   ul.replaceChildren();
   const roots = folderRoots();
   if (!roots.length) {
-    ul.append(Object.assign(document.createElement('li'), { className: 'muted', textContent: 'Keine Videos in /media gefunden.' }));
+    ul.append(Object.assign(document.createElement('li'), { className: 'muted', textContent: t('settings.lib.noFolders') }));
   }
   for (const r of roots) {
     const items = lib.folder.filter((it) => it.root === r);
     const withScript = items.filter((it) => it.script).length;
     const li = document.createElement('li');
-    li.textContent = `📁 ${r ? '/media/' + r : '/media'} – ${items.length} Videos, ${withScript} mit Funscript`;
+    li.textContent = t('settings.lib.folderLine', { path: r ? '/media/' + r : '/media', n: items.length, scripts: withScript });
     ul.append(li);
   }
 }
@@ -320,20 +316,42 @@ async function renderSysInfo() {
   const dl = $('sysInfo');
   const rows = [];
   const add = (k, v) => rows.push([k, v]);
-  try { add('Version', 'v' + (await (await fetch('/api/version')).json()).version); } catch { add('Version', '?'); }
+  try { add(t('settings.sys.version'), 'v' + (await (await fetch('/api/version')).json()).version); } catch { add(t('settings.sys.version'), '?'); }
   showUpdate();
   const st = lib.stashStatus || {};
-  add('Stash', !st.configured ? 'nicht eingerichtet' : st.ok ? `verbunden (${st.version || 'ok'})` : `Fehler: ${st.error}`);
-  add('HQ-Stream', !hqState.checked ? 'wird geprüft …'
-    : hqState.available ? (HQ_ACCEL_LABEL[hqState.accel] || hqState.accel) : 'nicht verfügbar (kein ffmpeg)');
-  add('Bildverbesserung', enh.ok ? 'WebGL verfügbar' : 'nicht verfügbar');
-  add('Bluetooth', (await bluetoothProblem()) || 'verfügbar');
+  add('Stash', !st.configured ? t('settings.sys.stashNone') : st.ok ? t('settings.sys.stashOk', { version: st.version || 'ok' }) : t('settings.sys.stashErr', { error: st.error }));
+  add(t('settings.sys.hq'), !hqState.checked ? t('settings.sys.checking')
+    : hqState.available ? (HQ_ACCEL_LABEL[hqState.accel] || hqState.accel) : t('settings.sys.hqNone'));
+  add(t('settings.sys.gpu'), gpuText());
+  add(t('settings.sys.enh'), enh.ok ? t('settings.sys.webgl') : t('settings.sys.unavailable'));
+  add('Bluetooth', (await bluetoothProblem()) || t('settings.sys.available'));
   add('HereSphere', `${location.origin}/heresphere`);
   dl.replaceChildren(...rows.flatMap(([k, v]) => [
     Object.assign(document.createElement('dt'), { textContent: k }),
     Object.assign(document.createElement('dd'), { textContent: v }),
   ]));
+  // Intel-Grafik eingebunden, aber Problem: Hinweis, was zu tun ist
+  const hint = { noaccess: 'settings.sys.gpuHintNoaccess', driver: 'settings.sys.gpuHintDriver' }[hqState.gpu];
+  $('gpuHint').hidden = !hint;
+  if (hint) $('gpuHint').textContent = hint === 'settings.sys.gpuHintNoaccess' ? t('settings.sys.gpuHintNoaccess') : t('settings.sys.gpuHintDriver');
+  renderSystemSub();
 }
+
+// Intel-Grafik (Quick Sync) für den HQ-Stream – Zustand aus /api/hq/status
+function gpuText() {
+  if (!hqState.checked) return t('settings.sys.checking');
+  if (!hqState.available) return '–';
+  return hqState.gpu === 'ok' ? t('settings.sys.gpuOk') : hqState.gpu === 'noaccess' ? t('settings.sys.gpuNoaccess')
+    : hqState.gpu === 'driver' ? t('settings.sys.gpuDriver') : t('settings.sys.gpuMissing');
+}
+// Untertitel in der Startliste: Version · Intel-Grafik
+let appVer = '';
+function renderSystemSub() {
+  const gpu = !hqState.checked || !hqState.available ? '' : hqState.gpu === 'ok' ? t('settings.sys.subGpuOk') : t('settings.sys.subGpuOff');
+  $('setSubSystem').textContent = [appVer && 'v' + appVer, gpu].filter(Boolean).join(' · ') || t('settings.sys.sub');
+}
+fetch('/api/version').then((r) => r.json()).then((v) => { appVer = v.version; renderSystemSub(); }).catch(() => {});
+document.addEventListener('hq-ready', renderSystemSub);
 
 // „Update verfügbar“ (neuestes GitHub-Release, der Server fragt höchstens alle 6 h) – auch als Punkt an der Version oben
 async function showUpdate() {
@@ -342,7 +360,7 @@ async function showUpdate() {
     $('updateBox').hidden = !u.available;
     $('appVersion').classList.toggle('has-update', !!u.available);
     if (!u.available) return;
-    $('updateText').textContent = `Version ${u.latest} ist da (du hast ${u.current}).`;
+    $('updateText').textContent = t('settings.sys.updateText', { latest: u.latest, current: u.current });
     $('updateLink').href = u.url;
   } catch { $('updateBox').hidden = true; }
 }
@@ -366,14 +384,17 @@ setTimeout(() => {
 }, 5000);
 
 $('resetLocal').addEventListener('click', () => {
-  if (!confirm('Alle Einstellungen auf diesem Gerät zurücksetzen (Connection Key, Bild, Satisfyer, Ansicht)?\nPatterns und Scripts auf dem Server bleiben erhalten.')) return;
+  if (!confirm(t('settings.sys.resetConfirm'))) return;
   try {
     Object.keys(localStorage).filter((k) => k.startsWith('hp.')).forEach((k) => localStorage.removeItem(k));
   } catch { /* egal */ }
   location.reload();
 });
 
-// Infos frisch laden, sobald die Seite geöffnet wird
-new MutationObserver(() => {
-  if (!$('view-settings').hidden) { renderSysInfo(); renderLibrarySettings(); renderSavedFilterOptions(); updateAdvHint(); }
-}).observe($('view-settings'), { attributes: true, attributeFilter: ['hidden'] });
+// Infos frisch laden, sobald eine Einstellungs-Seite geöffnet wird (Ereignis aus app.js showSetPage)
+window.addEventListener('hp:setpage', () => {
+  const page = document.body.dataset.setPage;
+  if (page === 'system') renderSysInfo();
+  else if (page === 'library') { renderLibrarySettings(); renderSavedFilterOptions(); }
+  else if (!page) updateAdvHint();
+});

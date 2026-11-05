@@ -187,6 +187,34 @@ test('HereSphere abschaltbar', async () => {
   await put('/api/settings', { heresphere: true });
 });
 
+test('2.0: HereSphere wird von / auf /heresphere weitergeleitet – vor der Anmeldung, nur /', async () => {
+  const s = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'p' });
+  const auth = { Authorization: 'Basic ' + Buffer.from('u:p').toString('base64') };
+  const hs = { 'User-Agent': 'Mozilla/5.0 (Linux; Android 12; Quest 3) HereSphere/1.0' };
+  const get = (p, h) => fetch(s.base + p, { headers: h, redirect: 'manual' });
+  try {
+    assert.strictEqual((await get('/', hs)).status, 401, 'HereSphere aus: keine Weiterleitung');
+    await fetch(s.base + '/api/settings', { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/json', Origin: s.base }, body: JSON.stringify({ heresphere: true }) });
+    const r = await get('/', hs);
+    assert.strictEqual(r.status, 302);
+    assert.strictEqual(r.headers.get('location'), '/heresphere');
+    assert.strictEqual((await get('/', {})).status, 401, 'normaler Browser: Anmeldung');
+    assert.strictEqual((await get('/index.html', hs)).status, 401, 'nur / wird umgeleitet');
+    assert.strictEqual((await get('/api/version', hs)).status, 401);
+    const set = await (await fetch(s.base + '/api/settings', { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/json', Origin: s.base }, body: JSON.stringify({ hsRedirect: false }) })).json();
+    assert.strictEqual(set.hsRedirect, false);
+    assert.strictEqual((await get('/', hs)).status, 401, 'Schalter aus: keine Weiterleitung');
+    // Ohne HereSphere-Passwort bleibt /heresphere hinter der Anmeldung, mit Passwort prüft der Player selbst
+    assert.strictEqual((await get('/heresphere', hs)).status, 401);
+    await fetch(s.base + '/api/settings', { method: 'PUT', headers: { ...auth, 'Content-Type': 'application/json', Origin: s.base }, body: JSON.stringify({ hsPassword: 'geheim' }) });
+    const idx = await get('/heresphere', hs);
+    assert.strictEqual(idx.status, 200);
+    assert.strictEqual((await idx.json()).access, -1, 'ohne Token keine Bibliothek');
+    assert.strictEqual((await get('/heresphere/file/media/Filme/clip.mp4', hs)).status, 401);
+    assert.strictEqual((await get('/stash/1/stream', hs)).status, 401, '/stash bleibt hinter der Anmeldung');
+  } finally { s.stop(); }
+});
+
 test('Mit Anmeldung: nur /healthz ist offen, die Versionsnummer nicht (1.19.10)', async () => {
   const auth = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'p' });
   try {

@@ -336,3 +336,31 @@ details.dev-row > summary { display: flex; align-items: center; gap: var(--s2); 
 .dev-sheet .more-settings { display: block; margin: var(--s1) 0 var(--s3); color: var(--muted); font-size: 13px; }
 .dev-stop-row { display: block; margin-top: var(--s2); }
 #stopAll { min-height: 48px; }
+
+/* ---------- Einstellungen (2.0): Startliste mit 6 Bereichen, je eine eigene Seite ---------- */
+#view-settings { max-width: 760px; margin-inline: auto; }
+.set-group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: var(--s3); }
+#view-settings .set-item {
+  display: flex; align-items: center; gap: var(--s3); width: 100%; min-height: var(--tap); margin: 0; padding: 13px 14px;
+  background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none;
+  color: var(--text); font: inherit; font-size: 15px; font-weight: 400; text-align: left; cursor: pointer;
+}
+#view-settings .set-item:last-child { border-bottom: 0; }
+#view-settings .set-item:hover { background: var(--surface2); }
+.set-item .ic {
+  width: 30px; height: 30px; border-radius: var(--radius-s); display: grid; place-items: center; flex: none;
+  background: var(--surface2); border: 1px solid var(--line); color: var(--accent); font-size: 15px;
+}
+.set-item .tx { flex: 1; min-width: 0; }
+.set-item .tx small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+.set-item .ch { color: var(--muted); font-size: 20px; line-height: 1; }
+.set-quick { padding: var(--s1) var(--s4) var(--s2); }
+.set-quick .hint-text { display: block; margin: 0 0 var(--s2); }
+#view-settings .set-back {
+  background: none; border: 0; box-shadow: none; color: var(--accent); padding: 0; margin: 0 0 var(--s1);
+  min-height: var(--tap); font: inherit; font-size: 15px; cursor: pointer;
+}
+.set-page .sec { margin-bottom: var(--s3); }
+.set-page .sec > .sec-sub:first-child { margin-top: 0; }
+.set-page .ui-switch { min-height: 40px; }
+.hint-text.warn { color: var(--warn); }

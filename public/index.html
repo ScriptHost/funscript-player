@@ -306,377 +306,395 @@
         </aside>
       </section>
 
-      <!-- ================= Einstellungen ================= -->
+      <!-- ================= Einstellungen (2.0: Liste mit 6 Bereichen, je eine eigene Seite – settings.js) ================= -->
       <section id="view-settings" class="view" hidden>
-        <h2 class="page-title">⚙️ Einstellungen</h2>
-        <!-- 1.19.3: jeder Bereich aufklappbar (zu = nur die Überschrift), Erklärtexte hinter ⓘ (settings.js) -->
-        <div class="adv-bar">
-          <label class="check sync-setting"><input class="sync-toggle" type="checkbox"> 🔄 <b>Geräte folgen dem Video</b> (Sync) – aus = nur schauen</label>
-          <label class="check"><input id="advMode" type="checkbox"> Erweiterte Einstellungen zeigen</label>
-          <span id="advHint" class="hint-text"></span>
+        <div id="setHome" class="set-home">
+          <h2 class="page-title" data-i18n="settings.title">Settings</h2>
+          <div class="set-group">
+            <button class="set-item" data-page="devices"><span class="ic">◎</span><span class="tx"><span data-i18n="settings.devices">Devices</span><small data-i18n="settings.devicesSub">Handy, Satisfyer, emergency stop</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="script"><span class="ic">⚡</span><span class="tx"><span data-i18n="settings.script">Script</span><small data-i18n="settings.scriptSub">Intensity, finale, speed limit</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="library"><span class="ic">▦</span><span class="tx"><span data-i18n="settings.library">Library</span><small data-i18n="settings.librarySub">Start, Stash, folders, filters</small></span><span class="ch">›</span></button>
+          </div>
+          <div class="set-group">
+            <button class="set-item" data-page="image"><span class="ic">◐</span><span class="tx"><span data-i18n="settings.image">Picture &amp; display</span><small data-i18n="settings.imageSub">Enhancement, HQ stream, player, look</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="vr"><span class="ic">⬡</span><span class="tx"><span data-i18n="settings.vr">VR &amp; HereSphere</span><small id="setSubVr"></small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="system"><span class="ic">ⓘ</span><span class="tx"><span data-i18n="settings.system">System</span><small id="setSubSystem"></small></span><span class="ch">›</span></button>
+          </div>
+          <div class="set-group set-quick">
+            <label class="ui-switch sync-setting"><input class="sync-toggle" type="checkbox"><span></span><span data-i18n-html="settings.sync">🔄 <b>Devices follow the video</b> (sync) – off = just watch</span></label>
+            <label class="ui-switch"><input id="advMode" type="checkbox"><span></span><span data-i18n="settings.adv">Show advanced settings</span></label>
+            <span id="advHint" class="hint-text"></span>
+          </div>
         </div>
-        <nav id="setNav" class="set-nav" aria-label="Bereiche">
-          <a href="#setDevices">🔌 Geräte</a>
-          <a href="#setSafety">🛑 Notaus</a>
-          <a href="#setScript">🎚 Script</a>
-          <a href="#setFinale">🔥 Finale</a>
-          <a href="#imageSettings">✨ Bild</a>
-          <a href="#setPlayer">🖥️ Anzeige</a>
-          <a href="#setLibrary">📚 Bibliothek</a>
-          <a href="#setVR">🥽 VR</a>
-          <a href="#setSystem">ℹ️ System</a>
-        </nav>
 
-        <!-- 1.19.4: Handy und Satisfyer in einem Bereich -->
-        <details id="setDevices" class="card sec">
-          <summary><h2>🔌 Geräte</h2></summary>
-          <h3 class="sec-sub">↕ The Handy</h3>
-          <label>Connection Key
-            <input id="key" type="password" autocomplete="off" spellcheck="false">
-          </label>
-          <label>Application ID <small class="muted">(optional – für die Handy-API v3)</small>
-            <input id="appId" type="text" autocomplete="off" spellcheck="false" placeholder="z. B. aus handyfeeling.com → Application IDs">
-          </label>
-          <p class="hint-text">Mit Application ID nutzt der Player die neue Handy-API v3: Die Handy läuft dann auch bei anderer
-            Wiedergabegeschwindigkeit (0,5× … 2×) im Takt. Ohne ID wie bisher (API v2, nur 1×). Eine <b>Application ID</b> ist kein
-            Geheimnis – den geheimen <i>Application Key</i> braucht der Player nicht.</p>
-          <label class="check"><input id="autoConnect" type="checkbox" checked> Beim Start automatisch verbinden (Handy und bekannte Satisfyer)</label>
-          <label class="adv check"><input id="autoSync" type="checkbox" checked> Handy im Takt halten – prüft alle 30 s still, ob sie noch genau zum Video passt, und rückt sie nach (empfohlen)</label>
-          <label class="adv check"><input id="invert" type="checkbox"> Script umkehren</label>
-          <details class="adv">
-            <summary>Ohne Internet: Handy per Bluetooth</summary>
-            <p class="hint-text">Handy in den Bluetooth-Modus schalten und mit <b>Intiface Central</b> verbinden (Smartphone oder PC). Dann bei „Satisfyer → Intiface Central“ verbinden. Der Player erkennt die Handy als „↕ Bewegung“ und steuert sie direkt – ohne Handy-Cloud. Hub, Umkehren, Offset, Patterns, Direktsteuerung und Finale funktionieren wie gewohnt.</p>
-            <label>Bluetooth-Vorlauf <output id="btLeadVal"></output>
-              <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
+        <!-- ---------- Geräte ---------- -->
+        <div class="set-page" data-page="devices" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.devices">Devices</h2>
+          <div id="setDevices" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.dev.handy">↕ The Handy</h3>
+            <label>Connection Key
+              <input id="key" type="password" autocomplete="off" spellcheck="false">
             </label>
-          </details>
-          <label class="adv">Höchsttempo der Handy <output id="handyMaxVal"></output>
-            <input id="handyMax" type="range" min="250" max="900" step="25" value="450">
-          </label>
-          <label class="adv check"><input id="handyMaxAuto" type="checkbox" checked> Automatisch nach Modell <small id="handyModelInfo" class="muted"></small></label>
-          <p class="adv hint-text">Was schneller ist, schafft der Motor nicht – solche Stellen passt die Script-Intensität an.
-            Das Modell erkennt der Player beim Verbinden. Für Handy 2 / 2 Pro gibt es noch keine gemessenen Werte –
-            spürst du, dass deine mehr schafft, Automatik aus und höher stellen.</p>
-          <p class="hint-text">Verbinden, Offset und Hub stellst du beim Schauen in der Geräte-Spalte ein. Touch-Fläche:
-            <b>Tempo</b> = Finger-Höhe ist das Tempo der Stöße, <b>Position 🧪</b> = die Handy folgt deinem Finger (Beta).</p>
-          <h3 id="setVibe" class="sec-sub">〰 Satisfyer</h3>
-          <p class="hint-text">Mehrere Satisfyer gleichzeitig: in der Geräte-Spalte (Status oben antippen) einfach „＋ Weiteren Satisfyer verbinden“.
-            Jeder bekommt seine eigene Stärke und seinen eigenen Vorlauf – so bleiben alle gemeinsam im Takt.</p>
-          <label class="adv check"><input id="vibeAll" type="checkbox"> Beim Verbinden alle Bluetooth-Geräte anzeigen</label>
-          <!-- 1.19.9: aus dem Geräte-Bereich am Video hierher; bei „Manuell“ bleibt der Stärke-Regler am Video -->
-          <label>Steuerung
-            <select id="vibeSource">
-              <option value="script">Folgt Video / Pattern / Direktsteuerung</option>
-              <option value="manual">Manuell (Stärke von Hand, am Video)</option>
-            </select>
-          </label>
-          <h4>Übersetzung Script → Vibration</h4>
-          <label>Berechnung
-            <select id="vibeMap">
-              <option value="rhythm">Rhythmus: pulsiert mit jedem Stoß, stärker bei Tempo</option>
-              <option value="speed">Nach Geschwindigkeit: gleichmäßig, folgt nur dem Tempo</option>
-              <option value="pos">Nach Position (unten = stark)</option>
-              <option value="posInv">Nach Position (oben = stark)</option>
-            </select>
-          </label>
-          <label class="adv">Gleichmäßigkeit <output id="vibeSmoothVal"></output>
-            <input id="vibeSmooth" type="range" min="0" max="100" step="5" value="0">
-          </label>
-          <p class="adv hint-text">Glättet die Vibration über die Zeit: 0 = jeder Stoß einzeln spürbar, höher = ruhiger, schwankt weniger.
-            Für ganz gleichmäßig: „Nach Geschwindigkeit“ plus Gleichmäßigkeit 40–60 %.</p>
-          <div class="adv grid2">
-            <label>Minimum <output id="vibeMinVal"></output>
-              <input id="vibeMin" type="range" min="0" max="100" value="0">
+            <label>Application ID <small class="muted" data-i18n="settings.dev.appIdOpt">(optional – for the Handy API v3)</small>
+              <input id="appId" type="text" autocomplete="off" spellcheck="false" data-i18n-placeholder="settings.dev.appIdPh" placeholder="e.g. from handyfeeling.com → Application IDs">
             </label>
-            <label>Maximum <output id="vibeMaxVal"></output>
-              <input id="vibeMax" type="range" min="0" max="100" value="100">
-            </label>
-            <label>Volle Stärke ab <output id="vibeFullVal"></output>
-              <input id="vibeFull" type="range" min="50" max="600" step="10" value="200">
-            </label>
-            <label class="check"><input id="vibeLeadAuto" type="checkbox" checked> Vorlauf automatisch (Bluetooth-Laufzeit messen) <small id="vibeLeadAutoInfo" class="muted"></small></label>
-            <label>Vorlauf von Hand <output id="vibeLeadVal"></output>
-              <input id="vibeLead" type="range" min="-300" max="600" step="10" value="100">
-            </label>
-          </div>
-          <details class="adv">
-            <summary>Intiface Central (auch: Handy per Bluetooth)</summary>
-            <p class="hint-text">Intiface Central auf dem Smartphone starten, unter Einstellungen „Listen on all interfaces“ aktivieren und den Server starten.</p>
-            <label>IP des Smartphones<input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
-            <button id="vibeConnect" class="secondary">Mit Intiface verbinden</button>
-            <button id="vibeScan" class="secondary" hidden>In Intiface nach Geräten suchen</button>
-            <label class="check"><input id="intifaceLan" type="checkbox"> Nur Adressen im Heimnetz erlauben (192.168.x / 10.x) – gilt für alle Geräte</label>
-            <p id="intifaceLanHint" class="hint-text" hidden>Fest eingestellt über INTIFACE_LAN_ONLY in der docker-compose.yml.</p>
-          </details>
-        </details>
-
-        <details id="setSafety" class="card sec">
-          <summary><h2>🛑 Notaus</h2></summary>
-          <label class="check"><input id="pauseOnLoss" type="checkbox" checked> Video anhalten, wenn ein Gerät mitten im Video die Verbindung verliert</label>
-          <label class="check"><input id="stopHidden" type="checkbox"> Alles stoppen bei Bildschirmsperre / App-Wechsel</label>
-          <label>Automatisch stoppen, wenn nichts bedient wird und kein Video läuft
-            <select id="autoStop">
-              <option value="0">nie (Standard)</option>
-              <option value="5">nach 5 Minuten</option>
-              <option value="10">nach 10 Minuten</option>
-              <option value="20">nach 20 Minuten</option>
-              <option value="30">nach 30 Minuten</option>
-            </select>
-          </label>
-          <label class="check"><input id="stopButton" type="checkbox"> STOPP-Knöpfe am Video zeigen (schwebend, oben im Vollbild und „Alles stoppen“ unter dem Video – im Status-Fenster oben und mit Esc geht „Alles stoppen“ immer)</label>
-          <label class="adv">Max. Geschwindigkeit Direktsteuerung <output id="capSpeedVal"></output>
-            <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
-          </label>
-          <p class="hint-text">Esc-Taste, der rote STOPP-Knopf oder „Alles stoppen“ in der Geräte-Spalte halten sofort alles an.
-            Der Auto-Stopp greift bei Direktsteuerung, Patterns, „Selbst steuern“ und manueller Stärke – ein laufendes Video mit
-            Script zählt als „dabei“. Die Vibration begrenzt „Maximum“ beim Satisfyer.</p>
-        </details>
-
-        <details id="setScript" class="card sec">
-          <summary><h2>🎚 Script-Intensität</h2></summary>
-          <h3>Standard für alle Szenen</h3>
-          <div class="seg preset-default" data-preset-default>
-            <button data-preset="auto">Automatisch</button>
-            <button data-preset="original">Original</button>
-            <button data-preset="soft">Sanft</button>
-            <button data-preset="intense">Intensiv</button>
-          </div>
-          <ul class="hint-text preset-help">
-            <li><b>Original</b> – genau die Datei, nichts geändert.</li>
-            <li><b>Automatisch</b> – streckt Scripts mit kleinem Hub auf den vollen Weg; was die Handy nicht schafft, wird so
-              angepasst, dass sie exakt im Takt bleibt (feine Vibrationen bleiben).</li>
-            <li><b>Sanft</b> – Hub 20–80 %, höchstens 240 %/s, Satisfyer schwächer und ruhiger.</li>
-            <li><b>Intensiv</b> – voller Hub, ruhige Stellen im doppelten oder dreifachen Takt, Satisfyer kräftiger.</li>
-          </ul>
-          <p class="hint-text">Gilt für Handy und Satisfyer zusammen und rechnet nur beim Abspielen um – deine Dateien bleiben
-            unverändert. Pro Szene wählst du am Video im Script-Bereich; das wird wie der Offset gemerkt.</p>
-          <label class="adv">Stellen, die für die Handy zu schnell sind
-            <select id="tooFast">
-              <option value="shorten">Hub kürzen – jeder Stoß bleibt, dafür etwas kürzer</option>
-              <option value="half">Voller Hub, halbes Tempo – jeder zweite Stoß fällt dort weg</option>
-            </select>
-          </label>
-          <p id="toolInfo" class="hint-text"></p>
-          <p class="hint-text">🎯 Offset per Takt einmessen: in der Geräte-Spalte unter „Feineinstellung Offset“ oder Taste T, während das Video läuft.</p>
-        </details>
-
-        <details id="setFinale" class="card sec">
-          <summary><h2>🔥 Finale</h2></summary>
-          <p class="hint-text">Der 🔥-Knopf im Player (oder Taste O) schaltet auf ruhiger. Nochmal drücken = zurück zum normalen Video-Sync.</p>
-          <div id="finMode" class="seg big-seg">
-            <button data-fin="detach">Komplett lösen</button>
-            <button data-fin="soft">Script weiter, sanfter</button>
-          </div>
-          <p id="finModeInfo" class="hint-text"></p>
-          <label id="finHalfRow" class="adv check"><input id="fin_half" type="checkbox" checked> Halbes Tempo – aus zwei Stößen wird einer, bleibt im Takt des Videos</label>
-          <div class="adv grid2">
-            <label id="finSpeedRow">Geschwindigkeit <output id="fin_speedVal"></output>
-              <input id="fin_speed" type="range" min="5" max="100" step="5" value="30">
-            </label>
-            <label><span id="finVibeLabel">Vibration</span> <output id="fin_vibeVal"></output>
-              <input id="fin_vibe" type="range" min="0" max="100" step="5" value="50">
-            </label>
-            <label>Hub von <output id="fin_minVal"></output>
-              <input id="fin_min" type="range" min="0" max="95" step="5" value="10">
-            </label>
-            <label>Hub bis <output id="fin_maxVal"></output>
-              <input id="fin_max" type="range" min="5" max="100" step="5" value="80">
-            </label>
-          </div>
-          <label class="adv">Automatisch zurück zum Sync nach <output id="fin_timeVal"></output>
-            <input id="fin_time" type="range" min="0" max="300" step="15" value="240">
-          </label>
-        </details>
-
-        <details id="imageSettings" class="card sec">
-          <summary><h2>✨ Bild &amp; Qualität</h2></summary>
-          <div id="qualityMode" class="seg big-seg">
-            <button data-q="auto">Automatisch – bestes Bild</button>
-            <button data-q="off">Aus – Original</button>
-          </div>
-          <p id="qualityInfo" class="hint-text">Wählt pro Video selbst: Ist das Video kleiner als dein Bildschirm, rechnet der Server es hoch
-            und entrauscht leicht (4K/VR bleiben Original); im Browser nur ein Hauch Schärfe und Farbtreppen glätten – Farben und
-            Kontrast bleiben wie im Original. Ruckelt es, wird automatisch eine Stufe zurückgeschaltet.</p>
-
-          <details class="adv" id="qualityAdvanced">
-          <summary>Erweitert – einzelne Einstellungen</summary>
-          <h3>Bildverbesserung im Browser</h3>
-          <div id="enhPresets" class="seg">
-            <button data-preset="auto">Auto</button>
-            <button data-preset="off">Aus</button>
-            <button data-preset="natural">Natürlich</button>
-            <button data-preset="sharp">Schärfer</button>
-            <button data-preset="max">Maximal</button>
-            <button data-preset="custom">Eigene</button>
-          </div>
-          <div id="enhSliders" class="grid2">
-            <label>Schärfe <output id="enh_sharpVal"></output>
-              <input id="enh_sharp" type="range" min="0" max="100" value="35">
-            </label>
-            <label>Kontrast <output id="enh_contrastVal"></output>
-              <input id="enh_contrast" type="range" min="-20" max="30" value="3">
-            </label>
-            <label>Sättigung <output id="enh_saturationVal"></output>
-              <input id="enh_saturation" type="range" min="-30" max="40" value="6">
-            </label>
-            <label>Helligkeit <output id="enh_brightnessVal"></output>
-              <input id="enh_brightness" type="range" min="-15" max="15" value="0">
-            </label>
-          </div>
-          <label class="check"><input id="enh_deband" type="checkbox" checked> Farbtreppen glätten (Anti-Banding)</label>
-          <label class="check"><input id="enh_compare" type="checkbox"> Vorher/Nachher-Vergleich (links Original)</label>
-          <p class="hint-text">Läuft auf der Grafik dieses Geräts: bikubisches Hochskalieren + AMD-CAS-Schärfung. Einstellung gilt pro Gerät.</p>
-
-          <div id="hqBox" class="hq" hidden>
-            <h3>HQ-Stream vom Server (Intel Quick Sync)</h3>
-            <p class="hint-text">Der Server entrauscht und skaliert in Hardware hoch, bevor gestreamt wird – „Auto“ nur dezent,
-              „Sauber“/„Stark“ mit mehr Schärfe. Spulen startet die Umwandlung neu (≈ 1 s).</p>
-            <div id="hqPresets" class="seg">
-              <button data-hq="off">Aus</button>
-              <button data-hq="auto" title="Nur wenn das Video kleiner ist als der Bildschirm – 4K und VR bleiben Original">Auto</button>
-              <button data-hq="clean">Sauber</button>
-              <button data-hq="strong">Stark</button>
-            </div>
-            <div class="actions">
-              <label class="inline">Auflösung
-                <select id="hqHeight">
-                  <option value="auto">Auto (passend zum Bildschirm)</option>
-                  <option value="720">720p</option>
-                  <option value="1080">1080p</option>
-                  <option value="1440">1440p</option>
-                </select>
+            <p class="hint-text" data-i18n-html="settings.dev.appIdHelp">With an Application ID the player uses the new Handy API v3: the Handy stays in sync even at other playback speeds (0.5× … 2×). Without an ID as before (API v2, 1× only). An <b>Application ID</b> is not a secret – the player doesn’t need the secret <i>Application Key</i>.</p>
+            <label class="ui-switch"><input id="autoConnect" type="checkbox" checked><span></span><span data-i18n="settings.dev.autoConnect">Connect automatically at start (Handy and known Satisfyers)</span></label>
+            <label class="ui-switch adv"><input id="autoSync" type="checkbox" checked><span></span><span data-i18n="settings.dev.autoSync">Keep the Handy in time – checks silently every 30 s whether it still matches the video and nudges it back (recommended)</span></label>
+            <label class="ui-switch adv"><input id="invert" type="checkbox"><span></span><span data-i18n="settings.dev.invert">Invert script</span></label>
+            <details class="adv">
+              <summary data-i18n="settings.dev.btTitle">Without internet: Handy via Bluetooth</summary>
+              <p class="hint-text" data-i18n-html="settings.dev.btHelp">Switch the Handy to Bluetooth mode and connect it with <b>Intiface Central</b> (phone or PC). Then connect under “Satisfyer → Intiface Central”. The player recognises the Handy as “↕ movement” and drives it directly – without the Handy cloud. Stroke, invert, offset, patterns, direct control and finale work as usual.</p>
+              <label><span data-i18n="settings.dev.btLead">Bluetooth lead</span> <output id="btLeadVal"></output>
+                <input id="btLead" type="range" min="-200" max="400" step="10" value="80">
               </label>
-              <button id="hqBench" class="small secondary">Leistung testen</button>
+            </details>
+            <label class="adv"><span data-i18n="settings.dev.handyMax">Handy top speed</span> <output id="handyMaxVal"></output>
+              <input id="handyMax" type="range" min="250" max="900" step="25" value="450">
+            </label>
+            <label class="ui-switch adv"><input id="handyMaxAuto" type="checkbox" checked><span></span><span><span data-i18n="settings.dev.handyMaxAuto">Automatic by model</span> <small id="handyModelInfo" class="muted"></small></span></label>
+            <p class="adv hint-text" data-i18n="settings.dev.handyMaxHelp">Anything faster is too much for the motor – the script intensity adapts such spots. The player detects the model when connecting. There are no measured values for Handy 2 / 2 Pro yet – if yours manages more, turn automatic off and raise it.</p>
+            <p class="hint-text" data-i18n-html="settings.dev.touchHelp">Connect, offset and stroke are set while watching in the devices panel. Touch pad: <b>Tempo</b> = finger height is the stroke tempo, <b>Position 🧪</b> = the Handy follows your finger (beta).</p>
+          </div>
+          <div id="setVibe" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.vibe.title">〰 Satisfyer</h3>
+            <p class="hint-text" data-i18n="settings.vibe.multi">Several Satisfyers at once: in the device column (tap the status at the top) simply “＋ Connect another Satisfyer”. Each gets its own strength and lead – so all stay in time together.</p>
+            <label class="ui-switch adv"><input id="vibeAll" type="checkbox"><span></span><span data-i18n="settings.vibe.all">Show all Bluetooth devices when connecting</span></label>
+            <label><span data-i18n="settings.vibe.source">Control</span>
+              <select id="vibeSource">
+                <option value="script" data-i18n="settings.vibe.srcScript">Follows video / pattern / direct control</option>
+                <option value="manual" data-i18n="settings.vibe.srcManual">Manual (strength by hand, at the video)</option>
+              </select>
+            </label>
+            <h4 data-i18n="settings.vibe.mapTitle">Translation script → vibration</h4>
+            <label><span data-i18n="settings.vibe.map">Method</span>
+              <select id="vibeMap">
+                <option value="rhythm" data-i18n="settings.vibe.mapRhythm">Rhythm: pulses with every stroke, stronger with tempo</option>
+                <option value="speed" data-i18n="settings.vibe.mapSpeed">By speed: even, follows only the tempo</option>
+                <option value="pos" data-i18n="settings.vibe.mapPos">By position (down = strong)</option>
+                <option value="posInv" data-i18n="settings.vibe.mapPosInv">By position (up = strong)</option>
+              </select>
+            </label>
+            <label class="adv"><span data-i18n="settings.vibe.smooth">Smoothness</span> <output id="vibeSmoothVal"></output>
+              <input id="vibeSmooth" type="range" min="0" max="100" step="5" value="0">
+            </label>
+            <p class="adv hint-text" data-i18n="settings.vibe.smoothHelp">Smooths the vibration over time: 0 = every stroke felt on its own, higher = calmer, fluctuates less. For fully even: “By speed” plus smoothness 40–60 %.</p>
+            <div class="adv grid2">
+              <label><span data-i18n="settings.vibe.min">Minimum</span> <output id="vibeMinVal"></output>
+                <input id="vibeMin" type="range" min="0" max="100" value="0">
+              </label>
+              <label><span data-i18n="settings.vibe.max">Maximum</span> <output id="vibeMaxVal"></output>
+                <input id="vibeMax" type="range" min="0" max="100" value="100">
+              </label>
+              <label><span data-i18n="settings.vibe.full">Full strength from</span> <output id="vibeFullVal"></output>
+                <input id="vibeFull" type="range" min="50" max="600" step="10" value="200">
+              </label>
+              <label class="ui-switch"><input id="vibeLeadAuto" type="checkbox" checked><span></span><span><span data-i18n="settings.vibe.leadAuto">Lead automatic (measure Bluetooth latency)</span> <small id="vibeLeadAutoInfo" class="muted"></small></span></label>
+              <label><span data-i18n="settings.vibe.lead">Manual lead</span> <output id="vibeLeadVal"></output>
+                <input id="vibeLead" type="range" min="-300" max="600" step="10" value="100">
+              </label>
             </div>
-            <p id="hqInfo" class="hint-text"></p>
+            <details class="adv">
+              <summary data-i18n="settings.vibe.intiface">Intiface Central (also: Handy via Bluetooth)</summary>
+              <p class="hint-text" data-i18n="settings.vibe.intifaceHelp">Start Intiface Central on the phone, enable “Listen on all interfaces” in its settings and start the server.</p>
+              <label><span data-i18n="settings.vibe.ip">Phone IP</span><input id="vibeAddr" type="text" placeholder="192.168.3.50:12345" spellcheck="false"></label>
+              <button id="vibeConnect" class="secondary" data-i18n="settings.vibe.connect">Connect to Intiface</button>
+              <button id="vibeScan" class="secondary" hidden data-i18n="settings.vibe.scan">Search for devices in Intiface</button>
+              <label class="ui-switch"><input id="intifaceLan" type="checkbox"><span></span><span data-i18n="settings.vibe.lan">Allow only home network addresses (192.168.x / 10.x) – applies to all devices</span></label>
+              <p id="intifaceLanHint" class="hint-text" hidden data-i18n="settings.vibe.lanLocked">Fixed via INTIFACE_LAN_ONLY in docker-compose.yml.</p>
+            </details>
           </div>
-          </details>
-        </details>
-
-        <details id="setPlayer" class="card sec">
-          <summary><h2>🖥️ Anzeige</h2></summary>
-          <p class="adv hint-text">Was unter dem Video stehen soll – Nicht-Benötigtes einfach ausblenden.</p>
-          <div id="hudOptions" class="adv hud-options">
-            <label class="check"><input type="checkbox" data-hud="devices"> Geräte-Steuerung am Video (Verbinden, Offset, Hub, Stärke – am PC rechts daneben)</label>
-            <label class="check"><input type="checkbox" data-hud="meta"> Datum, Länge, Aufrufe</label>
-            <label class="check"><input type="checkbox" data-hud="script"> Zeile „⚡ Scriptname (Punkte)“</label>
-            <label class="check"><input type="checkbox" data-hud="actions"> Bewertung, Favorit, O-Zähler, Marker setzen</label>
-            <label class="check"><input type="checkbox" data-hud="baractions"> ★ / 💦 / 📍 in der Player-Leiste</label>
-            <label class="check"><input type="checkbox" data-hud="people"> Studio und Darsteller</label>
-            <label class="check"><input type="checkbox" data-hud="tags"> Tags</label>
-            <label class="check"><input type="checkbox" data-hud="markers"> Marker-Liste</label>
-            <label class="check"><input type="checkbox" data-hud="details"> Beschreibung</label>
-            <label class="check"><input type="checkbox" data-hud="quality"> Zeile „Bild / HQ – Einstellungen“</label>
-          </div>
-          <h3 class="adv">Knöpfe in der Player-Leiste</h3>
-          <p class="adv hint-text">Knöpfe, die gerade nichts tun können (z. B. ⟳ ohne Handy), blendet der Player selbst aus.</p>
-          <ul id="barOptions" class="adv bar-options"></ul>
-          <label>Springen mit Doppeltippen links/rechts
-            <select id="skipSec"><option value="10">10 Sekunden</option><option value="5">5 Sekunden</option></select>
-          </label>
-          <label><span data-i18n="settings.language">Language</span>
-            <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
-          </label>
-          <!-- 2.0: Anzeige-Schalter (nav.js) -->
-          <label class="ui-switch"><input id="glowOn" type="checkbox" checked><span></span><span data-i18n="settings.glow">Neon glow</span></label>
-          <label class="ui-switch"><input id="motionOn" type="checkbox"><span></span><span data-i18n="settings.motion">Moving device bars</span></label>
-          <label class="ui-switch"><input id="nextOn" type="checkbox" checked><span></span><span data-i18n="settings.next">“Up next” next to the player (wide screens)</span></label>
-          <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
-          <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (sofern der Browser es zulässt, sonst ⧉)</label>
-          <!-- 1.19.8: wie eine installierte App -->
-          <label id="appFsRow" class="check"><input id="appFs" type="checkbox"> Im Browser die ganze App im Vollbild (ohne Browserleiste) – beginnt beim ersten Antippen, die Zurück-Geste beendet es</label>
-          <button id="installApp" class="small secondary" hidden>📲 Als App installieren</button>
-          <h3>Wischen im Vollbild</h3>
-          <div class="grid2">
-            <label>Linke Hälfte hoch/runter
-              <select id="swipeLeft"><option value="off">Aus</option><option value="volume">Lautstärke</option><option value="vibe">Stärke Satisfyer</option><option value="handy">Hub Handy</option><option value="both">Beide Geräte</option></select>
+          <div id="setSafety" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.safety.title">🛑 Emergency stop</h3>
+            <label class="ui-switch"><input id="pauseOnLoss" type="checkbox" checked><span></span><span data-i18n="settings.safety.pauseOnLoss">Pause the video when a device loses its connection mid-video</span></label>
+            <label class="ui-switch"><input id="stopHidden" type="checkbox"><span></span><span data-i18n="settings.safety.stopHidden">Stop everything on screen lock / app switch</span></label>
+            <label><span data-i18n="settings.safety.autoStop">Stop automatically when nothing is touched and no video is playing</span>
+              <select id="autoStop">
+                <option value="0" data-i18n="settings.safety.never">never (default)</option>
+                <option value="5" data-i18n="settings.safety.min5">after 5 minutes</option>
+                <option value="10" data-i18n="settings.safety.min10">after 10 minutes</option>
+                <option value="20" data-i18n="settings.safety.min20">after 20 minutes</option>
+                <option value="30" data-i18n="settings.safety.min30">after 30 minutes</option>
+              </select>
             </label>
-            <label>Rechte Hälfte hoch/runter
-              <select id="swipeRight"><option value="off">Aus</option><option value="volume">Lautstärke</option><option value="vibe">Stärke Satisfyer</option><option value="handy">Hub Handy</option><option value="both">Beide Geräte</option></select>
+            <label class="ui-switch"><input id="stopButton" type="checkbox"><span></span><span data-i18n="settings.safety.stopButton">Show STOP buttons at the video (floating, at the top in fullscreen and “Stop everything” below the video – in the status window at the top and with Esc “Stop everything” always works)</span></label>
+            <label class="adv"><span data-i18n="settings.safety.capSpeed">Max. speed direct control</span> <output id="capSpeedVal"></output>
+              <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
+            </label>
+            <p class="hint-text" data-i18n="settings.safety.help">The Esc key, the red STOP button or “Stop all” in the device column stop everything immediately. The auto-stop applies to direct control, patterns, “control it yourself” and manual strength – a playing video with a script counts as “watching”. “Maximum” of the Satisfyer limits the vibration.</p>
+          </div>
+        </div>
+
+        <!-- ---------- Script ---------- -->
+        <div class="set-page" data-page="script" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.script">Script</h2>
+          <div id="setScript" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.scr.title">🎚 Script intensity</h3>
+            <h4 data-i18n="settings.scr.default">Default for all scenes</h4>
+            <div class="seg preset-default" data-preset-default>
+              <button data-preset="auto" data-i18n="settings.scr.auto">Automatic</button>
+              <button data-preset="original" data-i18n="settings.scr.original">Original</button>
+              <button data-preset="soft" data-i18n="settings.scr.soft">Gentle</button>
+              <button data-preset="intense" data-i18n="settings.scr.intense">Intense</button>
+            </div>
+            <ul class="hint-text preset-help">
+              <li data-i18n-html="settings.scr.helpOriginal"><b>Original</b> – exactly the file, nothing changed.</li>
+              <li data-i18n-html="settings.scr.helpAuto"><b>Automatic</b> – stretches scripts with a small stroke to the full range; what the Handy can’t manage is adapted so it stays exactly in time (fine vibrations stay).</li>
+              <li data-i18n-html="settings.scr.helpSoft"><b>Gentle</b> – stroke 20–80 %, at most 240 %/s, Satisfyer weaker and smoother.</li>
+              <li data-i18n-html="settings.scr.helpIntense"><b>Intense</b> – full stroke, calm passages at double or triple tempo, Satisfyer stronger.</li>
+            </ul>
+            <p class="hint-text" data-i18n="settings.scr.help">Applies to Handy and Satisfyer together and only recalculates during playback – your files stay unchanged. Per scene you choose in the script area at the video; it is remembered like the offset.</p>
+            <label class="adv"><span data-i18n="settings.scr.tooFast">Spots too fast for the Handy</span>
+              <select id="tooFast">
+                <option value="shorten" data-i18n="settings.scr.shorten">Shorten stroke – every stroke stays, a little shorter</option>
+                <option value="half" data-i18n="settings.scr.half">Full stroke, half tempo – every second stroke is dropped there</option>
+              </select>
+            </label>
+            <p id="toolInfo" class="hint-text"></p>
+            <p class="hint-text" data-i18n="settings.scr.offsetHelp">🎯 Calibrate the offset by tapping the beat: in the device column under “Offset fine-tuning” or key T while the video plays.</p>
+          </div>
+          <div id="setFinale" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.fin.title">🔥 Finale</h3>
+            <p class="hint-text" data-i18n="settings.fin.help">The 🔥 button in the player (or key O) switches to calmer. Press again = back to normal video sync.</p>
+            <div id="finMode" class="seg big-seg">
+              <button data-fin="detach" data-i18n="settings.fin.detach">Detach completely</button>
+              <button data-fin="soft" data-i18n="settings.fin.soft">Keep script, gentler</button>
+            </div>
+            <p id="finModeInfo" class="hint-text"></p>
+            <label id="finHalfRow" class="ui-switch adv"><input id="fin_half" type="checkbox" checked><span></span><span data-i18n="settings.fin.half">Half tempo – two strokes become one, stays in time with the video</span></label>
+            <div class="adv grid2">
+              <label id="finSpeedRow"><span data-i18n="settings.fin.speed">Speed</span> <output id="fin_speedVal"></output>
+                <input id="fin_speed" type="range" min="5" max="100" step="5" value="30">
+              </label>
+              <label><span id="finVibeLabel">Vibration</span> <output id="fin_vibeVal"></output>
+                <input id="fin_vibe" type="range" min="0" max="100" step="5" value="50">
+              </label>
+              <label><span data-i18n="settings.fin.min">Stroke from</span> <output id="fin_minVal"></output>
+                <input id="fin_min" type="range" min="0" max="95" step="5" value="10">
+              </label>
+              <label><span data-i18n="settings.fin.max">Stroke to</span> <output id="fin_maxVal"></output>
+                <input id="fin_max" type="range" min="5" max="100" step="5" value="80">
+              </label>
+            </div>
+            <label class="adv"><span data-i18n="settings.fin.time">Back to sync automatically after</span> <output id="fin_timeVal"></output>
+              <input id="fin_time" type="range" min="0" max="300" step="15" value="240">
             </label>
           </div>
-          <p class="hint-text">Vollbild mit eigener Bedienung (STOPP, Finale, Ton, Einpassen/Füllen). Kleines Fenster beim Verlassen:
-            über ⧉ in der Leiste. Not-Aus: Esc oder „Alles stoppen“ im Geräte-Fenster.</p>
-          <h3 class="adv">Beim Stöbern</h3>
-          <label class="adv">Video, während du in Bibliothek oder Einstellungen bist
-            <select id="browseMini">
-              <option value="left">Mini-Player unten links</option>
-              <option value="right">Mini-Player unten rechts</option>
-              <option value="bar">Nur Leiste „Läuft gerade“</option>
-            </select>
-          </label>
-          <h3 class="adv">Kopfzeile</h3>
-          <label class="adv check"><input id="hdrNotch" type="checkbox"> Kompakt: Handy- und Satisfyer-Status links und rechts neben der Kamera (für Smartphones mit Kamera oben in der Mitte)</label>
-          <p class="adv hint-text">Browser verraten nur, wie hoch der Kamerabereich ist, nicht wo die Kamera sitzt – deshalb zum Einschalten.</p>
-        </details>
+        </div>
 
-        <details id="setLibrary" class="card sec">
-          <summary><h2>📚 Bibliothek</h2></summary>
-          <label>Beim Start anzeigen
-            <select id="setStartSource"></select>
-          </label>
-          <label class="check"><input id="only2d" type="checkbox"> Nur 2D-Videos zeigen</label>
-          <p class="hint-text">Die Bibliothek zeigt dann nur Szenen mit dem Stash-Tag „2D“. Gilt nur für dieses Gerät – z. B. am Smartphone an, in der VR-Brille aus.</p>
-          <label class="adv check"><input id="setHoverPreview" type="checkbox" checked> Vorschauvideo beim Drüberfahren mit der Maus</label>
-          <label class="adv check"><input id="saveScripts" type="checkbox" checked> 💾 Eigene Scripts zu Videos speichern (Touch-Aufnahmen, Mitschnitte, hineingezogene) – Ordner-Videos: daneben, Stash-Szenen: auf dem Player-Server</label>
-          <p class="adv hint-text">Neben Ordner-Videos geht das nur, wenn der Ordner in der <code>docker-compose.yml</code> ohne <code>:ro</code> eingebunden ist – sonst legt der Player es auf dem Server ab. Vorhandene Dateien werden nie überschrieben.</p>
-          <h3 class="adv">Reiter in der Stash-Bibliothek</h3>
-          <div id="browseOptions" class="adv hud-options">
-            <label class="check"><input type="checkbox" data-browse-opt="tags"> Tags</label>
-            <label class="check"><input type="checkbox" data-browse-opt="performers"> Darsteller</label>
-            <label class="check"><input type="checkbox" data-browse-opt="studios"> Studios</label>
+        <!-- ---------- Bibliothek ---------- -->
+        <div class="set-page" data-page="library" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.library">Library</h2>
+          <div id="setLibrary" class="card sec">
+            <label><span data-i18n="settings.lib.start">Show at start</span>
+              <select id="setStartSource"></select>
+            </label>
+            <label class="ui-switch"><input id="only2d" type="checkbox"><span></span><span data-i18n="settings.lib.only2d">Show 2D videos only</span></label>
+            <p class="hint-text" data-i18n="settings.lib.only2dHelp">The library then only shows scenes with the Stash tag “2D”. Applies to this device only – e.g. on for the phone, off for the VR headset.</p>
+            <label class="ui-switch adv"><input id="setHoverPreview" type="checkbox" checked><span></span><span data-i18n="settings.lib.hover">Preview video on mouse hover</span></label>
+            <label class="ui-switch adv"><input id="saveScripts" type="checkbox" checked><span></span><span data-i18n="settings.lib.save">💾 Save own scripts with videos (touch recordings, recordings along the video, dropped ones) – folder videos: next to them, Stash scenes: on the player server</span></label>
+            <p class="adv hint-text" data-i18n-html="settings.lib.saveHelp">Next to folder videos only if the folder is mounted in <code>docker-compose.yml</code> without <code>:ro</code> – otherwise the player stores it on the server. Original files are never overwritten.</p>
           </div>
-          <h3 class="adv">Gespeicherte Stash-Filter in der Leiste</h3>
-          <div id="setSavedFilters" class="adv hud-options"><p class="hint-text">Erscheinen, sobald Stash verbunden ist.</p></div>
-          <h3>Eingebundene Ordner</h3>
-          <ul id="setFolders" class="folders"></ul>
-          <p class="hint-text">Weitere Ordner einbinden: in der <code>docker-compose.yml</code> pro Ordner eine Zeile unter <code>volumes</code>, z. B.
-            <code>- /pfad/zu/downloads:/media/Downloads:ro</code> – jeder Unterordner von <code>/media</code> wird eine eigene Quelle. Danach <code>docker compose up -d</code>.</p>
-        </details>
+          <div class="card sec adv">
+            <h3 class="sec-sub" data-i18n="settings.lib.tabs">Tabs in the Stash library</h3>
+            <div id="browseOptions" class="hud-options">
+              <label class="ui-switch"><input type="checkbox" data-browse-opt="tags"><span></span><span data-i18n="settings.lib.tags">Tags</span></label>
+              <label class="ui-switch"><input type="checkbox" data-browse-opt="performers"><span></span><span data-i18n="settings.lib.performers">Performers</span></label>
+              <label class="ui-switch"><input type="checkbox" data-browse-opt="studios"><span></span><span data-i18n="settings.lib.studios">Studios</span></label>
+            </div>
+            <h3 class="sec-sub" data-i18n="settings.lib.filters">Saved Stash filters in the bar</h3>
+            <div id="setSavedFilters" class="hud-options"><p class="hint-text" data-i18n="settings.lib.filtersWait">Appear once Stash is connected.</p></div>
+          </div>
+          <div class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.lib.folders">Mounted folders</h3>
+            <ul id="setFolders" class="folders"></ul>
+            <p class="hint-text" data-i18n-html="settings.lib.foldersHelp">Mount more folders: one line per folder under <code>volumes</code> in <code>docker-compose.yml</code>, e.g. <code>- /path/to/downloads:/media/Downloads:ro</code> – every subfolder of <code>/media</code> becomes its own source. Then <code>docker compose up -d</code>.</p>
+          </div>
+        </div>
 
-        <details id="setVR" class="card sec">
-          <summary><h2>🥽 VR-Brille (HereSphere)</h2></summary>
-          <label class="check"><input id="hsOn" type="checkbox" checked> HereSphere-Schnittstelle aktiv</label>
-          <p id="hsOffHint" class="hint-text" hidden>Aus: Der Server antwortet unter <code>/heresphere</code> nicht – die Ausnahme in deiner Proxy-Anmeldung kann weg. Gilt für alle Geräte.</p>
-          <div id="hsBox">
-          <label class="adv check"><input id="hsVrOnly" type="checkbox" checked> Nur VR-Videos zeigen (aus = auch normale Videos, als flache Leinwand)</label>
-          <label class="adv">Passwort für HereSphere <small class="muted">(optional – HereSphere fragt dann einmal nach Benutzer und Passwort, der Benutzername ist egal)</small>
-            <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" placeholder="leer = frei erreichbar">
-              <button id="hsPassSave" class="small secondary">Speichern</button>
-              <button id="hsPassClear" class="small secondary" hidden>Entfernen</button></span>
-          </label>
-          <p id="hsPassInfo" class="adv hint-text"></p>
-          <p>In HereSphere im Browser diese Adresse öffnen und als Lesezeichen speichern:</p>
-          <div class="copyrow">
-            <input id="hsUrl" type="text" readonly>
-            <button id="hsCopy" class="small secondary">Kopieren</button>
-          </div>
-          <details class="more-info">
-            <summary>ⓘ So geht's</summary>
-            <ol class="steps-list">
-              <li>HereSphere starten → Web-Browser öffnen → Adresse oben eingeben.</li>
-              <li>Die Bibliothek erscheint mit Kategorien: <i>Alle mit Script</i>, deine gespeicherten Stash-Filter und die eingebundenen Ordner.</li>
-              <li>The Handy: in HereSphere unter <i>Einstellungen → Haptik</i> deinen Connection Key eintragen. HereSphere lädt das Funscript automatisch mit.</li>
-              <li>Das VR-Format (180°/360°, SBS/TB, Fisheye/MKX) erkennt der Player an Dateinamen und VR-Tags.</li>
-            </ol>
-          </details>
-          <p class="hint-text">Hat dein Reverse Proxy eine Anmeldung (z. B. Authelia) vor dem Player, muss <code>/heresphere</code> davon ausgenommen sein – HereSphere kann keine Login-Seite bedienen. Das Passwort oben schützt die Schnittstelle dann trotzdem.</p>
-          </div>
-        </details>
+        <!-- ---------- Bild & Anzeige ---------- -->
+        <div class="set-page" data-page="image" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.image">Picture &amp; display</h2>
+          <div id="imageSettings" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.img.title">✨ Picture &amp; quality</h3>
+            <div id="qualityMode" class="seg big-seg">
+              <button data-q="auto" data-i18n="settings.img.auto">Automatic – best picture</button>
+              <button data-q="off" data-i18n="settings.img.off">Off – original</button>
+            </div>
+            <p id="qualityInfo" class="hint-text"></p>
+            <details class="adv" id="qualityAdvanced">
+            <summary data-i18n="settings.img.advanced">Advanced – individual settings</summary>
+            <h4 data-i18n="settings.img.browser">Picture enhancement in the browser</h4>
+            <div id="enhPresets" class="seg">
+              <button data-preset="auto" data-i18n="settings.img.pAuto">Auto</button>
+              <button data-preset="off" data-i18n="settings.img.pOff">Off</button>
+              <button data-preset="natural" data-i18n="settings.img.pNatural">Natural</button>
+              <button data-preset="sharp" data-i18n="settings.img.pSharp">Sharper</button>
+              <button data-preset="max" data-i18n="settings.img.pMax">Maximum</button>
+              <button data-preset="custom" data-i18n="settings.img.pCustom">Custom</button>
+            </div>
+            <div id="enhSliders" class="grid2">
+              <label><span data-i18n="settings.img.sharp">Sharpness</span> <output id="enh_sharpVal"></output>
+                <input id="enh_sharp" type="range" min="0" max="100" value="35">
+              </label>
+              <label><span data-i18n="settings.img.contrast">Contrast</span> <output id="enh_contrastVal"></output>
+                <input id="enh_contrast" type="range" min="-20" max="30" value="3">
+              </label>
+              <label><span data-i18n="settings.img.saturation">Saturation</span> <output id="enh_saturationVal"></output>
+                <input id="enh_saturation" type="range" min="-30" max="40" value="6">
+              </label>
+              <label><span data-i18n="settings.img.brightness">Brightness</span> <output id="enh_brightnessVal"></output>
+                <input id="enh_brightness" type="range" min="-15" max="15" value="0">
+              </label>
+            </div>
+            <label class="ui-switch"><input id="enh_deband" type="checkbox" checked><span></span><span data-i18n="settings.img.deband">Smooth colour banding (anti-banding)</span></label>
+            <label class="ui-switch"><input id="enh_compare" type="checkbox"><span></span><span data-i18n="settings.img.compare">Before/after comparison (left original)</span></label>
+            <p class="hint-text" data-i18n="settings.img.gpuHelp">Runs on this device’s GPU: bicubic upscaling + AMD CAS sharpening. Setting is per device.</p>
 
-        <details id="setSystem" class="card sec">
-          <summary><h2>ℹ️ System</h2></summary>
-          <div id="updateBox" class="update-box" hidden>
-            <b>⬆ Update verfügbar</b> <span id="updateText"></span>
-            <a id="updateLink" href="#" target="_blank" rel="noopener">Was ist neu? ↗</a>
-            <p class="hint-text">Aktualisieren: <code>docker compose pull &amp;&amp; docker compose up -d</code> – deine Einstellungen liegen im Volume <code>funscript-data</code> und bleiben.</p>
+            <div id="hqBox" class="hq" hidden>
+              <h4 data-i18n="settings.img.hqTitle">HQ stream from the server (Intel Quick Sync)</h4>
+              <p class="hint-text" data-i18n="settings.img.hqHelp">The server denoises and upscales in hardware before streaming – “Auto” only subtly, “Clean”/“Strong” with more sharpness. Seeking restarts the conversion (≈ 1 s).</p>
+              <div id="hqPresets" class="seg">
+                <button data-hq="off" data-i18n="settings.img.pOff">Off</button>
+                <button data-hq="auto" data-i18n="settings.img.pAuto" data-i18n-title="settings.img.hqAutoTip" title="Only if the video is smaller than the screen – 4K and VR stay original">Auto</button>
+                <button data-hq="clean" data-i18n="settings.img.hqClean">Clean</button>
+                <button data-hq="strong" data-i18n="settings.img.hqStrong">Strong</button>
+              </div>
+              <div class="actions">
+                <label class="inline"><span data-i18n="settings.img.res">Resolution</span>
+                  <select id="hqHeight">
+                    <option value="auto" data-i18n="settings.img.resAuto">Auto (matching the screen)</option>
+                    <option value="720">720p</option>
+                    <option value="1080">1080p</option>
+                    <option value="1440">1440p</option>
+                  </select>
+                </label>
+                <button id="hqBench" class="small secondary" data-i18n="settings.img.bench">Test performance</button>
+              </div>
+              <p id="hqInfo" class="hint-text"></p>
+            </div>
+            </details>
           </div>
-          <dl id="sysInfo" class="sysinfo"></dl>
-          <p class="hint-text">Alles, was der Player speichert (Einstellungen, eigene Scripts, Offsets, Patterns), liegt auf dem Server im
-            Docker-Volume <code>funscript-data</code> – eine Sicherung davon ist eine Sicherung von allem. Beim Start prüft sich der Player
-            selbst; das Ergebnis steht in <code>docker logs</code>.</p>
-          <button id="resetLocal" class="adv small danger">Einstellungen auf diesem Gerät zurücksetzen</button>
-        </details>
+
+          <div id="setLook" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.look.title">Look</h3>
+            <label class="ui-switch"><input id="glowOn" type="checkbox" checked><span></span><span data-i18n="settings.glow">Neon glow</span></label>
+            <label class="ui-switch"><input id="motionOn" type="checkbox"><span></span><span data-i18n="settings.motion">Moving device bars</span></label>
+            <label class="ui-switch"><input id="nextOn" type="checkbox" checked><span></span><span data-i18n="settings.next">“Up next” next to the player (wide screens)</span></label>
+            <label class="ui-switch adv"><input id="hdrNotch" type="checkbox"><span></span><span data-i18n="settings.look.notch">Compact: Handy and Satisfyer status left and right of the camera (for phones with a centred top camera)</span></label>
+            <p class="adv hint-text" data-i18n="settings.look.notchHelp">Browsers only reveal how tall the camera area is, not where the camera sits – hence a switch.</p>
+          </div>
+
+          <div id="setPlayer" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.pl.title">▶︎ Player</h3>
+            <p class="adv hint-text" data-i18n="settings.pl.hudHelp">What appears below the video – just hide what you don’t need.</p>
+            <div id="hudOptions" class="adv hud-options">
+              <label class="ui-switch"><input type="checkbox" data-hud="devices"><span></span><span data-i18n="settings.pl.hudDevices">Device controls at the video (connect, offset, stroke, strength – on PC to the right)</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="meta"><span></span><span data-i18n="settings.pl.hudMeta">Date, length, views</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="script"><span></span><span data-i18n="settings.pl.hudScript">Line “⚡ script name (points)”</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="actions"><span></span><span data-i18n="settings.pl.hudActions">Rating, favourite, O-counter, set marker</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="baractions"><span></span><span data-i18n="settings.pl.hudBar">★ / 💦 / 📍 in the player bar</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="people"><span></span><span data-i18n="settings.pl.hudPeople">Studio and performers</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="tags"><span></span><span data-i18n="settings.lib.tags">Tags</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="markers"><span></span><span data-i18n="settings.pl.hudMarkers">Marker list</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="details"><span></span><span data-i18n="settings.pl.hudDetails">Description</span></label>
+              <label class="ui-switch"><input type="checkbox" data-hud="quality"><span></span><span data-i18n="settings.pl.hudQuality">Line “picture / HQ – settings”</span></label>
+            </div>
+            <h4 class="adv" data-i18n="settings.pl.barTitle">Buttons in the player bar</h4>
+            <p class="adv hint-text" data-i18n="settings.pl.barHelp">Buttons that can’t do anything right now (e.g. ⟳ without a Handy) are hidden automatically.</p>
+            <ul id="barOptions" class="adv bar-options"></ul>
+            <label><span data-i18n="settings.pl.skip">Jump with double tap left/right</span>
+              <select id="skipSec"><option value="10" data-i18n="settings.pl.sec10">10 seconds</option><option value="5" data-i18n="settings.pl.sec5">5 seconds</option></select>
+            </label>
+            <label class="ui-switch"><input id="autoPip" type="checkbox" checked><span></span><span data-i18n="settings.pl.autoPip">Leave the app while the video plays = small window (picture-in-picture), the video keeps playing (if the browser allows it, otherwise ⧉)</span></label>
+            <h4 data-i18n="settings.pl.swipeTitle">Swipe in fullscreen</h4>
+            <div class="grid2">
+              <label><span data-i18n="settings.pl.swipeLeft">Left half up/down</span>
+                <select id="swipeLeft"><option value="off" data-i18n="settings.img.pOff">Off</option><option value="volume" data-i18n="settings.pl.volume">Volume</option><option value="vibe" data-i18n="settings.pl.vibe">Satisfyer strength</option><option value="handy" data-i18n="settings.pl.handy">Handy stroke</option><option value="both" data-i18n="settings.pl.both">Both devices</option></select>
+              </label>
+              <label><span data-i18n="settings.pl.swipeRight">Right half up/down</span>
+                <select id="swipeRight"><option value="off" data-i18n="settings.img.pOff">Off</option><option value="volume" data-i18n="settings.pl.volume">Volume</option><option value="vibe" data-i18n="settings.pl.vibe">Satisfyer strength</option><option value="handy" data-i18n="settings.pl.handy">Handy stroke</option><option value="both" data-i18n="settings.pl.both">Both devices</option></select>
+              </label>
+            </div>
+            <p class="hint-text" data-i18n="settings.pl.fsHelp">Fullscreen with its own controls (STOP, finale, sound, fit/fill). Small window when leaving: via ⧉ in the bar. Emergency stop: Esc or “Stop everything” in the devices window.</p>
+            <label class="adv"><span data-i18n="settings.pl.mini">Video while you’re in the library or settings</span>
+              <select id="browseMini">
+                <option value="left" data-i18n="settings.pl.miniLeft">Mini player bottom left</option>
+                <option value="right" data-i18n="settings.pl.miniRight">Mini player bottom right</option>
+                <option value="bar" data-i18n="settings.pl.miniBar">Only the “Now playing” bar</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- ---------- VR & HereSphere ---------- -->
+        <div class="set-page" data-page="vr" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.vr">VR &amp; HereSphere</h2>
+          <div id="setVR" class="card sec">
+            <label class="ui-switch"><input id="hsOn" type="checkbox" checked><span></span><span data-i18n="settings.vr.on">HereSphere interface active</span></label>
+            <p id="hsOffHint" class="hint-text" hidden></p>
+            <div id="hsBox">
+            <label class="ui-switch"><input id="hsRedirect" type="checkbox" checked><span></span><span data-i18n="settings.vr.redirect">Send HereSphere from the normal address straight to the VR library</span></label>
+            <p class="hint-text" data-i18n="settings.vr.redirectHelp">Then the player’s normal address is enough in HereSphere. HereSphere is recognised by its identifier; only the start page is redirected.</p>
+            <label class="ui-switch adv"><input id="hsVrOnly" type="checkbox" checked><span></span><span data-i18n="settings.vr.vrOnly">Show VR videos only (off = regular videos too, as a flat screen)</span></label>
+            <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small>
+              <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="empty = open">
+                <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button>
+                <button id="hsPassClear" class="small secondary" hidden data-i18n="settings.vr.remove">Remove</button></span>
+            </label>
+            <p id="hsPassInfo" class="hint-text"></p>
+            <p id="hsLoginHint" class="hint-text warn" hidden></p>
+            <p data-i18n="settings.vr.urlHelp">Open this address in HereSphere’s browser and bookmark it:</p>
+            <div class="copyrow">
+              <input id="hsUrl" type="text" readonly>
+              <button id="hsCopy" class="small secondary" data-i18n="settings.vr.copy">Copy</button>
+            </div>
+            <details class="more-info">
+              <summary data-i18n="settings.vr.howto">ⓘ How it works</summary>
+              <ol class="steps-list">
+                <li data-i18n="settings.vr.step1">Start HereSphere → open the web browser → enter the address above.</li>
+                <li data-i18n-html="settings.vr.step2">The library appears with categories: <i>Alle mit Script</i> (all with script), your saved Stash filters and the mounted folders.</li>
+                <li data-i18n-html="settings.vr.step3">The Handy: enter your connection key in HereSphere under <i>Settings → Haptics</i>. HereSphere loads the Funscript automatically.</li>
+                <li data-i18n="settings.vr.step4">The player detects the VR format (180°/360°, SBS/TB, fisheye/MKX) from file names and VR tags.</li>
+              </ol>
+            </details>
+            <p class="hint-text" data-i18n-html="settings.vr.proxyHelp">If your reverse proxy has a login (e.g. Authelia) in front of the player, <code>/heresphere</code> must be exempt – HereSphere can’t handle a login page. The password above still protects the interface.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---------- System ---------- -->
+        <div class="set-page" data-page="system" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.system">System</h2>
+          <div id="setSystem" class="card sec">
+            <div id="updateBox" class="update-box" hidden>
+              <b data-i18n="settings.sys.update">⬆ Update available</b> <span id="updateText"></span>
+              <a id="updateLink" href="#" target="_blank" rel="noopener" data-i18n="settings.sys.whatsNew">What's new? ↗</a>
+              <p class="hint-text" data-i18n-html="settings.sys.updateHelp">Update: <code>docker compose pull &amp;&amp; docker compose up -d</code> – your settings live in the volume <code>funscript-data</code> and stay.</p>
+            </div>
+            <dl id="sysInfo" class="sysinfo"></dl>
+            <p id="gpuHint" class="hint-text" hidden></p>
+            <p class="hint-text" data-i18n-html="settings.sys.dataHelp">Everything the player stores (settings, own scripts, offsets, patterns) lives on the server in the Docker volume <code>funscript-data</code> – backing it up backs up everything. At startup the player checks itself; the result is in <code>docker logs</code>.</p>
+          </div>
+          <div class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.sys.device">This device</h3>
+            <label><span data-i18n="settings.language">Language</span>
+              <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
+            </label>
+            <label id="appFsRow" class="ui-switch"><input id="appFs" type="checkbox"><span></span><span data-i18n="settings.sys.appFs">In the browser, the whole app in fullscreen (no browser bar) – starts at the first tap, the back gesture ends it</span></label>
+            <div class="actions">
+              <button id="installApp" class="small secondary" hidden data-i18n="settings.sys.install">📲 Install as app</button>
+              <button id="welcomeAgain" class="small secondary" data-i18n="settings.sys.welcome">👋 Show welcome again</button>
+              <button id="resetLocal" class="adv small danger" data-i18n="settings.sys.reset">Reset settings on this device</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ================= Steuern ================= -->
