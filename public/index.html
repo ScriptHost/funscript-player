@@ -76,33 +76,38 @@
     <div class="content">
 
       <!-- ================= Bibliothek ================= -->
-      <section id="view-library" class="view">
-        <div class="libbar">
-          <div id="libSource" class="seg" hidden></div>
-          <input id="search" type="search" placeholder="Szenen, Titel, Dateien suchen …">
-          <select id="stashSort" aria-label="Sortierung">
-            <option value="saved">Sortierung des Filters</option>
-            <option value="new">Neueste zuerst</option>
-            <option value="date">Nach Datum</option>
-            <option value="title">Nach Titel</option>
-            <option value="random">Zufällig</option>
+      <!-- 2.0: Überschrift, Suche, Filter als Chips; Kacheln mit Intensitäts-Streifen (library.js) -->
+      <section id="view-library" class="view lib">
+        <div class="lib-head">
+          <h2 class="lib-hl" data-i18n="lib.title">Library</h2>
+          <div id="libSource" class="ui-seg lib-source" hidden></div>
+        </div>
+        <label class="lib-search"><span aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Scenes, titles, files …" data-i18n-placeholder="lib.search" aria-label="Search" data-i18n-aria-label="lib.searchLabel"></label>
+        <div class="libbar lib-chips">
+          <label class="ui-chip chip-toggle sync-only"><input id="onlyScripts" type="checkbox" checked> ⚡ <span data-i18n="lib.onlyScripts">With script</span></label>
+          <select id="heatFilter" class="ui-chip sync-only" aria-label="Intensity" data-i18n-aria-label="lib.heat" title="Applies to the loaded scenes" data-i18n-title="lib.heatTitle">
+            <option value="" data-i18n="lib.heat.all">Intensity: all</option>
+            <option value="calm" data-i18n="lib.heat.calm">calm</option>
+            <option value="mid" data-i18n="lib.heat.mid">medium</option>
+            <option value="hot" data-i18n="lib.heat.hot">intense</option>
+            <option value="asc" data-i18n="lib.heat.asc">sorted: calm → intense</option>
+            <option value="desc" data-i18n="lib.heat.desc">sorted: intense → calm</option>
           </select>
-          <label class="check chip-toggle sync-only"><input id="onlyScripts" type="checkbox" checked> ⚡ nur mit Funscript</label>
-          <select id="heatFilter" class="sync-only" aria-label="Intensität" title="Gilt für die geladenen Szenen">
-            <option value="">🌡️ Intensität: alle</option>
-            <option value="calm">ruhig</option>
-            <option value="mid">mittel</option>
-            <option value="hot">intensiv</option>
-            <option value="asc">sortiert: ruhig → intensiv</option>
-            <option value="desc">sortiert: intensiv → ruhig</option>
+          <select id="stashSort" class="ui-chip" aria-label="Sort" data-i18n-aria-label="lib.sort">
+            <option value="saved" data-i18n="lib.sort.saved">Filter's order</option>
+            <option value="new" data-i18n="lib.sort.new">Newest first</option>
+            <option value="date" data-i18n="lib.sort.date">By date</option>
+            <option value="title" data-i18n="lib.sort.title">By title</option>
+            <option value="random" data-i18n="lib.sort.random">Random</option>
           </select>
         </div>
 
         <nav id="browseTabs" class="browse" hidden>
-          <button data-browse="scenes" class="active">Szenen</button>
-          <button data-browse="tags">Tags</button>
-          <button data-browse="performers">Darsteller</button>
-          <button data-browse="studios">Studios</button>
+          <button data-browse="scenes" class="ui-chip active" data-i18n="lib.scenes">Scenes</button>
+          <button data-browse="tags" class="ui-chip" data-i18n="lib.tags">Tags</button>
+          <button data-browse="performers" class="ui-chip" data-i18n="lib.performers">Performers</button>
+          <button data-browse="studios" class="ui-chip" data-i18n="lib.studios">Studios</button>
         </nav>
 
         <div id="savedFilters" class="savedbar" hidden></div>
@@ -291,6 +296,13 @@
             <button id="sbFile" class="ui-btn" title="Load another .funscript for this scene and keep it under a name" data-i18n-title="player.loadFileTitle">📂 <span data-i18n="player.loadFile">Script file</span></button>
             <button id="vibePause" class="ui-btn">❚❚ <span data-i18n="player.pause">Pause</span></button>
           </div>
+        </aside>
+
+        <!-- 2.0: PC (breit) – die nächsten Szenen der Bibliothek; ✕ blendet aus, wieder an unter ⚙️ → Anzeige -->
+        <aside id="plNext" class="pl-next" hidden aria-label="Up next" data-i18n-aria-label="player.next">
+          <div class="ui-label"><span data-i18n="player.next">Up next</span>
+            <button id="plNextClose" class="ui-btn ghost round" aria-label="Hide" data-i18n-aria-label="player.nextHide" title="Hide" data-i18n-title="player.nextHide">✕</button></div>
+          <div id="plNextList" class="pl-next-list"></div>
         </aside>
       </section>
 
@@ -568,6 +580,7 @@
           <!-- 2.0: Anzeige-Schalter (nav.js) -->
           <label class="ui-switch"><input id="glowOn" type="checkbox" checked><span></span><span data-i18n="settings.glow">Neon glow</span></label>
           <label class="ui-switch"><input id="motionOn" type="checkbox"><span></span><span data-i18n="settings.motion">Moving device bars</span></label>
+          <label class="ui-switch"><input id="nextOn" type="checkbox" checked><span></span><span data-i18n="settings.next">“Up next” next to the player (wide screens)</span></label>
           <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
           <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (sofern der Browser es zulässt, sonst ⧉)</label>
           <!-- 1.19.8: wie eine installierte App -->

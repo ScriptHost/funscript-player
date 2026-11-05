@@ -15,6 +15,32 @@ export default {
   'nav.devices': 'Devices',
   'nav.settings': 'Settings',
 
+  // Library
+  'lib.title': 'Library',
+  'lib.search': 'Scenes, titles, files …',
+  'lib.searchLabel': 'Search',
+  'lib.onlyScripts': 'With script',
+  'lib.heat': 'Intensity',
+  'lib.heatTitle': 'Applies to the loaded scenes',
+  'lib.heat.all': 'Intensity: all',
+  'lib.heat.calm': 'calm',
+  'lib.heat.mid': 'medium',
+  'lib.heat.hot': 'intense',
+  'lib.heat.asc': 'sorted: calm → intense',
+  'lib.heat.desc': 'sorted: intense → calm',
+  'lib.heatTip': 'Intensity: {word} (avg {avg} %/s)',
+  'lib.sort': 'Sort',
+  'lib.sort.saved': "Filter's order",
+  'lib.sort.new': 'Newest first',
+  'lib.sort.date': 'By date',
+  'lib.sort.title': 'By title',
+  'lib.sort.random': 'Random',
+  'lib.scenes': 'Scenes',
+  'lib.tags': 'Tags',
+  'lib.performers': 'Performers',
+  'lib.studios': 'Studios',
+  'lib.new': 'New',
+
   // Player
   'player.side': 'Script and devices',
   'player.warmup': 'Warm-up',
@@ -56,6 +82,9 @@ export default {
   'player.hub': 'Stroke {lo}–{hi} %',
   'player.strength': '{n} %',
 
+  'player.next': 'Up next',
+  'player.nextHide': 'Hide – back on under ⚙️ → Display',
+
   // Devices
   'devices.disconnect': 'Disconnect',
   'devices.handyOff': '⏏ The Handy disconnected – it no longer reconnects by itself until you tap “Connect”.',
@@ -63,5 +92,6 @@ export default {
   // Settings
   'settings.language': 'Language',
   'settings.glow': 'Neon glow',
+  'settings.next': '“Up next” next to the player (wide screens)',
   'settings.motion': 'Moving device bars',
 };

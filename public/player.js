@@ -4,11 +4,12 @@
 // Mit „Bewegung“ (⚙️ → Anzeige, body.motion) folgen die Balken dem, was die Geräte gerade tun.
 // Antippen öffnet das Geräte-Fenster beim passenden Gerät. Neues Modul ohne Arbeit beim Laden: boot.js ruft init().
 import { modulesReady } from './state.js';
-import { $, positionAt } from './handy.js';
+import { $, positionAt, store } from './handy.js';
 import { mediaTime, openDevices, script, toolActions } from './app.js';
 import { vibeLevel } from './vibe.js';
 import { mapPos } from './stroker.js';
 import { t } from './lang.js';
+import { nowKey } from './library.js';
 
 let timer = null;
 
@@ -46,12 +47,46 @@ function loop() {
   if (!on && timer) { clearInterval(timer); timer = null; }
 }
 
+// „Als Nächstes“ (PC, breit): die Kacheln nach der laufenden Szene, so wie sie in der Bibliothek stehen
+// (gleicher Filter, gleiche Sortierung). Antippen = wie die Kachel antippen.
+function renderNext() {
+  const box = $('plNext');
+  const on = store.get('nextCol', true);
+  const tiles = [...document.querySelectorAll('#sceneGrid > .tile:not([hidden])')];
+  const i = tiles.findIndex((x) => x.dataset.src === nowKey());
+  const next = (i >= 0 ? tiles.slice(i + 1) : tiles).slice(0, 6);
+  box.hidden = !on || !next.length;
+  if (box.hidden) return;
+  $('plNextList').replaceChildren(...next.map((tile) => {
+    const img = tile.querySelector('.thumb img');
+    const it = document.createElement('button');
+    it.className = 'pl-next-it';
+    const th = document.createElement('span');
+    th.className = 'th';
+    if (img) th.append(Object.assign(document.createElement('img'), { src: img.src, alt: '', loading: 'lazy' }));
+    const strip = tile.querySelector('.heatstrip.on');
+    if (strip) { const heat = Object.assign(document.createElement('i'), { className: 'heat' }); heat.style.background = strip.style.background; th.append(heat); }
+    const tx = document.createElement('span');
+    tx.className = 'tx';
+    tx.append(Object.assign(document.createElement('b'), { textContent: tile.querySelector('.tile-title')?.textContent || '' }),
+      Object.assign(document.createElement('small'), { textContent: tile.querySelector('.tile-sub')?.textContent || '' }));
+    it.append(th, tx);
+    it.addEventListener('click', () => tile.click());
+    return it;
+  }));
+}
+
 export function init() {
   modulesReady.add('player');
   $('dockHandy').addEventListener('click', () => openDevices('handy'));
   $('dockVibe').addEventListener('click', () => openDevices('vibe'));
   $('dockConnect').addEventListener('click', () => openDevices());
   window.addEventListener('hp:view', loop);
+  window.addEventListener('hp:view', () => { if (document.body.dataset.view === 'player') renderNext(); });
+  $('video').addEventListener('loadstart', () => setTimeout(renderNext, 0));
+  $('plNextClose').addEventListener('click', () => { store.set('nextCol', false); $('nextOn').checked = false; renderNext(); });
+  $('nextOn').checked = store.get('nextCol', true);
+  $('nextOn').addEventListener('change', () => { store.set('nextCol', $('nextOn').checked); renderNext(); });
   document.addEventListener('visibilitychange', loop);
   loop();
 }

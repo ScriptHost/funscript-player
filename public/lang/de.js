@@ -14,6 +14,32 @@ export default {
   'nav.devices': 'Geräte',
   'nav.settings': 'Einstellungen',
 
+  // Bibliothek
+  'lib.title': 'Bibliothek',
+  'lib.search': 'Szenen, Titel, Dateien …',
+  'lib.searchLabel': 'Suchen',
+  'lib.onlyScripts': 'Mit Script',
+  'lib.heat': 'Intensität',
+  'lib.heatTitle': 'Gilt für die geladenen Szenen',
+  'lib.heat.all': 'Intensität: alle',
+  'lib.heat.calm': 'ruhig',
+  'lib.heat.mid': 'mittel',
+  'lib.heat.hot': 'intensiv',
+  'lib.heat.asc': 'sortiert: ruhig → intensiv',
+  'lib.heat.desc': 'sortiert: intensiv → ruhig',
+  'lib.heatTip': 'Intensität: {word} (Ø {avg} %/s)',
+  'lib.sort': 'Sortierung',
+  'lib.sort.saved': 'Sortierung des Filters',
+  'lib.sort.new': 'Neueste zuerst',
+  'lib.sort.date': 'Nach Datum',
+  'lib.sort.title': 'Nach Titel',
+  'lib.sort.random': 'Zufällig',
+  'lib.scenes': 'Szenen',
+  'lib.tags': 'Tags',
+  'lib.performers': 'Darsteller',
+  'lib.studios': 'Studios',
+  'lib.new': 'Neu',
+
   // Player
   'player.side': 'Script und Geräte',
   'player.warmup': 'Aufwärmen',
@@ -55,6 +81,9 @@ export default {
   'player.hub': 'Hub {lo}–{hi} %',
   'player.strength': '{n} %',
 
+  'player.next': 'Als Nächstes',
+  'player.nextHide': 'Ausblenden – wieder an unter ⚙️ → Anzeige',
+
   // Geräte
   'devices.disconnect': 'Trennen',
   'devices.handyOff': '⏏ Handy getrennt – sie verbindet sich erst wieder, wenn du auf „Verbinden“ tippst.',
@@ -62,5 +91,6 @@ export default {
   // Einstellungen
   'settings.language': 'Sprache',
   'settings.glow': 'Neon-Leuchten',
+  'settings.next': '„Als Nächstes“ neben dem Player (breite Bildschirme)',
   'settings.motion': 'Geräte-Balken bewegen sich',
 };

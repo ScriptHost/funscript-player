@@ -258,3 +258,54 @@ body.fs-open header { visibility: hidden; }
 body.mini-on #view-player > div.pl-main:not(#drop) { display: block !important; }
 body.mini-on #view-player > div.pl-main > :not(#drop) { display: none !important; }
 body.mini-on #view-player > aside.pl-side:not(#drop) { display: none !important; }
+
+/* =============================================================================
+   Bibliothek (Phase 5)
+   ============================================================================= */
+.lib-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin: var(--s1) 0 var(--s3); }
+.lib-hl { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.03em; }
+.lib-source { width: auto; }
+.lib-search { display: flex; align-items: center; gap: var(--s2); margin: 0 0 var(--s3); padding: 0 var(--s3);
+  background: var(--surface2); border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); }
+.lib-search:focus-within { border-color: var(--accent); }
+.lib-search input { flex: 1; margin: 0; padding: 11px 0; border: 0; background: transparent; color: var(--text); font-size: 15px; outline: none; }
+.lib-chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
+.lib-chips .ui-chip { min-height: 34px; cursor: pointer; }
+.lib-chips select.ui-chip { appearance: none; -webkit-appearance: none; padding-right: 24px;
+  background: var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b8a96'/%3E%3C/svg%3E") no-repeat right 9px center; }
+.chip-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip-toggle:has(input:checked) { background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6); }
+.browse { gap: var(--s2); }
+.browse .ui-chip { cursor: pointer; }
+.browse .ui-chip.active, .savedbar button.active { background: var(--accent-soft); color: #fff; border-color: transparent; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6); }
+.savedbar button { background: var(--surface2); border: 1px solid var(--line); font-weight: 500; }
+.chip { background: var(--surface2); border: 1px solid var(--line); }
+.chip.active { background: var(--accent-soft); color: #fff; border-color: rgba(180, 108, 255, .6); }
+
+/* Kacheln */
+.grid.scenes { gap: var(--s4) var(--s3); }
+.tile { border-radius: var(--radius); }
+.tile .thumb { border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.tile:hover .thumb { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.tile .heatstrip { height: 4px; }
+.tile .badge { background: rgba(11, 11, 13, .72); border: 1px solid rgba(255, 255, 255, .12); border-radius: var(--radius-s); backdrop-filter: blur(6px); }
+.tile .dur { background: rgba(11, 11, 13, .72); border-radius: 6px; bottom: 9px; }
+.tile .new { background: var(--accent-soft) !important; color: #fff !important; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6); }
+.tile-title { font-weight: 500; font-size: 13.5px; }
+
+/* „Als Nächstes“ – nur auf breiten Bildschirmen */
+.pl-next { display: none; }
+@media (min-width: 1300px) {
+  .pl:not([hidden]):has(#plNext:not([hidden])) { grid-template-columns: minmax(0, 1fr) 340px 260px; }
+  #plNext:not([hidden]) { display: block; }
+}
+.pl-next .ui-label .ui-btn { min-height: 28px; width: 28px; font-size: 12px; }
+.pl-next-it { display: flex; gap: var(--s2); align-items: center; width: 100%; margin: 0 0 var(--s1); padding: 6px; border: 0; border-radius: var(--radius-s);
+  background: transparent; color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.pl-next-it:hover, .pl-next-it:first-child { background: var(--surface2); }
+.pl-next-it .th { position: relative; flex: none; width: 88px; aspect-ratio: 16 / 10; border-radius: var(--radius-s); overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+.pl-next-it .th img { width: 100%; height: 100%; object-fit: cover; }
+.pl-next-it .th .heat { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
+.pl-next-it .tx { min-width: 0; display: flex; flex-direction: column; }
+.pl-next-it b { font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-next-it small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

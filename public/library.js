@@ -233,8 +233,8 @@ async function loadHeat(strip) {
   if (!h.bins.length) return strip.remove();
   const n = h.bins.length;
   strip.style.background = `linear-gradient(90deg, ${h.bins.map((v, i) => `${heatColor(v)} ${((i / n) * 100).toFixed(1)}% ${(((i + 1) / n) * 100).toFixed(1)}%`).join(', ')})`;
-  const word = h.avg < 120 ? 'ruhig' : h.avg < 250 ? 'mittel' : 'intensiv';
-  strip.title = `Intensität: ${word} (Ø ${h.avg} %/s)`;
+  const word = h.avg < 120 ? t('lib.heat.calm') : h.avg < 250 ? t('lib.heat.mid') : t('lib.heat.hot');
+  strip.title = t('lib.heatTip', { word, avg: h.avg });
   strip.classList.add('on');
   const tile = strip.closest('.tile');
   if (tile) { tile.dataset.heat = h.avg; if ($('heatFilter').value) scheduleHeatFilter(); }
@@ -276,6 +276,7 @@ function sceneCard(s) {
     s.interactive ? heatStrip('stash:' + s.id) : null);
   const sub = [s.studio?.name, s.date, s.performers?.slice(0, 2).map((p) => p.name).join(', ')].filter(Boolean).join(' · ');
   const card = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, s.title), el('div', { className: 'tile-sub' }, sub));
+  card.dataset.src = 'stash:' + s.id; // 2.0: „Als Nächstes“ (player.js) findet so die laufende Szene
   card.addEventListener('click', () => openStashScene(s));
   card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openStashScene(s); });
   // Vorschauvideo beim Drüberfahren mit der Maus
@@ -433,10 +434,11 @@ function renderFolder() {
   for (const it of items) {
     const thumb = el('div', { className: 'thumb' }, el('div', { className: 'noimg' }, '🎬'),
       tileBadge('media:' + it.video, !!it.script),
-      it.mtime > weekAgo ? el('span', { className: 'new' }, 'Neu') : null,
+      it.mtime > weekAgo ? el('span', { className: 'new' }, t('lib.new')) : null,
       it.script ? heatStrip('media:' + it.script) : null);
-    const sub = [it.folder.split('/').slice(1).join('/'), it.mtime ? new Date(it.mtime).toLocaleDateString('de-DE') : ''].filter(Boolean).join(' · ');
+    const sub = [it.folder.split('/').slice(1).join('/'), it.mtime ? new Date(it.mtime).toLocaleDateString(lang) : ''].filter(Boolean).join(' · ');
     const tile = el('div', { className: 'tile', tabIndex: 0 }, thumb, el('div', { className: 'tile-title' }, it.name), el('div', { className: 'tile-sub' }, sub));
+    tile.dataset.src = 'media:' + it.video;
     tile.addEventListener('click', () => openFolderItem(it));
     grid.append(tile);
   }
