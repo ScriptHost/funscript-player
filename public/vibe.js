@@ -1,6 +1,6 @@
 import './control.js'; // Ladereihenfolge wie bisher – siehe boot.js
 import { modulesReady } from './state.js';
-import { $, log, pillText, positionAt, store } from './handy.js';
+import { $, demoMode, log, pillText, positionAt, store } from './handy.js';
 import { deviceLost, mirrorField, resync, videoScriptSource } from './app.js';
 import { controlScriptSource, hampLevel } from './control.js';
 import { fin, finDetached } from './finale.js';
@@ -238,6 +238,8 @@ export function checkVibes() {
 
 // Beim Start: schon einmal erlaubte Satisfyer wieder verbinden (Chrome kennt sie über getDevices)
 async function autoConnectBluetooth() {
+  // Demo-Modus: statt echter Geräte ein virtueller Satisfyer
+  if (demoMode) return addVirtualSatisfyer();
   if (!store.get('autoConnect', true) || !navigator.bluetooth?.getDevices || (await bluetoothProblem())) return;
   try {
     for (const device of await navigator.bluetooth.getDevices()) {
@@ -245,6 +247,21 @@ async function autoConnectBluetooth() {
       attachBleDevice(device, true).catch(() => { /* nicht in Reichweite – still ignorieren */ });
     }
   } catch { /* nicht unterstützt */ }
+}
+
+// Demo-Modus: ein Satisfyer, der nur so tut – nimmt Befehle an wie ein echter (Bluetooth-Laufzeit ≈ 40 ms, Akku 80 %)
+function addVirtualSatisfyer() {
+  const ch = { writeValueWithResponse: () => new Promise((r) => setTimeout(r, 40)), writeValueWithoutResponse: async () => {} };
+  const battery = { readValue: async () => new DataView(new Uint8Array([80]).buffer), addEventListener() {}, startNotifications: async () => {} };
+  const fake = {
+    id: 'demo-satisfyer', name: 'Satisfyer (Demo)', addEventListener() {},
+    gatt: {
+      connected: true,
+      connect: async () => ({ getPrimaryService: async (s) => ({ getCharacteristic: async () => (s === 'battery_service' ? battery : ch) }) }),
+      disconnect() {},
+    },
+  };
+  return attachBleDevice(fake, true).catch(() => {});
 }
 
 // ---------------------------------------------------------------------------

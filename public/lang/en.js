@@ -360,7 +360,7 @@ export default {
   'settings.vr.logVrOnly': 'HereSphere: VR videos only.',
   'settings.vr.logAll': 'HereSphere: all videos.',
   'settings.privacy.title': 'Privacy',
-  'settings.privacy.demo': 'Demo mode – videos, previews and names unrecognisable, no sound',
-  'settings.privacy.demoHelp': 'For showing the player to others. Applies only to this device. Without the switch: open the address with <code>/demo</code> at the end (e.g. as a link for someone else).',
+  'settings.privacy.demo': 'Demo mode – videos, previews and names unrecognisable, no sound, virtual Handy and Satisfyer',
+  'settings.privacy.demoHelp': 'For showing the player to others. Real devices are not used – a virtual Handy and Satisfyer show what would happen. Applies only to this device, the page reloads. Without the switch: open the address with <code>/demo</code> at the end (e.g. as a link for someone else).',
   'settings.privacy.demoUrl': 'Opened via /demo – demo mode stays on here.',
 };

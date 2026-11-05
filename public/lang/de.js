@@ -359,7 +359,7 @@ export default {
   'settings.vr.logVrOnly': 'HereSphere: nur VR-Videos.',
   'settings.vr.logAll': 'HereSphere: alle Videos.',
   'settings.privacy.title': 'Privatsphäre',
-  'settings.privacy.demo': 'Demo-Modus – Videos, Vorschauen und Namen unkenntlich, kein Ton',
-  'settings.privacy.demoHelp': 'Zum Vorführen. Gilt nur für dieses Gerät. Ohne Schalter: die Adresse mit <code>/demo</code> am Ende öffnen (z. B. als Link für jemand anderen).',
+  'settings.privacy.demo': 'Demo-Modus – Videos, Vorschauen und Namen unkenntlich, kein Ton, virtuelle Handy und Satisfyer',
+  'settings.privacy.demoHelp': 'Zum Vorführen. Echte Geräte bleiben unberührt – eine virtuelle Handy und ein virtueller Satisfyer zeigen, was passieren würde. Gilt nur für dieses Gerät, die Seite lädt neu. Ohne Schalter: die Adresse mit <code>/demo</code> am Ende öffnen (z. B. als Link für jemand anderen).',
   'settings.privacy.demoUrl': 'Über /demo geöffnet – der Demo-Modus bleibt hier an.',
 };

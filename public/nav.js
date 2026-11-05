@@ -63,7 +63,8 @@ export function init() {
     demo.checked = isDemo();
     demo.disabled = DEMO_URL; // über /demo geöffnet: immer an
     document.getElementById('demoUrlHint').hidden = !DEMO_URL;
-    demo.addEventListener('change', () => setDemo(demo.checked));
+    // Neu laden: echte Geräte trennen bzw. die virtuellen Demo-Geräte (handy.js, vibe.js) verbinden
+    demo.addEventListener('change', () => { setDemo(demo.checked); location.reload(); });
   }
 
   document.getElementById('appNav')?.addEventListener('click', (e) => {

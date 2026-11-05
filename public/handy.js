@@ -367,3 +367,16 @@ export function positionAt(actions, ms) {
   const a = actions[lo], b = actions[hi];
   return a.pos + ((b.pos - a.pos) * (ms - a.at)) / (b.at - a.at);
 }
+
+// Demo-Modus (/demo oder Schalter in ⚙️ → Notaus & Privatsphäre): virtuelle Handy – nichts geht an die Handy-Cloud,
+// die Anfragen werden nur beantwortet (wie im Selbsttest). Gilt ab dem Laden der Seite.
+export const demoMode = location.pathname === '/demo' || store.get('demo', false);
+if (demoMode) {
+  handy.req = async (method, p) => {
+    if (p === '/connected') return { connected: true };
+    if (p === '/servertime') return { serverTime: Date.now(), server_time: Date.now() };
+    if (p === '/info') return { model: 'H01', hwVersion: '1', fwVersion: 'demo' };
+    return {};
+  };
+  handy.upload = async () => 'https://example.invalid/demo.csv';
+}

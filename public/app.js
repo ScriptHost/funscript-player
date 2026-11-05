@@ -1,6 +1,6 @@
 import './handy.js'; // Ladereihenfolge wie bisher – siehe boot.js
 import { modulesReady, video } from './state.js';
-import { $, claimHandy, handy, handyErrText, log, setStatus, store, toCsv } from './handy.js';
+import { $, claimHandy, demoMode, handy, handyErrText, log, setStatus, store, toCsv } from './handy.js';
 import { modeFilterChanged, nowKey, refresh, saveScriptToLibrary, saveStashActivity } from './library.js';
 import { allVibes, checkVibes, setVibePaused, vibePaused, vibeSlow } from './vibe.js';
 import { togglePlay } from './fullscreen.js';
@@ -622,9 +622,10 @@ setInterval(showHandyApi, 2000);
 const AUTO_RETRY_S = [3, 10, 30, 60];
 let autoRetries = 0;
 async function connectHandy(auto = false) {
-  const key = $('key').value.trim();
+  // Demo-Modus: virtuelle Handy, auch ohne Key – der echte Key wird dabei nicht angefasst
+  const key = $('key').value.trim() || (demoMode ? 'demo' : '');
   if (!key) return auto ? undefined : openSettings('setDevices');
-  store.set('key', key);
+  if (!demoMode) store.set('key', key);
   const btn = $('connect');
   btn.disabled = true;
   setStatus('busy', auto ? 'verbinde automatisch …' : 'verbinde …');
@@ -1064,5 +1065,5 @@ if (location.hash === '#player' || location.hash.startsWith('#settings')) histor
 setMode(appMode);
 requestAnimationFrame(renderLoop);
 // Gespeicherten Key gleich beim Start verbinden
-if ($('autoConnect').checked && $('key').value.trim()) setTimeout(() => connectHandy(true), 300);
+if (demoMode || ($('autoConnect').checked && $('key').value.trim())) setTimeout(() => connectHandy(true), 300);
 fetch('/api/version').then((r) => r.json()).then((v) => { $('appVersion').textContent = 'v' + v.version; }).catch(() => {});
