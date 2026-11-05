@@ -372,12 +372,14 @@ details.dev-row > summary { display: flex; align-items: center; gap: var(--s2); 
 .hint-text.warn { color: var(--warn); }
 
 /* ---------- Demo-Modus (/demo): zum Vorführen alles Persönliche unkenntlich – verdeckt nur die Anzeige ---------- */
-body.demo video, body.demo #drop canvas, body.demo .thumb img, body.demo .thumb video, body.demo .preview,
-body.demo .start-cover img, body.demo .seek-preview, body.demo .pl-next-it .th img { filter: blur(24px) saturate(.5); }
+/* !important: sonst gewinnen Hover-Regeln wie .tile:hover .thumb img und das Bild wird beim Drüberfahren scharf */
+body.demo video, body.demo #drop canvas { filter: blur(56px) saturate(.4) !important; }
+body.demo .thumb img, body.demo .thumb video, body.demo video.preview, body.demo .preview, body.demo .start-cover img,
+body.demo .seek-preview, body.demo .pl-next-it .th img { filter: blur(36px) saturate(.4) !important; }
 body.demo .thumb, body.demo #drop, body.demo .pl-next-it .th, body.demo .start-cover { overflow: hidden; }
 body.demo .tile-title, body.demo .tile-sub, body.demo #videoName, body.demo #ovTitle, body.demo #nowTitle,
 body.demo #sceneDetails, body.demo #scenePeople, body.demo #sceneTags, body.demo #sceneMarkers .marker,
-body.demo .pl-next-it .tx, body.demo #savedFilters, body.demo #activeFilters, body.demo #scriptBox select { filter: blur(6px); }
+body.demo .pl-next-it .tx, body.demo #savedFilters, body.demo #activeFilters, body.demo #scriptBox select { filter: blur(7px) !important; }
 body.demo #homeBtn::after {
   content: 'DEMO'; margin-left: var(--s2); padding: 1px 6px; border-radius: var(--pill); font-size: 11px; font-weight: 700;
   letter-spacing: .06em; color: var(--warn); border: 1px solid var(--warn); vertical-align: middle;
