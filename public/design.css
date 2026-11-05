@@ -313,3 +313,26 @@ body.mini-on #view-player > aside.pl-side:not(#drop) { display: none !important;
 /* Intensität: Text nie abschneiden lassen */
 .int-seg button { min-width: 0; padding: 6px 2px 5px; font-size: 12.5px; }
 .int-seg button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* =============================================================================
+   Geräte (Phase 6)
+   ============================================================================= */
+.dev-sheet > .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--s4); }
+body.dev-open #devices.sheet { box-shadow: 0 16px 40px rgba(0, 0, 0, .55); border-radius: var(--radius); }
+.dev-sheet .sheet-head { margin-bottom: var(--s3); }
+.dev-title { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+.dev-tabs { margin-bottom: var(--s3); border-bottom: 0; }
+.dev-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0; border: 0; border-radius: var(--radius-s); }
+.dev-card { display: flex; flex-direction: column; gap: var(--s2); margin-bottom: var(--s3); }
+.dev-card .hint-text { margin: 0; }
+.dev-btns { display: flex; gap: var(--s2); }
+.dev-btns .ui-btn { flex: 1; }
+#connect.secondary { background: var(--surface2); border: 1px solid var(--line); color: var(--text); box-shadow: none; }
+.dev-row { display: block; margin: 0 0 var(--s3); color: var(--text); font-size: 14px; }
+details.dev-row > summary { display: flex; align-items: center; gap: var(--s2); min-height: 36px; margin: 0; color: var(--text); font-size: 14px; cursor: pointer; }
+.dev-row output { float: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dev-meter { margin: 0 0 var(--s3); }
+.dev-sheet .devices li { border-color: var(--line); }
+.dev-sheet .more-settings { display: block; margin: var(--s1) 0 var(--s3); color: var(--muted); font-size: 13px; }
+.dev-stop-row { display: block; margin-top: var(--s2); }
+#stopAll { min-height: 48px; }

@@ -747,79 +747,78 @@
     </div>
 
     <!-- ================= Geräte (Sync + Steuern) ================= -->
-    <aside id="devices" class="sheet" aria-label="Geräte">
+    <!-- 2.0: Geräte – je Gerät eine Karte (Verbinden/Trennen, Status, Feineinstellung); unten „Alles stoppen“ -->
+    <aside id="devices" class="sheet dev-sheet" aria-label="Devices" data-i18n-aria-label="nav.devices">
       <div class="card">
         <div class="sheet-head">
-          <span></span>
-          <button id="sheetClose" class="sheet-close" aria-label="Schließen">✕</button>
+          <h2 class="dev-title" data-i18n="nav.devices">Devices</h2>
+          <button id="sheetClose" class="sheet-close ui-btn ghost round" aria-label="Close" data-i18n-aria-label="devices.close">✕</button>
         </div>
-        <nav class="subtabs" data-group="dev">
-          <button data-sub="handy" class="active">The Handy</button>
-          <button data-sub="vibe">Satisfyer</button>
+        <nav class="subtabs ui-seg dev-tabs" data-group="dev">
+          <button data-sub="handy" class="active"><i class="ui-dot handy"></i> The Handy</button>
+          <button data-sub="vibe"><i class="ui-dot vibe"></i> Satisfyer</button>
         </nav>
         <div data-panel="dev:handy">
-          <div class="conn">
-            <button id="connect">Verbinden</button>
-            <button id="handyOff" class="ui-btn wide handy-off">⏏ <span data-i18n="devices.disconnect">Disconnect</span></button>
-            <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key eintragen (gleich hier darunter).</p>
-            <!-- 1.19.7: Key direkt im Geräte-Fenster (gleiches Feld wie ⚙️ → Geräte) -->
-            <details id="keyBox" class="dev-key">
-              <summary>🔑 Verbindung (Connection Key)</summary>
-              <input id="keyDev" type="password" autocomplete="off" spellcheck="false" aria-label="Connection Key" placeholder="Connection Key – danach oben „Verbinden“">
-              <!-- 1.19.9: Application ID nur in den Einstellungen -->
-              <p class="hint-text">Ohne Application ID nutzt der Player die Handy-API v2. Für v3 (läuft auch bei 0,5×–2× im Takt) die ID unter <a href="#" data-settings="setDevices">⚙️ Einstellungen → Geräte</a> eintragen.</p>
+          <div class="conn ui-card dev-card">
+            <div class="dev-btns">
+              <button id="connect" class="ui-btn primary">Verbinden</button>
+              <button id="handyOff" class="ui-btn handy-off">⏏ <span data-i18n="devices.disconnect">Disconnect</span></button>
+            </div>
+            <p id="keyHint" class="hint-text" hidden data-i18n="devices.keyHint">Enter the connection key first (right below).</p>
+            <details id="keyBox" class="dev-key dev-row">
+              <summary>🔑 <span data-i18n="devices.key">Connection key</span></summary>
+              <input id="keyDev" type="password" autocomplete="off" spellcheck="false" aria-label="Connection Key" placeholder="Connection key – then “Connect”" data-i18n-placeholder="devices.keyPlaceholder">
+              <p class="hint-text" data-i18n-html="devices.keyHelp">Without an application ID the player uses the Handy API v2. For v3 (stays in sync at 0.5×–2× too) enter the ID under <a href="#" data-settings="setDevices">⚙️ Settings → Devices</a>.</p>
             </details>
-            <!-- 1.19.7: Neu synchronisieren nur noch hier (nicht mehr in der Player-Leiste; Taste S bleibt) -->
-            <button id="resyncBtn" class="small secondary wide" title="Taste S">⟳ Neu synchronisieren</button>
+            <button id="resyncBtn" class="ui-btn wide" title="Key S" data-i18n-title="devices.resyncTitle">⟳ <span data-i18n="devices.resync">Resync</span></button>
             <p id="handyApi" class="hint-text"></p>
             <p id="handyLat" class="hint-text"></p>
           </div>
-          <details class="dev-fine" data-fine="handy">
-            <summary>Feineinstellung Handy <small id="hubSummary" class="muted"></small></summary>
-            <label>Hub min <output id="minVal">0 %</output>
+          <details class="dev-fine dev-row" data-fine="handy">
+            <summary><span data-i18n="devices.handyFine">Stroke</span> <small id="hubSummary" class="muted"></small></summary>
+            <label><span data-i18n="devices.hubMin">Stroke min</span> <output id="minVal">0 %</output>
               <input id="slideMin" type="range" min="0" max="100" value="0">
             </label>
-            <label>Hub max <output id="maxVal">100 %</output>
+            <label><span data-i18n="devices.hubMax">Stroke max</span> <output id="maxVal">100 %</output>
               <input id="slideMax" type="range" min="0" max="100" value="100">
             </label>
           </details>
-          <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Key, Umkehren, Bluetooth … in den Einstellungen</a>
+          <a href="#" class="more-settings conn" data-settings="setDevices" data-i18n="devices.moreHandy">⚙️ Key, invert, Bluetooth … in the settings</a>
         </div>
 
         <div data-panel="dev:vibe" hidden>
-          <div class="conn">
-            <button id="vibeBle">＋ Satisfyer per Bluetooth verbinden</button>
-            <button id="vibeBleAll" class="secondary" hidden>Nicht dabei? Alle Bluetooth-Geräte anzeigen</button>
-            <p id="vibeBleHint" class="hint-text">Direkt aus dem Browser – Chrome auf Android/PC, auf dem iPhone die App „Bluefy“.</p>
+          <div class="conn ui-card dev-card">
+            <button id="vibeBle" class="ui-btn primary wide">＋ Satisfyer per Bluetooth verbinden</button>
+            <button id="vibeBleAll" class="ui-btn wide" hidden data-i18n="devices.bleAll">Not listed? Show all Bluetooth devices</button>
+            <p id="vibeBleHint" class="hint-text" data-i18n="devices.bleHint">Directly from the browser – Chrome on Android/PC, on iPhone the “Bluefy” app.</p>
             <ul id="vibeDevices" class="devices"></ul>
             <p id="vibeLat" class="hint-text"></p>
           </div>
 
-          <label id="vibeLevelRow">Stärke <output id="vibeLevelVal">0 %</output>
+          <label id="vibeLevelRow" class="dev-row"><span data-i18n="devices.strength">Strength</span> <output id="vibeLevelVal">0 %</output>
             <input id="vibeLevel" type="range" min="0" max="100" value="0">
           </label>
-          <div class="meter" title="Aktuelle Stärke"><div id="vibeMeter"></div></div>
-          <label>Stärke für diese Szene <output id="vibeSceneVal">100 %</output>
+          <div class="ui-bar vibe dev-meter" title="Current strength" data-i18n-title="devices.meter"><i id="vibeMeter"></i></div>
+          <label class="dev-row"><span data-i18n="devices.sceneStrength">Strength for this scene</span> <output id="vibeSceneVal">100 %</output>
             <input id="vibeScene" type="range" min="10" max="100" step="5" value="100">
           </label>
-          <!-- 1.19.7: Stärke und Übersetzung auch am Video (gespiegelt zu ⚙️ → Geräte) -->
-          <details class="dev-fine" data-fine="vibe">
-            <summary>Feineinstellung Satisfyer <small id="vibeSummary" class="muted"></small></summary>
-            <label>Übersetzung
-              <select id="dvMap" aria-label="Übersetzung Script → Vibration"></select>
+          <details class="dev-fine dev-row" data-fine="vibe">
+            <summary><span data-i18n="devices.vibeFine">Fine-tuning</span> <small id="vibeSummary" class="muted"></small></summary>
+            <label><span data-i18n="devices.map">Translation</span>
+              <select id="dvMap" aria-label="Script → vibration" data-i18n-aria-label="devices.mapLabel"></select>
             </label>
-            <label>Stärke min <output id="dvMinVal"></output>
+            <label><span data-i18n="devices.strMin">Strength min</span> <output id="dvMinVal"></output>
               <input id="dvMin" type="range" min="0" max="100" value="0">
             </label>
-            <label>Stärke max <output id="dvMaxVal"></output>
+            <label><span data-i18n="devices.strMax">Strength max</span> <output id="dvMaxVal"></output>
               <input id="dvMax" type="range" min="0" max="100" value="100">
             </label>
           </details>
-          <a href="#" class="more-settings conn" data-settings="setDevices">⚙️ Übersetzung, Gleichmäßigkeit, Intiface … in den Einstellungen</a>
+          <a href="#" class="more-settings conn" data-settings="setDevices" data-i18n="devices.moreVibe">⚙️ Translation, smoothness, Intiface … in the settings</a>
         </div>
 
         <div class="dev-stop-row">
-          <button id="stopAll" class="estop">■ Alles stoppen</button>
+          <button id="stopAll" class="ui-btn stop wide">■ <span data-i18n="devices.stopAll">Stop everything</span></button>
         </div>
         <p id="log" class="log"></p>
       </div>
