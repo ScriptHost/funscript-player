@@ -44,7 +44,7 @@ jobs:
         run: |
           docker build -q -t fsp-test .
           docker run -d --name fsp --read-only --tmpfs /tmp --cap-drop ALL \
-            --security-opt no-new-privileges:true --memory 2g -v fsp-data:/app/data -p 8080:8080 fsp-test
+            --security-opt no-new-privileges:true --memory 2g -e LOGIN=off -v fsp-data:/app/data -p 8080:8080 fsp-test
           for i in $(seq 1 60); do docker logs fsp 2>&1 | grep -q "✓ ready" && break; sleep 1; done
           docker logs fsp 2>&1
           docker logs fsp 2>&1 | grep -q "✓ ready"

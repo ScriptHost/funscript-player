@@ -41,7 +41,7 @@ async function startServer(env = {}, prepare = null) {
   if (prepare) prepare(media);
   const port = 20000 + Math.floor(Math.random() * 20000);
   const proc = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', MEDIA_DIR: media, DATA_DIR: data, STASH_URL: '', ...env },
+    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', MEDIA_DIR: media, DATA_DIR: data, STASH_URL: '', LOGIN: 'off', ...env },
     stdio: 'ignore',
   });
   const base = `http://127.0.0.1:${port}`;

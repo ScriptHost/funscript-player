@@ -34,8 +34,10 @@ services:
     # group_add: ["${RENDER_GID:-992}"]
 
     environment:
+      # Login is REQUIRED since 2.0: set AUTH_USER + AUTH_PASS in .env – or LOGIN=off if a proxy with its own login protects it
       AUTH_USER: ${AUTH_USER:-}
       AUTH_PASS: ${AUTH_PASS:-}
+      LOGIN: ${LOGIN:-}
       STASH_URL: ${STASH_URL:-}
       STASH_API_KEY: ${STASH_API_KEY:-}
       STASH_INSECURE: ${STASH_INSECURE:-}

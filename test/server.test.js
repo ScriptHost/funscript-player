@@ -184,3 +184,13 @@ test('2.0: HereSphere ab Werk aus, alte Installationen behalten es', async () =>
     assert.strictEqual((await (await fetch(old.base + '/api/settings')).json()).heresphere, true);
   } finally { old.stop(); }
 });
+
+test('2.0: ohne Anmeldung und ohne LOGIN=off nur die Erklärseite', async () => {
+  const s = await startServer({ LOGIN: '' });
+  try {
+    assert.strictEqual((await fetch(s.base + '/healthz')).status, 200);
+    const r = await fetch(s.base + '/api/prefs');
+    assert.strictEqual(r.status, 503);
+    assert.match(await r.text(), /LOGIN=off/);
+  } finally { s.stop(); }
+});

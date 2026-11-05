@@ -7,7 +7,7 @@ const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
-const { AUTH_PASS, AUTH_USER, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
+const { AUTH_PASS, AUTH_USER, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
 const path = require('path');
 const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
@@ -79,6 +79,21 @@ function sameOrigin(req) {
     return new URL(origin).host === host;
   } catch { return false; }
 }
+
+// 2.0: Seite, solange weder AUTH_USER/AUTH_PASS noch LOGIN=off gesetzt ist
+const LOGIN_PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Funscript Player – set up a login</title>
+<body style="font:16px/1.5 system-ui,sans-serif;max-width:40em;margin:2em auto;padding:0 1em;background:#111;color:#eee">
+<h1>Funscript Player: please set up a login</h1>
+<p>Since 2.0 the player needs a login, because otherwise everyone who can reach it also sees your
+Handy connection key and your library.</p>
+<p>In the <code>.env</code> file next to <code>docker-compose.yml</code>, either</p>
+<ul><li>set <code>AUTH_USER=</code> and <code>AUTH_PASS=</code> (recommended), or</li>
+<li>set <code>LOGIN=off</code> if the player is protected otherwise (e.g. a reverse proxy with its own login).</li></ul>
+<p>Then run <code>docker compose up -d</code>.</p>
+<hr><p lang="de">Seit 2.0 braucht der Player eine Anmeldung. In der <code>.env</code> entweder
+<code>AUTH_USER</code>/<code>AUTH_PASS</code> setzen (empfohlen) oder <code>LOGIN=off</code>, wenn er anders geschützt ist
+(z. B. Reverse Proxy mit eigener Anmeldung). Danach <code>docker compose up -d</code>.</p>`;
 
 // Antworten und kleine Helfer für die Routen
 const json = (res, data, cache = 'no-store', status = 200) => {
@@ -156,6 +171,11 @@ const handler = async (req, res) => {
   });
   try {
     if (req.url === '/healthz') return res.end('ok'); // für den Docker-Healthcheck – ohne Anmeldung, verrät nichts
+    // 2.0: keine Anmeldung eingerichtet und nicht bewusst abgeschaltet → nur eine Erklärseite, sonst nichts
+    if (LOGIN_MISSING) {
+      res.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...SECURITY_HEADERS });
+      return res.end(LOGIN_PAGE);
+    }
     if (!checkAuth(req, res)) return;
     // 1.19.10: Versionsnummer erst nach der Anmeldung (CodeQL #17)
     if (req.url === '/api/version') {
@@ -288,7 +308,7 @@ server.on('upgrade', (req, socket, head) => {
   socket.on('error', () => {});
   const url = new URL(req.url, 'http://localhost');
   if (url.pathname !== '/intiface') return fail(404, 'Not Found');
-  if (!authOk(req)) return fail(401, 'Unauthorized');
+  if (LOGIN_MISSING || !authOk(req)) return fail(401, 'Unauthorized');
   if (!sameOrigin(req)) return fail(403, 'Forbidden'); // keine Verbindung von fremden Webseiten
   const m = /^([\d.]+):(\d{1,5})$/.exec(url.searchParams.get('target') || '');
   if (!m || !(intifaceLanOnly() ? LAN_IP : PRIVATE_IP).test(m[1]) || !INTIFACE_PORTS.has(Number(m[2]))) return fail(400, 'Bad Request');
@@ -319,7 +339,8 @@ server.on('upgrade', (req, socket, head) => {
 const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${logSafe(msg)}`);
 server.listen(PORT, HOST, async () => {
   logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
-  if (!AUTH_USER) logLine('Note: no login set (AUTH_USER/AUTH_PASS) – run it only behind a protected proxy or on your home network.');
+  if (LOGIN_MISSING) logLine('⚠ NO LOGIN SET UP: the player only shows a help page. Set AUTH_USER + AUTH_PASS in .env – or LOGIN=off if a proxy protects it.');
+  else if (!AUTH_USER) logLine('Note: login switched off (LOGIN=off) – everyone who reaches the player sees your library and Handy key.');
   logLine(`Library: reading ${MEDIA_DIR} …`);
   const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashStatus() : null, hqStatus()]);
   if (lib.status === 'fulfilled') {
