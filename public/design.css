@@ -1,0 +1,170 @@
+/* =============================================================================
+   Design 2.0 „Graphit + Neon“ – Gerüst (Phase 3)
+   Farben, Linien, Abstände als Variablen + Grundbausteine mit Vorsilbe ui-.
+   Lädt NACH style.css: die alten Variablen (--bg, --line, --text, --muted, --accent, --card) bekommen hier
+   schon die neuen Werte, damit die alten Bildschirme bis zu ihrem Neubau farblich passen.
+   Grundsatz: dunkel, feine 1-px-Linien statt Schatten, Systemschrift. Neon NUR mit Bedeutung
+   (Heatmap/Fortschritt, Play, Handy Cyan, Satisfyer Pink, aktive Auswahl violett). STOPP klar rot.
+   Schalter an <body>: .no-glow = Leuchten aus, .motion = Bewegung (Geräte-Balken bewegen sich weich).
+   ============================================================================= */
+:root {
+  color-scheme: dark;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+
+  /* Flächen und Linien */
+  --bg: #0b0b0d;
+  --surface: #111114;
+  --surface2: #18181c;
+  --line: #24232a;
+  --text: #ededf0;
+  --muted: #8b8a96;
+  --card: var(--surface); /* alter Name */
+
+  /* Bedeutungsfarben */
+  --accent: #b46cff;                       /* aktive Auswahl */
+  --accent-soft: rgba(180, 108, 255, .14);
+  --handy: #22d3ee;                        /* The Handy */
+  --vibe: #ff4fa3;                         /* Satisfyer */
+  --stop: #ff3b4f;                         /* STOPP */
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --err: #ff5c6c;
+  --neon-1: #22d3ee; --neon-2: #b46cff; --neon-3: #ff4fa3;
+  --neon: linear-gradient(90deg, var(--neon-1), var(--neon-2) 55%, var(--neon-3));
+
+  /* Leuchten (dezent; .no-glow schaltet alles ab) */
+  --glow-accent: 0 0 14px rgba(180, 108, 255, .28);
+  --glow-strong: 0 0 24px rgba(180, 108, 255, .5);
+  --glow-text: 0 0 10px rgba(180, 108, 255, .9);
+  --glow-dot: 0 0 10px currentColor;
+
+  /* Abstände, Rundungen, Größen */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  --radius: 12px;
+  --radius-s: 8px;
+  --pill: 999px;
+  --tap: 44px;                              /* Mindestgröße für Finger */
+  --nav-h: 0px;                             /* Höhe der Daumen-Leiste (nur Smartphone) */
+  --speed: .18s;
+}
+body.no-glow { --glow-accent: none; --glow-strong: none; --glow-text: none; --glow-dot: none; }
+
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
+
+/* ---------- Knopf ---------- */
+.ui-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+  width: auto; min-height: var(--tap); margin: 0; padding: 0 var(--s4);
+  font: 600 14px var(--font); color: var(--text); background: var(--surface2);
+  border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer;
+  transition: border-color var(--speed), background var(--speed);
+}
+.ui-btn:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.ui-btn:focus-visible, .ui-switch input:focus-visible + span, .ui-seg button:focus-visible, .ui-nav button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.ui-btn:disabled { opacity: .45; cursor: default; }
+.ui-btn.primary { background: var(--neon); color: #fff; border: 0; box-shadow: var(--glow-accent); }
+.ui-btn.ghost { background: transparent; }
+.ui-btn.stop { background: var(--stop); color: #fff; border: 0; font-weight: 700; letter-spacing: .04em; }
+.ui-btn.round { width: var(--tap); padding: 0; border-radius: 50%; }
+.ui-btn.round.primary { width: 56px; min-height: 56px; font-size: 20px; box-shadow: var(--glow-strong); }
+.ui-btn.wide { width: 100%; }
+
+/* ---------- Schalter: <label class="ui-switch"><input type="checkbox"><span></span> Text</label> ---------- */
+.ui-switch { display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); margin: 0; color: var(--text); font-size: 15px; cursor: pointer; }
+.ui-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.ui-switch span:first-of-type {
+  flex: none; position: relative; width: 42px; height: 24px; border-radius: var(--pill);
+  background: var(--surface2); border: 1px solid var(--line); transition: background var(--speed), border-color var(--speed);
+}
+.ui-switch span:first-of-type::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--muted); transition: transform var(--speed), background var(--speed);
+}
+.ui-switch input:checked + span { background: var(--accent-soft); border-color: var(--accent); box-shadow: var(--glow-accent); }
+.ui-switch input:checked + span::after { transform: translateX(18px); background: #fff; }
+.ui-switch small { display: block; color: var(--muted); font-size: 12px; }
+
+/* ---------- Karte + Überschrift ---------- */
+.ui-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--s3) var(--s4); }
+.ui-card + .ui-card { margin-top: var(--s3); }
+.ui-label {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--s2); margin: 0 0 var(--s2);
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ---------- Auswahl (Segmente) + Chips ---------- */
+.ui-seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; }
+.ui-seg button {
+  flex: 1; width: auto; min-height: 36px; margin: 0; padding: 0 var(--s2); border: 0; border-radius: var(--radius-s);
+  background: transparent; color: var(--muted); font: 500 13px var(--font); cursor: pointer;
+}
+.ui-seg button.on, .ui-seg button[aria-pressed="true"] {
+  background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6), var(--glow-accent);
+}
+.ui-chip {
+  display: inline-flex; align-items: center; gap: var(--s1); width: auto; margin: 0; padding: 6px 11px;
+  font: 500 12.5px var(--font); color: var(--text); background: var(--surface2); border: 1px solid var(--line); border-radius: var(--pill);
+}
+.ui-chip.on { background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6); }
+
+/* ---------- Balken: <div class="ui-bar handy"><i style="--v: 72%"></i></div> ---------- */
+.ui-bar { position: relative; height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; color: var(--accent); }
+.ui-bar.handy { color: var(--handy); }
+.ui-bar.vibe { color: var(--vibe); }
+.ui-bar.neon > i { background: var(--neon); }
+.ui-bar > i { display: block; width: var(--v, 0%); height: 100%; border-radius: inherit; background: currentColor; box-shadow: var(--glow-dot); }
+body.motion .ui-bar > i { transition: width .25s ease-out; }
+.ui-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: var(--glow-dot); }
+.ui-dot.handy { color: var(--handy); }
+.ui-dot.vibe { color: var(--vibe); }
+.ui-dot.off { color: var(--muted); box-shadow: none; }
+
+/* Neon-Linie (z. B. Fortschritt) */
+.ui-neon { height: 3px; border-radius: 2px; background: var(--neon); box-shadow: var(--glow-accent); }
+
+/* ---------- Navigation: 4 Bereiche. Smartphone = Daumen-Leiste unten, PC = oben im Kopf ---------- */
+.ui-nav { display: flex; gap: var(--s1); }
+.ui-nav button {
+  display: flex; align-items: center; gap: 6px; width: auto; margin: 0; padding: 6px var(--s3); min-height: 36px;
+  border: 0; border-radius: var(--radius-s); background: transparent; color: var(--muted); font: 500 14px var(--font); cursor: pointer;
+}
+.ui-nav button b { font-weight: 400; font-size: 16px; filter: grayscale(1); opacity: .7; }
+.ui-nav button:hover { color: var(--text); }
+.ui-nav button[aria-current="page"] { color: #fff; text-shadow: var(--glow-text); }
+.ui-nav button[aria-current="page"] b { filter: none; opacity: 1; }
+
+@media (min-width: 901px) {
+  header .ui-nav { flex: 1; margin-left: var(--s4); }
+  .ui-nav button[aria-current="page"] { background: var(--surface2); box-shadow: inset 0 -2px 0 var(--accent); }
+}
+
+@media (max-width: 900px) {
+  :root { --nav-h: calc(60px + env(safe-area-inset-bottom)); }
+  .ui-nav {
+    position: fixed; z-index: 1400; left: 0; right: 0; bottom: 0; height: var(--nav-h);
+    justify-content: space-around; align-items: flex-start; gap: 0;
+    padding: 6px calc(4px + env(safe-area-inset-right)) env(safe-area-inset-bottom) calc(4px + env(safe-area-inset-left));
+    background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+  }
+  .ui-nav button { flex: 1; flex-direction: column; gap: 2px; padding: 4px 0; min-height: 48px; font-size: 10.5px; }
+  .ui-nav button b { font-size: 19px; }
+  body { padding-bottom: var(--nav-h); }
+  /* Im Vollbild und im Mini-Player-freien Vollbild-Video weg */
+  body.fs-open .ui-nav { display: none; }
+  body.fs-open { padding-bottom: 0; }
+  /* Unten feste Elemente über die Leiste heben */
+  .fab-stop { bottom: calc(16px + var(--nav-h)); }
+  .now-bar { bottom: calc(12px + var(--nav-h)); }
+  .toast { bottom: calc(80px + var(--nav-h)); }
+  .whatsnew { bottom: calc(16px + var(--nav-h)); }
+  body.mini-on #drop { top: calc(100svh - 12px - var(--nav-h) - min(44vw, 340px) * 9 / 16); }
+  body.dev-open #devices.sheet { bottom: var(--nav-h); max-height: calc(78dvh - var(--nav-h)); }
+}
+
+/* Weniger Bewegung gewünscht → keine Übergänge, auch wenn „Bewegung“ an ist */
+@media (prefers-reduced-motion: reduce) {
+  body.motion .ui-bar > i, .ui-switch span, .ui-switch span::after { transition: none; }
+}

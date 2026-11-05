@@ -67,6 +67,7 @@ function showView(view) {
   $('navSettings').classList.toggle('active', view === 'settings');
   document.querySelectorAll('button[data-mode]').forEach((b) => b.classList.toggle('active', view !== 'settings' && b.dataset.mode === appMode));
   window.dispatchEvent(new Event('resize'));
+  window.dispatchEvent(new Event('hp:view')); // 2.0: Navigation (nav.js) markiert den Bereich
 }
 
 // Einstellungen: eigene Seite, ändert den Modus nicht. Video, Handy und Satisfyer laufen weiter;
@@ -163,7 +164,7 @@ function toggleMenu(open = $('menu').hidden) {
 $('menuBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
 document.addEventListener('click', (e) => { if (!$('menu').hidden && !e.target.closest('#menu, #menuBtn')) toggleMenu(false); });
 $('menu').addEventListener('click', (e) => { if (e.target.closest('button')) toggleMenu(false); });
-function goLibrary() {
+export function goLibrary() {
   if (appMode === 'control') setMode(store.get('lastWatchMode', 'sync'));
   showView('library');
 }
@@ -183,10 +184,12 @@ export function openDevices(sub) {
   if (sub) document.querySelector(`nav[data-group="dev"] [data-sub="${sub}"]`)?.click();
   document.body.classList.add('dev-open');
   $('sheetBackdrop').hidden = false;
+  window.dispatchEvent(new Event('hp:view'));
 }
 export function closeDevices() {
   document.body.classList.remove('dev-open');
   $('sheetBackdrop').hidden = true;
+  window.dispatchEvent(new Event('hp:view'));
 }
 // Gemeinsame Status-Anzeige: öffnet/schließt das Geräte-Fenster; Reiter = das verbundene Gerät
 $('devChip').addEventListener('click', () => {

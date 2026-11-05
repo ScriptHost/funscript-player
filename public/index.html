@@ -14,10 +14,18 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="design.css">
 </head>
 <body data-mode="sync" data-view="library">
   <header>
     <h1 id="homeBtn" role="button" tabindex="0" title="Bibliothek – oder zurück zum laufenden Video">Funscript Player <small id="appVersion" class="version"></small></h1>
+    <!-- 2.0: vier Bereiche – Smartphone als Daumen-Leiste unten, PC hier oben (design.css, nav.js) -->
+    <nav id="appNav" class="ui-nav" aria-label="Areas" data-i18n-aria-label="nav.label">
+      <button data-area="library"><b aria-hidden="true">▦</b><span data-i18n="nav.library">Library</span></button>
+      <button data-area="player"><b aria-hidden="true">▶︎</b><span data-i18n="nav.player">Player</span></button>
+      <button data-area="devices"><b aria-hidden="true">◎</b><span data-i18n="nav.devices">Devices</span></button>
+      <button data-area="settings"><b aria-hidden="true">⚙︎</b><span data-i18n="nav.settings">Settings</span></button>
+    </nav>
     <!-- Status antippen = Geräte-Fenster (Verbinden, Offset, Hub, Stärke …) -->
     <!-- Eine Status-Anzeige für beide Geräte; antippen = Geräte-Fenster -->
     <button id="devChip" class="pills dev-chip" title="Geräte – antippen für Verbinden, Offset, Hub, Stärke">
@@ -501,6 +509,9 @@
           <label><span data-i18n="settings.language">Language</span>
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
+          <!-- 2.0: Anzeige-Schalter (nav.js) -->
+          <label class="ui-switch"><input id="glowOn" type="checkbox" checked><span></span><span data-i18n="settings.glow">Neon glow</span></label>
+          <label class="ui-switch"><input id="motionOn" type="checkbox"><span></span><span data-i18n="settings.motion">Moving device bars</span></label>
           <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>
           <label class="check"><input id="autoPip" type="checkbox" checked> App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (sofern der Browser es zulässt, sonst ⧉)</label>
           <!-- 1.19.8: wie eine installierte App -->

@@ -8,6 +8,15 @@ export default {
   'menu.controlHint': 'Direct, patterns',
   'menu.settings': 'Settings',
 
+  // Navigation (4 areas)
+  'nav.label': 'Areas',
+  'nav.library': 'Library',
+  'nav.player': 'Player',
+  'nav.devices': 'Devices',
+  'nav.settings': 'Settings',
+
   // Settings
   'settings.language': 'Language',
+  'settings.glow': 'Neon glow',
+  'settings.motion': 'Moving device bars',
 };

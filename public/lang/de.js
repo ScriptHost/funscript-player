@@ -7,6 +7,15 @@ export default {
   'menu.controlHint': 'Direkt, Patterns',
   'menu.settings': 'Einstellungen',
 
+  // Navigation (4 Bereiche)
+  'nav.label': 'Bereiche',
+  'nav.library': 'Bibliothek',
+  'nav.player': 'Player',
+  'nav.devices': 'Geräte',
+  'nav.settings': 'Einstellungen',
+
   // Einstellungen
   'settings.language': 'Sprache',
+  'settings.glow': 'Neon-Leuchten',
+  'settings.motion': 'Geräte-Balken bewegen sich',
 };
