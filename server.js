@@ -7,15 +7,17 @@ const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
-const { AUTH_PASS, AUTH_USER, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION } = require('./lib/config');
+const { AUTH_PASS, AUTH_USER, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
+const path = require('path');
+const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
 const { heresphereOn, hsAuthorized, hsCheckPassword, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashStatus } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
-const { hqBench, hqProbe, hqStatus, hqStream } = require('./lib/hq');
-const { updateInfo } = require('./lib/update');
+const { GPU_TEXT, hqBench, hqProbe, hqStatus, hqStream } = require('./lib/hq');
+const { UPDATE_OFF, updateInfo } = require('./lib/update');
 const { runSelfcheck } = require('./lib/selfcheck');
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest();
@@ -31,8 +33,16 @@ function authOk(req) {
 }
 
 function checkAuth(req, res) {
+  if (!AUTH_USER) return true;
+  // 2.0: nach zu vielen Fehlversuchen eine Minute Pause (auch für das richtige Passwort)
+  if (req.headers.authorization && loginBlocked(req)) {
+    res.writeHead(429, { 'Retry-After': '60', 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Zu viele Fehlversuche – bitte eine Minute warten');
+    return false;
+  }
   if (authOk(req)) return true;
-  res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Funscript Player", charset="UTF-8"' });
+  if (req.headers.authorization) loginFailed(req);
+  res.writeHead(401,{ 'WWW-Authenticate': 'Basic realm="Funscript Player", charset="UTF-8"' });
   res.end('Anmeldung erforderlich');
   return false;
 }
@@ -182,12 +192,31 @@ const handler = async (req, res) => {
     if (pathname === '/heresphere' || pathname.startsWith('/heresphere/')) {
       // Abgeschaltet: keine Antwort – die Ausnahme in der Proxy-Anmeldung kann dann weg
       if (!heresphereOn()) throw Object.assign(new Error('HereSphere ist abgeschaltet'), { status: 404 });
+      // 2.0: Videos, Scripts und Vorschauen für HereSphere nur hier – jede Anfrage mit Token geprüft. So reicht im
+      // Proxy die Ausnahme für /heresphere; /stash/… und /media/… bleiben immer hinter der Anmeldung.
+      const hf = /^\/heresphere\/file\/(?:stash\/(\d+)\/(stream|funscript|screenshot|preview)|media\/(.+))$/.exec(pathname);
+      if (hf) {
+        if (req.method !== 'GET' && req.method !== 'HEAD') throw Object.assign(new Error('Methode nicht erlaubt'), { status: 405 });
+        if (!hsAuthorized(req, url)) throw Object.assign(new Error('Anmeldung erforderlich'), { status: 401 });
+        url.searchParams.delete('hs'); // Token nicht an Stash weitergeben
+        if (hf[1]) {
+          needStash();
+          return await proxyStash(req, res, 'scene', hf[1], hf[2], url.search);
+        }
+        const ext = path.extname(hf[3]).toLowerCase();
+        const file = (VIDEO_EXT.has(ext) || ext === '.funscript') && safeJoin(MEDIA_DIR, hf[3]);
+        if (!file) throw Object.assign(new Error('Nicht erlaubt'), { status: 403 });
+        return sendFile(req, res, file);
+      }
       let body = {};
       try { body = JSON.parse((await readBody(req, 100000)) || '{}'); } catch { body = {}; }
       let data;
       if (pathname === '/heresphere/auth') {
         // Anmeldung aus HereSphere (Benutzername egal) -> Token, das HereSphere bei jeder Anfrage mitschickt
-        data = hsCheckPassword(String(body.password || '')) ? { 'auth-token': hsToken(), access: 1 } : { 'auth-token': '', access: -1 };
+        // 2.0: Bremse – nach zu vielen Fehlversuchen eine Minute lang keine Anmeldung
+        const ok = !loginBlocked(req) && hsCheckPassword(String(body.password || ''));
+        if (!ok && serverSettings.hsPass) loginFailed(req);
+        data = ok ? { 'auth-token': hsToken(), access: 1 } : { 'auth-token': '', access: -1 };
       } else if (!hsAuthorized(req, url)) {
         // -1 = Anmeldung nötig: HereSphere fragt dann nach Benutzer und Passwort
         data = { access: -1, library: [] };
@@ -220,7 +249,6 @@ const handler = async (req, res) => {
       || /^\/stash\/(tag|performer|studio)\/(\d+)\/(image)$/.exec(pathname);
     if (sm) {
       needStash();
-      url.searchParams.delete('hs'); // HereSphere-Token bleibt hier
       return await proxyStash(req, res, sm[1], sm[2], sm[3], url.search);
     }
 
@@ -302,6 +330,9 @@ server.listen(PORT, HOST, async () => {
   else if (stash.value?.ok) logLine(`Stash: connected (${STASH_URL}, version ${stash.value.version || '?'})`);
   else logLine(`Stash: NOT reachable (${STASH_URL}) – ${stash.value?.error || stash.reason?.message || 'unknown'}`);
   logLine(`HQ stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel graphics (VAAPI)' : 'CPU') : 'not available (no ffmpeg)'}`);
+  const gpu = hqs.value?.gpu;
+  if (gpu) logLine(`Graphics: ${GPU_TEXT[gpu.state]}${gpu.error ? ' – ' + gpu.error : ''}`);
+  if (UPDATE_OFF) logLine('Update check: off (UPDATE_CHECK=off)');
   const checks = await runSelfcheck().catch((e) => [{ name: 'Self-test', ok: false, info: e.message }]);
   const bad = checks.filter((c) => !c.ok);
   logLine(`Self-test: ${checks.length - bad.length}/${checks.length} ok${bad.length ? '' : ' (server, interface, script intensity)'}`);

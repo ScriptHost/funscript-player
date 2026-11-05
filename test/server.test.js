@@ -98,6 +98,8 @@ test('Handy-Script-Merkliste', async () => {
 });
 
 test('HereSphere: nur VR, Passwort', async () => {
+  assert.strictEqual((await fetch(srv.base + '/heresphere')).status, 404, '2.0: ab Werk aus');
+  await put('/api/settings', { heresphere: true });
   fs.writeFileSync(path.join(srv.media, 'Filme', 'szene_vr_180_sbs.mp4'), 'x');
   const urls = async (h = {}) => (await (await fetch(srv.base + '/heresphere', { headers: h })).json()).library.flatMap((l) => l.list);
   let list = await urls();
@@ -113,6 +115,15 @@ test('HereSphere: nur VR, Passwort', async () => {
   assert.strictEqual(ok.access, 1);
   list = await urls({ 'auth-token': ok['auth-token'] });
   assert.ok(list.length && list.every((u) => u.endsWith('?hs=' + ok['auth-token'])));
+  // 2.0: Dateien nur unter /heresphere/file/… und nur mit Token
+  const hs = await (await fetch(srv.base + '/heresphere/media/Filme/szene_vr_180_sbs.mp4', { method: 'POST', headers: { 'auth-token': ok['auth-token'] } })).json();
+  const src = hs.media[0].sources[0].url;
+  assert.ok(src.includes('/heresphere/file/media/Filme/szene_vr_180_sbs.mp4?hs='), src);
+  const file = srv.base + '/heresphere/file/media/Filme/szene_vr_180_sbs.mp4';
+  assert.strictEqual((await fetch(file)).status, 401);
+  assert.strictEqual((await fetch(file + '?hs=' + 'f'.repeat(64))).status, 401);
+  assert.strictEqual((await fetch(file + '?hs=' + ok['auth-token'])).status, 200);
+  assert.strictEqual((await fetch(srv.base + '/heresphere/file/media/..%2F..%2Fdata%2Fsettings.json?hs=' + ok['auth-token'])).status, 403);
   const s = await (await fetch(srv.base + '/api/settings')).json();
   assert.strictEqual(s.hsPassword, true);
   await put('/api/settings', { hsPassword: '' });
@@ -140,6 +151,7 @@ test('Stiller Selbsttest der Oberfläche wird angenommen', async () => {
 });
 
 test('HereSphere abschaltbar', async () => {
+  await put('/api/settings', { heresphere: true });
   assert.strictEqual((await fetch(srv.base + '/heresphere')).status, 200);
   await put('/api/settings', { heresphere: false });
   assert.strictEqual((await fetch(srv.base + '/heresphere')).status, 404);
@@ -154,4 +166,21 @@ test('Mit Anmeldung: nur /healthz ist offen, die Versionsnummer nicht (1.19.10)'
     const ok = await fetch(auth.base + '/api/version', { headers: { Authorization: 'Basic ' + Buffer.from('u:p').toString('base64') } });
     assert.strictEqual(ok.status, 200);
   } finally { auth.stop(); }
+});
+
+test('2.0: Bremse gegen Durchprobieren (Anmeldung und HereSphere)', async () => {
+  const s = await startServer({ AUTH_USER: 'u', AUTH_PASS: 'p' });
+  const basic = (pw) => ({ Authorization: 'Basic ' + Buffer.from('u:' + pw).toString('base64') });
+  try {
+    for (let i = 0; i < 10; i++) assert.strictEqual((await fetch(s.base + '/api/version', { headers: basic('falsch') })).status, 401);
+    assert.strictEqual((await fetch(s.base + '/api/version', { headers: basic('p') })).status, 429, 'auch richtig gesperrt');
+    assert.strictEqual((await fetch(s.base + '/healthz')).status, 200);
+  } finally { s.stop(); }
+});
+
+test('2.0: HereSphere ab Werk aus, alte Installationen behalten es', async () => {
+  const old = await startServer({}, (media) => fs.writeFileSync(path.join(media, '..', 'data', 'settings.json'), JSON.stringify({ hsVrOnly: true, v: 2 })));
+  try {
+    assert.strictEqual((await (await fetch(old.base + '/api/settings')).json()).heresphere, true);
+  } finally { old.stop(); }
 });
