@@ -7,7 +7,7 @@ const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
-const { AUTH_PASS, AUTH_USER, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
+const { AUTH_PASS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
 const path = require('path');
 const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
@@ -88,11 +88,12 @@ const LOGIN_PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" c
 <p>Since 2.0 the player needs a login, because otherwise everyone who can reach it also sees your
 Handy connection key and your library.</p>
 <p>In the <code>.env</code> file next to <code>docker-compose.yml</code>, either</p>
+<p><b>Still set to the example password <code>change-me</code>? Choose your own.</b></p>
 <ul><li>set <code>AUTH_USER=</code> and <code>AUTH_PASS=</code> (recommended), or</li>
 <li>set <code>LOGIN=off</code> if the player is protected otherwise (e.g. a reverse proxy with its own login).</li></ul>
 <p>Then run <code>docker compose up -d</code>.</p>
 <hr><p lang="de">Seit 2.0 braucht der Player eine Anmeldung. In der <code>.env</code> entweder
-<code>AUTH_USER</code>/<code>AUTH_PASS</code> setzen (empfohlen) oder <code>LOGIN=off</code>, wenn er anders geschützt ist
+<code>AUTH_USER</code>/<code>AUTH_PASS</code> setzen (empfohlen – das Beispielpasswort <code>change-me</code> gilt nicht) oder <code>LOGIN=off</code>, wenn er anders geschützt ist
 (z. B. Reverse Proxy mit eigener Anmeldung). Danach <code>docker compose up -d</code>.</p>`;
 
 // Antworten und kleine Helfer für die Routen
@@ -339,7 +340,8 @@ server.on('upgrade', (req, socket, head) => {
 const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${logSafe(msg)}`);
 server.listen(PORT, HOST, async () => {
   logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
-  if (LOGIN_MISSING) logLine('⚠ NO LOGIN SET UP: the player only shows a help page. Set AUTH_USER + AUTH_PASS in .env – or LOGIN=off if a proxy protects it.');
+  if (LOGIN_EXAMPLE) logLine('⚠ AUTH_PASS is still the example password "change-me" – choose your own in .env. Until then the player only shows a help page.');
+  else if (LOGIN_MISSING) logLine('⚠ NO LOGIN SET UP: the player only shows a help page. Set AUTH_USER + AUTH_PASS in .env – or LOGIN=off if a proxy protects it.');
   else if (!AUTH_USER) logLine('Note: login switched off (LOGIN=off) – everyone who reaches the player sees your library and Handy key.');
   logLine(`Library: reading ${MEDIA_DIR} …`);
   const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashStatus() : null, hqStatus()]);

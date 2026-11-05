@@ -194,3 +194,12 @@ test('2.0: ohne Anmeldung und ohne LOGIN=off nur die Erklärseite', async () => 
     assert.match(await r.text(), /LOGIN=off/);
   } finally { s.stop(); }
 });
+
+test('2.0: Beispielpasswort change-me gilt nicht', async () => {
+  const s = await startServer({ LOGIN: '', AUTH_USER: 'admin', AUTH_PASS: 'change-me' });
+  try {
+    const r = await fetch(s.base + '/', { headers: { Authorization: 'Basic ' + Buffer.from('admin:change-me').toString('base64') } });
+    assert.strictEqual(r.status, 503);
+    assert.match(await r.text(), /change-me/);
+  } finally { s.stop(); }
+});
