@@ -254,7 +254,7 @@
               <button id="sbResume" class="ui-btn" hidden>↩ <span data-i18n="player.resume">Back to the script</span></button>
               <button id="sbSelf" class="ui-chip sb-tool" title="Pause the script and control yourself – record a new one with ⏺" data-i18n-title="player.selfTitle">✋ <span data-i18n="player.self">Control yourself</span></button>
               <button id="sbHot" class="ui-chip sb-tool" title="Jumps to the 3 most intense parts in turn" data-i18n-title="player.hotTitle">🔥 <span data-i18n="player.hot">Highlights</span></button>
-              <button id="sbFile" class="ui-chip sb-tool" title="Load another .funscript for this scene and keep it under a name" data-i18n-title="player.loadFileTitle">📂 <span data-i18n="player.loadFile">Script file</span></button>
+              <button id="finaleBtn" class="ui-chip sb-tool finale-btn">🔥 Finale</button>
               <input id="sbFileInput" type="file" accept=".funscript,application/json" hidden>
               <button id="sbDelete" class="ui-chip sb-del" hidden>🗑 <span data-i18n="player.deleteOwn">Delete own script</span></button>
             </div>
@@ -288,7 +288,7 @@
             <button id="dockConnect" class="ui-btn wide pl-connect">◎ <span data-i18n="player.connect">Connect devices</span></button>
           </div>
           <div class="pl-row">
-            <button id="finaleBtn" class="ui-btn finale-btn">🔥 Finale</button>
+            <button id="sbFile" class="ui-btn" title="Load another .funscript for this scene and keep it under a name" data-i18n-title="player.loadFileTitle">📂 <span data-i18n="player.loadFile">Script file</span></button>
             <button id="vibePause" class="ui-btn">❚❚ <span data-i18n="player.pause">Pause</span></button>
           </div>
         </aside>
@@ -747,6 +747,7 @@
         <div data-panel="dev:handy">
           <div class="conn">
             <button id="connect">Verbinden</button>
+            <button id="handyOff" class="ui-btn wide handy-off">⏏ <span data-i18n="devices.disconnect">Disconnect</span></button>
             <p id="keyHint" class="hint-text" hidden>Zuerst den Connection Key eintragen (gleich hier darunter).</p>
             <!-- 1.19.7: Key direkt im Geräte-Fenster (gleiches Feld wie ⚙️ → Geräte) -->
             <details id="keyBox" class="dev-key">

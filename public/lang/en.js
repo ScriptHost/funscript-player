@@ -56,6 +56,10 @@ export default {
   'player.hub': 'Stroke {lo}–{hi} %',
   'player.strength': '{n} %',
 
+  // Devices
+  'devices.disconnect': 'Disconnect',
+  'devices.handyOff': '⏏ The Handy disconnected – it no longer reconnects by itself until you tap “Connect”.',
+
   // Settings
   'settings.language': 'Language',
   'settings.glow': 'Neon glow',

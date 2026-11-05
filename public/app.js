@@ -11,6 +11,7 @@ import { adaptedMarks, processScript, toolsChanged } from './tools.js';
 import { strokers } from './stroker.js';
 import { selfCtl } from './selfctl.js';
 import { setAdvMode, setQualityMode } from './settings.js';
+import { t } from './lang.js';
 modulesReady.add('app');
 
 // ===========================================================================
@@ -450,7 +451,7 @@ const ctx = canvas.getContext('2d');
 export const base = document.createElement('canvas');
 
 // 2.0 „Graphit + Neon“: ruhig = dunkles Blau, dann Cyan → Violett → Pink
-const HEAT = [[0, [26, 42, 58]], [120, [34, 211, 238]], [250, [124, 108, 255]], [380, [180, 108, 255]], [520, [255, 79, 163]]];
+const HEAT = [[0, [22, 30, 44]], [90, [16, 120, 150]], [200, [20, 175, 205]], [320, [110, 85, 220]], [440, [165, 70, 215]], [560, [225, 55, 135]]];
 export function heatColor(speed) {
   for (let i = 1; i < HEAT.length; i++) {
     if (speed <= HEAT[i][0]) {
@@ -498,7 +499,7 @@ export function drawHeatmap() {
     const a = toolActions(typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy');
     const x = (ms) => (ms / total) * w;
     paintHeat(b, a, total, w, h);
-    b.strokeStyle = 'rgba(255,255,255,.55)';
+    b.strokeStyle = 'rgba(255,255,255,.22)'; // 2.0: dezent – die Farben sollen lesbar bleiben
     b.lineWidth = dpr;
     b.beginPath();
     a.forEach((p, i) => {
@@ -619,10 +620,22 @@ async function connectHandy(auto = false) {
     btn.disabled = false;
   }
 }
-$('connect').addEventListener('click', () => { autoRetries = AUTO_RETRY_S.length; connectHandy(); });
+$('connect').addEventListener('click', () => { handyManualOff = false; autoRetries = AUTO_RETRY_S.length; connectHandy(); });
+// 2.0: Handy trennen – hält sie an und verbindet in dieser Sitzung nicht mehr von selbst (bis „Verbinden“)
+let handyManualOff = false;
+$('handyOff').addEventListener('click', async () => {
+  handyManualOff = true;
+  autoRetries = AUTO_RETRY_S.length;
+  await handy.stop().catch(() => {});
+  claimHandy(null);
+  handy.connected = false;
+  setStatus('off', 'getrennt');
+  updateDevClasses();
+  log(t('devices.handyOff'));
+});
 // 1.19.11: zurück in der App (z. B. nach Neuladen im Hintergrund) und nicht verbunden -> still neu versuchen
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden || handy.connected || $('connect').disabled || !$('autoConnect').checked || !$('key').value.trim()) return;
+  if (document.hidden || handy.connected || handyManualOff || $('connect').disabled || !$('autoConnect').checked || !$('key').value.trim()) return;
   autoRetries = 0;
   connectHandy(true);
 });
@@ -681,6 +694,7 @@ export function updateDevClasses() {
   document.body.classList.toggle('has-handy', h);
   document.body.classList.toggle('has-vibe', v);
   document.body.classList.toggle('has-dev', h || v);
+  $('handyOff').hidden = !handy.connected;
   // Status oben: ein Wort für alle Geräte; Handy-Cloud spürbar langsam = gelb
   const handySlow = handy.connected && Math.max(handy.rtt || 0, handy.lat || 0) > HANDY_SLOW_MS;
   const bleSlow = modulesReady.has('vibe') && vibeSlow();

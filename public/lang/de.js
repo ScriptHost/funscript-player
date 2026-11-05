@@ -55,6 +55,10 @@ export default {
   'player.hub': 'Hub {lo}–{hi} %',
   'player.strength': '{n} %',
 
+  // Geräte
+  'devices.disconnect': 'Trennen',
+  'devices.handyOff': '⏏ Handy getrennt – sie verbindet sich erst wieder, wenn du auf „Verbinden“ tippst.',
+
   // Einstellungen
   'settings.language': 'Sprache',
   'settings.glow': 'Neon-Leuchten',

@@ -786,7 +786,7 @@ body.mini-on .mini-ctl { display: flex; position: absolute; right: 6px; bottom: 
 .seek-preview.time-only span { position: static; transform: none; display: block; font-size: 13px; padding: 2px 8px; }
 
 /* 1.17: Video ohne Funscript + „Keine Steuerung“ -> Geräte-Regler und Geräte-Knöpfe weg */
-body.dev-idle #ovFinale, body.dev-idle #ovVibe, body.dev-idle[data-view=player] #plDock, body.dev-idle .pl-row { display: none !important; }
+body.dev-idle #ovFinale, body.dev-idle #ovVibe, body.dev-idle[data-view=player] #plDock, body.dev-idle #finaleBtn, body.dev-idle #vibePause { display: none !important; }
 /* Knöpfe ohne passendes Gerät */
 body:not(.has-handy) #resyncBtn, body:not(.has-dev) #ovVibe, body:not(.has-dev) #ovFinale { display: none !important; }
 /* Leiste: vom Nutzer ausgeblendete Knöpfe */

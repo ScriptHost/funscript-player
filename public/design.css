@@ -33,10 +33,10 @@
   --neon: linear-gradient(90deg, var(--neon-1), var(--neon-2) 55%, var(--neon-3));
 
   /* Leuchten (dezent; .no-glow schaltet alles ab) */
-  --glow-accent: 0 0 14px rgba(180, 108, 255, .28);
-  --glow-strong: 0 0 24px rgba(180, 108, 255, .5);
-  --glow-text: 0 0 10px rgba(180, 108, 255, .9);
-  --glow-dot: 0 0 10px currentColor;
+  --glow-accent: 0 0 10px rgba(180, 108, 255, .14);
+  --glow-strong: 0 0 14px rgba(180, 108, 255, .22);
+  --glow-text: 0 0 8px rgba(180, 108, 255, .55);
+  --glow-dot: 0 0 6px color-mix(in srgb, currentColor 45%, transparent);
 
   /* Abstände, Rundungen, Größen */
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
@@ -174,7 +174,7 @@ main { grid-template-columns: minmax(0, 1fr) !important; max-width: 1600px; }
 .pl-side { display: flex; flex-direction: column; gap: var(--s3); min-width: 0; }
 .pl .back { display: none; }               /* zurück = Navigation */
 #drop { border-radius: var(--radius); border: 1px solid var(--line); }
-#heatmap { border-radius: 6px; box-shadow: var(--glow-accent); }
+#heatmap { border-radius: 6px; }
 
 /* Script-Karte */
 .script-box { margin: 0; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
@@ -192,28 +192,31 @@ main { grid-template-columns: minmax(0, 1fr) !important; max-width: 1600px; }
 .sb-own .ui-chip { min-height: 32px; cursor: pointer; }
 .sb-own .ui-btn { width: 100%; }
 .sb-own [hidden] { display: none !important; }
-.script-box .dev-common { margin: var(--s3) 0 0; padding: var(--s2) 0 0; border-bottom: 0; border-top: 1px solid var(--line); }
+.script-box .dev-common { margin: var(--s3) 0 0; padding: var(--s1) 0 0; border-bottom: 0; border-top: 1px solid var(--line); }
+.script-box .off-box { margin: 0; }
+.script-box .off-box:not([open]) > summary { margin: 0; padding: 0; }
 .off-box > summary { display: flex; align-items: center; gap: var(--s2); min-height: 36px; color: var(--muted); font-size: 13px; margin: 0; }
 .offset-row { display: flex; align-items: center; justify-content: center; gap: var(--s3); margin: var(--s2) 0; }
 .offset-row output { min-width: 70px; text-align: center; font-variant-numeric: tabular-nums; }
 
 /* Geräte-Dock */
-.pl-dock { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.pl-dock { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); align-items: stretch; }
+.pl-dock .ui-card + .ui-card { margin-top: 0; }
 .pl-dev { display: block; width: 100%; margin: 0; text-align: left; color: var(--text); font: inherit; cursor: pointer; }
 .pl-dev:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
-.pl-dev .ui-label { margin-bottom: var(--s2); }
+.pl-dev .ui-label { margin-bottom: var(--s2); min-height: 20px; flex-wrap: nowrap; }
+.pl-dev .ui-label small { white-space: nowrap; }
 .pl-dev .ui-label > span { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-transform: none; letter-spacing: 0; font-size: 13px; white-space: nowrap; }
 .pl-dev .ui-label small { font-size: 11px; text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 body:not(.has-handy) #dockHandy, body:not(.has-vibe) #dockVibe, body.has-dev #dockConnect { display: none; }
 body.has-handy:not(.has-vibe) .pl-dock, body.has-vibe:not(.has-handy) .pl-dock { grid-template-columns: 1fr; }
 .pl-connect { grid-column: 1 / -1; }
 body.hud-off-devices .pl-dock { display: none; }
-.pl-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
-.pl-row .ui-btn { width: 100%; }
-.pl-row:not(:has(.ui-btn:not([hidden]))) { display: none; }
-body:not(.has-dev) .pl-row { display: none; }
+.pl-row { display: flex; gap: var(--s3); }
+.pl-row .ui-btn { flex: 1; }
 #finaleBtn { margin: 0; }
 #finaleBtn.running { border-color: var(--vibe); color: #fff; box-shadow: var(--glow-accent); }
+#handyOff[hidden] { display: none; }
 
 @media (max-width: 900px) {
   .pl:not([hidden]) { grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
@@ -228,7 +231,7 @@ body:not(.has-dev) .pl-row { display: none; }
 /* ---------- Player-Leiste und eigenes Vollbild ---------- */
 .ov-top { background: linear-gradient(rgba(11, 11, 13, .8), transparent); }
 .ov-bottom { background: linear-gradient(transparent, rgba(11, 11, 13, .85) 45%); }
-#ovBar { border-radius: 6px; box-shadow: var(--glow-accent); }
+#ovBar { border-radius: 6px; }
 .drop:not(.fs) #ovBar { height: 18px; }
 .ov-row button {
   min-width: 38px; min-height: 38px; padding: 6px 10px; border-radius: var(--pill);
@@ -238,7 +241,8 @@ body:not(.has-dev) .pl-row { display: none; }
 .ov-row button:hover { border-color: rgba(180, 108, 255, .6); }
 .drop:not(.fs) .ov-row button { min-width: 32px; min-height: 32px; padding: 4px 8px; }
 .ov-play, .drop:not(.fs) .ov-play {
-  background: var(--neon); border: 0; color: #fff; box-shadow: var(--glow-strong);
+  color: #fff; border: 2px solid transparent; box-shadow: var(--glow-strong);
+  background: linear-gradient(rgba(11, 11, 13, .72), rgba(11, 11, 13, .72)) padding-box, var(--neon) border-box;
 }
 .drop:not(.fs) .ov-play { width: 52px; height: 52px; font-size: 20px; }
 /* STOPP: klar rot, im Vollbild immer oben rechts */
@@ -249,3 +253,8 @@ body:not(.has-dev) .pl-row { display: none; }
 .swipe-hud { background: rgba(11, 11, 13, .78); border: 1px solid var(--line); }
 /* Vollbild: keine Kopfzeile, keine Daumen-Leiste – nur das Video */
 body.fs-open header { visibility: hidden; }
+
+/* Mini-Player beim Stöbern: das Video liegt seit 2.0 in .pl-main – nur diese Spalte bleiben lassen, darin nur #drop */
+body.mini-on #view-player > div.pl-main:not(#drop) { display: block !important; }
+body.mini-on #view-player > div.pl-main > :not(#drop) { display: none !important; }
+body.mini-on #view-player > aside.pl-side:not(#drop) { display: none !important; }
