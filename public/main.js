@@ -20,11 +20,13 @@ import { init as settings } from './settings.js';
 import { init as nav } from './nav.js';
 import { init as player } from './player.js';
 
+// Sprache zuerst: feste Texte (auch in <template>) – danach setzen die Module ihre wechselnden Texte selbst
+applyLang();
+for (const tpl of document.querySelectorAll('template')) applyLang(tpl.content);
 for (const [name, init] of Object.entries({ app, library, control, vibe, fullscreen, gestures, enhance, hq, finale, tools, stroker, selfctl, touchpad, settings })) {
   modulesReady.add(name);
   init();
 }
-applyLang();   // Texte mit Schlüssel (lang.js)
 nav();         // Bereiche-Leiste + Anzeige-Schalter
 player();      // Geräte-Dock am Video
 I18N.start();  // alte Übersetzung für alles ohne Schlüssel – fällt in Phase 8 weg

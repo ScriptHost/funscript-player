@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -18,7 +18,7 @@
 </head>
 <body data-mode="sync" data-view="library">
   <header>
-    <h1 id="homeBtn" role="button" tabindex="0" title="Bibliothek – oder zurück zum laufenden Video">Funscript Player <small id="appVersion" class="version"></small></h1>
+    <h1 id="homeBtn" role="button" tabindex="0" title="Library – or back to the running video" data-i18n-title="ui.libraryOrBackTo">Funscript Player <small id="appVersion" class="version"></small></h1>
     <!-- 2.0: vier Bereiche – Smartphone als Daumen-Leiste unten, PC hier oben (design.css, nav.js) -->
     <nav id="appNav" class="ui-nav" aria-label="Areas" data-i18n-aria-label="nav.label">
       <button data-area="library"><b aria-hidden="true">▦</b><span data-i18n="nav.library">Library</span></button>
@@ -28,21 +28,21 @@
     </nav>
     <!-- Status antippen = Geräte-Fenster (Verbinden, Offset, Hub, Stärke …) -->
     <!-- Eine Status-Anzeige für beide Geräte; antippen = Geräte-Fenster -->
-    <button id="devChip" class="pills dev-chip" title="Geräte – antippen für Verbinden, Offset, Hub, Stärke">
-      <span id="status" class="pill off"><span class="ic">↕ </span><span class="lbl">Handy: </span>getrennt</span>
+    <button id="devChip" class="pills dev-chip" title="Devices – tap to connect, offset, stroke, strength" data-i18n-title="ui.devicesTapToConnect">
+      <span id="status" class="pill off"><span class="ic">↕ </span><span class="lbl">Handy: </span><span data-i18n="ui.disconnected">disconnected</span></span>
       <span class="sep">·</span>
-      <span id="vibeStatus" class="pill off"><span class="ic">〰 </span><span class="lbl">Satisfyer: </span>getrennt</span>
+      <span id="vibeStatus" class="pill off"><span class="ic">〰 </span><span class="lbl">Satisfyer: </span><span data-i18n="ui.disconnected">disconnected</span></span>
       <!-- 1.19: oben nur noch ein Wort für alle Geräte; die Einzel-Anzeigen bleiben für die Logik im DOM -->
-      <span id="devState" class="pill off">getrennt</span>
+      <span data-i18n="ui.disconnected" id="devState" class="pill off">disconnected</span>
     </button>
   </header>
   <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
   <div id="toast" class="toast" hidden></div>
   <!-- Vorlage der Touch-Fläche (für „Selbst steuern“ und 🎮 Steuern, eingesetzt von touchpad.js) -->
   <template id="tpTemplate">
-    <div class="tp-area" role="slider" aria-label="Touch-Steuerung: Finger oben = stark"><div class="tp-fill"></div><span class="tp-val">–</span><span class="tp-hint">Finger auflegen – oben stark, unten schwach</span></div>
-    <div class="tp-opts"><span class="seg tp-mode" title="Wie die Handy dem Finger folgt"><button data-tpm="tempo" title="Finger-Höhe = Tempo der Stöße">Tempo</button><button data-tpm="pos" title="Finger-Höhe = Position: die Handy folgt dem Finger">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> Beim Loslassen halten</label><button class="tp-rec small secondary">⏺ Aufnehmen</button></div>
-    <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button class="tp-save-pattern small">Als Pattern speichern</button> <button class="tp-save-file small secondary">.funscript herunterladen</button> <button class="tp-save-lib small secondary" hidden>Neben dem Video speichern</button></div>
+    <div class="tp-area" role="slider" aria-label="Touch control: finger up = strong" data-i18n-aria-label="ui.touchControlFingerUp"><div class="tp-fill"></div><span class="tp-val">–</span><span data-i18n="ui.placeYourFingerUp" class="tp-hint">Place your finger – up strong, down weak</span></div>
+    <div class="tp-opts"><span class="seg tp-mode" title="How the Handy follows your finger" data-i18n-title="ui.howTheHandyFollows"><button data-tpm="tempo" title="Finger height = stroke tempo" data-i18n-title="ui.fingerHeightStrokeTempo">Tempo</button><button data-tpm="pos" title="Finger height = position: the Handy follows your finger" data-i18n-title="ui.fingerHeightPositionThe">Position 🧪</button></span><label class="check tpl-handy"><input class="tp-handy" type="checkbox" checked> ↕ Handy</label><label class="check tpl-vibe"><input class="tp-vibe" type="checkbox" checked> 〰 Satisfyer</label><label class="check"><input class="tp-hold" type="checkbox"> <span data-i18n="ui.holdOnRelease">Hold on release</span></label><button data-i18n="ui.record" class="tp-rec small secondary">⏺ Record</button></div>
+    <div class="tp-recout" hidden><span class="tp-recinfo"></span> <button data-i18n="ui.saveAsPattern" class="tp-save-pattern small">Save as pattern</button> <button data-i18n="ui.downloadFunscript" class="tp-save-file small secondary">Download .funscript</button> <button data-i18n="ui.saveNextToThe" class="tp-save-lib small secondary" hidden>Save next to the video</button></div>
   </template>
   <!-- Einmal nach dem Update: was sich an den Standards geändert hat -->
   <div id="whatsNew" class="whatsnew" hidden role="dialog" aria-label="New in this version" data-i18n-aria-label="new.label">
@@ -56,15 +56,15 @@
   </div>
   </div>
   <!-- 1.19.7: Willkommen beim ersten Start (nur Neuinstallation; ⚙️ → Anzeige zeigt es wieder) -->
-  <div id="welcome" class="whatsnew welcome" hidden role="dialog" aria-label="Willkommen">
-    <h3>👋 Willkommen beim Funscript Player</h3>
+  <div id="welcome" class="whatsnew welcome" hidden role="dialog" aria-label="Welcome" data-i18n-aria-label="ui.welcome">
+    <h3 data-i18n="ui.welcomeToFunscriptPlayer">👋 Welcome to Funscript Player</h3>
     <ol>
-      <li>🔌 <b>Gerät verbinden:</b> oben auf den Status tippen – The Handy mit dem Connection Key, Satisfyer per Bluetooth.</li>
-      <li>📚 <b>Video wählen:</b> in der Bibliothek, ⚡ = mit Funscript.</li>
-      <li>▶ <b>Abspielen:</b> die Geräte laufen mit dem Video mit. <b>Esc</b> oder <b>■ Alles stoppen</b> im Geräte-Fenster hält sofort alles an.</li>
+      <li data-i18n-html="ui.connectADeviceTap">🔌 <b>Connect a device:</b> tap the status at the top – The Handy with its connection key, Satisfyer via Bluetooth.</li>
+      <li data-i18n-html="ui.pickAVideoIn">📚 <b>Pick a video:</b> in the library, ⚡ = with Funscript.</li>
+      <li data-i18n-html="ui.playTheDevicesMove">▶ <b>Play:</b> the devices move along with the video. <b>Esc</b> or <b>■ Stop everything</b> in the devices window halts everything immediately.</li>
     </ol>
-    <p>Alles Weitere unter ⚙️ Einstellungen – dort auch die Sprache.</p>
-    <div class="actions"><button id="welcomeConnect" class="small">Gerät verbinden</button><button id="welcomeInstall" class="small secondary" hidden>📲 Als App installieren</button><button id="welcomeOk" class="small secondary">Los geht's</button></div>
+    <p data-i18n="ui.everythingElseIsUnder">Everything else is under ⚙️ Settings – including the language.</p>
+    <div class="actions"><button data-i18n="ui.connectDevice" id="welcomeConnect" class="small">Connect device</button><button data-i18n="ui.installAsApp" id="welcomeInstall" class="small secondary" hidden>📲 Install as app</button><button data-i18n="ui.letSGo" id="welcomeOk" class="small secondary">Let's go</button></div>
   </div>
 
   <main>
@@ -107,7 +107,7 @@
 
         <div id="savedFilters" class="savedbar" hidden></div>
         <div id="activeFilters" class="filters"></div>
-        <p id="libInfo" class="hint-text">Lade Bibliothek …</p>
+        <p data-i18n="ui.loadingLibrary" id="libInfo" class="hint-text">Loading library …</p>
 
         <div id="sceneGrid" class="grid scenes"></div>
         <div id="facetGrid" class="grid facets" hidden></div>
@@ -118,17 +118,14 @@
       <!-- 2.0: links (PC) bzw. oben (Smartphone) das Video, daneben bzw. darunter Script, Geräte, Finale/Pause -->
       <section id="view-player" class="view pl" hidden>
        <div class="pl-main">
-        <button id="backToLib" class="back">← Bibliothek</button>
+        <button data-i18n="ui.library" id="backToLib" class="back">← Library</button>
         <div id="drop" class="drop" data-fit="cover">
           <video id="video" playsinline preload="metadata"></video>
           <canvas id="enh" class="enh"></canvas>
-          <div id="dropHint" class="hint">
-            Video + .funscript hierher ziehen
-            <small>oder in der Bibliothek eine Szene wählen</small>
-          </div>
+          <div data-i18n-html="ui.dropVideoFunscriptHere" id="dropHint" class="hint">Drop video + .funscript here <small>or pick a scene in the library</small></div>
 
           <!-- Mini-Player beim Stöbern -->
-          <div id="miniCtl" class="mini-ctl"><button id="miniPlay" aria-label="Abspielen / Pause">❚❚</button><button id="miniOpen" aria-label="Zum Video">⤢</button><button id="miniClose" aria-label="Video schließen" title="Video schließen – Geräte halten an">✕</button></div>
+          <div id="miniCtl" class="mini-ctl"><button id="miniPlay" aria-label="Play / pause" data-i18n-aria-label="ui.playPause">❚❚</button><button id="miniOpen" aria-label="To the video" data-i18n-aria-label="ui.toTheVideo">⤢</button><button id="miniClose" aria-label="Close video" data-i18n-aria-label="ui.closeVideo" title="Close video – devices stop" data-i18n-title="ui.closeVideoDevicesStop">✕</button></div>
           <!-- Bedienung im Vollbild -->
           <!-- 1.19.11: Wert beim Wischen im Vollbild (die Einblendung unten ist im Vollbild nicht sichtbar) -->
           <div id="swipeHud" class="swipe-hud" hidden></div>
@@ -138,7 +135,7 @@
             <div id="ovHit" class="ov-hit"></div>
             <div class="ov-top">
               <span id="ovTitle" class="ov-title"></span>
-              <button id="ovStop" class="estop">■ STOPP</button>
+              <button data-i18n="ui.stop" id="ovStop" class="estop">■ STOP</button>
             </div>
             <button id="ovPlay" class="ov-play">▶</button>
             <div class="ov-bottom">
@@ -149,89 +146,88 @@
                 <span class="grow"></span>
                 <!-- Stash-Aktionen direkt in der Leiste (nur bei Stash-Szenen) -->
                 <span id="ovStash" class="ov-stash" hidden>
-                  <button id="ovRate" title="Bewertung und Favorit">☆</button>
-                  <button id="ovO" title="O-Zähler in Stash +1">💦 <b id="ovOCount">0</b></button>
-                  <button id="ovMark" title="Marker an dieser Stelle setzen (Taste P)">📍</button>
+                  <button id="ovRate" title="Rating and favourite" data-i18n-title="ui.ratingAndFavourite">☆</button>
+                  <button id="ovO" title="O-counter in Stash +1" data-i18n-title="ui.oCounterInStash">💦 <b id="ovOCount">0</b></button>
+                  <button id="ovMark" title="Set a marker here (key P)" data-i18n-title="ui.setAMarkerHere">📍</button>
                   <span id="ovRatePop" class="ov-pop" hidden>
-                    <span class="stars" title="Bewertung in Stash">
+                    <span class="stars" title="Rating in Stash" data-i18n-title="ui.ratingInStash">
                       <button data-star="1">★</button><button data-star="2">★</button><button data-star="3">★</button><button data-star="4">★</button><button data-star="5">★</button>
                     </span>
-                    <button id="ovFav" title="Als Favorit markieren (Tag „Favorit“ in Stash)">♡</button>
-                    <button id="ovOUndo" title="Letztes O zurücknehmen">💦 −1</button>
+                    <button id="ovFav" title="Mark as favourite (tag “Favorit” in Stash)" data-i18n-title="ui.markAsFavouriteTag">♡</button>
+                    <button id="ovOUndo" title="Undo last O" data-i18n-title="ui.undoLastO">💦 −1</button>
                   </span>
                 </span>
-                <button id="ovMute" title="Ton an/aus (M)">🔊</button>
-                <button id="ovFinale" class="sync-only finale-btn" title="Finale: ruhiger – Modus in den Einstellungen (O)">🔥</button>
-                <button id="ovVibe" class="sync-only" title="Vibration pausieren">Vib ❚❚</button>
-                <button id="ovFit" title="Bild füllen / einpassen">Einpassen</button>
-                <button id="ovPip" title="Bild-in-Bild – schwebt auch über anderen Apps" hidden>⧉</button>
-                <button id="ovFs" title="Vollbild (F)">⛶</button>
+                <button id="ovMute" title="Sound on/off (M)" data-i18n-title="ui.soundOnOffM">🔊</button>
+                <button id="ovFinale" class="sync-only finale-btn" title="Finale: calmer – mode in settings (O)" data-i18n-title="ui.finaleCalmerModeIn">🔥</button>
+                <button id="ovVibe" class="sync-only" title="Pause vibration" data-i18n-title="ui.pauseVibration">Vib ❚❚</button>
+                <button data-i18n="ui.fit" id="ovFit" title="Fill / fit picture" data-i18n-title="ui.fillFitPicture">Fit</button>
+                <button id="ovPip" title="Picture-in-picture – floats over other apps" data-i18n-title="ui.pictureInPictureFloats" hidden>⧉</button>
+                <button id="ovFs" title="Fullscreen (F)" data-i18n-title="ui.fullscreenF">⛶</button>
               </div>
             </div>
           </div>
         </div>
-        <canvas id="heatmap" class="sync-only" title="Klicken zum Springen"></canvas>
+        <canvas id="heatmap" class="sync-only" title="Click to jump" data-i18n-title="ui.clickToJump"></canvas>
 
         <!-- 1.19: Bild schnell einstellen, ohne die Einstellungen zu öffnen -->
         <div id="imgPop" class="img-pop" hidden>
-          <div class="seg"><button data-q="auto">Automatisch – bestes Bild</button><button data-q="off">Aus – Original</button></div>
-          <div class="seg"><button data-preset="natural">Natürlich</button><button data-preset="sharp">Schärfer</button><button data-preset="max">Maximal</button></div>
-          <a href="#" data-settings="imageSettings">Alle Bild-Einstellungen …</a>
+          <div class="seg"><button data-i18n="ui.automaticBestPicture" data-q="auto">Automatic – best picture</button><button data-i18n="ui.offOriginal" data-q="off">Off – original</button></div>
+          <div class="seg"><button data-i18n="ui.natural" data-preset="natural">Natural</button><button data-i18n="ui.sharper" data-preset="sharp">Sharper</button><button data-i18n="ui.maximum" data-preset="max">Maximum</button></div>
+          <a data-i18n="ui.allPictureSettings" href="#" data-settings="imageSettings">All picture settings …</a>
         </div>
-        <button id="openImageSettings" class="small secondary quality-link">✨ Bild: <b id="enhState">Auto</b> · HQ: <b id="hqLabel">Auto</b> – Einstellungen</button>
+        <button id="openImageSettings" class="small secondary quality-link"><span data-i18n="ui.picture">✨ Picture:</span> <b id="enhState">Auto</b> · HQ: <b id="hqLabel">Auto</b> <span data-i18n="ui.settings">– settings</span></button>
 
         <div class="sceneinfo">
-          <h2 id="videoName">Kein Video</h2>
+          <h2 data-i18n="ui.noVideo" id="videoName">No video</h2>
           <p id="sceneMeta" class="meta"></p>
           <div id="sceneActions" class="scene-actions" hidden>
-            <span id="stars" class="stars" title="Bewertung in Stash">
+            <span id="stars" class="stars" title="Rating in Stash" data-i18n-title="ui.ratingInStash">
               <button data-star="1">★</button><button data-star="2">★</button><button data-star="3">★</button><button data-star="4">★</button><button data-star="5">★</button>
             </span>
-            <button id="favBtn" class="small secondary" title="Als Favorit markieren (Tag „Favorit“ in Stash)">♡ Favorit</button>
-            <button id="oBtn" class="small secondary" title="O-Zähler in Stash +1">💦 <b id="oCount">0</b></button>
-            <button id="oUndo" class="small secondary" title="Letztes O zurücknehmen">−</button>
-            <button id="markBtn" class="small secondary" title="Marker an dieser Stelle in Stash setzen (Taste P)">📍 Marker setzen</button>
+            <button data-i18n="ui.favourite" id="favBtn" class="small secondary" title="Mark as favourite (tag “Favorit” in Stash)" data-i18n-title="ui.markAsFavouriteTag">♡ Favourite</button>
+            <button id="oBtn" class="small secondary" title="O-counter in Stash +1" data-i18n-title="ui.oCounterInStash">💦 <b id="oCount">0</b></button>
+            <button id="oUndo" class="small secondary" title="Undo last O" data-i18n-title="ui.undoLastO">−</button>
+            <button data-i18n="ui.setMarker" id="markBtn" class="small secondary" title="Set a marker here in Stash (key P)" data-i18n-title="ui.setAMarkerHere2">📍 Set marker</button>
           </div>
-          <p id="syncHint" class="sync-hint" hidden>〰 Die Geräte folgen dem Video gerade nicht. <button id="syncHintOn" class="small">Einschalten</button></p>
-          <p id="scriptLine" class="meta sync-only"><span id="scriptName">Kein Script</span></p>
+          <p id="syncHint" class="sync-hint" hidden><span data-i18n="ui.theDevicesAreNot">〰 The devices are not following the video right now.</span> <button data-i18n="ui.turnOn" id="syncHintOn" class="small">Turn on</button></p>
+          <p id="scriptLine" class="meta sync-only"><span data-i18n="ui.noScript" id="scriptName">No script</span></p>
           <!-- Videos ohne Funscript: Geräte von Hand mitlaufen lassen -->
           <div id="selfRow" class="self-row" hidden>
             <div class="self-head">
-              <span>Kein Funscript</span>
-              <span id="selfSeg" class="seg self-seg"><button data-self="off">Keine Steuerung</button><button data-self="self">Selbst steuern</button></span>
-              <button id="selfResume" class="small" hidden>↩ Script wieder abspielen</button>
+              <span data-i18n="ui.noFunscript">No Funscript</span>
+              <span id="selfSeg" class="seg self-seg"><button data-i18n="ui.noControl" data-self="off">No control</button><button data-i18n="ui.controlMyself" data-self="self">Control myself</button></span>
+              <button data-i18n="ui.playScriptAgain" id="selfResume" class="small" hidden>↩ Play script again</button>
             </div>
             <div id="selfCtl" class="self-ctl" hidden>
-              <p class="hint-text self-none">Kein Gerät verbunden – oben auf den Status tippen und verbinden.</p>
+              <p data-i18n="ui.noDeviceConnectedTap" class="hint-text self-none">No device connected – tap the status at the top and connect.</p>
               <div class="self-dev self-handy">
                 <div class="self-top"><button id="selfHandy" class="small">▶ Handy</button>
-                  <label>Geschwindigkeit <output id="selfSpeedVal"></output></label></div>
-                <input id="selfSpeed" type="range" min="0" max="100" step="5" value="40" aria-label="Handy-Geschwindigkeit">
-                <label class="self-stroke">Hub unten <output id="selfLoVal">0 %</output>
-                  <input id="selfLo" type="range" min="0" max="100" step="5" value="0" aria-label="Hub unten"></label>
-                <label class="self-stroke">Hub oben <output id="selfHiVal">100 %</output>
-                  <input id="selfHi" type="range" min="0" max="100" step="5" value="100" aria-label="Hub oben"></label>
+                  <label><span data-i18n="ui.speed">Speed</span> <output id="selfSpeedVal"></output></label></div>
+                <input id="selfSpeed" type="range" min="0" max="100" step="5" value="40" aria-label="Handy speed" data-i18n-aria-label="ui.handySpeed">
+                <label class="self-stroke"><span data-i18n="ui.strokeBottom">Stroke bottom</span> <output id="selfLoVal">0 %</output>
+                  <input id="selfLo" type="range" min="0" max="100" step="5" value="0" aria-label="Stroke bottom" data-i18n-aria-label="ui.strokeBottom"></label>
+                <label class="self-stroke"><span data-i18n="ui.strokeTop">Stroke top</span> <output id="selfHiVal">100 %</output>
+                  <input id="selfHi" type="range" min="0" max="100" step="5" value="100" aria-label="Stroke top" data-i18n-aria-label="ui.strokeTop"></label>
                 <div id="selfChips" class="chips"><button data-v="15">15</button><button data-v="30">30</button><button data-v="45">45</button><button data-v="60">60</button><button data-v="75">75</button><button data-v="90">90</button></div>
               </div>
               <div class="self-dev self-vibe">
-                <label>〰 Satisfyer-Stärke <output id="selfVibeVal"></output>
+                <label><span data-i18n="ui.satisfyerStrength">〰 Satisfyer strength</span> <output id="selfVibeVal"></output>
                   <input id="selfVibe" type="range" min="0" max="100" step="5" value="0">
                 </label>
-                <div id="selfVibeChips" class="chips"><button data-v="0">Aus</button><button data-v="20">20</button><button data-v="40">40</button><button data-v="60">60</button><button data-v="80">80</button></div>
+                <div id="selfVibeChips" class="chips"><button data-i18n="ui.off" data-v="0">Off</button><button data-v="20">20</button><button data-v="40">40</button><button data-v="60">60</button><button data-v="80">80</button></div>
               </div>
               <div class="touchpad" data-touch="self">
           </div>
-              <div class="self-rec"><button id="selfRec" class="small secondary">⏺ Mitschnitt zum Video</button>
+              <div class="self-rec"><button data-i18n="ui.recordToVideo" id="selfRec" class="small secondary">⏺ Record to video</button>
                 <span id="selfRecInfo" class="hint-text"></span>
-                <button id="selfRecSave" class="small" hidden>💾 Als Script zu diesem Video speichern</button>
-                <button id="selfRecSection" class="small secondary" hidden title="Nur die aufgenommene Zeit im eigenen Script ersetzen, der Rest bleibt">💾 Nur diesen Abschnitt ersetzen</button>
-                <button id="selfRecFile" class="small secondary" hidden>.funscript herunterladen</button></div>
-              <p class="hint-text">Läuft nur, solange das Video läuft – Pause hält Handy und Satisfyer an. STOPP wie immer.
-                Der Mitschnitt hängt an der Video-Zeit: gespeichert läuft er beim nächsten Mal genau so synchron mit.</p>
+                <button data-i18n="ui.saveAsScriptFor" id="selfRecSave" class="small" hidden>💾 Save as script for this video</button>
+                <button data-i18n="ui.replaceOnlyThisSection" id="selfRecSection" class="small secondary" hidden title="Replace only the recorded time in your own script, keep the rest" data-i18n-title="ui.replaceOnlyTheRecorded">💾 Replace only this section</button>
+                <button data-i18n="ui.downloadFunscript" id="selfRecFile" class="small secondary" hidden>Download .funscript</button></div>
+              <p data-i18n="ui.runsOnlyWhileThe" class="hint-text">Runs only while the video plays – pause stops Handy and Satisfyer. STOP as always. The recording follows the video time: once saved it plays back exactly in sync next time.</p>
             </div>
           </div>
           <details id="sceneMore" class="scene-more">
-            <summary>Mehr zur Szene</summary>
+            <summary data-i18n="ui.moreAboutTheScene">More about the scene</summary>
             <div id="scenePeople" class="chips-row"></div>
             <div id="sceneTags" class="chips-row"></div>
             <div id="sceneMarkers" class="markers"></div>
@@ -711,16 +707,16 @@
       <!-- ================= Steuern ================= -->
       <section id="view-control" class="view" hidden>
         <nav class="subtabs" data-group="control">
-          <button data-sub="direct" class="active">Direkt</button>
+          <button data-i18n="ui.direct" data-sub="direct" class="active">Direct</button>
           <button data-sub="patterns">Patterns</button>
         </nav>
 
         <div class="card" data-panel="control:direct">
-          <h2>Direktsteuerung</h2>
+          <h2 data-i18n="ui.directControl">Direct control</h2>
           <div class="direct">
             <button id="hampToggle" class="big">▶ Start</button>
             <div class="grow">
-              <label>Geschwindigkeit <output id="speedVal">30 %</output>
+              <label><span data-i18n="ui.speed">Speed</span> <output id="speedVal">30 %</output>
                 <input id="speed" type="range" min="0" max="100" value="30">
               </label>
               <div id="speedChips" class="chips">
@@ -730,32 +726,32 @@
               </div>
             </div>
           </div>
-          <p class="hint-text">Leertaste = Start/Stopp · ↑/↓ = Geschwindigkeit ±5 · steuert Handy und Satisfyer</p>
+          <p data-i18n="ui.spaceStartStopSpeed" class="hint-text">Space = start/stop · ↑/↓ = speed ±5 · controls Handy and Satisfyer</p>
           <div class="touchpad" data-touch="control">
           </div>
         </div>
 
         <div class="card" data-panel="control:patterns" hidden>
-          <h2>Pattern-Editor</h2>
+          <h2 data-i18n="ui.patternEditor">Pattern editor</h2>
           <div class="toolbar">
             <select id="patternSelect" aria-label="Pattern"></select>
-            <button id="patternNew" class="small">Neu</button>
-            <button id="patternDup" class="small">Kopieren</button>
-            <button id="patternDel" class="small danger">Löschen</button>
+            <button data-i18n="ui.new" id="patternNew" class="small">New</button>
+            <button data-i18n="ui.copy" id="patternDup" class="small">Copy</button>
+            <button data-i18n="ui.delete" id="patternDel" class="small danger">Delete</button>
           </div>
           <div class="grid2">
             <label>Name<input id="patternName" type="text" maxlength="60"></label>
-            <label>Vorlage übernehmen
-              <select id="patternPreset"><option value="">– Vorlage wählen –</option></select>
+            <label><span data-i18n="ui.applyTemplate">Apply template</span>
+              <select id="patternPreset"><option data-i18n="ui.chooseTemplate" value="">– choose template –</option></select>
             </label>
           </div>
           <div class="editor">
             <canvas id="patternCanvas"></canvas>
-            <div class="stroker" title="Aktuelle Position"><div id="strokerFill"></div></div>
+            <div class="stroker" title="Current position" data-i18n-title="ui.currentPosition"><div id="strokerFill"></div></div>
           </div>
-          <p class="hint-text">Klicken = Punkt setzen · Ziehen = verschieben · Doppelklick / Rechtsklick = Punkt löschen</p>
+          <p data-i18n="ui.clickAddPointDrag" class="hint-text">Click = add point · drag = move · double/right click = delete point</p>
           <div class="grid2">
-            <label>Zykluslänge <output id="lengthVal"></output>
+            <label><span data-i18n="ui.cycleLength">Cycle length</span> <output id="lengthVal"></output>
               <input id="patternLength" type="range" min="200" max="8000" step="50">
             </label>
             <label>Tempo <output id="tempoVal"></output>
@@ -764,11 +760,11 @@
           </div>
           <p id="patternInfo" class="hint-text"></p>
           <div class="actions">
-            <button id="patternPlay">▶ Pattern abspielen</button>
+            <button data-i18n="ui.playPattern" id="patternPlay">▶ Play pattern</button>
             <label class="inline">Export
               <input id="patternExportMin" type="number" min="1" max="120" value="5"> min
             </label>
-            <button id="patternExport" class="secondary">Als .funscript exportieren</button>
+            <button data-i18n="ui.exportAsFunscript" id="patternExport" class="secondary">Export as .funscript</button>
           </div>
         </div>
 
@@ -790,7 +786,7 @@
         <div data-panel="dev:handy">
           <div class="conn ui-card dev-card">
             <div class="dev-btns">
-              <button id="connect" class="ui-btn primary">Verbinden</button>
+              <button data-i18n="ui.connect" id="connect" class="ui-btn primary">Connect</button>
               <button id="handyOff" class="ui-btn handy-off">⏏ <span data-i18n="devices.disconnect">Disconnect</span></button>
             </div>
             <p id="keyHint" class="hint-text" hidden data-i18n="devices.keyHint">Enter the connection key first (right below).</p>
@@ -817,7 +813,7 @@
 
         <div data-panel="dev:vibe" hidden>
           <div class="conn ui-card dev-card">
-            <button id="vibeBle" class="ui-btn primary wide">＋ Satisfyer per Bluetooth verbinden</button>
+            <button data-i18n="ui.connectSatisfyerViaBluetooth" id="vibeBle" class="ui-btn primary wide">＋ Connect Satisfyer via Bluetooth</button>
             <button id="vibeBleAll" class="ui-btn wide" hidden data-i18n="devices.bleAll">Not listed? Show all Bluetooth devices</button>
             <p id="vibeBleHint" class="hint-text" data-i18n="devices.bleHint">Directly from the browser – Chrome on Android/PC, on iPhone the “Bluefy” app.</p>
             <ul id="vibeDevices" class="devices"></ul>
@@ -855,10 +851,10 @@
     </aside>
   </main>
 
-  <button id="fabStop" class="fab-stop" hidden>■ STOPP</button>
+  <button data-i18n="ui.stop" id="fabStop" class="fab-stop" hidden>■ STOP</button>
   <div id="nowBar" class="now-bar" hidden>
-    <button id="nowPlay" title="Abspielen / Pause">▶</button>
-    <button id="nowOpen" class="now-open" title="Zurück zum Video"><span id="nowTitle"></span><small>Zum Video ↑</small></button>
+    <button id="nowPlay" title="Play / pause" data-i18n-title="ui.playPause">▶</button>
+    <button id="nowOpen" class="now-open" title="Back to the video" data-i18n-title="ui.backToTheVideo"><span id="nowTitle"></span><small data-i18n="ui.toTheVideo2">To the video ↑</small></button>
   </div>
 
   <script src="i18n-en.js"></script>
