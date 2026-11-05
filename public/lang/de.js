@@ -1,11 +1,8 @@
 // Deutsche Texte – gleiche Schlüssel wie en.js (test/lang.test.js prüft beide Richtungen).
 export default {
   // Menü
-  'menu.label': 'Menü',
-  'menu.library': 'Bibliothek',
   'menu.control': 'Steuern',
-  'menu.controlHint': 'Direkt, Patterns',
-  'menu.settings': 'Einstellungen',
+  'menu.controlHint': 'Direkt, Patterns, Touch-Fläche',
 
   // Navigation (4 Bereiche)
   'nav.label': 'Bereiche',

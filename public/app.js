@@ -64,7 +64,6 @@ function showView(view) {
   document.body.dataset.view = view;
   if (typeof updateNowBar === 'function') setTimeout(updateNowBar, 0);
   ['library', 'player', 'control', 'settings'].forEach((v) => { $('view-' + v).hidden = v !== view; });
-  $('navSettings').classList.toggle('active', view === 'settings');
   document.querySelectorAll('button[data-mode]').forEach((b) => b.classList.toggle('active', view !== 'settings' && b.dataset.mode === appMode));
   window.dispatchEvent(new Event('resize'));
   window.dispatchEvent(new Event('hp:view')); // 2.0: Navigation (nav.js) markiert den Bereich
@@ -137,12 +136,8 @@ export function backToLibrary() {
 }
 
 // ---------------------------------------------------------------------------
-// Ruhige Oberfläche: Menü (☰), Geräte-Fenster (Status oben antippen), Sync-Schalter
+// Ruhige Oberfläche: Geräte-Fenster (Status oben antippen), Sync-Schalter
 // ---------------------------------------------------------------------------
-function toggleMenu(open = $('menu').hidden) {
-  $('menu').hidden = !open;
-  $('menuBtn').setAttribute('aria-expanded', String(open));
-}
 export function goLibrary() {
   if (appMode === 'control') setMode(store.get('lastWatchMode', 'sync'));
   showView('library');
@@ -757,7 +752,6 @@ export function init() {
     showSetPage(item.dataset.page || null);
     window.scrollTo(0, 0);
   });
-  $('navSettings').addEventListener('click', () => (document.body.dataset.view === 'settings' ? setMode(appMode) : openSettings()));
   $('openImageSettings').addEventListener('click', (e) => {
     e.stopPropagation();
     $('imgPop').hidden = !$('imgPop').hidden;
@@ -791,10 +785,6 @@ export function init() {
   document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.mode !== 'control') store.set('lastWatchMode', b.dataset.mode);
   }));
-  $('menuBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
-  document.addEventListener('click', (e) => { if (!$('menu').hidden && !e.target.closest('#menu, #menuBtn')) toggleMenu(false); });
-  $('menu').addEventListener('click', (e) => { if (e.target.closest('button')) toggleMenu(false); });
-  $('menuLibrary').addEventListener('click', goLibrary);
   $('homeBtn').addEventListener('click', goHome);
   $('homeBtn').addEventListener('keydown', (e) => { if (e.key === 'Enter') goHome(); });
   // Gemeinsame Status-Anzeige: öffnet/schließt das Geräte-Fenster; Reiter = das verbundene Gerät
@@ -804,7 +794,7 @@ export function init() {
   });
   $('sheetClose').addEventListener('click', closeDevices);
   $('sheetBackdrop').addEventListener('click', closeDevices);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDevices(); toggleMenu(false); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDevices(); });
   document.querySelectorAll('.sync-toggle').forEach((cb) => cb.addEventListener('change', () => {
     const mode = cb.checked ? 'sync' : 'stream';
     store.set('lastWatchMode', mode);

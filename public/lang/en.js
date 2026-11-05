@@ -2,11 +2,8 @@
 // Every key here needs a German text in de.js (test/lang.test.js checks both directions).
 export default {
   // Menu
-  'menu.label': 'Menu',
-  'menu.library': 'Library',
   'menu.control': 'Control',
-  'menu.controlHint': 'Direct, patterns',
-  'menu.settings': 'Settings',
+  'menu.controlHint': 'Direct, patterns, touch area',
 
   // Navigation (4 areas)
   'nav.label': 'Areas',

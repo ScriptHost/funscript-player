@@ -624,16 +624,6 @@ header h1 { margin-right: auto; }
 header .pill { width: auto; margin: 0; padding: 4px 10px; background: none; font: inherit; font-size: 13px; font-weight: 500; border: 1px solid currentColor; cursor: pointer; }
 header .pill:hover { background: var(--card); }
 header .pill::after { content: " ▾"; font-size: 10px; opacity: .7; }
-.menu-btn { width: 38px; height: 34px; margin: 0; padding: 0; background: var(--card); color: var(--text); border: 1px solid var(--line); font-size: 18px; line-height: 1; }
-.menu {
-  position: fixed; z-index: 1200; top: calc(var(--hdr-h, 56px) - 4px); right: calc(12px + env(safe-area-inset-right));
-  width: min(300px, calc(100vw - 24px)); padding: 6px; background: var(--card); border: 1px solid var(--line);
-  border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 2px;
-}
-.menu[hidden] { display: none; }
-.menu button { margin: 0; padding: 10px 12px; background: none; color: var(--text); text-align: left; font-weight: 500; border-radius: 8px; }
-.menu button:hover, .menu button.active { background: var(--bg); }
-.menu button small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
 
 /* Geräte-Fenster */
 #devices.sheet { display: none; }

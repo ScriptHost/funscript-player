@@ -35,12 +35,6 @@
       <!-- 1.19: oben nur noch ein Wort für alle Geräte; die Einzel-Anzeigen bleiben für die Logik im DOM -->
       <span id="devState" class="pill off">getrennt</span>
     </button>
-    <button id="menuBtn" class="menu-btn" aria-label="Menü" aria-expanded="false">☰</button>
-    <nav id="menu" class="menu" aria-label="Menu" data-i18n-aria-label="menu.label" hidden>
-      <button id="menuLibrary">📚 <span data-i18n="menu.library">Library</span></button>
-      <button data-mode="control">🎮 <span data-i18n="menu.control">Control</span> <small data-i18n="menu.controlHint">Direct, patterns</small></button>
-      <button id="navSettings">⚙️ <span data-i18n="menu.settings">Settings</span></button>
-    </nav>
   </header>
   <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
   <div id="toast" class="toast" hidden></div>
@@ -851,6 +845,7 @@
           <a href="#" class="more-settings conn" data-settings="setDevices" data-i18n="devices.moreVibe">⚙️ Translation, smoothness, Intiface … in the settings</a>
         </div>
 
+        <button data-mode="control" class="ui-btn wide dev-control">🎮 <span data-i18n="menu.control">Control</span> <small data-i18n="menu.controlHint">Direct, patterns, touch area</small></button>
         <div class="dev-stop-row">
           <button id="stopAll" class="ui-btn stop wide">■ <span data-i18n="devices.stopAll">Stop everything</span></button>
         </div>
