@@ -1,11 +1,21 @@
-'use strict';
+import './app.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, downloadFunscript, log, store } from './handy.js';
+import {
+  appMode, backToLibrary, clearScript, drawHeatmap, duration, heatColor, loadScript, loadVideo, mediaTime,
+  nowPlaying, openPlayer, script, seekTo, setNowPlaying, setStashSession, stashSession,
+} from './app.js';
+import { showOverlay } from './fullscreen.js';
+import { tr } from './tools.js';
+import { selfCtl, selfUI } from './selfctl.js';
+modulesReady.add('library');
 
 // ===========================================================================
 // Bibliothek: Stash (Szenen, Tags, Darsteller, Studios) und lokaler Ordner.
 // Kachelraster mit endlosem Scrollen, Filter als Chips, Szenen-Infos im Player.
 // ===========================================================================
 
-const lib = {
+export const lib = {
   source: 'folder',          // 'stash' | 'folder'
   browse: 'scenes',          // 'scenes' | 'tags' | 'performers' | 'studios'
   filters: { tags: [], performers: [], studios: [] },
@@ -39,13 +49,13 @@ const KIND_PATH = { tags: 'tag', performers: 'performer', studios: 'studio' };
 // Quelle, Ansicht und Filter
 // ---------------------------------------------------------------------------
 // Quellen: „stash“ und je eingebundenem Ordner „folder:<Name>“ (Unterordner von /media)
-function folderRoots() {
+export function folderRoots() {
   const roots = [...new Set(lib.folder.map((it) => it.root))];
   return roots.sort((a, b) => a.localeCompare(b, 'de'));
 }
 const rootLabel = (root) => root || 'Ordner';
 
-function librarySources() {
+export function librarySources() {
   const list = lib.stashOk ? [{ id: 'stash', label: 'Stash' }] : [];
   for (const r of folderRoots()) list.push({ id: 'folder:' + r, label: '📁 ' + rootLabel(r) });
   if (!list.length) list.push({ id: 'folder:', label: '📁 Ordner' });
@@ -63,7 +73,7 @@ function renderSources() {
   }));
 }
 
-function setSource(src) {
+export function setSource(src) {
   if (!librarySources().some((s) => s.id === src)) src = librarySources()[0].id;
   lib.source = src;
   store.set('libSource', src);
@@ -75,7 +85,7 @@ function setSource(src) {
   setBrowse(stash ? lib.browse : 'scenes');
 }
 
-function setBrowse(browse) {
+export function setBrowse(browse) {
   lib.browse = browse;
   document.querySelectorAll('#browseTabs button').forEach((b) => b.classList.toggle('active', b.dataset.browse === browse));
   $('sceneGrid').hidden = browse !== 'scenes';
@@ -84,7 +94,7 @@ function setBrowse(browse) {
   refresh();
 }
 
-function refresh() {
+export function refresh() {
   renderFilterChips();
   if (lib.browse !== 'scenes') return renderFacets(true);
   if (lib.source === 'stash') fetchScenes(true);
@@ -291,7 +301,7 @@ async function loadSavedFilters() {
   renderSavedFilters();
 }
 
-function renderSavedFilters() {
+export function renderSavedFilters() {
   const bar = $('savedFilters');
   bar.hidden = !lib.savedList.length || lib.source !== 'stash';
   bar.replaceChildren(el('span', { className: 'label' }, 'Filter:'));
@@ -331,7 +341,7 @@ function modeDefaultFilter() {
   const want = appMode === 'stream' ? '2d' : '2d script';
   return lib.savedList.find((f) => f.name.trim().toLowerCase() === want)?.id ?? store.get('savedFilter', '');
 }
-function modeFilterChanged() {
+export function modeFilterChanged() {
   if (typeof lib === 'undefined' || !lib.savedList.length || appMode === 'control') return;
   const id = modeDefaultFilter();
   if (id !== lib.saved) applySavedFilter(lib.savedList.some((f) => f.id === id) ? id : '');
@@ -434,7 +444,7 @@ function renderFolder() {
 async function openFolderItem(it) {
   openPlayer();
   loadVideo(mediaUrl(it.video), it.name, 'media:' + it.video);
-  nowPlaying = { kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder };
+  setNowPlaying({ kind: 'media', video: it.video, script: it.script, name: it.name, folder: it.folder });
   $('sceneMeta').textContent = it.folder ? `Ordner: ${it.folder}` : 'Bibliotheksordner';
   loadSceneScript('media:' + it.video, it.script ? it.script.split('/').pop() : '', it.script ? mediaUrl(it.script) : '',
     (it.scripts || []).map((v) => ({ name: v.name, url: mediaUrl(v.script) })));
@@ -447,9 +457,9 @@ async function openStashScene(s) {
   openPlayer();
   loadVideo(`/stash/scene/${sid(s.id)}/stream`, s.title, 'stash:' + s.id);
   video.poster = `/stash/scene/${sid(s.id)}/screenshot`; // Standbild statt Schwarz, bis Play gedrückt wird
-  nowPlaying = { kind: 'stash', id: s.id, title: s.title, interactive: s.interactive };
+  setNowPlaying({ kind: 'stash', id: s.id, title: s.title, interactive: s.interactive });
   const session = { id: s.id, markers: [], resume: 0, played: 0, lastSave: Date.now(), counted: false };
-  stashSession = session;
+  setStashSession(session);
 
   fetch(`/api/stash/scene/${sid(s.id)}`)
     .then((r) => (r.ok ? r.json() : null))
@@ -473,7 +483,7 @@ async function openStashScene(s) {
 // löschen. Hat eine Szene Original UND eigenes Script, ist wählbar, welches läuft (gemerkt pro Szene).
 // Stash-Szenen-ID für Adressen (immer kodiert – der Server nimmt ohnehin nur Ziffern)
 function sid(id) { return encodeURIComponent(id); }
-const nowKey = () => (nowPlaying?.kind === 'stash' ? 'stash:' + nowPlaying.id : nowPlaying?.kind === 'media' ? 'media:' + nowPlaying.video : '');
+export const nowKey = () => (nowPlaying?.kind === 'stash' ? 'stash:' + nowPlaying.id : nowPlaying?.kind === 'media' ? 'media:' + nowPlaying.video : '');
 let ownList = {};
 async function refreshOwn() {
   try { ownList = await (await fetch('/api/userscripts')).json(); } catch { /* ohne Liste */ }
@@ -488,8 +498,8 @@ function tileBadge(src, hasScript) {
   return text ? el('span', { className: 'badge', title }, text) : null;
 }
 
-let scriptMeta = { src: '', hasOrig: false, hasOwn: false, own: false, origName: '', origUrl: '' };
-let suspended = null; // Script, das für „Selbst steuern / neu aufnehmen“ angehalten ist
+export let scriptMeta = { src: '', hasOrig: false, hasOwn: false, own: false, origName: '', origUrl: '' };
+export let suspended = null; // Script, das für „Selbst steuern / neu aufnehmen“ angehalten ist
 
 // 2.0: Auswahl je Szene (scriptChoice): 'orig' = Original, 'own' = eigenes Script, 'alt:<Name>' = weiteres Script
 // neben dem Video (clip.soft.funscript). Ohne Wahl: eigenes Script, sonst Original.
@@ -540,7 +550,7 @@ function sceneAlts(src, alts) {
 }
 
 // Script-Bereich im Geräte-Kasten
-function renderScriptBox() {
+export function renderScriptBox() {
   const show = !!(script || suspended || scriptMeta.hasOwn) && !!nowKey();
   $('scriptBox').hidden = !show;
   $('selfResume').hidden = $('sbResume').hidden = !suspended;
@@ -631,7 +641,7 @@ function mergeSection(old, neu) {
 
 // Speichert ein Script dauerhaft zum laufenden Video (abschaltbar unter ⚙️ → Bibliothek).
 // mode 'section' = nur den aufgenommenen Abschnitt im eigenen Script ersetzen.
-async function saveScriptToLibrary(actions, mode = 'all') {
+export async function saveScriptToLibrary(actions, mode = 'all') {
   const src = nowKey();
   if (mode === 'section' && scriptMeta.hasOwn) {
     try {
@@ -840,7 +850,7 @@ video.addEventListener('playing', () => {
 video.addEventListener('pause', () => { lastTick = null; saveStashActivity(); });
 window.addEventListener('pagehide', () => saveStashActivity(true));
 
-function saveStashActivity(beacon = false) {
+export function saveStashActivity(beacon = false) {
   const s = stashSession;
   if (!s || !mediaTime()) return;
   const body = JSON.stringify({ resume: mediaTime(), played: s.played });

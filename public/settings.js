@@ -1,4 +1,13 @@
-'use strict';
+import './touchpad.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady } from './state.js';
+import { $, freshInstall, log, store } from './handy.js';
+import { openDevices, openSettings } from './app.js';
+import { folderRoots, lib, librarySources, renderSavedFilters, setBrowse, setSource } from './library.js';
+import { bluetoothProblem } from './vibe.js';
+import { enh, enhSetPreset } from './enhance.js';
+import { HQ_ACCEL_LABEL, hqApply, hqState } from './hq.js';
+import { SCRIPT_PRESETS, clearToolCache, processScript } from './tools.js';
+modulesReady.add('settings');
 
 // ===========================================================================
 // Einstellungen-Seite: HereSphere-Adresse, Bibliothek, System-Infos.
@@ -7,7 +16,7 @@
 
 // --- Bildqualität: ein Schalter für alles ----------------------------------------
 // „Automatisch“ = Browser-Verbesserung „Auto“ + HQ-Stream „Auto“, „Aus“ = beides aus.
-function setQualityMode(mode) {
+export function setQualityMode(mode) {
   enhSetPreset(mode);
   hqState.preset = mode;
   hqApply();
@@ -71,7 +80,7 @@ document.querySelectorAll('#view-settings p.hint-text:not([id]), #view-settings 
 });
 
 // --- Erweiterte Einstellungen (pro Gerät): standardmäßig nur das Nötige ------------------------
-function setAdvMode(on) {
+export function setAdvMode(on) {
   document.body.classList.toggle('adv-on', on);
   $('advMode').checked = on;
   store.set('advMode', on);
@@ -205,7 +214,7 @@ const browseTabs = Object.assign({ tags: true, performers: true, studios: false 
 function applyBrowseTabs() {
   document.querySelectorAll('#browseTabs button[data-browse]').forEach((b) => b.classList.toggle('tab-off', browseTabs[b.dataset.browse] === false));
   // Ausgeblendeter Reiter offen -> zurück zu den Szenen
-  if (typeof lib !== 'undefined' && browseTabs[lib.browse] === false && typeof setBrowse === 'function') setBrowse('scenes');
+  if (modulesReady.has('library') && browseTabs[lib.browse] === false && modulesReady.has('library')) setBrowse('scenes');
 }
 document.querySelectorAll('#browseOptions input').forEach((cb) => {
   cb.checked = browseTabs[cb.dataset.browseOpt] !== false;
@@ -349,7 +358,7 @@ setTimeout(() => {
       const r = processScript(a, 'handy', p);
       if (!Array.isArray(r) || !r.length || r.some((x) => !(x.pos >= 0 && x.pos <= 100))) fails.push('Intensität ' + p);
     }
-    toolCache = {};
+    clearToolCache();
   } catch (e) { fails.push('Intensität: ' + e.message); }
   for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox']) if (!$(id)) fails.push('fehlt: #' + id);
   if (fails.length) fetch('/api/clientcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fails, ua: navigator.userAgent }) }).catch(() => {});

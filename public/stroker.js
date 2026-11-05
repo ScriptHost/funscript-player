@@ -1,4 +1,13 @@
-'use strict';
+import './tools.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, handy, setStatus, store } from './handy.js';
+import { videoScriptSource } from './app.js';
+import { controlScriptSource, hampOn } from './control.js';
+import { vibe } from './vibe.js';
+import { fin, finDetached } from './finale.js';
+import { selfHampLevel, selfStrokeRange } from './selfctl.js';
+import { touchPosActive } from './touchpad.js';
+modulesReady.add('stroker');
 
 // ===========================================================================
 // Bewegungsgeräte über Intiface – z. B. The Handy per Bluetooth als Offline-Weg,
@@ -10,7 +19,7 @@
 // ===========================================================================
 
 const bt = { lastIdx: -1, lastMs: 0, flipAt: 0, up: false, moving: false, halted: false };
-const strokers = () => [...vibe.devices.values()].filter((d) => d.linear?.length && d.enabled);
+export const strokers = () => [...vibe.devices.values()].filter((d) => d.linear?.length && d.enabled);
 
 $('btLead').value = store.get('btLead', 80);
 const btLeadOut = () => { $('btLeadVal').textContent = `${$('btLead').value} ms`; };
@@ -19,17 +28,17 @@ $('btLead').addEventListener('input', () => { store.set('btLead', Number($('btLe
 
 // Hub-Bereich: im Finale dessen Bereich, sonst Hub min/max aus der Handy-Karte
 function strokeRange() {
-  if (typeof fin !== 'undefined' && fin.active) return [fin.min, fin.max];
-  if (typeof selfHampLevel === 'function' && selfHampLevel() !== null) return selfStrokeRange(true); // „Selbst steuern“ mit Hublänge
+  if (modulesReady.has('finale') && fin.active) return [fin.min, fin.max];
+  if (modulesReady.has('selfctl') && selfHampLevel() !== null) return selfStrokeRange(true); // „Selbst steuern“ mit Hublänge
   return [Number($('slideMin').value), Number($('slideMax').value)];
 }
-function mapPos(pos) {
+export function mapPos(pos) {
   if ($('invert').checked) pos = 100 - pos;
   const [lo, hi] = strokeRange();
   return (lo + ((hi - lo) * pos) / 100) / 100;
 }
 
-function moveAll(pos01, duration) {
+export function moveAll(pos01, duration) {
   for (const d of strokers()) d.move(pos01, duration).catch(() => {});
   bt.moving = true;
 }
@@ -56,7 +65,7 @@ setInterval(() => {
   if (!list.length || touchPosActive()) return; // Touch „Position“ bewegt die Geräte gerade selbst
 
   let src = null, isVideo = false, osc = null;
-  if (typeof finDetached === 'function' && finDetached()) osc = fin.speed / 100;
+  if (modulesReady.has('finale') && finDetached()) osc = fin.speed / 100;
   else if (hampOn) osc = Number($('speed').value) / 100;
   else {
     src = controlScriptSource();

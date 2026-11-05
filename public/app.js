@@ -1,4 +1,17 @@
-'use strict';
+import './handy.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, claimHandy, handy, handyErrText, log, setStatus, store, toCsv } from './handy.js';
+import { modeFilterChanged, nowKey, refresh, saveScriptToLibrary, saveStashActivity } from './library.js';
+import { allVibes, checkVibes, setVibePaused, vibePaused, vibeSlow } from './vibe.js';
+import { togglePlay } from './fullscreen.js';
+import { enh, enhClear, enhSetPreset } from './enhance.js';
+import { hqMaybeStart, hqRestart } from './hq.js';
+import { effectiveActions, finDetached } from './finale.js';
+import { adaptedMarks, processScript, toolsChanged } from './tools.js';
+import { strokers } from './stroker.js';
+import { selfCtl } from './selfctl.js';
+import { setAdvMode, setQualityMode } from './settings.js';
+modulesReady.add('app');
 
 // ===========================================================================
 // Modi (Streamen / Sync / Steuern), Seiten (Bibliothek / Player / Steuern),
@@ -17,24 +30,25 @@ function parseFunscript(text) {
   return actions;
 }
 
-const video = $('video');
-let script = null;       // { name, actions }
+export let script = null;       // { name, actions }
 let objectUrl = null;
-let stashSession = null; // aktuelle Stash-Szene: { id, markers, resume, played, lastSave, counted }
+export let stashSession = null; // aktuelle Stash-Szene: { id, markers, resume, played, lastSave, counted }
 
 // Zeitachse des Films. Beim HQ-Stream (hq.js) startet das <video> nach jedem Spulen
 // wieder bei 0 – die echte Position ist dann hq.offset + video.currentTime.
-const hq = { active: false, offset: 0, duration: 0, src: '', url: '' };
-let nowPlaying = null; // was hier läuft: { kind: 'stash'|'media'|'file', … }
-function mediaTime() {
+export const hq = { active: false, offset: 0, duration: 0, src: '', url: '' };
+export let nowPlaying = null; // was hier läuft: { kind: 'stash'|'media'|'file', … }
+export function setNowPlaying(v) { nowPlaying = v; }
+export function setStashSession(v) { stashSession = v; }
+export function mediaTime() {
   return (hq.active ? hq.offset : 0) + (video.currentTime || 0);
 }
-function seekTo(sec) {
+export function seekTo(sec) {
   const max = duration() / 1000;
   sec = Math.max(0, max ? Math.min(sec, max - 0.5) : sec);
   if (hq.active) hqRestart(sec); else video.currentTime = sec;
 }
-function videoPlaying() {
+export function videoPlaying() {
   return !video.paused && !video.ended;
 }
 
@@ -42,8 +56,8 @@ function videoPlaying() {
 // Modi und Seiten
 // ---------------------------------------------------------------------------
 // (Einmal-Umstellungen aus 1.2, 1.16 und 1.17 sind seit 1.18 entfernt – alle Geräte haben sie durchlaufen.)
-let appMode = store.get('mode', 'sync');
-const syncActive = () => appMode === 'sync';
+export let appMode = store.get('mode', 'sync');
+export const syncActive = () => appMode === 'sync';
 
 function showView(view) {
   closeDevices();
@@ -57,10 +71,10 @@ function showView(view) {
 
 // Einstellungen: eigene Seite, ändert den Modus nicht. Video, Handy und Satisfyer laufen weiter;
 // zurück geht es über die „Läuft gerade“-Leiste unten oder die Modus-Knöpfe.
-function openSettings(section) {
+export function openSettings(section) {
   showView('settings');
   // Ziel liegt bei den erweiterten Einstellungen -> diese einblenden
-  if (section && $(section)?.closest('.adv') && typeof setAdvMode === 'function') setAdvMode(true);
+  if (section && $(section)?.closest('.adv') && modulesReady.has('settings')) setAdvMode(true);
   // Zugeklappte Bereiche auf dem Weg zum Ziel öffnen
   for (let d = section && $(section)?.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
   if (section) $(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -108,22 +122,22 @@ function setMode(mode) {
     if (mode === 'stream' && handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
     resync();
     // Jeder Modus hat seinen eigenen Stash-Filter (z. B. Streamen „2D“, Sync „2D Script“)
-    if (typeof modeFilterChanged === 'function') modeFilterChanged();
+    if (modulesReady.has('library')) modeFilterChanged();
     // „nur mit Funscript“ gilt nur bei Sync -> Bibliothek passend neu laden
-    if (typeof refresh === 'function' && typeof lib !== 'undefined' && document.body.dataset.view === 'library') refresh();
+    if (modulesReady.has('library') && document.body.dataset.view === 'library') refresh();
   }
 }
 document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
 // Player öffnen = eigener Verlaufseintrag, damit die Zurück-Geste zur Bibliothek führt
-function openPlayer() {
+export function openPlayer() {
   if (appMode === 'control') setMode(store.get('lastWatchMode', 'sync'));
   if (location.hash !== '#player') history.pushState(null, '', '#player');
   showView('player');
   window.scrollTo(0, 0); // Video oben, nicht da, wo die Bibliothek gerade gescrollt war
 }
 // Zurück zur Bibliothek: Video, Handy und Satisfyer laufen weiter (Leiste „Läuft gerade“ unten)
-function backToLibrary() {
+export function backToLibrary() {
   if (location.hash === '#player') history.back();
   else showView('library');
 }
@@ -165,13 +179,12 @@ $('homeBtn').addEventListener('keydown', (e) => { if (e.key === 'Enter') goHome(
 
 // Geräte-Fenster: oben rechts (PC) bzw. von unten (Smartphone).
 // Im Player steht die Geräte-Steuerung fest am Video (⚙️ → Anzeige) – dann nur dorthin springen.
-const devInline = () => document.body.dataset.view === 'player' && !document.body.classList.contains('hud-off-devices');
-function openDevices(sub) {
+export function openDevices(sub) {
   if (sub) document.querySelector(`nav[data-group="dev"] [data-sub="${sub}"]`)?.click();
   document.body.classList.add('dev-open');
   $('sheetBackdrop').hidden = false;
 }
-function closeDevices() {
+export function closeDevices() {
   document.body.classList.remove('dev-open');
   $('sheetBackdrop').hidden = true;
 }
@@ -220,10 +233,10 @@ document.addEventListener('handy-owner', (e) => {
 // Laden von Video und Script
 // ---------------------------------------------------------------------------
 // hqSrc: Quelle für den HQ-Stream des Servers ("stash:<id>" / "media:<pfad>"), sonst leer
-function loadVideo(src, name, hqSrc = '') {
-  if (typeof saveStashActivity === 'function') saveStashActivity();
+export function loadVideo(src, name, hqSrc = '') {
+  if (modulesReady.has('library')) saveStashActivity();
   // Neues Video = Geräte wieder aktiv (auch nach „Geräte pausieren“ oder STOPP beim vorigen)
-  if (typeof setVibePaused === 'function' && vibePaused) setVibePaused(false);
+  if (modulesReady.has('vibe') && vibePaused) setVibePaused(false);
   stashSession = null;
   nowPlaying = { kind: 'file', title: name };
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -233,11 +246,11 @@ function loadVideo(src, name, hqSrc = '') {
   video.removeAttribute('poster');
   video.removeAttribute('src');
   video.load();
-  if (typeof enhClear === 'function') enhClear(); // altes Bild der Bildverbesserung weg (sonst kurz Standbild des vorigen Videos)
+  if (modulesReady.has('enhance')) enhClear(); // altes Bild der Bildverbesserung weg (sonst kurz Standbild des vorigen Videos)
   $('drop').classList.add('loading');
   Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
   // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
-  if (!(typeof hqMaybeStart === 'function' && hqMaybeStart())) video.src = src;
+  if (!(modulesReady.has('hq') && hqMaybeStart())) video.src = src;
   loadOffsetForVideo();
   resetSceneInfo(name);
   // Poster (Stash-Standbild) setzt library.js direkt danach – darum erst im nächsten Takt lesen
@@ -263,11 +276,11 @@ video.addEventListener('error', () => { $('startCover').hidden = true; });
 
 // Video schließen (✕ am Mini-Player): anhalten, Geräte stoppen, Mini-Player weg
 function closeVideo() {
-  if (typeof saveStashActivity === 'function') saveStashActivity();
+  if (modulesReady.has('library')) saveStashActivity();
   video.pause();
   if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
   if (handy.connected) setStatus('on', 'verbunden');
-  if (typeof selfCtl !== 'undefined') selfCtl.handyOn = false;
+  if (modulesReady.has('selfctl')) selfCtl.handyOn = false;
   stashSession = null;
   nowPlaying = null;
   script = null;
@@ -281,7 +294,7 @@ function closeVideo() {
   $('dropHint').classList.remove('hidden');
   $('scriptName').textContent = 'Kein Script';
   drawHeatmap();
-  if (typeof toolsChanged === 'function') toolsChanged();
+  if (modulesReady.has('tools')) toolsChanged();
   if (document.body.dataset.view === 'player') backToLibrary();
   updateNowBar();
 }
@@ -296,12 +309,12 @@ function resetSceneInfo(name) {
   ['scenePeople', 'sceneTags', 'sceneMarkers'].forEach((id) => $(id).replaceChildren());
 }
 
-function loadScript(text, name) {
+export function loadScript(text, name) {
   try {
     script = { name, actions: parseFunscript(text) };
     $('scriptName').textContent = `⚡ ${name} (${script.actions.length} Punkte)`;
     drawHeatmap();
-    if (typeof toolsChanged === 'function') toolsChanged(); // Info der Script-Werkzeuge für dieses Video
+    if (modulesReady.has('tools')) toolsChanged(); // Info der Script-Werkzeuge für dieses Video
     preloadScript();
   } catch (e) {
     script = null;
@@ -311,11 +324,11 @@ function loadScript(text, name) {
   }
 }
 
-function clearScript() {
+export function clearScript() {
   script = null;
   $('scriptName').textContent = 'Kein Script';
   drawHeatmap();
-  if (typeof toolsChanged === 'function') toolsChanged(); // Anpassungs-Zeile ausblenden
+  if (modulesReady.has('tools')) toolsChanged(); // Anpassungs-Zeile ausblenden
   if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
 }
 
@@ -358,13 +371,13 @@ async function preloadScript() {
 // Synchronisation Video <-> Handy (nur im Modus „Sync“)
 // ---------------------------------------------------------------------------
 let syncTimer;
-function resync() {
+export function resync() {
   clearTimeout(syncTimer);
   syncTimer = setTimeout(doSync, 40);
 }
 
 async function doSync() {
-  if (!handy.connected || !script || (typeof finDetached === 'function' && finDetached())) return;
+  if (!handy.connected || !script || (modulesReady.has('finale') && finDetached())) return;
   try {
     const playing = syncActive() && videoPlaying() && !vibePaused && video.readyState >= 3;
     if (!playing) {
@@ -386,7 +399,7 @@ async function doSync() {
     setStatus('on', 'Video läuft');
   } catch (e) {
     // Cloud weg, aber die Handy hängt per Bluetooth an Intiface: dorthin wechseln (stroker.js übernimmt)
-    if (e.kind === 'net' && typeof strokers === 'function' && strokers().length) {
+    if (e.kind === 'net' && modulesReady.has('stroker') && strokers().length) {
       handy.connected = false;
       log('Handy-Cloud nicht erreichbar – steuere die Handy per Bluetooth (Intiface).', true);
       setTimeout(() => connectHandy(true), 60000); // später wieder die Cloud versuchen
@@ -400,23 +413,23 @@ async function doSync() {
 ['playing', 'pause', 'seeking', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
 
 // Script nach den Script-Werkzeugen (Hub strecken, Spitzen glätten) – siehe tools.js
-function toolActions(target = 'handy') {
-  return typeof processScript === 'function' ? processScript(script.actions, target) : script.actions;
+export function toolActions(target = 'handy') {
+  return modulesReady.has('tools') ? processScript(script.actions, target) : script.actions;
 }
 
 // Was an die Handy geht: das Script, im Finale „sanfter + halbes Tempo“ halbiert
 function sendActions() {
-  return typeof effectiveActions === 'function' ? effectiveActions(toolActions('handy')) : toolActions('handy');
+  return modulesReady.has('finale') ? effectiveActions(toolActions('handy')) : toolActions('handy');
 }
 // Was der Satisfyer bekommt: eigene Fassung (ungekürzt), sonst gleich
 function vibeActions() {
-  return typeof effectiveActions === 'function' ? effectiveActions(toolActions('vibe')) : toolActions('vibe');
+  return modulesReady.has('finale') ? effectiveActions(toolActions('vibe')) : toolActions('vibe');
 }
 
 // Für den Vibrator: laufendes Video-Script und aktuelle Stelle (nur im Modus „Sync“)
 // Springt oder lädt das Video (seeking/waiting), ruhen die Geräte – sonst vibriert der Satisfyer
 // schon mit der neuen Stelle, während das Bild noch steht.
-function videoScriptSource() {
+export function videoScriptSource() {
   if (!syncActive() || !script || !videoPlaying() || video.seeking || video.readyState < 3) return null;
   return { actions: vibeActions(), ms: mediaTime() * 1000, video: true };
 }
@@ -431,10 +444,10 @@ function currentMarkers() {
 // ---------------------------------------------------------------------------
 const canvas = $('heatmap');
 const ctx = canvas.getContext('2d');
-const base = document.createElement('canvas');
+export const base = document.createElement('canvas');
 
 const HEAT = [[0, [30, 60, 160]], [120, [30, 144, 255]], [220, [40, 200, 100]], [320, [240, 210, 40]], [420, [250, 130, 30]], [520, [230, 40, 50]]];
-function heatColor(speed) {
+export function heatColor(speed) {
   for (let i = 1; i < HEAT.length; i++) {
     if (speed <= HEAT[i][0]) {
       const [s0, c0] = HEAT[i - 1];
@@ -446,14 +459,14 @@ function heatColor(speed) {
   return `rgb(${HEAT[HEAT.length - 1][1].join(',')})`;
 }
 
-function duration() {
+export function duration() {
   if (hq.active && hq.duration) return hq.duration * 1000;
   if (Number.isFinite(video.duration) && video.duration > 0) return video.duration * 1000;
   return script ? script.actions[script.actions.length - 1].at : 0;
 }
 
 // Farbstreifen nach Tempo (Heatmap, Vorschau in den Intensitäts-Knöpfen)
-function paintHeat(g, a, total, w, h) {
+export function paintHeat(g, a, total, w, h) {
   for (let i = 1; i < a.length; i++) {
     const dt = a[i].at - a[i - 1].at;
     if (dt <= 0) continue;
@@ -462,13 +475,13 @@ function paintHeat(g, a, total, w, h) {
   }
 }
 // Stash-Marker als gelbe Striche oben (Heatmap und Player-Leiste)
-function paintMarkers(g, total, w, h, dpr) {
+export function paintMarkers(g, total, w, h, dpr) {
   g.fillStyle = '#ffd54f';
   for (const m of currentMarkers()) g.fillRect((m.seconds * 1000 / total) * w - dpr, 0, 2 * dpr, h * 0.35);
 }
 
 let lastDrawn = -1;
-function drawHeatmap() {
+export function drawHeatmap() {
   const dpr = window.devicePixelRatio || 1;
   const w = (canvas.width = base.width = Math.round(canvas.clientWidth * dpr) || 800);
   const h = (canvas.height = base.height = Math.round(canvas.clientHeight * dpr) || 56);
@@ -494,7 +507,7 @@ function drawHeatmap() {
   if (total > 0) {
     paintMarkers(b, total, w, h, dpr);
     // Für die Handy angepasste Stellen (Takt-Schutz): feine türkise Striche unten
-    if (typeof adaptedMarks === 'function') {
+    if (modulesReady.has('tools')) {
       b.fillStyle = 'rgba(0, 229, 255, .95)';
       for (const at of adaptedMarks()) b.fillRect((at / total) * w - dpr / 2, h * 0.78, Math.max(1, dpr), h * 0.22);
     }
@@ -622,7 +635,7 @@ $('key').addEventListener('input', updateKeyHint);
 $('key').addEventListener('change', () => { if ($('key').value.trim()) connectHandy(); });
 updateKeyHint();
 // 1.19.7: Key auch im Geräte-Fenster (🔑 Verbindung) – gespiegelt zu ⚙️ → Geräte (Application ID seit 1.19.9 nur dort)
-function mirrorField(mirror, src) {
+export function mirrorField(mirror, src) {
   $(mirror).value = $(src).value;
   for (const ev of ['input', 'change']) {
     $(mirror).addEventListener(ev, () => { $(src).value = $(mirror).value; $(src).dispatchEvent(new Event(ev)); });
@@ -654,19 +667,19 @@ function updateNowBar() {
 setInterval(updateNowBar, 500);
 
 // Welche Geräte verbunden sind -> nur deren Regler zeigen (CSS: has-handy / has-vibe / has-dev)
-const hasHandy = () => handy.connected || (typeof strokers === 'function' && strokers().length > 0);
-const hasVibe = () => typeof allVibes === 'function' && allVibes().some((d) => !d.linear?.length);
+export const hasHandy = () => handy.connected || (modulesReady.has('stroker') && strokers().length > 0);
+export const hasVibe = () => modulesReady.has('vibe') && allVibes().some((d) => !d.linear?.length);
 let lastDevState = '';
 const HANDY_SLOW_MS = 600; // ab dieser Antwortzeit der Handy-Cloud: Status gelb
-function updateDevClasses() {
+export function updateDevClasses() {
   const h = hasHandy(), v = hasVibe();
-  if (lastDevState !== `${h}${v}`) { lastDevState = `${h}${v}`; if (typeof toolsChanged === 'function') toolsChanged(); }
+  if (lastDevState !== `${h}${v}`) { lastDevState = `${h}${v}`; if (modulesReady.has('tools')) toolsChanged(); }
   document.body.classList.toggle('has-handy', h);
   document.body.classList.toggle('has-vibe', v);
   document.body.classList.toggle('has-dev', h || v);
   // Status oben: ein Wort für alle Geräte; Handy-Cloud spürbar langsam = gelb
   const handySlow = handy.connected && Math.max(handy.rtt || 0, handy.lat || 0) > HANDY_SLOW_MS;
-  const bleSlow = typeof vibeSlow === 'function' && vibeSlow();
+  const bleSlow = modulesReady.has('vibe') && vibeSlow();
   const slow = handySlow || bleSlow;
   $('devState').textContent = h || v ? (slow ? 'verbunden · langsam' : 'verbunden') : 'getrennt';
   $('devState').className = 'pill ' + (h || v ? (slow ? 'busy' : 'on') : 'off');
@@ -681,7 +694,7 @@ function updateDevClasses() {
   }
   // Video ohne Funscript und „Keine Steuerung“: Geräte-Regler und Geräte-Knöpfe sind nutzlos
   const loaded = !!nowPlaying;
-  document.body.classList.toggle('dev-idle', loaded && !script && !(typeof selfCtl !== 'undefined' && selfCtl.mode === 'self'));
+  document.body.classList.toggle('dev-idle', loaded && !script && !(modulesReady.has('selfctl') && selfCtl.mode === 'self'));
   // Hinweis im Player: Gerät da, Video mit Script, aber Sync aus
   $('syncHint').hidden = !(h || v) || !script || appMode !== 'stream' || document.body.dataset.view !== 'player';
 }
@@ -822,7 +835,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // ---------------------------------------------------------------------------
 // Offset: wird pro Szene gemerkt (manche Scripts sind leicht versetzt)
 // ---------------------------------------------------------------------------
-function offsetKey() { return hq.src || ''; }
+export function offsetKey() { return hq.src || ''; }
 // Hub und Satisfyer-Stärke dieser Szene (gemerkt wie der Offset)
 function loadSceneDev() {
   const d = store.get('sceneDev', {})[offsetKey()] || {};
@@ -843,7 +856,8 @@ $('vibeScene').addEventListener('input', () => {
 });
 
 // Offset pro Szene + woher er kommt (offsetInfo: { how: 'calib' | 'hand', at }) – steht neben dem Regler
-let offsetSource = 'hand';
+export let offsetSource = 'hand';
+export function setOffsetSource(v) { offsetSource = v; }
 function showOffsetInfo() {
   updateOutputs();
   const k = offsetKey();
@@ -896,7 +910,7 @@ $('offsetReset').addEventListener('click', () => {
   resync();
 });
 
-async function applySlide() {
+export async function applySlide() {
   let min = Number($('slideMin').value);
   let max = Number($('slideMax').value);
   if (min >= max) {
@@ -957,7 +971,7 @@ async function checkDevices() {
         connectHandy(true);
       }
     }
-    if (typeof checkVibes === 'function') checkVibes();
+    if (modulesReady.has('vibe')) checkVibes();
   } finally { healthBusy = false; }
 }
 document.addEventListener('visibilitychange', () => {
@@ -968,7 +982,7 @@ document.addEventListener('visibilitychange', () => {
 setInterval(() => { if (!document.hidden) checkDevices(); }, 60000);
 
 // 1.19.9: Reißt ein Gerät mitten im Video ab, hält das Video an (⚙️ → Notaus, abschaltbar) – sonst läuft es ohne Geräte weiter
-function deviceLost(name) {
+export function deviceLost(name) {
   if (!$('pauseOnLoss').checked || document.hidden || !videoPlaying()) return;
   video.pause();
   log(`${name} getrennt – Video angehalten. Oben auf den Status tippen, um neu zu verbinden.`, true);

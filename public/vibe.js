@@ -1,4 +1,13 @@
-'use strict';
+import './control.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady } from './state.js';
+import { $, log, pillText, positionAt, store } from './handy.js';
+import { deviceLost, mirrorField, resync, videoScriptSource } from './app.js';
+import { controlScriptSource, hampLevel } from './control.js';
+import { fin, finDetached } from './finale.js';
+import { presetVibeEven, presetVibeShape } from './tools.js';
+import { selfVibeLevel } from './selfctl.js';
+import { touchVibeLevel } from './touchpad.js';
+modulesReady.add('vibe');
 
 // ===========================================================================
 // Vibratoren (Satisfyer u. a.)
@@ -99,7 +108,7 @@ class SatisfyerBle {
 const bleDevices = [];
 
 // Warum Bluetooth nicht geht – in Klartext
-async function bluetoothProblem() {
+export async function bluetoothProblem() {
   if (!window.isSecureContext) {
     return 'Bluetooth ist gesperrt, weil die Seite nicht als sicher gilt. Nötig ist HTTPS mit gültigem Zertifikat '
       + '(z. B. über deinen Reverse Proxy mit Let’s Encrypt). http:// oder ein selbstsigniertes Zertifikat reichen nicht.';
@@ -174,7 +183,7 @@ async function attachBleDevice(device, quiet = false) {
       clearInterval(dev.keepalive);
       dev.tx = null;
       if (dev.closed) return;
-      if (typeof deviceLost === 'function') deviceLost(dev.name);
+      if (modulesReady.has('app')) deviceLost(dev.name);
       if (document.hidden) {
         await new Promise((resolve) => {
           const back = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', back); resolve(); } };
@@ -223,7 +232,7 @@ async function attachBleDevice(device, quiet = false) {
 }
 
 // 1.19.9: Health Check (app.js) – Android meldet eine abgerissene Verbindung im Hintergrund nicht immer
-function checkVibes() {
+export function checkVibes() {
   for (const dev of bleDevices) if (dev.device?.gatt && !dev.device.gatt.connected && dev.lost) dev.lost();
 }
 
@@ -365,8 +374,8 @@ class Buttplug {
   }
 }
 
-const vibe = new Buttplug();
-const allVibes = () => [...bleDevices, ...vibe.devices.values()];
+export const vibe = new Buttplug();
+export const allVibes = () => [...bleDevices, ...vibe.devices.values()];
 
 function intifaceUrl(addr) {
   addr = addr.trim().replace(/^wss?:\/\//, '').replace(/\/.*$/, '');
@@ -536,14 +545,14 @@ function updateVibeOutputs() {
 }
 updateVibeOutputs();
 
-let vibePaused = false;
-function setVibePaused(paused) {
+export let vibePaused = false;
+export function setVibePaused(paused) {
   vibePaused = paused;
   $('vibePause').textContent = paused ? '▶ Fortsetzen' : '❚❚ Pausieren';
   $('ovVibe').textContent = paused ? 'Vib ▶' : 'Vib ❚❚';
   $('ovVibe').classList.toggle('off', paused);
   $('ovVibe').title = paused ? 'Geräte pausiert – antippen zum Fortsetzen' : 'Vibration pausieren';
-  if (typeof resync === 'function') resync(); // Handy hält mit an bzw. läuft wieder
+  if (modulesReady.has('app')) resync(); // Handy hält mit an bzw. läuft wieder
 }
 $('vibePause').addEventListener('click', () => setVibePaused(!vibePaused));
 // Nach „Alles stoppen“ läuft die Vibration wieder mit, sobald etwas Neues startet
@@ -552,8 +561,8 @@ $('video').addEventListener('play', () => setVibePaused(false));
 
 // Welches Script gerade läuft: Pattern/Script aus der Steuerung oder das Video.
 function scriptSource() {
-  return (typeof controlScriptSource === 'function' && controlScriptSource())
-    || (typeof videoScriptSource === 'function' && videoScriptSource())
+  return (modulesReady.has('control') && controlScriptSource())
+    || (modulesReady.has('app') && videoScriptSource())
     || null;
 }
 
@@ -602,12 +611,12 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
     const min = Number($('vibeMin').value) / 100, max = Number($('vibeMax').value) / 100;
     return raw > 0.01 ? (min + (max - min) * raw) * Number($('vibeScene').value) / 100 : 0;
   }
-  if (typeof finDetached === 'function' && finDetached()) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
+  if (modulesReady.has('finale') && finDetached()) return Math.min(fin.vibe, Number($('vibeMax').value)) / 100;
   // Touch-Fläche unter 🎮 Steuern: Finger-Höhe = Stärke, „Maximum“ gilt
-  const touched = typeof touchVibeLevel === 'function' ? touchVibeLevel() : null;
+  const touched = modulesReady.has('touchpad') ? touchVibeLevel() : null;
   if (touched !== null) return Math.min(touched * 100, Number($('vibeMax').value)) / 100;
   // „Selbst steuern“ am Video (ohne Funscript): eigene Stärke, „Maximum“ gilt auch hier
-  const own = typeof selfVibeLevel === 'function' ? selfVibeLevel() : null;
+  const own = modulesReady.has('selfctl') ? selfVibeLevel() : null;
   if (own !== null) return Math.min(own * 100, Number($('vibeMax').value)) / 100;
   // „Maximum“ ist auch die Sicherheitsgrenze für die manuelle Stärke
   if ($('vibeSource').value === 'manual') return Math.min(Number($('vibeLevel').value), Number($('vibeMax').value)) / 100;
@@ -618,9 +627,9 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
   if (src) {
     raw = scriptIntensity(src.actions, src.ms + lead + (src.video ? Number($('offset').value) : 0), map);
     // Video-Script: Sanft schwächer, Intensiv stärker (⚙️ → Script / Auswahl am Video)
-    if (src.video && raw && typeof presetVibeShape === 'function') raw = presetVibeShape(raw);
+    if (src.video && raw && modulesReady.has('tools')) raw = presetVibeShape(raw);
   }
-  else if (typeof hampLevel === 'function' && hampLevel() !== null) {
+  else if (modulesReady.has('control') && hampLevel() !== null) {
     // Direktsteuerung: im Rhythmus-Modus Stöße nachbilden (schneller bei höherer Geschwindigkeit)
     const speed = hampLevel();
     if (map === 'rhythm' && speed > 0) {
@@ -634,7 +643,7 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
   const level = min + (max - min) * raw;
   // Finale „sanfter“: Script läuft weiter, Vibration mit eingestelltem Anteil
   const scene = src?.video ? Number($('vibeScene').value) / 100 : 1; // „Stärke für diese Szene“
-  return (typeof fin !== 'undefined' && fin.active && fin.mode === 'soft' ? level * fin.vibe / 100 : level) * scene;
+  return (modulesReady.has('finale') && fin.active && fin.mode === 'soft' ? level * fin.vibe / 100 : level) * scene;
 }
 
 // ~16× pro Sekunde abgleichen; nur senden, wenn sich etwas ändert.
@@ -642,12 +651,13 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
 // ist eingestellt: dann folgt die Stärke mit Verzögerung (bis 1,5 s), Spitzen werden flacher.
 // 1.19.4: je Gerät gerechnet – eigener Vorlauf (gemessene Bluetooth-Laufzeit), eigene Stärke,
 // Sanftanlauf nach einer Ruhe (Start, Pause, STOPP) und bei zwei Motoren wahlweise Motor 2 nach Tempo.
-let vibeLevel = 0; // stärkstes Gerät (Anzeige, STOPP-Knopf)
+export let vibeLevel = 0; // stärkstes Gerät (Anzeige, STOPP-Knopf)
+export function setVibeLevel(v) { vibeLevel = v; }
 let vibeSending = false;
 const RAMP_MS = 500, RAMP_AFTER_MS = 1500;
 setInterval(async () => {
   // Regler oder Script-Preset (z. B. „Sanft“) – das Ruhigere gilt; Patterns/Steuern nur der Regler
-  const fromPreset = typeof presetVibeEven === 'function' && !(typeof controlScriptSource === 'function' && controlScriptSource()) ? presetVibeEven() : 0;
+  const fromPreset = modulesReady.has('tools') && !(modulesReady.has('control') && controlScriptSource()) ? presetVibeEven() : 0;
   const even = Math.max(Number($('vibeSmooth').value) / 100, fromPreset);
   const smooth = Math.max($('vibeMap').value === 'rhythm' ? 0 : 0.35, even ? Math.exp(-0.06 / (even * 1.5)) : 0);
   const hasSource = !!scriptSource();
@@ -725,7 +735,7 @@ function devLeadMs(dev) {
 // Sync-Anzeige: Bluetooth schwankt stark oder ist sehr langsam -> Status gelb (app.js), Hinweis je Gerät
 const VIBE_SLOW_MS = 250, VIBE_JITTER_MS = 80;
 const vibeDevSlow = (d) => Number.isFinite(d.rtt) && (d.rtt > VIBE_SLOW_MS || d.jitter > VIBE_JITTER_MS);
-function vibeSlow() { return bleDevices.some(vibeDevSlow); }
+export function vibeSlow() { return bleDevices.some(vibeDevSlow); }
 function showVibeSync() {
   for (const d of allVibes()) {
     if (!d.syncEl) continue;

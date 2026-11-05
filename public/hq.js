@@ -1,4 +1,8 @@
-'use strict';
+import './enhance.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, log, store } from './handy.js';
+import { drawHeatmap, hq, mediaTime } from './app.js';
+modulesReady.add('hq');
 
 // ===========================================================================
 // HQ-Stream: der Server wandelt das Video live um (Intel Quick Sync / VAAPI):
@@ -10,7 +14,7 @@
 //   - Video so groß wie/größer als der Bildschirm (z. B. 4K) oder VR -> Original, nie herunterrechnen
 // ===========================================================================
 
-const hqState = {
+export const hqState = {
   available: false,
   accel: '',
   preset: store.get('hqPreset2', 'auto'),   // 'off' | 'auto' | 'clean' | 'strong'
@@ -19,7 +23,7 @@ const hqState = {
   pending: 0,
   downgraded: new Set(),                    // Videos, bei denen HQ wegen Ruckeln abgeschaltet wurde
 };
-const HQ_ACCEL_LABEL = { vaapi: 'Intel-Grafik (VAAPI / Quick Sync)', cpu: 'Prozessor (ohne Grafik-Beschleunigung)' };
+export const HQ_ACCEL_LABEL = { vaapi: 'Intel-Grafik (VAAPI / Quick Sync)', cpu: 'Prozessor (ohne Grafik-Beschleunigung)' };
 
 // Bildschirmhöhe im Querformat in echten Pixeln, auf übliche Stufen gerundet (max. 1440p für die N305)
 function screenTarget() {
@@ -61,7 +65,7 @@ async function hqProbe(src) {
 }
 
 // Aufruf aus loadVideo: true = hq.js setzt die Videoquelle selbst (nach der Prüfung)
-function hqMaybeStart() {
+export function hqMaybeStart() {
   if (!hqState.available || hqState.preset === 'off' || !hq.src) return false;
   const src = hq.src;
   const token = ++hqState.pending;
@@ -118,7 +122,7 @@ video.addEventListener('waiting', () => {
 });
 
 // Spulen im HQ-Stream: Umwandlung an neuer Stelle neu starten
-function hqRestart(at) {
+export function hqRestart(at) {
   const wasPlaying = !video.paused;
   hqStart(at);
   if (wasPlaying) video.play().catch(() => {});
@@ -145,7 +149,7 @@ function hqShowSelection() {
 }
 
 // Einstellung geändert: laufendes Video sofort neu entscheiden
-async function hqApply() {
+export async function hqApply() {
   store.set('hqPreset2', hqState.preset);
   store.set('hqHeight2', hqState.height);
   hqShowSelection();

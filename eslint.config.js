@@ -2,26 +2,17 @@
 
 // ESLint (1.19.9) – läuft nur auf GitHub (Workflow „Tests“), nicht im Image. Lokal:
 //   npm ci && npx eslint .   (Versionen fest in package-lock.json)
-// Die Skripte der Oberfläche teilen sich EINEN globalen Namensraum (klassische <script>-Dateien in fester
-// Reihenfolge). Damit ESLint Tippfehler in Namen findet, ohne gemeinsame Namen anzumeckern, werden alle
-// Namen, die eine Datei auf oberster Ebene anlegt, für die anderen als bekannt eingetragen.
-const fs = require('fs');
-const path = require('path');
+// Oberfläche (2.0): ES-Module mit import/export – ESLint findet so fehlende Importe (no-undef) und
+// Schreibzugriffe auf importierte Namen (no-import-assign). Nur die Sprachdateien sind noch klassische Skripte.
 const globals = require('globals');
 
-const PUBLIC = path.join(__dirname, 'public');
-const shared = {};
-for (const f of fs.readdirSync(PUBLIC).filter((n) => n.endsWith('.js'))) {
-  const src = fs.readFileSync(path.join(PUBLIC, f), 'utf8');
-  for (const m of src.matchAll(/^(?:async\s+)?(?:function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/gm)) shared[m[1]] = 'writable';
-  // const { a, b } = … auf oberster Ebene
-  for (const m of src.matchAll(/^(?:const|let)\s+\{([^}]+)\}\s*=/gm)) for (const n of m[1].split(',')) shared[n.trim().split(':').pop().trim()] = 'writable';
-}
+const I18N_FILES = ['public/i18n.js', 'public/i18n-en.js'];
 
 const rules = {
   'no-undef': 'error',
   'no-unused-vars': ['warn', { vars: 'local', args: 'none', caughtErrors: 'none' }],
   'no-unreachable': 'error',
+  'no-import-assign': 'error',
   'no-dupe-keys': 'error',
   'no-duplicate-case': 'error',
   'no-self-assign': 'error',
@@ -35,7 +26,13 @@ module.exports = [
   { ignores: ['node_modules/**', 'docs/**', 'data/**'] },
   {
     files: ['public/**/*.js'],
-    languageOptions: { ecmaVersion: 2024, sourceType: 'script', globals: { ...globals.browser, ...shared } },
+    ignores: I18N_FILES,
+    languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.browser, I18N: 'readonly' } },
+    rules,
+  },
+  {
+    files: I18N_FILES,
+    languageOptions: { ecmaVersion: 2024, sourceType: 'script', globals: { ...globals.browser } },
     rules,
   },
   {

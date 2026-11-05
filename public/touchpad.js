@@ -1,4 +1,13 @@
-'use strict';
+import './selfctl.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady } from './state.js';
+import { $, claimHandy, downloadFunscript, handy, handyMaxSpeed, log, store } from './handy.js';
+import { hasHandy, hasVibe, videoPlaying } from './app.js';
+import { nowKey, saveScriptToLibrary } from './library.js';
+import { hampOn, saveRecordingAsPattern, setSpeed, toggleHamp } from './control.js';
+import { setVibePaused } from './vibe.js';
+import { mapPos, moveAll, strokers } from './stroker.js';
+import { selfCtl, selfTick, selfUI } from './selfctl.js';
+modulesReady.add('touchpad');
 
 // ===========================================================================
 // Touch-Steuerung – wie in der Satisfyer-App.
@@ -14,12 +23,12 @@
 const touch = { vibe: null }; // Satisfyer-Stärke aus der Fläche unter 🎮 Steuern (0–1) oder null
 
 // Für vibe.js: nur auf der Seite 🎮 Steuern (bei „Selbst steuern“ läuft es über selfctl.js)
-function touchVibeLevel() {
+export function touchVibeLevel() {
   return document.body.dataset.view === 'control' ? touch.vibe : null;
 }
 
 // Regler, Schnellwahl und Start/Stopp melden ihren Wert, damit die Fläche dasselbe zeigt
-const touchSync = (pad, v) => document.dispatchEvent(new CustomEvent('tp-value', { detail: { pad, v } }));
+export const touchSync = (pad, v) => document.dispatchEvent(new CustomEvent('tp-value', { detail: { pad, v } }));
 
 // Was die Flächen mit dem Wert (0–100) machen
 const TOUCH_TARGETS = {
@@ -50,9 +59,9 @@ const TOUCH_TARGETS = {
 // Bluetooth/Intiface: Positionsbefehle). Höchstens alle TP_GAP ms ein Befehl, immer der neueste Wert.
 // ---------------------------------------------------------------------------
 const TP_GAP = 100;
-const tpos = { active: false, pending: null, last: null, timer: null, owner: null, cur: null, inflight: 0, gap: TP_GAP };
-const touchMode = () => store.get('touchMode', 'tempo');
-function touchPosActive() { return tpos.active; }
+export const tpos = { active: false, pending: null, last: null, timer: null, owner: null, cur: null, inflight: 0, gap: TP_GAP };
+export const touchMode = () => store.get('touchMode', 'tempo');
+export function touchPosActive() { return tpos.active; }
 
 function touchPosSend(v, owner) {
   tpos.active = true;
@@ -93,7 +102,7 @@ function touchPosEnd() {
 // Aufnahme -> Funscript-Aktionen
 // ---------------------------------------------------------------------------
 // samples: [[ms, wert 0–100 | null (losgelassen)]] im Abstand von ~50 ms
-function touchToTempoActions(samples, end, start = 0) {
+export function touchToTempoActions(samples, end, start = 0) {
   const valueAt = (t) => { let v = null; for (const [ts, x] of samples) { if (ts > t) break; v = x; } return v; };
   const out = [{ at: start, pos: 10 }];
   let t = start, up = true;
@@ -106,7 +115,7 @@ function touchToTempoActions(samples, end, start = 0) {
   }
   return out;
 }
-function touchToPositionActions(samples) {
+export function touchToPositionActions(samples) {
   const out = [];
   let last = 50;
   for (const [t, v] of samples) {

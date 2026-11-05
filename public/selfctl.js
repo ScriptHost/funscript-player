@@ -1,4 +1,11 @@
-'use strict';
+import './stroker.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, claimHandy, downloadFunscript, handy, log, store } from './handy.js';
+import { hasHandy, hasVibe, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
+import { saveScriptToLibrary, scriptMeta, suspended } from './library.js';
+import { strokers } from './stroker.js';
+import { touchMode, touchPosActive, touchSync, touchToPositionActions, touchToTempoActions, tpos } from './touchpad.js';
+modulesReady.add('selfctl');
 
 // ===========================================================================
 // Selbst steuern – für Videos ohne Funscript.
@@ -9,7 +16,7 @@
 //   hampLevel() wie die Direktsteuerung (stroker.js). Grenze aus ⚙️ → Sicherheit.
 //   Gemerkt werden die Wahl Aus/Selbst steuern und die Regler, nicht „Handy läuft“.
 // ===========================================================================
-const selfCtl = {
+export const selfCtl = {
   mode: store.get('selfMode', 'off'),
   handyOn: false,
   speed: store.get('selfSpeed', 40),
@@ -44,24 +51,24 @@ function selfActive() {
 const selfSpeed = () => Math.min(selfCtl.speed, Number($('capSpeed').value));
 
 // Für stroker.js (Handy per Bluetooth) über control.js hampLevel()
-function selfHampLevel() {
+export function selfHampLevel() {
   return selfActive() && selfCtl.handyOn && selfSpeed() > 0 ? selfSpeed() / 100 : null;
 }
 // Für vibe.js: eigene Stärke statt Script (null = nicht zuständig)
-function selfVibeLevel() {
+export function selfVibeLevel() {
   return selfActive() ? selfCtl.vibe / 100 : null;
 }
 // Für den STOPP-Knopf / Bildschirm-wach-halten
-function selfRunning() {
+export function selfRunning() {
   return selfActive() && ((selfCtl.handyOn && selfSpeed() > 0) || selfCtl.vibe > 0);
 }
 
-function selfUI() {
+export function selfUI() {
   // Nur mit verbundenem Gerät – oder wenn „Selbst steuern“ gewählt ist (dann mit Hinweis zum Verbinden).
   // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
   $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
-    || !(selfCtl.mode === 'self' || (typeof hasHandy === 'function' && (hasHandy() || hasVibe())));
-  document.querySelector('.self-head > span').textContent = typeof suspended !== 'undefined' && suspended ? 'Script angehalten' : 'Kein Funscript';
+    || !(selfCtl.mode === 'self' || (modulesReady.has('app') && (hasHandy() || hasVibe())));
+  document.querySelector('.self-head > span').textContent = modulesReady.has('library') && suspended ? 'Script angehalten' : 'Kein Funscript';
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
@@ -79,7 +86,7 @@ function selfUI() {
 
 // Handy per WLAN nachführen: starten, Tempo ändern, anhalten
 // Hub unten/oben: Teilbereich des eingestellten Hubs (Hub min/max); beim Stopp wieder voller Hub
-function selfStrokeRange(on = true) {
+export function selfStrokeRange(on = true) {
   const lo = Number($('slideMin').value), hi = Number($('slideMax').value);
   if (!on || (selfCtl.lo <= 0 && selfCtl.hi >= 100)) return [lo, hi];
   return [Math.round(lo + ((hi - lo) * selfCtl.lo) / 100), Math.round(lo + ((hi - lo) * selfCtl.hi) / 100)];
@@ -87,7 +94,7 @@ function selfStrokeRange(on = true) {
 function selfApplyStroke(on = true) {
   if (handy.connected) handy.slide(...selfStrokeRange(on)).catch(() => {});
 }
-async function selfTick() {
+export async function selfTick() {
   selfUI();
   if (!handy.connected) return;
   // Läuft noch ein Befehl: direkt danach nachsenden statt auf den nächsten Takt zu warten

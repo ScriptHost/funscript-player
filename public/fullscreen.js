@@ -1,4 +1,14 @@
-'use strict';
+import './vibe.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, handy, store } from './handy.js';
+import {
+  base, duration, hq, mediaTime, paintMarkers, script, seekTo, stashSession, syncActive, videoPlaying,
+} from './app.js';
+import { active, emergencyStop, hampOn } from './control.js';
+import { allVibes, setVibePaused, vibeLevel, vibePaused } from './vibe.js';
+import { fin } from './finale.js';
+import { selfRunning } from './selfctl.js';
+modulesReady.add('fullscreen');
 
 // ===========================================================================
 // Eigene Player-Bedienung (statt der Browser-Leiste), Vollbild fürs Smartphone,
@@ -9,7 +19,7 @@
 //   Bildschirm – als installierte App (Homescreen) ganz ohne Browserleisten.
 // ===========================================================================
 
-const stage = $('drop');
+export const stage = $('drop');
 const ov = $('ov');
 let realFullscreen = false;
 
@@ -18,7 +28,7 @@ const fmtClock = (s) => {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = String(s % 60).padStart(2, '0');
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
 };
-const isFs = () => stage.classList.contains('fs');
+export const isFs = () => stage.classList.contains('fs');
 
 // Bedienung erst zeigen, wenn ein Video geladen ist
 video.addEventListener('loadedmetadata', () => { stage.classList.add('ready'); showOverlay(); drawOvBar(); });
@@ -31,14 +41,6 @@ video.addEventListener('emptied', () => stage.classList.remove('ready'));
 // selbst im Vollbild ist, automatisch ins kleine Fenster (der ganze Player-Bereich bliebe schwarz).
 // Dafür gibt es dann die Bedienleiste des Browsers statt der eigenen.
 let nativeFs = false;
-async function enterNativeFullscreen() {
-  try {
-    video.controls = true;
-    await video.requestFullscreen({ navigationUI: 'hide' });
-    nativeFs = true;
-    try { await screen.orientation.lock(video.videoHeight > video.videoWidth ? 'portrait' : 'landscape'); } catch { /* egal */ }
-  } catch { video.controls = false; nativeFs = false; }
-}
 async function enterFullscreen() {
   if (isFs() || nativeFs) return;
   // 1.19.11: wieder eigenes Vollbild mit allen Knöpfen und Einpassen/Füllen (Nutzerwunsch) – das echte
@@ -97,7 +99,7 @@ $('ovFit').addEventListener('click', () => { setFit(stage.dataset.fit === 'cover
 // Bedienelemente
 // ---------------------------------------------------------------------------
 let hideTimer;
-function showOverlay() {
+export function showOverlay() {
   ov.classList.remove('hide');
   clearTimeout(hideTimer);
   hideTimer = setTimeout(() => { if (!video.paused) ov.classList.add('hide'); }, 3000);
@@ -107,7 +109,7 @@ function hideOverlay() {
   if (!video.paused) ov.classList.add('hide');
 }
 
-function togglePlay() {
+export function togglePlay() {
   if (video.paused) video.play().catch(() => {}); else video.pause();
 }
 function seekBy(s) {
@@ -149,7 +151,7 @@ $('ovHit').addEventListener('pointerdown', (e) => {
     }
   }, 450);
 });
-const endHold = () => {
+export const endHold = () => {
   clearTimeout(holdTimer);
   clearInterval(holdRepeat);
   holdTimer = holdRepeat = null;
@@ -305,7 +307,7 @@ document.addEventListener('keydown', (e) => {
 // Läuft gerade etwas, das ein Gerät bewegt?
 function anyRunning() {
   const devices = handy.connected || allVibes().length > 0;
-  return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (typeof fin !== 'undefined' && fin.active) || (typeof selfRunning === 'function' && selfRunning()));
+  return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (modulesReady.has('finale') && fin.active) || (modulesReady.has('selfctl') && selfRunning()));
 }
 
 // Abschaltbar (⚙️ → Notaus); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben

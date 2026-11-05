@@ -24,9 +24,11 @@ Browser (public/*.js)                        server.js + lib/
 
 ## Files
 
-The scripts in `public/` are classic `<script>` files without modules. They share global functions and load in a fixed
-order – later ones may use earlier ones, the other way round only at runtime (guard with `typeof x === 'function'`).
-`boot.js` starts the interface (no inline scripts because of the Content Security Policy).
+Since 2.0 the scripts in `public/` are ES modules (no build step). `boot.js` is the only `<script type="module">` and starts
+the interface (no inline scripts because of the Content Security Policy); only `i18n-en.js` + `i18n.js` are still classic scripts.
+The old modules call each other in circles, so each one imports its predecessor first to keep the proven load order (see
+`boot.js`); `state.js` holds shared state and `modulesReady` (replaces the old `typeof x === 'function'` guards). New
+modules should not do work at load time (export an `init()` instead).
 
 | File | Purpose |
 |---|---|

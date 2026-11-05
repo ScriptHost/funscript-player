@@ -1,4 +1,10 @@
-'use strict';
+import './hq.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady } from './state.js';
+import { $, claimHandy, handy, log, setStatus, store } from './handy.js';
+import { applySlide, resync } from './app.js';
+import { allVibes } from './vibe.js';
+import { showOverlay } from './fullscreen.js';
+modulesReady.add('finale');
 
 // ===========================================================================
 // 🔥 Finale: auf Knopfdruck ruhiger – zwei Varianten (⚙️ Einstellungen):
@@ -11,11 +17,11 @@
 // ===========================================================================
 
 // Standard seit 1.19.2: Script weiter, sanfter, halbes Tempo, Vibration 50 %, Hub 10–80 %, nach 240 s zurück zum Sync
-const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 50, min: 10, max: 80, time: 240, half: true };
+export const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 50, min: 10, max: 80, time: 240, half: true };
 const FIN_KEYS = ['speed', 'vibe', 'min', 'max', 'time'];
 
 // Komplett gelöst? (dann darf der Video-Sync die Handy nicht zurückholen)
-const finDetached = () => fin.active && fin.mode === 'detach';
+export const finDetached = () => fin.active && fin.mode === 'detach';
 
 // ---------------------------------------------------------------------------
 // Halbes Tempo (wie „FunHalver“): aus je zwei Stößen wird einer. Die Wendepunkte
@@ -44,7 +50,7 @@ function halveActions(actions) {
 }
 
 // Welche Aktionen gerade an Handy und Vibrator gehen (normal oder halbes Tempo)
-function effectiveActions(actions) {
+export function effectiveActions(actions) {
   if (!(fin.active && fin.mode === 'soft' && fin.half) || !actions) return actions;
   if (halfCache.src !== actions) halfCache = { src: actions, actions: halveActions(actions) };
   return halfCache.actions;

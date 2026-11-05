@@ -1,4 +1,8 @@
-'use strict';
+import './gestures.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, log, store } from './handy.js';
+import { stage } from './fullscreen.js';
+modulesReady.add('enhance');
 
 // ===========================================================================
 // Bildverbesserung in Echtzeit (WebGL, läuft auf der Grafik des Abspielgeräts)
@@ -130,7 +134,7 @@ void main() {
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`;
 
-const enh = {
+export const enh = {
   canvas: $('enh'),
   gl: null,
   ok: false,
@@ -197,7 +201,7 @@ function enhInit() {
 // das kleine Fenster bliebe schwarz – dort läuft das Video selbst.
 const enhBackground = () => document.hidden || !!document.pictureInPictureElement;
 // Beim Videowechsel: Zeichenfläche schwarz, bis das neue Video sein erstes Bild hat
-function enhClear() {
+export function enhClear() {
   if (!enh.ok || !enh.gl) return;
   const gl = enh.gl;
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -381,7 +385,7 @@ function enhApply() {
   enh.dirty = true;
 }
 
-function enhSetPreset(preset) {
+export function enhSetPreset(preset) {
   // Eigene Werte starten mit der gerade gewählten Stufe
   if (preset === 'custom' && enh.settings.preset !== 'custom') {
     Object.assign(enh.settings, presetValues(enh.settings));

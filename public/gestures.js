@@ -1,4 +1,8 @@
-'use strict';
+import './fullscreen.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, store } from './handy.js';
+import { endHold, isFs, stage } from './fullscreen.js';
+modulesReady.add('gestures');
 
 // ===========================================================================
 // Wischen im Vollbild (1.19.8): linke und rechte Bildhälfte hoch/runter.
@@ -54,7 +58,7 @@ function swipeMove(e) {
     if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) { swipe = null; return; }
     if (Math.abs(dy) < 24 || Math.abs(dy) < Math.abs(dx) * 1.5) return;
     swipe.on = true;
-    if (typeof endHold === 'function') endHold(); // „Gedrückt halten = 2×“ nicht nebenbei auslösen
+    if (modulesReady.has('fullscreen')) endHold(); // „Gedrückt halten = 2×“ nicht nebenbei auslösen
   }
   const d = Math.round((dy / swipe.h) * 100);
   const a = swipe.action;

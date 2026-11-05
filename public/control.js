@@ -1,4 +1,12 @@
-'use strict';
+import './library.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import {
+  $, claimHandy, downloadFunscript, handy, handyErrText, log, positionAt, setStatus, store, toCsv,
+} from './handy.js';
+import { allVibes, setVibeLevel, setVibePaused } from './vibe.js';
+import { selfHampLevel } from './selfctl.js';
+import { touchSync } from './touchpad.js';
+modulesReady.add('control');
 
 // ===========================================================================
 // Reiter „Steuerung & Patterns“
@@ -24,7 +32,6 @@ const PRESETS = {
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const fmtTime = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
 function presetPoints(name) {
   if (name === 'Zufall') {
@@ -54,7 +61,7 @@ async function loadStore() {
 }
 
 // Touch-Aufnahme als Pattern: Punkte als Anteil der Gesamtlänge (höchstens ~2000 Punkte)
-function saveRecordingAsPattern(name, length, actions) {
+export function saveRecordingAsPattern(name, length, actions) {
   const step = Math.max(1, Math.ceil(actions.length / 2000));
   const points = actions.filter((_, i) => i % step === 0).map((a) => ({ t: Math.min(0.9999, a.at / length), pos: a.pos }));
   db.patterns.push({ id: uid(), name, length: Math.round(length), points });
@@ -115,7 +122,7 @@ function maxSpeed(p, tempo) {
 // ---------------------------------------------------------------------------
 // Wiedergabe von Patterns / Scripts über HSSP
 // ---------------------------------------------------------------------------
-let active = null; // { kind, actions, duration, loop, start, cycle }
+export let active = null; // { kind, actions, duration, loop, start, cycle }
 
 // Handy und/oder Vibrator – mindestens eins muss verbunden sein
 function requireDevice() {
@@ -189,9 +196,9 @@ document.addEventListener('handy-owner', (e) => {
 // ---------------------------------------------------------------------------
 // Direktsteuerung (HAMP)
 // ---------------------------------------------------------------------------
-let hampOn = false;
+export let hampOn = false;
 
-async function toggleHamp() {
+export async function toggleHamp() {
   if (!requireDevice()) return;
   const btn = $('hampToggle');
   btn.disabled = true;
@@ -216,17 +223,17 @@ async function toggleHamp() {
   } finally {
     btn.disabled = false;
     updateButtons();
-    if (typeof touchSync === 'function') touchSync('control', hampOn ? Number($('speed').value) : null);
+    if (modulesReady.has('touchpad')) touchSync('control', hampOn ? Number($('speed').value) : null);
   }
 }
 
 let speedTimer, speedPending = false;
-function setSpeed(v, send = true) {
+export function setSpeed(v, send = true) {
   v = clamp(Math.round(v), 0, Number($('capSpeed').value));
   $('speed').value = v;
   $('speedVal').textContent = `${v} %`;
   store.set('speed', v);
-  if (hampOn && typeof touchSync === 'function') touchSync('control', v);
+  if (hampOn && modulesReady.has('touchpad')) touchSync('control', v);
   if (!send || !hampOn || !handy.connected) return;
   // Höchstens alle 150 ms an die Handy senden
   speedPending = true;
@@ -485,15 +492,15 @@ new ResizeObserver(() => drawEditor()).observe(pc);
 // ---------------------------------------------------------------------------
 // Für den Vibrator: laufendes Pattern/Script bzw. Direktsteuerung
 // ---------------------------------------------------------------------------
-function controlScriptSource() {
+export function controlScriptSource() {
   if (!active) return null;
   const elapsed = performance.now() - active.start;
   return { actions: active.actions, ms: active.loop ? elapsed % active.duration : elapsed };
 }
 
-function hampLevel() {
+export function hampLevel() {
   if (hampOn) return Number($('speed').value) / 100;
-  return typeof selfHampLevel === 'function' ? selfHampLevel() : null; // „Selbst steuern“ am Video
+  return modulesReady.has('selfctl') ? selfHampLevel() : null; // „Selbst steuern“ am Video
 }
 
 // ---------------------------------------------------------------------------
@@ -532,14 +539,14 @@ $('invert').addEventListener('change', () => {
 
 // Alles stoppen: egal, wer gerade steuert (pausiert auch das Video)
 // Not-Aus: Video, Patterns, Direktsteuerung, Handy und Vibratoren sofort anhalten
-async function emergencyStop(reason = 'Not-Aus') {
+export async function emergencyStop(reason = 'Not-Aus') {
   claimHandy('none');
   if (!video.paused) video.pause();
   active = null;
   hampOn = false;
   updateButtons();
   setVibePaused(true);
-  vibeLevel = 0;
+  setVibeLevel(0);
   for (const dev of allVibes()) {
     Promise.resolve(dev.setLevel(0)).then(() => { dev.level = 0; }).catch(() => {});
   }

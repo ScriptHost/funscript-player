@@ -1,4 +1,5 @@
-'use strict';
+import { modulesReady } from './state.js';
+modulesReady.add('handy');
 
 // ---------------------------------------------------------------------------
 // The Handy – WLAN über die Handy-Cloud (Connection Key)
@@ -182,7 +183,7 @@ class Handy {
   hampVelocity(velocity) { return this.req('PUT', '/hamp/velocity', { velocity: this.v3 ? velocity / 100 : velocity }); }
 }
 
-const handy = new Handy();
+export const handy = new Handy();
 
 // Modell aus den Geräte-Infos (Handy 1 / 2 / 2 Pro); unbekannt = Handy 1
 function handyModelKey(model, hw) {
@@ -197,13 +198,13 @@ function handyModelName(model, hw) {
 }
 // Höchsttempo pro Modell (%/s des vollen Hubs). Für Handy 2 / 2 Pro noch keine gemessenen Werte -> wie Handy 1.
 const HANDY_MAX_SPEED = { h1: 450, h2: 450, h2pro: 450 };
-function handyMaxSpeed() {
+export function handyMaxSpeed() {
   if (!store.get('handyMaxAuto', true)) return store.get('handyMax', 450);
   return HANDY_MAX_SPEED[handyModelKey(handy.model || '', handy.hwVersion || '')] || 450;
 }
 
 // Kurzer Grund für die Status-Anzeige oben (ausführlich steht er im Geräte-Fenster)
-function handyErrText(e) {
+export function handyErrText(e) {
   const kind = e?.kind || '';
   // Ohne Gerätenamen – das ↕ davor sagt schon, um welches Gerät es geht
   if (kind === 'net') return 'Cloud nicht erreichbar';
@@ -215,7 +216,7 @@ function handyErrText(e) {
 
 // Wer die Handy gerade benutzt. Die anderen Bereiche hören auf das Event und
 // setzen ihre Oberfläche zurück (z. B. pausiert das Video).
-function claimHandy(owner) {
+export function claimHandy(owner) {
   if (handy.owner === owner) return;
   handy.owner = owner;
   document.dispatchEvent(new CustomEvent('handy-owner', { detail: owner }));
@@ -224,7 +225,7 @@ function claimHandy(owner) {
 // ---------------------------------------------------------------------------
 // Gemeinsame Hilfsfunktionen
 // ---------------------------------------------------------------------------
-const $ = (id) => document.getElementById(id);
+export const $ = (id) => document.getElementById(id);
 // Einstellungen: im Browser (localStorage) – die gemeinsamen zusätzlich auf dem Server,
 // damit alle Geräte dieselben haben. Pro Gerät bleiben Bild/HQ, Kopfzeile, Bildschirmsperre,
 // Ton, Bluetooth-Geräte und welche Ansicht gerade offen ist.
@@ -237,7 +238,7 @@ const SHARED_PREFS = new Set([
 ]);
 const isSharedPref = (k) => SHARED_PREFS.has(k) || k.startsWith('savedFilter.');
 let prefsPending = {}, prefsTimer = null;
-const store = {
+export const store = {
   get(k, d) { try { const v = localStorage.getItem('hp.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) {
     try { localStorage.setItem('hp.' + k, JSON.stringify(v)); } catch { /* egal */ }
@@ -266,7 +267,7 @@ window.addEventListener('pagehide', () => { if (Object.keys(prefsPending).length
 // hat, löscht der Browser – ein gelöschtes Volume ist ein echter Neuanfang (vorher lud der Browser
 // seine alten Kopien, z. B. den Connection Key, wieder hoch).
 // 1.19.7: Neuinstallation = dieses Gerät hat nichts gespeichert und der Server auch nicht (Willkommen, settings.js)
-let freshInstall = false;
+export let freshInstall = false;
 (function loadSharedPrefs() {
   const freshDevice = !Object.keys(localStorage).some((k) => k.startsWith('hp.'));
   try {
@@ -300,14 +301,14 @@ function reportError(msg) {
 window.addEventListener('error', (e) => reportError(`${e.message} (${(e.filename || '').split('/').pop()}:${e.lineno})`));
 window.addEventListener('unhandledrejection', (e) => reportError('Promise: ' + (e.reason?.message || e.reason)));
 
-function setStatus(state, text) {
+export function setStatus(state, text) {
   const el = $('status');
   el.className = 'pill ' + state;
   pillText(el, 'Handy', '↕', text);
 }
 
 // Status-Chip oben: „Handy: verbunden“ – auf schmalen Bildschirmen nur „↕ verbunden“ (CSS)
-function pillText(el, label, icon, text) {
+export function pillText(el, label, icon, text) {
   const lbl = document.createElement('span');
   lbl.className = 'lbl';
   lbl.textContent = label + ': ';
@@ -319,7 +320,7 @@ function pillText(el, label, icon, text) {
 
 // Meldung im Geräte-Fenster und – weil das meist zu ist – kurz als Einblendung unten
 let toastTimer;
-function log(msg, isError = false) {
+export function log(msg, isError = false) {
   const el = $('log');
   const text = msg instanceof Error ? msg.message : msg;
   el.textContent = text;
@@ -335,18 +336,13 @@ function log(msg, isError = false) {
   toastTimer = setTimeout(() => { t.hidden = true; }, isError ? 6000 : 3500);
 }
 
-function requireHandy() {
-  if (handy.connected) return true;
-  log('Bitte zuerst rechts die Handy verbinden.', true);
-  return false;
-}
 
-function toCsv(actions) {
+export function toCsv(actions) {
   const invert = $('invert').checked;
   return '#Funscript Player\n' + actions.map((a) => `${a.at},${invert ? 100 - a.pos : a.pos}`).join('\r\n') + '\r\n';
 }
 
-function downloadFunscript(actions, name) {
+export function downloadFunscript(actions, name) {
   const data = { version: '1.0', inverted: false, range: 100, actions: actions.map((a) => ({ at: a.at, pos: a.pos })) };
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -359,7 +355,7 @@ function downloadFunscript(actions, name) {
 }
 
 // Position (0–100) eines Scripts zu einem Zeitpunkt, linear interpoliert.
-function positionAt(actions, ms) {
+export function positionAt(actions, ms) {
   if (!actions.length) return 0;
   if (ms <= actions[0].at) return actions[0].pos;
   let lo = 0, hi = actions.length - 1;

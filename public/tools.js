@@ -1,4 +1,11 @@
-'use strict';
+import './finale.js'; // Ladereihenfolge wie bisher – siehe boot.js
+import { modulesReady, video } from './state.js';
+import { $, handy, handyMaxSpeed, log, store } from './handy.js';
+import {
+  drawHeatmap, hasHandy, hasVibe, mediaTime, offsetKey, paintHeat, resync, script, setOffsetSource, toolActions,
+} from './app.js';
+import { renderScriptBox } from './library.js';
+modulesReady.add('tools');
 
 // ===========================================================================
 // 🛠️ Script-Intensität – rechnet das Script beim Abspielen um, Dateien bleiben unverändert.
@@ -14,9 +21,10 @@
 
 // tooFast: 'shorten' = Hub kürzen, 'half' = voller Hub, dort halbes Tempo
 const tools = Object.assign({ tooFast: 'shorten' }, store.get('scriptTools', {}));
-let toolCache = {};
+export let toolCache = {};
+export function clearToolCache() { toolCache = {}; }
 
-const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv' };
+export const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv' };
 // 1.19.3: nur noch eine Auswahl für beide Geräte. Alte Werte („Original + Takt-Schutz“, „Eigene“) -> Automatisch
 const presetFix = (p) => (SCRIPT_PRESETS[p] ? p : 'auto');
 // Neuer Schlüssel „scriptIntensity“: die Umstellung läuft nur einmal (auf dem ersten Gerät), weil sie
@@ -36,7 +44,7 @@ let presetDefault = presetFix(store.get('scriptIntensity', 'auto'));
 let localPreset = null; // Szene ohne festen Schlüssel (lokale Datei): nur bis zum nächsten Video
 
 // Preset dieser Szene (gilt für Handy und Satisfyer)
-function currentPreset() {
+export function currentPreset() {
   const k = offsetKey();
   if (!k) return localPreset || presetDefault;
   const p = store.get('scenePresets', {})[k];
@@ -136,7 +144,7 @@ function halveFast(a, maxSpeed) {
   return { actions: out, halved: marks.length, marks };
 }
 
-const handyMaxSpeedSafe = () => (typeof handyMaxSpeed === 'function' ? handyMaxSpeed() : 450);
+const handyMaxSpeedSafe = () => (modulesReady.has('handy') ? handyMaxSpeed() : 450);
 // Zu schnelle Stellen: je nach ⚙️ → Script erst halbieren (voller Hub) oder gleich kürzen.
 // res.marks sammelt die Zeiten der angepassten Stellen (Striche in der Heatmap).
 function fitHandy(out, maxSpeed, only, res) {
@@ -219,7 +227,7 @@ const scaleAround = (a, k, mid = 50) => a.map((x) => ({ at: x.at, pos: Math.max(
 // die Handy nur, was sie physisch schafft (Vibrationen bleiben); der Satisfyer ungekürzt,
 // dafür mit eigener Stärke/Gleichmäßigkeit (presetVibeShape, presetVibeEven).
 // preset: zum Ausprobieren (Vorschau in den Knöpfen) – sonst das der Szene.
-function processScript(actions, target = 'handy', preset = currentPreset()) {
+export function processScript(actions, target = 'handy', preset = currentPreset()) {
   if (!actions) return actions;
   const key = `${tools.tooFast}|${handyMaxSpeedSafe()}|${warmup}`;
   const slot = preset === currentPreset() ? target : `${target}:${preset}`;
@@ -273,7 +281,7 @@ function processScript(actions, target = 'handy', preset = currentPreset()) {
 }
 
 // Info je Gerät: was am Script geändert wird
-const tr = (s) => (typeof I18N !== 'undefined' ? I18N.t(s) : s);
+export const tr = (s) => (typeof I18N !== 'undefined' ? I18N.t(s) : s);
 function presetInfoParts() {
   if (!script) return { handy: '', vibe: '' };
   const text = (target) => {
@@ -288,21 +296,21 @@ function presetInfoParts() {
 function presetInfoText() {
   if (!script) return '';
   const p = presetInfoParts();
-  const anyDev = typeof hasHandy === 'function' && (hasHandy() || hasVibe());
+  const anyDev = modulesReady.has('app') && (hasHandy() || hasVibe());
   const showH = !anyDev || hasHandy(), showV = !anyDev || hasVibe();
   return [showH ? `Handy: ${p.handy}` : '', showV ? `Satisfyer: ${p.vibe}` : ''].filter(Boolean).join(' · ');
 }
 // Zeiten der für die Handy angepassten Stellen (Striche in der Heatmap)
-function adaptedMarks() {
+export function adaptedMarks() {
   return script && toolCache.handy?.src === script.actions ? toolCache.handy.marks || [] : [];
 }
 
 // Gleichmäßigkeit, die das Preset für das laufende Video-Script vorgibt (vibe.js)
-function presetVibeEven() {
+export function presetVibeEven() {
   return script && toolCache.vibe?.src === script.actions ? toolCache.vibe.even : 0;
 }
 // Stärke des Satisfyers je Preset (raw 0–1 -> 0–1): Sanft schwächer und weicher, Intensiv kräftiger
-function presetVibeShape(raw) {
+export function presetVibeShape(raw) {
   if (warmup) return 0.2 * raw; // Aufwärmen: ganz leicht
   const p = script ? currentPreset() : 'auto';
   if (p === 'soft') return 0.7 * raw ** 1.3;
@@ -310,7 +318,7 @@ function presetVibeShape(raw) {
   return raw;
 }
 
-function toolsChanged() {
+export function toolsChanged() {
   store.set('scriptTools', tools);
   document.querySelectorAll('[data-preset-default] button').forEach((b) => b.classList.toggle('active', b.dataset.preset === presetDefault));
   const cur = currentPreset();
@@ -319,7 +327,7 @@ function toolsChanged() {
   $('toolInfo').textContent = script ? `Aktuelles Video: ${tr(SCRIPT_PRESETS[cur])} – Handy: ${info.handy} · Satisfyer: ${info.vibe}` : '';
   $('sbInfo').textContent = script ? presetInfoText() : '';
   $('sbWarm').classList.toggle('active', warmup);
-  if (typeof renderScriptBox === 'function') renderScriptBox();
+  if (modulesReady.has('library')) renderScriptBox();
   drawPresetPreviews();
   drawHeatmap();
   if (handy.owner === 'video') resync(); // geändertes Script sofort an die Handy
@@ -355,7 +363,7 @@ function drawPresetPreviews() {
     const w = (c.width = Math.round(c.clientWidth * dpr)), h = (c.height = Math.round(c.clientHeight * dpr));
     g.clearRect(0, 0, w, h);
     if (!script) return;
-    const a = processScript(script.actions, typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy', c.parentElement.dataset.preset);
+    const a = processScript(script.actions, modulesReady.has('app') && !hasHandy() && hasVibe() ? 'vibe' : 'handy', c.parentElement.dataset.preset);
     paintHeat(g, a, a[a.length - 1].at || 1, w, h);
   });
 }
@@ -427,7 +435,7 @@ function calibTap() {
   const offset = Math.max(-500, Math.min(500, Math.round(median / 10) * 10));
   $('offset').value = offset;
   $('offset').dispatchEvent(new Event('input'));
-  offsetSource = 'calib'; // als „eingemessen“ merken (app.js)
+  setOffsetSource('calib'); // als „eingemessen“ merken (app.js)
   $('offset').dispatchEvent(new Event('change')); // speichert für diese Szene und synchronisiert neu
   $('calibBtn').textContent = '🎯 Offset per Takt einmessen';
   log(`🎯 Offset eingemessen: ${offset} ms (für diese Szene gespeichert).`);

@@ -1,4 +1,8 @@
-'use strict';
+import { video } from './state.js';
+import { $, handy } from './handy.js';
+import { backToLibrary, closeDevices, nowPlaying, openDevices, updateDevClasses } from './app.js';
+import { currentPreset } from './tools.js';
+import { selfCtl, selfStrokeRange } from './selfctl.js';
 
 // ===========================================================================
 // Selbsttest für die Entwicklung: Adresse mit ?selbsttest öffnen (seit 1.19.3 ohne Knopf in der Oberfläche –
