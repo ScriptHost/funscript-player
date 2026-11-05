@@ -1,4 +1,4 @@
-import './touchpad.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady } from './state.js';
 import { lang, setLang, t } from './lang.js';
 import { $, freshInstall, log, store } from './handy.js';
@@ -8,7 +8,6 @@ import { bluetoothProblem } from './vibe.js';
 import { enh, enhSetPreset } from './enhance.js';
 import { HQ_ACCEL_LABEL, hqApply, hqState } from './hq.js';
 import { SCRIPT_PRESETS, clearToolCache, processScript } from './tools.js';
-modulesReady.add('settings');
 
 // ===========================================================================
 // Einstellungen-Seite: HereSphere-Adresse, Bibliothek, System-Infos.
@@ -32,43 +31,16 @@ function renderQualityMode() {
     : mode === 'off' ? t('settings.img.infoOff') : t('settings.img.infoAuto');
   if (mode === 'custom') $('qualityAdvanced').open = true;
 }
-document.querySelectorAll('#qualityMode button').forEach((b) => b.addEventListener('click', () => setQualityMode(b.dataset.q)));
-// Änderungen unter „Erweitert“ spiegeln
-$('imageSettings').addEventListener('click', () => setTimeout(renderQualityMode, 50));
-document.addEventListener('hq-ready', renderQualityMode);
 
 // --- Anzeige im Player -----------------------------------------------------------
 // Standard: was man beim normalen Schauen braucht; Tags, Studio/Darsteller, Beschreibung aus.
 // 1.19.7: Stash-Aktionen (unter dem Video und in der Leiste) standardmäßig aus – gespeicherte Wahl bleibt
 // 1.19.8: auch „Datum, Länge, Aufrufe“ standardmäßig aus
 const HUD_DEFAULT = { devices: true, meta: false, script: false, actions: false, baractions: false, people: false, tags: false, markers: true, details: false, quality: true };
-const hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
+let hud;
 function applyHud() {
   for (const [k, on] of Object.entries(hud)) document.body.classList.toggle('hud-off-' + k, !on);
 }
-document.querySelectorAll('#hudOptions input').forEach((cb) => {
-  cb.checked = hud[cb.dataset.hud];
-  cb.addEventListener('change', () => { hud[cb.dataset.hud] = cb.checked; store.set('hud', hud); applyHud(); });
-});
-applyHud();
-
-// --- Sprache (pro Gerät): Englisch / Deutsch – Standard nach Gerätesprache, Wechsel lädt neu ---------
-$('langSel').value = lang;
-$('langSel').addEventListener('change', () => setLang($('langSel').value));
-
-// --- Erklärtexte hinter ⓘ (1.19.3) – aufeinanderfolgende landen unter einem ⓘ ---------------------
-// (2.0: Bereiche sind eigene Seiten statt Aufklapper – settings.js / showSetPage in app.js)
-document.querySelectorAll('#view-settings p.hint-text:not([id]), #view-settings ul.preset-help').forEach((p) => {
-  if (p.closest('details.more-info, .hud-options, .set-quick')) return;
-  const prev = p.previousElementSibling;
-  const adv = p.classList.contains('adv');
-  if (prev?.matches('details.more-info') && prev.classList.contains('adv') === adv) { prev.append(p); p.classList.remove('adv'); return; }
-  const d = Object.assign(document.createElement('details'), { className: 'more-info' + (adv ? ' adv' : '') });
-  d.append(Object.assign(document.createElement('summary'), { textContent: t('settings.explain') }));
-  p.replaceWith(d);
-  d.append(p);
-  p.classList.remove('adv');
-});
 
 // --- Erweiterte Einstellungen (pro Gerät): standardmäßig nur das Nötige ------------------------
 export function setAdvMode(on) {
@@ -81,18 +53,9 @@ export function setAdvMode(on) {
 function updateAdvHint() {
   $('advHint').textContent = document.body.classList.contains('adv-on') ? '' : t('settings.advHint');
 }
-$('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
-setAdvMode(store.get('advMode', false));
 
 // --- 1.19.7: Willkommen beim ersten Start (Neuinstallation), in ⚙️ → Anzeige wieder aufrufbar ------------
 function showWelcome(on = true) { $('welcome').hidden = !on; if (on) $('whatsNew').hidden = true; }
-$('welcomeOk').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); });
-$('welcomeConnect').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); openDevices(); });
-$('welcomeAgain').addEventListener('click', () => showWelcome());
-if (freshInstall && !store.get('seenWelcome', false)) {
-  store.set('seen11911', true); // statt „Neu in …“
-  showWelcome();
-}
 
 // --- 1.19.8: Als App installieren und „ganze App im Vollbild“ (wie installiert, nur im Browser) ----------
 const isInstalledApp = () => matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
@@ -101,8 +64,6 @@ function renderInstall() {
   for (const id of ['installApp', 'welcomeInstall']) $(id).hidden = isInstalledApp();
   $('appFsRow').hidden = isInstalledApp();
 }
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; renderInstall(); });
-window.addEventListener('appinstalled', () => { installPrompt = null; renderInstall(); });
 async function installApp() {
   if (installPrompt) {
     const p = installPrompt;
@@ -117,31 +78,10 @@ async function installApp() {
     : !window.isSecureContext ? 'Installieren geht nur über HTTPS (Reverse Proxy davor).'
       : 'Im Browser-Menü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.');
 }
-$('installApp').addEventListener('click', installApp);
-$('welcomeInstall').addEventListener('click', installApp);
-renderInstall();
 
 function enterAppFs() {
   if (isInstalledApp() || document.fullscreenElement || !document.documentElement.requestFullscreen) return;
   document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-}
-$('appFs').checked = store.get('appFs', false);
-$('appFs').addEventListener('change', () => {
-  store.set('appFs', $('appFs').checked);
-  if ($('appFs').checked) enterAppFs();
-  else if (document.fullscreenElement === document.documentElement) document.exitFullscreen().catch(() => {});
-});
-// Der Browser verlangt für Vollbild ein Antippen: das nächste Antippen startet es (nicht das ⛶ des Videos)
-document.addEventListener('click', (e) => {
-  if ($('appFs').checked && !e.target.closest('#ovFs, #ovHit, video, #ovPip, #appFs')) enterAppFs();
-}, true);
-
-// --- Einmal nach dem Update auf 1.19.11: was neu ist ------------------------
-if (!store.get('seen11911', false)) {
-  $('whatsNew').hidden = false;
-  const done = () => { $('whatsNew').hidden = true; store.set('seen11911', true); };
-  $('whatsNewOk').addEventListener('click', done);
-  $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setLook'); });
 }
 
 // --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------
@@ -152,9 +92,7 @@ const BAR_BTNS = [
   ['fit', 'Einpassen / Füllen (im Vollbild am iPhone)', ['ovFit']],
   ['pip', '⧉ Bild-in-Bild', ['ovPip']],
 ];
-const barCfg = Object.assign({ order: BAR_BTNS.map((b) => b[0]), off: [] }, store.get('barBtns', {}));
-barCfg.order = barCfg.order.filter((k) => BAR_BTNS.some((b) => b[0] === k)); // 1.19.7: 🎚, ✨ und ⟳ entfallen, 1.19.8: −/+
-for (const [k] of BAR_BTNS) if (!barCfg.order.includes(k)) barCfg.order.push(k); // neue Knöpfe hinten
+let barCfg; // neue Knöpfe hinten
 function applyBar() {
   for (const k of barCfg.order) {
     const def = BAR_BTNS.find((b) => b[0] === k);
@@ -196,21 +134,14 @@ function renderBarOptions() {
   });
 }
 function saveBar() { store.set('barBtns', barCfg); applyBar(); renderBarOptions(); }
-applyBar();
-renderBarOptions();
 
 // --- Reiter der Stash-Bibliothek (Tags / Darsteller / Studios) ------------------------------
-const browseTabs = Object.assign({ tags: true, performers: true, studios: false }, store.get('browseTabs', {}));
+let browseTabs;
 function applyBrowseTabs() {
   document.querySelectorAll('#browseTabs button[data-browse]').forEach((b) => b.classList.toggle('tab-off', browseTabs[b.dataset.browse] === false));
   // Ausgeblendeter Reiter offen -> zurück zu den Szenen
   if (modulesReady.has('library') && browseTabs[lib.browse] === false && modulesReady.has('library')) setBrowse('scenes');
 }
-document.querySelectorAll('#browseOptions input').forEach((cb) => {
-  cb.checked = browseTabs[cb.dataset.browseOpt] !== false;
-  cb.addEventListener('change', () => { browseTabs[cb.dataset.browseOpt] = cb.checked; store.set('browseTabs', browseTabs); applyBrowseTabs(); });
-});
-applyBrowseTabs();
 
 // --- Gespeicherte Stash-Filter: welche in der Leiste erscheinen --------------------------------
 function renderSavedFilterOptions() {
@@ -229,9 +160,6 @@ function renderSavedFilterOptions() {
     return label;
   }));
 }
-
-// --- Server-Einstellungen: HereSphere, Intiface --------------------------------------------
-$('hsUrl').value = `${location.origin}/heresphere`;
 
 // Gilt auf dem Server für alle Geräte (HERESPHERE=off / INTIFACE_LAN_ONLY in Docker sperren fest)
 let hsHasPass = false;
@@ -263,16 +191,6 @@ async function putSettings(patch, msg) {
     if (msg) log(msg);
   } catch (e) { log(t('settings.notSaved', { error: e.message }), true); }
 }
-fetch('/api/settings').then((r) => r.json()).then(showServerSettings).catch(() => {});
-$('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? t('settings.vr.logOn') : t('settings.vr.logOff')));
-$('hsRedirect').addEventListener('change', () => putSettings({ hsRedirect: $('hsRedirect').checked }, $('hsRedirect').checked ? t('settings.vr.logRedirectOn') : t('settings.vr.logRedirectOff')));
-$('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? t('settings.vr.logVrOnly') : t('settings.vr.logAll')));
-$('hsPassSave').addEventListener('click', () => {
-  const pw = $('hsPass').value;
-  if (!pw) return log(t('settings.vr.passEmpty'), true);
-  $('hsPass').value = '';
-  putSettings({ hsPassword: pw }, t('settings.vr.logPassSaved'));
-});
 // nach test2: Umschalter ohne/mit Passwort. „Ohne“ löscht ein gesetztes Passwort sofort und sperrt das Feld;
 // „Mit“ gibt das Feld frei – gilt erst, wenn ein Passwort gespeichert ist.
 function renderPassMode(on) {
@@ -281,27 +199,6 @@ function renderPassMode(on) {
   $('hsPassSave').disabled = !on;
   if (!on) $('hsPass').value = '';
 }
-document.querySelectorAll('#hsPassMode button').forEach((b) => b.addEventListener('click', () => {
-  const on = b.dataset.pw === 'on';
-  renderPassMode(on);
-  if (on) $('hsPass').focus();
-  else if (hsHasPass) putSettings({ hsPassword: '' }, t('settings.vr.logPassRemoved'));
-}));
-$('intifaceLan').addEventListener('change', () => putSettings({ intifaceLan: $('intifaceLan').checked }, $('intifaceLan').checked ? 'Intiface: nur Heimnetz-Adressen.' : 'Intiface: alle privaten Adressen.'));
-$('hsCopy').addEventListener('click', async () => {
-  try {
-    await navigator.clipboard.writeText($('hsUrl').value);
-    $('hsCopy').textContent = t('settings.vr.copied');
-  } catch {
-    $('hsUrl').select();
-    $('hsCopy').textContent = t('settings.vr.selected');
-  }
-  setTimeout(() => { $('hsCopy').textContent = t('settings.vr.copy'); }, 2000);
-});
-
-// --- Bibliothek --------------------------------------------------------------
-$('setHoverPreview').checked = store.get('hoverPreview', true);
-$('setHoverPreview').addEventListener('change', () => store.set('hoverPreview', $('setHoverPreview').checked));
 
 function renderLibrarySettings() {
   const sel = $('setStartSource');
@@ -322,9 +219,6 @@ function renderLibrarySettings() {
     ul.append(li);
   }
 }
-$('setStartSource').addEventListener('change', () => setSource($('setStartSource').value));
-document.addEventListener('library-ready', renderLibrarySettings);
-document.addEventListener('hq-ready', () => { if (!$('view-settings').hidden) renderSysInfo(); });
 
 // --- System ------------------------------------------------------------------
 async function renderSysInfo() {
@@ -365,8 +259,6 @@ function renderSystemSub() {
   const gpu = !hqState.checked || !hqState.available ? '' : hqState.gpu === 'ok' ? t('settings.sys.subGpuOk') : t('settings.sys.subGpuOff');
   $('setSubSystem').textContent = [appVer && 'v' + appVer, gpu].filter(Boolean).join(' · ') || t('settings.sys.sub');
 }
-fetch('/api/version').then((r) => r.json()).then((v) => { appVer = v.version; renderSystemSub(); }).catch(() => {});
-document.addEventListener('hq-ready', renderSystemSub);
 
 // „Update verfügbar“ (neuestes GitHub-Release, der Server fragt höchstens alle 6 h) – auch als Punkt an der Version oben
 async function showUpdate() {
@@ -379,37 +271,144 @@ async function showUpdate() {
     $('updateLink').href = u.url;
   } catch { $('updateBox').hidden = true; }
 }
-setTimeout(showUpdate, 4000);
-$('appVersion').addEventListener('click', (e) => { if ($('appVersion').classList.contains('has-update')) { e.stopPropagation(); openSettings('setSystem'); } });
 
-// Stiller Selbsttest beim Laden (statt Knopf): Rechnet die Script-Intensität einmal durch und prüft die
-// Bedienelemente. Nur Fehler gehen an den Server (stehen dann in „docker logs“), sichtbar wird nichts.
-setTimeout(() => {
-  const fails = [];
-  try {
-    const a = Array.from({ length: 40 }, (_, i) => ({ at: i * 300, pos: i % 2 ? 80 : 20 }));
-    for (const p of Object.keys(SCRIPT_PRESETS)) {
-      const r = processScript(a, 'handy', p);
-      if (!Array.isArray(r) || !r.length || r.some((x) => !(x.pos >= 0 && x.pos <= 100))) fails.push('Intensität ' + p);
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  document.querySelectorAll('#qualityMode button').forEach((b) => b.addEventListener('click', () => setQualityMode(b.dataset.q)));
+  // Änderungen unter „Erweitert“ spiegeln
+  $('imageSettings').addEventListener('click', () => setTimeout(renderQualityMode, 50));
+  document.addEventListener('hq-ready', renderQualityMode);
+  hud = Object.assign({}, HUD_DEFAULT, store.get('hud', {}));
+  document.querySelectorAll('#hudOptions input').forEach((cb) => {
+    cb.checked = hud[cb.dataset.hud];
+    cb.addEventListener('change', () => { hud[cb.dataset.hud] = cb.checked; store.set('hud', hud); applyHud(); });
+  });
+  applyHud();
+  // --- Sprache (pro Gerät): Englisch / Deutsch – Standard nach Gerätesprache, Wechsel lädt neu ---------
+  $('langSel').value = lang;
+  $('langSel').addEventListener('change', () => setLang($('langSel').value));
+  // --- Erklärtexte hinter ⓘ (1.19.3) – aufeinanderfolgende landen unter einem ⓘ ---------------------
+  // (2.0: Bereiche sind eigene Seiten statt Aufklapper – settings.js / showSetPage in app.js)
+  document.querySelectorAll('#view-settings p.hint-text:not([id]), #view-settings ul.preset-help').forEach((p) => {
+    if (p.closest('details.more-info, .hud-options, .set-quick')) return;
+    const prev = p.previousElementSibling;
+    const adv = p.classList.contains('adv');
+    if (prev?.matches('details.more-info') && prev.classList.contains('adv') === adv) { prev.append(p); p.classList.remove('adv'); return; }
+    const d = Object.assign(document.createElement('details'), { className: 'more-info' + (adv ? ' adv' : '') });
+    d.append(Object.assign(document.createElement('summary'), { textContent: t('settings.explain') }));
+    p.replaceWith(d);
+    d.append(p);
+    p.classList.remove('adv');
+  });
+  $('advMode').addEventListener('change', () => setAdvMode($('advMode').checked));
+  setAdvMode(store.get('advMode', false));
+  $('welcomeOk').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); });
+  $('welcomeConnect').addEventListener('click', () => { showWelcome(false); store.set('seenWelcome', true); openDevices(); });
+  $('welcomeAgain').addEventListener('click', () => showWelcome());
+  if (freshInstall && !store.get('seenWelcome', false)) {
+    store.set('seen11911', true); // statt „Neu in …“
+    showWelcome();
+  }
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; renderInstall(); });
+  window.addEventListener('appinstalled', () => { installPrompt = null; renderInstall(); });
+  $('installApp').addEventListener('click', installApp);
+  $('welcomeInstall').addEventListener('click', installApp);
+  renderInstall();
+  $('appFs').checked = store.get('appFs', false);
+  $('appFs').addEventListener('change', () => {
+    store.set('appFs', $('appFs').checked);
+    if ($('appFs').checked) enterAppFs();
+    else if (document.fullscreenElement === document.documentElement) document.exitFullscreen().catch(() => {});
+  });
+  // Der Browser verlangt für Vollbild ein Antippen: das nächste Antippen startet es (nicht das ⛶ des Videos)
+  document.addEventListener('click', (e) => {
+    if ($('appFs').checked && !e.target.closest('#ovFs, #ovHit, video, #ovPip, #appFs')) enterAppFs();
+  }, true);
+  // --- Einmal nach dem Update auf 1.19.11: was neu ist ------------------------
+  if (!store.get('seen11911', false)) {
+    $('whatsNew').hidden = false;
+    const done = () => { $('whatsNew').hidden = true; store.set('seen11911', true); };
+    $('whatsNewOk').addEventListener('click', done);
+    $('whatsNewSet').addEventListener('click', () => { done(); openSettings('setLook'); });
+  }
+  barCfg = Object.assign({ order: BAR_BTNS.map((b) => b[0]), off: [] }, store.get('barBtns', {}));
+  barCfg.order = barCfg.order.filter((k) => BAR_BTNS.some((b) => b[0] === k));
+   // 1.19.7: 🎚, ✨ und ⟳ entfallen, 1.19.8: −/+
+  for (const [k] of BAR_BTNS) if (!barCfg.order.includes(k)) barCfg.order.push(k);
+  applyBar();
+  renderBarOptions();
+  browseTabs = Object.assign({ tags: true, performers: true, studios: false }, store.get('browseTabs', {}));
+  document.querySelectorAll('#browseOptions input').forEach((cb) => {
+    cb.checked = browseTabs[cb.dataset.browseOpt] !== false;
+    cb.addEventListener('change', () => { browseTabs[cb.dataset.browseOpt] = cb.checked; store.set('browseTabs', browseTabs); applyBrowseTabs(); });
+  });
+  applyBrowseTabs();
+  // --- Server-Einstellungen: HereSphere, Intiface --------------------------------------------
+  $('hsUrl').value = `${location.origin}/heresphere`;
+  fetch('/api/settings').then((r) => r.json()).then(showServerSettings).catch(() => {});
+  $('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? t('settings.vr.logOn') : t('settings.vr.logOff')));
+  $('hsRedirect').addEventListener('change', () => putSettings({ hsRedirect: $('hsRedirect').checked }, $('hsRedirect').checked ? t('settings.vr.logRedirectOn') : t('settings.vr.logRedirectOff')));
+  $('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? t('settings.vr.logVrOnly') : t('settings.vr.logAll')));
+  $('hsPassSave').addEventListener('click', () => {
+    const pw = $('hsPass').value;
+    if (!pw) return log(t('settings.vr.passEmpty'), true);
+    $('hsPass').value = '';
+    putSettings({ hsPassword: pw }, t('settings.vr.logPassSaved'));
+  });
+  document.querySelectorAll('#hsPassMode button').forEach((b) => b.addEventListener('click', () => {
+    const on = b.dataset.pw === 'on';
+    renderPassMode(on);
+    if (on) $('hsPass').focus();
+    else if (hsHasPass) putSettings({ hsPassword: '' }, t('settings.vr.logPassRemoved'));
+  }));
+  $('intifaceLan').addEventListener('change', () => putSettings({ intifaceLan: $('intifaceLan').checked }, $('intifaceLan').checked ? 'Intiface: nur Heimnetz-Adressen.' : 'Intiface: alle privaten Adressen.'));
+  $('hsCopy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('hsUrl').value);
+      $('hsCopy').textContent = t('settings.vr.copied');
+    } catch {
+      $('hsUrl').select();
+      $('hsCopy').textContent = t('settings.vr.selected');
     }
-    clearToolCache();
-  } catch (e) { fails.push('Intensität: ' + e.message); }
-  for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox']) if (!$(id)) fails.push('fehlt: #' + id);
-  if (fails.length) fetch('/api/clientcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fails, ua: navigator.userAgent }) }).catch(() => {});
-}, 5000);
-
-$('resetLocal').addEventListener('click', () => {
-  if (!confirm(t('settings.sys.resetConfirm'))) return;
-  try {
-    Object.keys(localStorage).filter((k) => k.startsWith('hp.')).forEach((k) => localStorage.removeItem(k));
-  } catch { /* egal */ }
-  location.reload();
-});
-
-// Infos frisch laden, sobald eine Einstellungs-Seite geöffnet wird (Ereignis aus app.js showSetPage)
-window.addEventListener('hp:setpage', () => {
-  const page = document.body.dataset.setPage;
-  if (page === 'system') renderSysInfo();
-  else if (page === 'library') { renderLibrarySettings(); renderSavedFilterOptions(); }
-  else if (!page) updateAdvHint();
-});
+    setTimeout(() => { $('hsCopy').textContent = t('settings.vr.copy'); }, 2000);
+  });
+  // --- Bibliothek --------------------------------------------------------------
+  $('setHoverPreview').checked = store.get('hoverPreview', true);
+  $('setHoverPreview').addEventListener('change', () => store.set('hoverPreview', $('setHoverPreview').checked));
+  $('setStartSource').addEventListener('change', () => setSource($('setStartSource').value));
+  document.addEventListener('library-ready', renderLibrarySettings);
+  document.addEventListener('hq-ready', () => { if (!$('view-settings').hidden) renderSysInfo(); });
+  fetch('/api/version').then((r) => r.json()).then((v) => { appVer = v.version; renderSystemSub(); }).catch(() => {});
+  document.addEventListener('hq-ready', renderSystemSub);
+  setTimeout(showUpdate, 4000);
+  $('appVersion').addEventListener('click', (e) => { if ($('appVersion').classList.contains('has-update')) { e.stopPropagation(); openSettings('setSystem'); } });
+  // Stiller Selbsttest beim Laden (statt Knopf): Rechnet die Script-Intensität einmal durch und prüft die
+  // Bedienelemente. Nur Fehler gehen an den Server (stehen dann in „docker logs“), sichtbar wird nichts.
+  setTimeout(() => {
+    const fails = [];
+    try {
+      const a = Array.from({ length: 40 }, (_, i) => ({ at: i * 300, pos: i % 2 ? 80 : 20 }));
+      for (const p of Object.keys(SCRIPT_PRESETS)) {
+        const r = processScript(a, 'handy', p);
+        if (!Array.isArray(r) || !r.length || r.some((x) => !(x.pos >= 0 && x.pos <= 100))) fails.push('Intensität ' + p);
+      }
+      clearToolCache();
+    } catch (e) { fails.push('Intensität: ' + e.message); }
+    for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox']) if (!$(id)) fails.push('fehlt: #' + id);
+    if (fails.length) fetch('/api/clientcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fails, ua: navigator.userAgent }) }).catch(() => {});
+  }, 5000);
+  $('resetLocal').addEventListener('click', () => {
+    if (!confirm(t('settings.sys.resetConfirm'))) return;
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith('hp.')).forEach((k) => localStorage.removeItem(k));
+    } catch { /* egal */ }
+    location.reload();
+  });
+  // Infos frisch laden, sobald eine Einstellungs-Seite geöffnet wird (Ereignis aus app.js showSetPage)
+  window.addEventListener('hp:setpage', () => {
+    const page = document.body.dataset.setPage;
+    if (page === 'system') renderSysInfo();
+    else if (page === 'library') { renderLibrarySettings(); renderSavedFilterOptions(); }
+    else if (!page) updateAdvHint();
+  });
+}

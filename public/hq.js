@@ -1,8 +1,7 @@
-import './enhance.js'; // Ladereihenfolge wie bisher – siehe boot.js
-import { modulesReady, video } from './state.js';
+
+import { video } from './state.js';
 import { $, log, store } from './handy.js';
 import { drawHeatmap, hq, mediaTime } from './app.js';
-modulesReady.add('hq');
 
 // ===========================================================================
 // HQ-Stream: der Server wandelt das Video live um (Intel Quick Sync / VAAPI):
@@ -14,15 +13,7 @@ modulesReady.add('hq');
 //   - Video so groß wie/größer als der Bildschirm (z. B. 4K) oder VR -> Original, nie herunterrechnen
 // ===========================================================================
 
-export const hqState = {
-  available: false,
-  accel: '',
-  preset: store.get('hqPreset2', 'auto'),   // 'off' | 'auto' | 'clean' | 'strong'
-  height: store.get('hqHeight2', 'auto'),   // 'auto' | 720 | 1080 | 1440
-  probes: new Map(),                        // Quelle -> { width, height, duration, codec }
-  pending: 0,
-  downgraded: new Set(),                    // Videos, bei denen HQ wegen Ruckeln abgeschaltet wurde
-};
+export let hqState;
 export const HQ_ACCEL_LABEL = { vaapi: 'Intel-Grafik (VAAPI / Quick Sync)', cpu: 'Prozessor (ohne Grafik-Beschleunigung)' };
 
 // Bildschirmhöhe im Querformat in echten Pixeln, auf übliche Stufen gerundet (max. 1440p für die N305)
@@ -102,24 +93,6 @@ function hqStart(start) {
 // ---------------------------------------------------------------------------
 const HQ_STEPS = [1440, 1080, 720];
 let hqStalls = [];
-video.addEventListener('waiting', () => {
-  if (!hq.active || video.paused || Date.now() - (hqState.startedAt || 0) < 4000) return;
-  const now = Date.now();
-  hqStalls = hqStalls.filter((t) => now - t < 60000).concat(now);
-  if (hqStalls.length < 3) return;
-  hqStalls = [];
-  const lower = HQ_STEPS.find((h) => h < hq.height);
-  if (lower && hq.height > 720) {
-    log(`Ruckeln erkannt – HQ von ${hq.height}p auf ${lower}p reduziert.`);
-    hq.height = lower;
-    hqRestart(mediaTime());
-  } else {
-    log('Ruckeln erkannt – HQ für dieses Video aus, spiele das Original.');
-    hqState.downgraded.add(hq.src);
-    hqToOriginal();
-  }
-  $('hqInfo').textContent = `Automatisch angepasst: ${hq.active ? hq.height + 'p' : 'Original'}`;
-});
 
 // Spulen im HQ-Stream: Umwandlung an neuer Stelle neu starten
 export function hqRestart(at) {
@@ -167,61 +140,88 @@ export async function hqApply() {
   }
 }
 
-document.querySelectorAll('#hqPresets button').forEach((b) => b.addEventListener('click', () => {
-  hqState.preset = b.dataset.hq;
-  hqApply();
-}));
-$('hqHeight').addEventListener('change', () => {
-  const v = $('hqHeight').value;
-  hqState.height = v === 'auto' ? 'auto' : Number(v);
-  hqApply();
-});
-
-// Fehler im HQ-Stream -> automatisch zurück zum Original
-video.addEventListener('error', () => {
-  if (!hq.active) return;
-  log('HQ-Stream fehlgeschlagen – spiele das Original ab.', true);
-  hqToOriginal();
-});
-
-// Leistungstest: wie viel schneller als Echtzeit schafft der Server die Umwandlung?
-$('hqBench').addEventListener('click', async () => {
-  if (!hq.src) return log('Bitte zuerst ein Video aus der Bibliothek öffnen (nicht per Datei).', true);
-  const btn = $('hqBench');
-  btn.disabled = true;
-  btn.textContent = 'Teste 20 Sekunden …';
-  try {
-    const info = await hqProbe(hq.src);
-    const d = hqDecision({ ...info, height: Math.min(info.height, 719) }); // Test immer mit Hochskalieren
-    const res = await fetch('/api/hq/bench?' + new URLSearchParams({
-      src: hq.src, preset: ['clean', 'strong'].includes(hqState.preset) ? hqState.preset : 'clean', h: d.height || screenTarget(),
-    }));
-    if (!res.ok) throw new Error(await res.text());
-    const r = await res.json();
-    const verdict = r.speed >= 1.5 ? '✅ flüssig' : r.speed >= 1.05 ? '⚠️ knapp, kann bei Spitzen ruckeln' : '❌ zu langsam für Echtzeit – niedrigere Auflösung wählen';
-    $('hqInfo').textContent = `${HQ_ACCEL_LABEL[r.accel] || r.accel}: ${r.speed.toFixed(1)}× Echtzeit (${Math.round(r.fps)} Bilder/s), `
-      + `${r.source.width}×${r.source.height} → ${r.target.w}×${r.target.h} – ${verdict}`;
-  } catch (e) {
-    $('hqInfo').textContent = 'Test fehlgeschlagen: ' + (e.message || e);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Leistung testen';
-  }
-});
-
-// Start: Ist ffmpeg auf dem Server verfügbar?
-(async () => {
-  try {
-    const s = await (await fetch('/api/hq/status')).json();
-    hqState.available = s.available;
-    hqState.accel = s.accel || '';
-    hqState.gpu = s.gpu?.state || ''; // 2.0: Intel-Status für ⚙️ → System
-    $('hqBox').hidden = !s.available;
-    $('hqInfo').textContent = s.available
-      ? `Umwandlung über ${HQ_ACCEL_LABEL[s.accel] || s.accel}. Auto-Ziel für dieses Gerät: ${screenTarget()}p.`
-      : '';
-  } catch { /* ohne HQ */ }
-  hqState.checked = true;
-  hqShowSelection();
-  document.dispatchEvent(new Event('hq-ready'));
-})();
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  hqState = {
+    available: false,
+    accel: '',
+    preset: store.get('hqPreset2', 'auto'),   // 'off' | 'auto' | 'clean' | 'strong'
+    height: store.get('hqHeight2', 'auto'),   // 'auto' | 720 | 1080 | 1440
+    probes: new Map(),                        // Quelle -> { width, height, duration, codec }
+    pending: 0,
+    downgraded: new Set(),                    // Videos, bei denen HQ wegen Ruckeln abgeschaltet wurde
+  };
+  video.addEventListener('waiting', () => {
+    if (!hq.active || video.paused || Date.now() - (hqState.startedAt || 0) < 4000) return;
+    const now = Date.now();
+    hqStalls = hqStalls.filter((t) => now - t < 60000).concat(now);
+    if (hqStalls.length < 3) return;
+    hqStalls = [];
+    const lower = HQ_STEPS.find((h) => h < hq.height);
+    if (lower && hq.height > 720) {
+      log(`Ruckeln erkannt – HQ von ${hq.height}p auf ${lower}p reduziert.`);
+      hq.height = lower;
+      hqRestart(mediaTime());
+    } else {
+      log('Ruckeln erkannt – HQ für dieses Video aus, spiele das Original.');
+      hqState.downgraded.add(hq.src);
+      hqToOriginal();
+    }
+    $('hqInfo').textContent = `Automatisch angepasst: ${hq.active ? hq.height + 'p' : 'Original'}`;
+  });
+  document.querySelectorAll('#hqPresets button').forEach((b) => b.addEventListener('click', () => {
+    hqState.preset = b.dataset.hq;
+    hqApply();
+  }));
+  $('hqHeight').addEventListener('change', () => {
+    const v = $('hqHeight').value;
+    hqState.height = v === 'auto' ? 'auto' : Number(v);
+    hqApply();
+  });
+  // Fehler im HQ-Stream -> automatisch zurück zum Original
+  video.addEventListener('error', () => {
+    if (!hq.active) return;
+    log('HQ-Stream fehlgeschlagen – spiele das Original ab.', true);
+    hqToOriginal();
+  });
+  // Leistungstest: wie viel schneller als Echtzeit schafft der Server die Umwandlung?
+  $('hqBench').addEventListener('click', async () => {
+    if (!hq.src) return log('Bitte zuerst ein Video aus der Bibliothek öffnen (nicht per Datei).', true);
+    const btn = $('hqBench');
+    btn.disabled = true;
+    btn.textContent = 'Teste 20 Sekunden …';
+    try {
+      const info = await hqProbe(hq.src);
+      const d = hqDecision({ ...info, height: Math.min(info.height, 719) }); // Test immer mit Hochskalieren
+      const res = await fetch('/api/hq/bench?' + new URLSearchParams({
+        src: hq.src, preset: ['clean', 'strong'].includes(hqState.preset) ? hqState.preset : 'clean', h: d.height || screenTarget(),
+      }));
+      if (!res.ok) throw new Error(await res.text());
+      const r = await res.json();
+      const verdict = r.speed >= 1.5 ? '✅ flüssig' : r.speed >= 1.05 ? '⚠️ knapp, kann bei Spitzen ruckeln' : '❌ zu langsam für Echtzeit – niedrigere Auflösung wählen';
+      $('hqInfo').textContent = `${HQ_ACCEL_LABEL[r.accel] || r.accel}: ${r.speed.toFixed(1)}× Echtzeit (${Math.round(r.fps)} Bilder/s), `
+        + `${r.source.width}×${r.source.height} → ${r.target.w}×${r.target.h} – ${verdict}`;
+    } catch (e) {
+      $('hqInfo').textContent = 'Test fehlgeschlagen: ' + (e.message || e);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Leistung testen';
+    }
+  });
+  // Start: Ist ffmpeg auf dem Server verfügbar?
+  (async () => {
+    try {
+      const s = await (await fetch('/api/hq/status')).json();
+      hqState.available = s.available;
+      hqState.accel = s.accel || '';
+      hqState.gpu = s.gpu?.state || ''; // 2.0: Intel-Status für ⚙️ → System
+      $('hqBox').hidden = !s.available;
+      $('hqInfo').textContent = s.available
+        ? `Umwandlung über ${HQ_ACCEL_LABEL[s.accel] || s.accel}. Auto-Ziel für dieses Gerät: ${screenTarget()}p.`
+        : '';
+    } catch { /* ohne HQ */ }
+    hqState.checked = true;
+    hqShowSelection();
+    document.dispatchEvent(new Event('hq-ready'));
+  })();
+}

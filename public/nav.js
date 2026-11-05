@@ -1,6 +1,6 @@
 // Navigation 2.0: vier Bereiche (Bibliothek, Player, Geräte, Einstellungen) – am Smartphone als Daumen-Leiste
 // unten, am PC oben im Kopf (design.css). Dazu die Anzeige-Schalter „Leuchten aus“ und „Bewegung“ als Klassen
-// an <body>. Neues Modul ohne Arbeit beim Laden: boot.js ruft init() auf.
+// an <body>. Neues Modul ohne Arbeit beim Laden: main.js ruft init() auf.
 //
 // Bis die Bereiche neu gebaut sind (Phasen 4–7), führen die Knöpfe zu den alten Seiten: Geräte = das alte
 // Geräte-Fenster, Steuern zählt zu Geräte.

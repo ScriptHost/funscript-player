@@ -1,4 +1,4 @@
-import './tools.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady, video } from './state.js';
 import { $, handy, setStatus, store } from './handy.js';
 import { videoScriptSource } from './app.js';
@@ -7,7 +7,6 @@ import { vibe } from './vibe.js';
 import { fin, finDetached } from './finale.js';
 import { selfHampLevel, selfStrokeRange } from './selfctl.js';
 import { touchPosActive } from './touchpad.js';
-modulesReady.add('stroker');
 
 // ===========================================================================
 // Bewegungsgeräte über Intiface – z. B. The Handy per Bluetooth als Offline-Weg,
@@ -20,11 +19,7 @@ modulesReady.add('stroker');
 
 const bt = { lastIdx: -1, lastMs: 0, flipAt: 0, up: false, moving: false, halted: false };
 export const strokers = () => [...vibe.devices.values()].filter((d) => d.linear?.length && d.enabled);
-
-$('btLead').value = store.get('btLead', 80);
 const btLeadOut = () => { $('btLeadVal').textContent = `${$('btLead').value} ms`; };
-btLeadOut();
-$('btLead').addEventListener('input', () => { store.set('btLead', Number($('btLead').value)); btLeadOut(); });
 
 // Hub-Bereich: im Finale dessen Bereich, sonst Hub min/max aus der Handy-Karte
 function strokeRange() {
@@ -60,48 +55,52 @@ function oscillate(speed) {
   bt.lastIdx = -1;
 }
 
-setInterval(() => {
-  const list = strokers();
-  if (!list.length || touchPosActive()) return; // Touch „Position“ bewegt die Geräte gerade selbst
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  $('btLead').value = store.get('btLead', 80);
+  btLeadOut();
+  $('btLead').addEventListener('input', () => { store.set('btLead', Number($('btLead').value)); btLeadOut(); });
+  setInterval(() => {
+    const list = strokers();
+    if (!list.length || touchPosActive()) return; // Touch „Position“ bewegt die Geräte gerade selbst
 
-  let src = null, isVideo = false, osc = null;
-  if (modulesReady.has('finale') && finDetached()) osc = fin.speed / 100;
-  else if (hampOn) osc = Number($('speed').value) / 100;
-  else {
-    src = controlScriptSource();
-    if (!src) { src = videoScriptSource(); isVideo = !!src; }
-  }
+    let src = null, isVideo = false, osc = null;
+    if (modulesReady.has('finale') && finDetached()) osc = fin.speed / 100;
+    else if (hampOn) osc = Number($('speed').value) / 100;
+    else {
+      src = controlScriptSource();
+      if (!src) { src = videoScriptSource(); isVideo = !!src; }
+    }
 
-  if (bt.halted || (!src && osc === null)) {
-    if (bt.moving) stopAll();
-    return;
-  }
-  if (osc !== null) return oscillate(osc);
+    if (bt.halted || (!src && osc === null)) {
+      if (bt.moving) stopAll();
+      return;
+    }
+    if (osc !== null) return oscillate(osc);
 
-  // Script folgen: beim Erreichen jedes Punkts den nächsten anfahren
-  const ms = src.ms + Number($('btLead').value) + (isVideo ? Number($('offset').value) : 0);
-  const a = src.actions;
-  let lo = 0, hi = a.length;
-  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].at <= ms) lo = mid + 1; else hi = mid; }
-  if (lo >= a.length) return;
-  const jumped = Math.abs(ms - bt.lastMs) > 400; // gespult oder Pause beendet
-  bt.lastMs = ms;
-  if (lo === bt.lastIdx && !jumped) return;
-  bt.lastIdx = lo;
-  moveAll(mapPos(a[lo].pos), a[lo].at - ms);
-}, 20);
-
-// Not-Aus: sofort anhalten; erst wieder bewegen, wenn etwas Neues startet
-document.addEventListener('handy-owner', (e) => {
-  bt.halted = e.detail === 'none';
-  if (bt.halted && bt.moving) stopAll();
-});
-video.addEventListener('play', () => { bt.halted = false; });
-$('hampToggle').addEventListener('click', () => { bt.halted = false; });
-
-// Status: ohne WLAN-Verbindung, aber mit Bluetooth-Handy über Intiface
-setInterval(() => {
-  if (handy.connected) return;
-  const n = strokers().length;
-  if (n) setStatus('on', `Bluetooth (Intiface)${n > 1 ? ` ×${n}` : ''}`);
-}, 1000);
+    // Script folgen: beim Erreichen jedes Punkts den nächsten anfahren
+    const ms = src.ms + Number($('btLead').value) + (isVideo ? Number($('offset').value) : 0);
+    const a = src.actions;
+    let lo = 0, hi = a.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].at <= ms) lo = mid + 1; else hi = mid; }
+    if (lo >= a.length) return;
+    const jumped = Math.abs(ms - bt.lastMs) > 400; // gespult oder Pause beendet
+    bt.lastMs = ms;
+    if (lo === bt.lastIdx && !jumped) return;
+    bt.lastIdx = lo;
+    moveAll(mapPos(a[lo].pos), a[lo].at - ms);
+  }, 20);
+  // Not-Aus: sofort anhalten; erst wieder bewegen, wenn etwas Neues startet
+  document.addEventListener('handy-owner', (e) => {
+    bt.halted = e.detail === 'none';
+    if (bt.halted && bt.moving) stopAll();
+  });
+  video.addEventListener('play', () => { bt.halted = false; });
+  $('hampToggle').addEventListener('click', () => { bt.halted = false; });
+  // Status: ohne WLAN-Verbindung, aber mit Bluetooth-Handy über Intiface
+  setInterval(() => {
+    if (handy.connected) return;
+    const n = strokers().length;
+    if (n) setStatus('on', `Bluetooth (Intiface)${n > 1 ? ` ×${n}` : ''}`);
+  }, 1000);
+}

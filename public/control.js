@@ -1,4 +1,4 @@
-import './library.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady, video } from './state.js';
 import {
   $, claimHandy, downloadFunscript, handy, handyErrText, log, positionAt, setStatus, store, toCsv,
@@ -6,7 +6,6 @@ import {
 import { allVibes, setVibeLevel, setVibePaused } from './vibe.js';
 import { selfHampLevel } from './selfctl.js';
 import { touchSync } from './touchpad.js';
-modulesReady.add('control');
 
 // ===========================================================================
 // Reiter „Steuerung & Patterns“
@@ -17,18 +16,7 @@ modulesReady.add('control');
 // Ein Pattern ist ein Bewegungszyklus: Punkte mit t (0 … <1, Anteil am Zyklus)
 // und pos (0–100). Beim Abspielen wird der Zyklus wiederholt.
 const sine = (n) => Array.from({ length: n }, (_, i) => ({ t: i / n, pos: Math.round(50 - 50 * Math.cos((2 * Math.PI * i) / n)) }));
-const PRESETS = {
-  'Gleichmäßig': { length: 1000, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 100 }] },
-  'Sanft (Sinus)': { length: 1600, points: sine(12) },
-  'Nur Spitze': { length: 500, points: [{ t: 0, pos: 55 }, { t: 0.5, pos: 100 }] },
-  'Nur Basis': { length: 500, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 45 }] },
-  'Doppelstoß': { length: 1400, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }, { t: 0.35, pos: 45 }, { t: 0.5, pos: 100 }] },
-  'Langsam rauf, schnell runter': { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.8, pos: 100 }] },
-  'Schnell rauf, langsam runter': { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }] },
-  'Wellen': { length: 3000, points: [{ t: 0, pos: 0 }, { t: 0.25, pos: 100 }, { t: 0.4, pos: 0 }, { t: 0.5, pos: 80 }, { t: 0.6, pos: 10 }, { t: 0.7, pos: 90 }, { t: 0.8, pos: 20 }, { t: 0.9, pos: 70 }] },
-  'Treppe': { length: 2400, points: [{ t: 0, pos: 0 }, { t: 0.1, pos: 25 }, { t: 0.2, pos: 25 }, { t: 0.3, pos: 50 }, { t: 0.4, pos: 50 }, { t: 0.5, pos: 75 }, { t: 0.6, pos: 75 }, { t: 0.7, pos: 100 }] },
-  'Zufall': null, // wird bei Auswahl erzeugt
-};
+let PRESETS;
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -186,13 +174,6 @@ function updateButtons() {
   $('hampToggle').classList.toggle('running', hampOn);
 }
 
-// Andere Bereiche (Video, Direktsteuerung …) haben übernommen
-document.addEventListener('handy-owner', (e) => {
-  if (active && e.detail !== active.kind) active = null;
-  if (hampOn && e.detail !== 'manual') hampOn = false;
-  updateButtons();
-});
-
 // ---------------------------------------------------------------------------
 // Direktsteuerung (HAMP)
 // ---------------------------------------------------------------------------
@@ -247,31 +228,10 @@ export function setSpeed(v, send = true) {
   flush();
 }
 
-$('hampToggle').addEventListener('click', toggleHamp);
-$('speed').addEventListener('input', () => setSpeed($('speed').value));
-$('speedChips').addEventListener('click', (e) => { if (e.target.dataset.v) setSpeed(Number(e.target.dataset.v)); });
-
-// Sicherheits-Obergrenze für die Direktsteuerung
-$('capSpeed').value = store.get('capSpeed', 100);
-$('capSpeedVal').textContent = `${$('capSpeed').value} %`;
-$('capSpeed').addEventListener('input', () => {
-  store.set('capSpeed', Number($('capSpeed').value));
-  $('capSpeedVal').textContent = `${$('capSpeed').value} %`;
-  if (Number($('speed').value) > Number($('capSpeed').value)) setSpeed($('capSpeed').value);
-});
-setSpeed(store.get('speed', 30), false);
-
-document.addEventListener('keydown', (e) => {
-  if ($('view-control').hidden || e.target.closest('input, select, textarea, button')) return;
-  if (e.code === 'Space') { e.preventDefault(); toggleHamp(); }
-  if (e.code === 'ArrowUp') { e.preventDefault(); setSpeed(Number($('speed').value) + 5); }
-  if (e.code === 'ArrowDown') { e.preventDefault(); setSpeed(Number($('speed').value) - 5); }
-});
-
 // ---------------------------------------------------------------------------
 // Pattern-Editor
 // ---------------------------------------------------------------------------
-let currentPatternId = store.get('pattern', null);
+let currentPatternId;
 
 function currentPattern() {
   return db.patterns.find((p) => p.id === currentPatternId) || db.patterns[0];
@@ -312,66 +272,11 @@ function patternChanged() {
   restartPatternIfPlaying();
 }
 
-$('patternSelect').addEventListener('change', (e) => { currentPatternId = e.target.value; showPattern(); restartPatternIfPlaying(); });
-$('patternName').addEventListener('input', (e) => {
-  currentPattern().name = e.target.value.trim() || 'Ohne Namen';
-  fillPatternSelects();
-  saveStore();
-});
-$('patternLength').addEventListener('input', (e) => { currentPattern().length = Number(e.target.value); updatePatternInfo(); });
-$('patternLength').addEventListener('change', patternChanged);
-$('patternTempo').addEventListener('input', updatePatternInfo);
-$('patternTempo').addEventListener('change', () => { store.set('tempo', Number($('patternTempo').value)); restartPatternIfPlaying(); });
-
-$('patternNew').addEventListener('click', () => {
-  const p = { id: uid(), name: 'Neues Pattern', ...presetPoints('Gleichmäßig') };
-  db.patterns.push(p);
-  currentPatternId = p.id;
-  fillPatternSelects();
-  showPattern();
-  saveStore();
-  $('patternName').select();
-});
-$('patternDup').addEventListener('click', () => {
-  const src = currentPattern();
-  const p = { ...structuredClone(src), id: uid(), name: src.name + ' (Kopie)' };
-  db.patterns.push(p);
-  currentPatternId = p.id;
-  fillPatternSelects();
-  showPattern();
-  saveStore();
-});
-$('patternDel').addEventListener('click', () => {
-  if (db.patterns.length <= 1) return log('Das letzte Pattern kann nicht gelöscht werden.', true);
-  const p = currentPattern();
-  if (!confirm(`Pattern „${p.name}“ löschen?`)) return;
-  db.patterns = db.patterns.filter((x) => x !== p);
-  currentPatternId = db.patterns[0].id;
-  fillPatternSelects();
-  showPattern();
-  saveStore();
-});
-
 const presetSel = $('patternPreset');
-Object.keys(PRESETS).forEach((name) => presetSel.add(new Option(name, name)));
-presetSel.addEventListener('change', () => {
-  if (!presetSel.value) return;
-  Object.assign(currentPattern(), presetPoints(presetSel.value));
-  presetSel.value = '';
-  $('patternLength').value = currentPattern().length;
-  patternChanged();
-});
-
-$('patternPlay').addEventListener('click', () => (active?.kind === 'pattern' ? stopPlayback() : playPattern()));
-$('patternExport').addEventListener('click', () => {
-  const p = currentPattern();
-  const minutes = clamp(Number($('patternExportMin').value) || 5, 1, 120);
-  downloadFunscript(appendPattern([], p, Number($('patternTempo').value), minutes * 60000, 0), p.name);
-});
 
 // --- Zeichenfläche ----------------------------------------------------------
 const pc = $('patternCanvas');
-const pctx = pc.getContext('2d');
+let pctx;
 const PAD = 12;
 let drag = null;
 
@@ -446,36 +351,6 @@ function drawEditor(playhead = null) {
     pctx.fillRect(toX(playhead) - dpr, PAD, 2 * dpr, h - 2 * PAD);
   }
 }
-
-pc.addEventListener('pointerdown', (e) => {
-  if (e.button !== 0) return;
-  const p = currentPattern();
-  drag = hitPoint(e);
-  if (!drag) {
-    const { t, pos } = canvasPoint(e);
-    if (p.points.some((x) => Math.abs(x.t - t) < 0.005)) return;
-    drag = { t: Math.round(t * 1000) / 1000, pos };
-    p.points.push(drag);
-  }
-  pc.setPointerCapture(e.pointerId);
-  drawEditor();
-});
-pc.addEventListener('pointermove', (e) => {
-  if (!drag) {
-    pc.style.cursor = hitPoint(e) ? 'grab' : 'crosshair';
-    return;
-  }
-  const { t, pos } = canvasPoint(e);
-  if (!currentPattern().points.some((x) => x !== drag && Math.abs(x.t - t) < 0.005)) drag.t = Math.round(t * 1000) / 1000;
-  drag.pos = pos;
-  drawEditor();
-});
-pc.addEventListener('pointerup', () => {
-  if (!drag) return;
-  drag = null;
-  currentPattern().points.sort((a, b) => a.t - b.t);
-  patternChanged();
-});
 function deletePoint(e) {
   e.preventDefault();
   const p = currentPattern();
@@ -485,9 +360,6 @@ function deletePoint(e) {
   p.points = p.points.filter((x) => x !== pt);
   patternChanged();
 }
-pc.addEventListener('dblclick', deletePoint);
-pc.addEventListener('contextmenu', deletePoint);
-new ResizeObserver(() => drawEditor()).observe(pc);
 
 // ---------------------------------------------------------------------------
 // Für den Vibrator: laufendes Pattern/Script bzw. Direktsteuerung
@@ -532,11 +404,6 @@ function controlLoop() {
   requestAnimationFrame(controlLoop);
 }
 
-// Script umkehren betrifft auch laufende Patterns/Scripts
-$('invert').addEventListener('change', () => {
-  if (active?.kind === 'pattern') playPattern();
-});
-
 // Alles stoppen: egal, wer gerade steuert (pausiert auch das Video)
 // Not-Aus: Video, Patterns, Direktsteuerung, Handy und Vibratoren sofort anhalten
 export async function emergencyStop(reason = 'Not-Aus') {
@@ -563,16 +430,145 @@ export async function emergencyStop(reason = 'Not-Aus') {
   }
   log(`${reason}: alles gestoppt.`);
 }
-$('stopAll').addEventListener('click', () => emergencyStop());
 
-// ---------------------------------------------------------------------------
-// Start
-// ---------------------------------------------------------------------------
-(async () => {
-  $('patternTempo').value = store.get('tempo', 100);
-  await loadStore();
-  fillPatternSelects();
-  showPattern();
-  updateButtons();
-  requestAnimationFrame(controlLoop);
-})();
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  PRESETS = {
+    'Gleichmäßig': { length: 1000, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 100 }] },
+    'Sanft (Sinus)': { length: 1600, points: sine(12) },
+    'Nur Spitze': { length: 500, points: [{ t: 0, pos: 55 }, { t: 0.5, pos: 100 }] },
+    'Nur Basis': { length: 500, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 45 }] },
+    'Doppelstoß': { length: 1400, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }, { t: 0.35, pos: 45 }, { t: 0.5, pos: 100 }] },
+    'Langsam rauf, schnell runter': { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.8, pos: 100 }] },
+    'Schnell rauf, langsam runter': { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }] },
+    'Wellen': { length: 3000, points: [{ t: 0, pos: 0 }, { t: 0.25, pos: 100 }, { t: 0.4, pos: 0 }, { t: 0.5, pos: 80 }, { t: 0.6, pos: 10 }, { t: 0.7, pos: 90 }, { t: 0.8, pos: 20 }, { t: 0.9, pos: 70 }] },
+    'Treppe': { length: 2400, points: [{ t: 0, pos: 0 }, { t: 0.1, pos: 25 }, { t: 0.2, pos: 25 }, { t: 0.3, pos: 50 }, { t: 0.4, pos: 50 }, { t: 0.5, pos: 75 }, { t: 0.6, pos: 75 }, { t: 0.7, pos: 100 }] },
+    'Zufall': null, // wird bei Auswahl erzeugt
+  };
+  // Andere Bereiche (Video, Direktsteuerung …) haben übernommen
+  document.addEventListener('handy-owner', (e) => {
+    if (active && e.detail !== active.kind) active = null;
+    if (hampOn && e.detail !== 'manual') hampOn = false;
+    updateButtons();
+  });
+  $('hampToggle').addEventListener('click', toggleHamp);
+  $('speed').addEventListener('input', () => setSpeed($('speed').value));
+  $('speedChips').addEventListener('click', (e) => { if (e.target.dataset.v) setSpeed(Number(e.target.dataset.v)); });
+  // Sicherheits-Obergrenze für die Direktsteuerung
+  $('capSpeed').value = store.get('capSpeed', 100);
+  $('capSpeedVal').textContent = `${$('capSpeed').value} %`;
+  $('capSpeed').addEventListener('input', () => {
+    store.set('capSpeed', Number($('capSpeed').value));
+    $('capSpeedVal').textContent = `${$('capSpeed').value} %`;
+    if (Number($('speed').value) > Number($('capSpeed').value)) setSpeed($('capSpeed').value);
+  });
+  setSpeed(store.get('speed', 30), false);
+  document.addEventListener('keydown', (e) => {
+    if ($('view-control').hidden || e.target.closest('input, select, textarea, button')) return;
+    if (e.code === 'Space') { e.preventDefault(); toggleHamp(); }
+    if (e.code === 'ArrowUp') { e.preventDefault(); setSpeed(Number($('speed').value) + 5); }
+    if (e.code === 'ArrowDown') { e.preventDefault(); setSpeed(Number($('speed').value) - 5); }
+  });
+  currentPatternId = store.get('pattern', null);
+  $('patternSelect').addEventListener('change', (e) => { currentPatternId = e.target.value; showPattern(); restartPatternIfPlaying(); });
+  $('patternName').addEventListener('input', (e) => {
+    currentPattern().name = e.target.value.trim() || 'Ohne Namen';
+    fillPatternSelects();
+    saveStore();
+  });
+  $('patternLength').addEventListener('input', (e) => { currentPattern().length = Number(e.target.value); updatePatternInfo(); });
+  $('patternLength').addEventListener('change', patternChanged);
+  $('patternTempo').addEventListener('input', updatePatternInfo);
+  $('patternTempo').addEventListener('change', () => { store.set('tempo', Number($('patternTempo').value)); restartPatternIfPlaying(); });
+  $('patternNew').addEventListener('click', () => {
+    const p = { id: uid(), name: 'Neues Pattern', ...presetPoints('Gleichmäßig') };
+    db.patterns.push(p);
+    currentPatternId = p.id;
+    fillPatternSelects();
+    showPattern();
+    saveStore();
+    $('patternName').select();
+  });
+  $('patternDup').addEventListener('click', () => {
+    const src = currentPattern();
+    const p = { ...structuredClone(src), id: uid(), name: src.name + ' (Kopie)' };
+    db.patterns.push(p);
+    currentPatternId = p.id;
+    fillPatternSelects();
+    showPattern();
+    saveStore();
+  });
+  $('patternDel').addEventListener('click', () => {
+    if (db.patterns.length <= 1) return log('Das letzte Pattern kann nicht gelöscht werden.', true);
+    const p = currentPattern();
+    if (!confirm(`Pattern „${p.name}“ löschen?`)) return;
+    db.patterns = db.patterns.filter((x) => x !== p);
+    currentPatternId = db.patterns[0].id;
+    fillPatternSelects();
+    showPattern();
+    saveStore();
+  });
+  Object.keys(PRESETS).forEach((name) => presetSel.add(new Option(name, name)));
+  presetSel.addEventListener('change', () => {
+    if (!presetSel.value) return;
+    Object.assign(currentPattern(), presetPoints(presetSel.value));
+    presetSel.value = '';
+    $('patternLength').value = currentPattern().length;
+    patternChanged();
+  });
+  $('patternPlay').addEventListener('click', () => (active?.kind === 'pattern' ? stopPlayback() : playPattern()));
+  $('patternExport').addEventListener('click', () => {
+    const p = currentPattern();
+    const minutes = clamp(Number($('patternExportMin').value) || 5, 1, 120);
+    downloadFunscript(appendPattern([], p, Number($('patternTempo').value), minutes * 60000, 0), p.name);
+  });
+  pctx = pc.getContext('2d');
+  pc.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    const p = currentPattern();
+    drag = hitPoint(e);
+    if (!drag) {
+      const { t, pos } = canvasPoint(e);
+      if (p.points.some((x) => Math.abs(x.t - t) < 0.005)) return;
+      drag = { t: Math.round(t * 1000) / 1000, pos };
+      p.points.push(drag);
+    }
+    pc.setPointerCapture(e.pointerId);
+    drawEditor();
+  });
+  pc.addEventListener('pointermove', (e) => {
+    if (!drag) {
+      pc.style.cursor = hitPoint(e) ? 'grab' : 'crosshair';
+      return;
+    }
+    const { t, pos } = canvasPoint(e);
+    if (!currentPattern().points.some((x) => x !== drag && Math.abs(x.t - t) < 0.005)) drag.t = Math.round(t * 1000) / 1000;
+    drag.pos = pos;
+    drawEditor();
+  });
+  pc.addEventListener('pointerup', () => {
+    if (!drag) return;
+    drag = null;
+    currentPattern().points.sort((a, b) => a.t - b.t);
+    patternChanged();
+  });
+  pc.addEventListener('dblclick', deletePoint);
+  pc.addEventListener('contextmenu', deletePoint);
+  new ResizeObserver(() => drawEditor()).observe(pc);
+  // Script umkehren betrifft auch laufende Patterns/Scripts
+  $('invert').addEventListener('change', () => {
+    if (active?.kind === 'pattern') playPattern();
+  });
+  $('stopAll').addEventListener('click', () => emergencyStop());
+  // ---------------------------------------------------------------------------
+  // Start
+  // ---------------------------------------------------------------------------
+  (async () => {
+    $('patternTempo').value = store.get('tempo', 100);
+    await loadStore();
+    fillPatternSelects();
+    showPattern();
+    updateButtons();
+    requestAnimationFrame(controlLoop);
+  })();
+}

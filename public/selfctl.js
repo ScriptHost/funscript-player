@@ -1,11 +1,10 @@
-import './stroker.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady, video } from './state.js';
 import { $, claimHandy, downloadFunscript, handy, log, store } from './handy.js';
 import { hasHandy, hasVibe, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
 import { saveScriptToLibrary, scriptMeta, suspended } from './library.js';
 import { strokers } from './stroker.js';
 import { touchMode, touchPosActive, touchSync, touchToPositionActions, touchToTempoActions, tpos } from './touchpad.js';
-modulesReady.add('selfctl');
 
 // ===========================================================================
 // Selbst steuern – für Videos ohne Funscript.
@@ -16,30 +15,7 @@ modulesReady.add('selfctl');
 //   hampLevel() wie die Direktsteuerung (stroker.js). Grenze aus ⚙️ → Sicherheit.
 //   Gemerkt werden die Wahl Aus/Selbst steuern und die Regler, nicht „Handy läuft“.
 // ===========================================================================
-export const selfCtl = {
-  mode: store.get('selfMode', 'off'),
-  handyOn: false,
-  speed: store.get('selfSpeed', 40),
-  // Hub unten/oben in % des eingestellten Hubs (Hub min/max) – frei wählbar, z. B. nur oben
-  lo: store.get('selfLo', null),
-  hi: store.get('selfHi', null),
-  vibe: store.get('selfVibe', 0),
-  sent: 0,       // an die Handy gesendete Geschwindigkeit (0 = steht)
-  again: false,  // Änderung kam, während ein Befehl lief
-  busy: false,
-};
-
-// Bis 1.19.1 gab es nur „Hublänge“ um die Mitte – einmalig in unten/oben umrechnen
-if (selfCtl.lo === null || selfCtl.hi === null) {
-  const s = store.get('selfStroke', 100);
-  selfCtl.lo = Math.round((100 - s) / 2);
-  selfCtl.hi = 100 - selfCtl.lo;
-  store.set('selfLo', selfCtl.lo);
-  store.set('selfHi', selfCtl.hi);
-}
-if (store.get('selfStroke', undefined) !== undefined) store.del('selfStroke');
-// 1.19.9: „🎵 Nach Ton“ gibt es nicht mehr – wer es gewählt hatte, landet bei „Keine Steuerung“
-if (selfCtl.mode !== 'self' && selfCtl.mode !== 'off') { selfCtl.mode = 'off'; store.set('selfMode', 'off'); }
+export let selfCtl;
 const SELF_GAP = 10; // kleinster Abstand unten–oben in %
 
 const selfVideoLoaded = () => !!nowPlaying;
@@ -121,29 +97,6 @@ export async function selfTick() {
     if (selfCtl.again) { selfCtl.again = false; selfTick(); }
   }
 }
-setInterval(selfTick, 250);
-['play', 'pause', 'ended', 'emptied'].forEach((ev) => video.addEventListener(ev, () => setTimeout(selfTick, 0)));
-
-// Jemand anderes übernimmt die Handy; STOPP (Besitzer „none“) schaltet sie hier aus
-document.addEventListener('handy-owner', (e) => {
-  if (e.detail === 'self') return;
-  selfCtl.sent = 0;
-  if (e.detail === 'none') selfCtl.handyOn = false;
-  selfUI();
-});
-
-document.querySelectorAll('#selfSeg button').forEach((b) => b.addEventListener('click', () => {
-  selfCtl.mode = b.dataset.self;
-  store.set('selfMode', selfCtl.mode);
-  if (selfCtl.mode !== 'self') selfCtl.handyOn = false;
-  selfTick();
-}));
-$('selfHandy').addEventListener('click', () => {
-  if (!selfCtl.handyOn && !handy.connected && !strokers().length) log('Handy ist nicht verbunden – Satisfyer läuft trotzdem.', true);
-  selfCtl.handyOn = !selfCtl.handyOn;
-  touchSync('self', selfCtl.handyOn ? selfCtl.speed : null);
-  selfTick();
-});
 const setSelfSpeed = (v) => {
   selfCtl.speed = Number(v);
   store.set('selfSpeed', selfCtl.speed);
@@ -151,28 +104,6 @@ const setSelfSpeed = (v) => {
   selfTick();
 };
 const setSelfVibe = (v) => { selfCtl.vibe = Number(v); store.set('selfVibe', selfCtl.vibe); selfUI(); };
-$('selfSpeed').addEventListener('input', () => setSelfSpeed($('selfSpeed').value));
-// Unten/oben schieben sich gegenseitig, damit immer ein Hub von mindestens SELF_GAP bleibt
-['selfLo', 'selfHi'].forEach((id) => {
-  $(id).addEventListener('input', () => {
-    const v = Number($(id).value);
-    if (id === 'selfLo') { selfCtl.lo = Math.min(v, 100 - SELF_GAP); selfCtl.hi = Math.max(selfCtl.hi, selfCtl.lo + SELF_GAP); }
-    else { selfCtl.hi = Math.max(v, SELF_GAP); selfCtl.lo = Math.min(selfCtl.lo, selfCtl.hi - SELF_GAP); }
-    selfUI();
-  });
-  $(id).addEventListener('change', () => {
-    store.set('selfLo', selfCtl.lo);
-    store.set('selfHi', selfCtl.hi);
-    if (selfCtl.sent) selfApplyStroke(true);
-  });
-});
-$('selfVibe').addEventListener('input', () => setSelfVibe($('selfVibe').value));
-document.querySelectorAll('#selfChips button').forEach((b) => b.addEventListener('click', () => {
-  if (!selfCtl.handyOn) selfCtl.handyOn = true;
-  setSelfSpeed(b.dataset.v);
-}));
-document.querySelectorAll('#selfVibeChips button').forEach((b) => b.addEventListener('click', () => setSelfVibe(b.dataset.v)));
-selfUI();
 
 // ---------------------------------------------------------------------------
 // ⏺ Mitschnitt zum Video: zeichnet die Steuerung (Regler, Schnellwahl, Touch) an der
@@ -187,37 +118,107 @@ const selfRecValue = () => {
   const v = Math.max(selfCtl.handyOn ? selfSpeed() : 0, selfCtl.vibe);
   return selfActive() && v > 0 ? v : null;
 };
-$('selfRec').addEventListener('click', () => {
-  if (!selfRec) {
-    selfRec = [];
-    selfRecPos = selfRecPosMode();
-    selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
-    $('selfRec').textContent = '■ Mitschnitt beenden';
-    $('selfRec').classList.add('recording');
-    $('selfRecSave').hidden = $('selfRecFile').hidden = $('selfRecSection').hidden = true;
-    $('selfRecInfo').textContent = 'läuft – steuere wie gewohnt';
-    return;
+
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  selfCtl = {
+    mode: store.get('selfMode', 'off'),
+    handyOn: false,
+    speed: store.get('selfSpeed', 40),
+    // Hub unten/oben in % des eingestellten Hubs (Hub min/max) – frei wählbar, z. B. nur oben
+    lo: store.get('selfLo', null),
+    hi: store.get('selfHi', null),
+    vibe: store.get('selfVibe', 0),
+    sent: 0,       // an die Handy gesendete Geschwindigkeit (0 = steht)
+    again: false,  // Änderung kam, während ein Befehl lief
+    busy: false,
+  };
+  // Bis 1.19.1 gab es nur „Hublänge“ um die Mitte – einmalig in unten/oben umrechnen
+  if (selfCtl.lo === null || selfCtl.hi === null) {
+    const s = store.get('selfStroke', 100);
+    selfCtl.lo = Math.round((100 - s) / 2);
+    selfCtl.hi = 100 - selfCtl.lo;
+    store.set('selfLo', selfCtl.lo);
+    store.set('selfHi', selfCtl.hi);
   }
-  clearInterval(selfRecTimer);
-  $('selfRec').textContent = '⏺ Mitschnitt zum Video';
-  $('selfRec').classList.remove('recording');
-  // Spulen: nach Zeit sortieren; Lücken (Pause/Sprung) gelten als losgelassen
-  const samples = selfRec.sort((a, b) => a[0] - b[0]);
-  selfRec = null;
-  const withGaps = [];
-  for (let i = 0; i < samples.length; i++) {
-    withGaps.push(samples[i]);
-    if (samples[i + 1] && samples[i + 1][0] - samples[i][0] > 600) withGaps.push([samples[i][0] + 150, null]);
-  }
-  if (!withGaps.some((x) => x[1])) { $('selfRecInfo').textContent = 'nichts aufgenommen – Video abspielen und steuern'; return; }
-  const start = withGaps[0][0], end = withGaps[withGaps.length - 1][0];
-  selfRecActions = selfRecPos ? touchToPositionActions(samples.filter((x) => x[1] !== null)) : touchToTempoActions(withGaps, end, start);
-  $('selfRecInfo').textContent = `${Math.round((end - start) / 1000)} s · ${selfRecActions.length} Punkte`;
-  $('selfRecSave').hidden = $('selfRecFile').hidden = false;
-  // Gibt es schon ein eigenes Script: ganz ersetzen oder nur den aufgenommenen Abschnitt
-  $('selfRecSection').hidden = !scriptMeta.hasOwn;
-  $('selfRecSave').textContent = scriptMeta.hasOwn ? '💾 Eigenes Script ganz ersetzen' : '💾 Als Script zu diesem Video speichern';
-});
-$('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'all'));
-$('selfRecSection').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'section'));
-$('selfRecFile').addEventListener('click', () => downloadFunscript(selfRecActions, nowPlaying?.title || nowPlaying?.name || 'mitschnitt'));
+  if (store.get('selfStroke', undefined) !== undefined) store.del('selfStroke');
+  // 1.19.9: „🎵 Nach Ton“ gibt es nicht mehr – wer es gewählt hatte, landet bei „Keine Steuerung“
+  if (selfCtl.mode !== 'self' && selfCtl.mode !== 'off') { selfCtl.mode = 'off'; store.set('selfMode', 'off'); }
+  setInterval(selfTick, 250);
+  ['play', 'pause', 'ended', 'emptied'].forEach((ev) => video.addEventListener(ev, () => setTimeout(selfTick, 0)));
+  // Jemand anderes übernimmt die Handy; STOPP (Besitzer „none“) schaltet sie hier aus
+  document.addEventListener('handy-owner', (e) => {
+    if (e.detail === 'self') return;
+    selfCtl.sent = 0;
+    if (e.detail === 'none') selfCtl.handyOn = false;
+    selfUI();
+  });
+  document.querySelectorAll('#selfSeg button').forEach((b) => b.addEventListener('click', () => {
+    selfCtl.mode = b.dataset.self;
+    store.set('selfMode', selfCtl.mode);
+    if (selfCtl.mode !== 'self') selfCtl.handyOn = false;
+    selfTick();
+  }));
+  $('selfHandy').addEventListener('click', () => {
+    if (!selfCtl.handyOn && !handy.connected && !strokers().length) log('Handy ist nicht verbunden – Satisfyer läuft trotzdem.', true);
+    selfCtl.handyOn = !selfCtl.handyOn;
+    touchSync('self', selfCtl.handyOn ? selfCtl.speed : null);
+    selfTick();
+  });
+  $('selfSpeed').addEventListener('input', () => setSelfSpeed($('selfSpeed').value));
+  // Unten/oben schieben sich gegenseitig, damit immer ein Hub von mindestens SELF_GAP bleibt
+  ['selfLo', 'selfHi'].forEach((id) => {
+    $(id).addEventListener('input', () => {
+      const v = Number($(id).value);
+      if (id === 'selfLo') { selfCtl.lo = Math.min(v, 100 - SELF_GAP); selfCtl.hi = Math.max(selfCtl.hi, selfCtl.lo + SELF_GAP); }
+      else { selfCtl.hi = Math.max(v, SELF_GAP); selfCtl.lo = Math.min(selfCtl.lo, selfCtl.hi - SELF_GAP); }
+      selfUI();
+    });
+    $(id).addEventListener('change', () => {
+      store.set('selfLo', selfCtl.lo);
+      store.set('selfHi', selfCtl.hi);
+      if (selfCtl.sent) selfApplyStroke(true);
+    });
+  });
+  $('selfVibe').addEventListener('input', () => setSelfVibe($('selfVibe').value));
+  document.querySelectorAll('#selfChips button').forEach((b) => b.addEventListener('click', () => {
+    if (!selfCtl.handyOn) selfCtl.handyOn = true;
+    setSelfSpeed(b.dataset.v);
+  }));
+  document.querySelectorAll('#selfVibeChips button').forEach((b) => b.addEventListener('click', () => setSelfVibe(b.dataset.v)));
+  selfUI();
+  $('selfRec').addEventListener('click', () => {
+    if (!selfRec) {
+      selfRec = [];
+      selfRecPos = selfRecPosMode();
+      selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
+      $('selfRec').textContent = '■ Mitschnitt beenden';
+      $('selfRec').classList.add('recording');
+      $('selfRecSave').hidden = $('selfRecFile').hidden = $('selfRecSection').hidden = true;
+      $('selfRecInfo').textContent = 'läuft – steuere wie gewohnt';
+      return;
+    }
+    clearInterval(selfRecTimer);
+    $('selfRec').textContent = '⏺ Mitschnitt zum Video';
+    $('selfRec').classList.remove('recording');
+    // Spulen: nach Zeit sortieren; Lücken (Pause/Sprung) gelten als losgelassen
+    const samples = selfRec.sort((a, b) => a[0] - b[0]);
+    selfRec = null;
+    const withGaps = [];
+    for (let i = 0; i < samples.length; i++) {
+      withGaps.push(samples[i]);
+      if (samples[i + 1] && samples[i + 1][0] - samples[i][0] > 600) withGaps.push([samples[i][0] + 150, null]);
+    }
+    if (!withGaps.some((x) => x[1])) { $('selfRecInfo').textContent = 'nichts aufgenommen – Video abspielen und steuern'; return; }
+    const start = withGaps[0][0], end = withGaps[withGaps.length - 1][0];
+    selfRecActions = selfRecPos ? touchToPositionActions(samples.filter((x) => x[1] !== null)) : touchToTempoActions(withGaps, end, start);
+    $('selfRecInfo').textContent = `${Math.round((end - start) / 1000)} s · ${selfRecActions.length} Punkte`;
+    $('selfRecSave').hidden = $('selfRecFile').hidden = false;
+    // Gibt es schon ein eigenes Script: ganz ersetzen oder nur den aufgenommenen Abschnitt
+    $('selfRecSection').hidden = !scriptMeta.hasOwn;
+    $('selfRecSave').textContent = scriptMeta.hasOwn ? '💾 Eigenes Script ganz ersetzen' : '💾 Als Script zu diesem Video speichern';
+  });
+  $('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'all'));
+  $('selfRecSection').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'section'));
+  $('selfRecFile').addEventListener('click', () => downloadFunscript(selfRecActions, nowPlaying?.title || nowPlaying?.name || 'mitschnitt'));
+}

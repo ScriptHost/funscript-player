@@ -1,8 +1,7 @@
-import './fullscreen.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady, video } from './state.js';
 import { $, store } from './handy.js';
 import { endHold, isFs, stage } from './fullscreen.js';
-modulesReady.add('gestures');
 
 // ===========================================================================
 // Wischen im Vollbild (1.19.8): linke und rechte Bildhälfte hoch/runter.
@@ -13,19 +12,7 @@ modulesReady.add('gestures');
 // ===========================================================================
 const SWIPE_ACTIONS = ['off', 'volume', 'vibe', 'handy', 'both'];
 // 1.19.9: Standard links Hub Handy, rechts Stärke Satisfyer (Lautstärke nur noch auf Wunsch)
-const swipeCfg = { left: store.get('swipeLeft', 'handy'), right: store.get('swipeRight', 'vibe') };
-// 1.19.11: einmalig weg von den Standards aus 1.19.8 (links Lautstärke, rechts beide Geräte)
-if (!store.get('swipe1911', false)) {
-  if (swipeCfg.left === 'volume') { swipeCfg.left = 'handy'; store.set('swipeLeft', 'handy'); }
-  if (swipeCfg.right === 'both') { swipeCfg.right = 'vibe'; store.set('swipeRight', 'vibe'); }
-  store.set('swipe1911', true);
-}
-for (const side of ['left', 'right']) {
-  const sel = $(side === 'left' ? 'swipeLeft' : 'swipeRight');
-  if (!SWIPE_ACTIONS.includes(swipeCfg[side])) swipeCfg[side] = 'off';
-  sel.value = swipeCfg[side];
-  sel.addEventListener('change', () => { swipeCfg[side] = sel.value; store.set(sel.id, sel.value); });
-}
+let swipeCfg;
 
 const swipeInFs = () => document.fullscreenElement === video || isFs();
 const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -104,10 +91,26 @@ function swipeEnd() {
   swipe = null;
 }
 
-for (const el of [video, $('ovHit')]) {
-  el.addEventListener('pointerdown', swipeStart);
-  el.addEventListener('pointermove', swipeMove, { passive: false });
-  ['pointerup', 'pointercancel'].forEach((ev) => el.addEventListener(ev, swipeEnd));
-  // Nach dem Wischen kein „Tippen“ hinterher (Bedienung ein/aus, Play/Pause)
-  el.addEventListener('click', (e) => { if (Date.now() - swipeEndedAt < 400) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  swipeCfg = { left: store.get('swipeLeft', 'handy'), right: store.get('swipeRight', 'vibe') };
+  // 1.19.11: einmalig weg von den Standards aus 1.19.8 (links Lautstärke, rechts beide Geräte)
+  if (!store.get('swipe1911', false)) {
+    if (swipeCfg.left === 'volume') { swipeCfg.left = 'handy'; store.set('swipeLeft', 'handy'); }
+    if (swipeCfg.right === 'both') { swipeCfg.right = 'vibe'; store.set('swipeRight', 'vibe'); }
+    store.set('swipe1911', true);
+  }
+  for (const side of ['left', 'right']) {
+    const sel = $(side === 'left' ? 'swipeLeft' : 'swipeRight');
+    if (!SWIPE_ACTIONS.includes(swipeCfg[side])) swipeCfg[side] = 'off';
+    sel.value = swipeCfg[side];
+    sel.addEventListener('change', () => { swipeCfg[side] = sel.value; store.set(sel.id, sel.value); });
+  }
+  for (const el of [video, $('ovHit')]) {
+    el.addEventListener('pointerdown', swipeStart);
+    el.addEventListener('pointermove', swipeMove, { passive: false });
+    ['pointerup', 'pointercancel'].forEach((ev) => el.addEventListener(ev, swipeEnd));
+    // Nach dem Wischen kein „Tippen“ hinterher (Bedienung ein/aus, Play/Pause)
+    el.addEventListener('click', (e) => { if (Date.now() - swipeEndedAt < 400) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  }
 }

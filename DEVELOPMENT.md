@@ -24,11 +24,10 @@ Browser (public/*.js)                        server.js + lib/
 
 ## Files
 
-Since 2.0 the scripts in `public/` are ES modules (no build step). `boot.js` is the only `<script type="module">` and starts
+Since 2.0 the scripts in `public/` are ES modules (no build step). `main.js` is the only `<script type="module">` and starts
 the interface (no inline scripts because of the Content Security Policy); only `i18n-en.js` + `i18n.js` are still classic scripts.
-The old modules call each other in circles, so each one imports its predecessor first to keep the proven load order (see
-`boot.js`); `state.js` holds shared state and `modulesReady` (replaces the old `typeof x === 'function'` guards). New
-modules should not do work at load time (export an `init()` instead).
+Modules do no work at load time: each exports an `init()`, and `main.js` calls them in a fixed order. `state.js` holds
+shared state and `modulesReady` (which init() has already run – replaces the old `typeof x === 'function'` guards).
 
 | File | Purpose |
 |---|---|

@@ -1,4 +1,4 @@
-import './vibe.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady, video } from './state.js';
 import { $, handy, store } from './handy.js';
 import {
@@ -8,7 +8,6 @@ import { active, emergencyStop, hampOn } from './control.js';
 import { allVibes, setVibePaused, vibeLevel, vibePaused } from './vibe.js';
 import { fin } from './finale.js';
 import { selfRunning } from './selfctl.js';
-modulesReady.add('fullscreen');
 
 // ===========================================================================
 // Eigene Player-Bedienung (statt der Browser-Leiste), Vollbild fürs Smartphone,
@@ -29,10 +28,6 @@ const fmtClock = (s) => {
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
 };
 export const isFs = () => stage.classList.contains('fs');
-
-// Bedienung erst zeigen, wenn ein Video geladen ist
-video.addEventListener('loadedmetadata', () => { stage.classList.add('ready'); showOverlay(); drawOvBar(); });
-video.addEventListener('emptied', () => stage.classList.remove('ready'));
 
 // ---------------------------------------------------------------------------
 // Vollbild an/aus
@@ -77,17 +72,6 @@ function exitFullscreen() {
 }
 const toggleFullscreen = () => (isFs() ? exitFullscreen() : enterFullscreen());
 
-// Zurück-Geste / Esc beendet das echte Fullscreen -> auch unseren Modus
-['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
-  if (nativeFs && document.fullscreenElement !== video) { nativeFs = false; video.controls = false; try { screen.orientation.unlock(); } catch { /* egal */ } }
-  if (realFullscreen && !document.fullscreenElement && !document.webkitFullscreenElement) exitFullscreen();
-}));
-
-$('ovFs').addEventListener('click', toggleFullscreen);
-// nach test2: Player verlassen (Zurück-Geste, Navigation) beendet das Vollbild – sonst blieb der Player im
-// Vollbild-Zustand hängen und der Mini-Player beim Stöbern war leer/schwarz
-window.addEventListener('hp:view', () => { if (document.body.dataset.view !== 'player' && isFs()) exitFullscreen(); });
-
 // Füllen (Zoom, schneidet Ränder ab) oder Einpassen (ganzes Bild, ggf. schwarze Balken) – nur im Vollbild
 function setFit(fit) {
   stage.dataset.fit = fit;
@@ -95,8 +79,6 @@ function setFit(fit) {
   store.set('fit', fit);
   window.dispatchEvent(new Event('resize'));
 }
-setFit(store.get('fit', 'cover'));
-$('ovFit').addEventListener('click', () => { setFit(stage.dataset.fit === 'cover' ? 'contain' : 'cover'); showOverlay(); });
 
 // ---------------------------------------------------------------------------
 // Bedienelemente
@@ -126,34 +108,6 @@ let lastTap = 0, tapTimer;
 // Rückwärts kann der Browser nicht abspielen: angehalten alle 0,1 s 0,2 s zurück. Beim HQ-Stream würde jeder
 // Sprung den Stream neu starten – dort läuft nur die Zielzeit mit, gesprungen wird einmal beim Loslassen.
 let holdTimer = null, holdRepeat = null, held = false, holdState = null;
-$('ovHit').addEventListener('pointerdown', (e) => {
-  const r = stage.getBoundingClientRect();
-  const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;
-  held = false;
-  if (!side) return;
-  holdTimer = setTimeout(() => {
-    held = true;
-    showOverlay();
-    holdState = { paused: video.paused, rate: video.playbackRate, target: null };
-    if (side > 0) {
-      video.playbackRate = 2;
-      if (video.paused) video.play().catch(() => {});
-      ov.classList.add('fast');
-    } else {
-      video.pause();
-      ov.classList.add('rewind');
-      holdState.target = mediaTime();
-      const step = () => {
-        holdState.target = Math.max(0, holdState.target - 0.2);
-        ov.dataset.t = fmtClock(holdState.target);
-        if (!hq.active) seekTo(holdState.target);
-        showOverlay();
-      };
-      step();
-      holdRepeat = setInterval(step, 100);
-    }
-  }, 450);
-});
 export const endHold = () => {
   clearTimeout(holdTimer);
   clearInterval(holdRepeat);
@@ -166,54 +120,17 @@ export const endHold = () => {
   delete ov.dataset.t;
   holdState = null;
 };
-['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => $('ovHit').addEventListener(ev, endHold));
-$('ovHit').addEventListener('click', (e) => {
-  if (held) { held = false; return; } // war gedrückt halten, kein Tippen
-  const now = Date.now();
-  const r = stage.getBoundingClientRect();
-  const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;
-  if (now - lastTap < 300) {
-    clearTimeout(tapTimer);
-    lastTap = 0;
-    if (side) seekBy(side * skipSec());
-    else toggleFullscreen();
-    return;
-  }
-  lastTap = now;
-  tapTimer = setTimeout(() => {
-    // Maus: Klick = Play/Pause (wie gewohnt). Touch: Bedienung ein/aus.
-    if (e.pointerType === 'mouse' || (!e.pointerType && matchMedia('(hover: hover)').matches)) { togglePlay(); showOverlay(); }
-    else if (ov.classList.contains('hide')) showOverlay();
-    else hideOverlay();
-  }, 280);
-});
-stage.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') showOverlay(); });
-
-$('ovPlay').addEventListener('click', () => { togglePlay(); showOverlay(); });
 // Sprungweite fürs Doppeltippen links/rechts: 5 oder 10 s (⚙️ → Anzeige) – die −/+-Knöpfe gibt es seit 1.19.8 nicht mehr
 const skipSec = () => (store.get('skipSec', 10) === 5 ? 5 : 10);
 function applySkip() {
   $('skipSec').value = String(skipSec());
 }
-$('skipSec').addEventListener('change', () => { store.set('skipSec', Number($('skipSec').value)); applySkip(); });
-applySkip();
-$('ovVibe').addEventListener('click', () => { setVibePaused(!vibePaused); showOverlay(); });
-$('ovStop').addEventListener('click', () => emergencyStop());
 
 function updateMute() { $('ovMute').textContent = video.muted || video.volume === 0 ? '🔇' : '🔊'; }
-$('ovMute').addEventListener('click', () => { video.muted = !video.muted; store.set('muted', video.muted); showOverlay(); });
-video.addEventListener('volumechange', updateMute);
-video.muted = store.get('muted', false);
-updateMute();
-
-video.addEventListener('play', () => { $('ovPlay').textContent = '❚❚'; showOverlay(); });
-video.addEventListener('pause', () => { $('ovPlay').textContent = '▶'; showOverlay(); });
-// 1.19.7: Videowechsel – load() hält das alte Video an, ohne „pause“ zu melden; sonst bliebe ❚❚ stehen
-['emptied', 'loadstart'].forEach((ev) => video.addEventListener(ev, () => { $('ovPlay').textContent = video.paused ? '▶' : '❚❚'; }));
 
 // Zeitleiste mit Heatmap und Markern; tippen/ziehen zum Springen
 const bar = $('ovBar');
-const bctx = bar.getContext('2d');
+let bctx;
 function drawOvBar() {
   if (!stage.classList.contains('ready')) return;
   const dpr = window.devicePixelRatio || 1;
@@ -245,8 +162,6 @@ function drawOvBar() {
   }
   $('ovTime').textContent = `${fmtClock(seekPreview ?? mediaTime())} /${fmtClock(total / 1000)}${hq.active ? ' · HQ' : ''}`;
 }
-setInterval(drawOvBar, 250);
-video.addEventListener('timeupdate', drawOvBar);
 
 let seeking = false;
 let seekPreview = null;
@@ -288,26 +203,6 @@ function showSeekPreview(e) {
   box.style.left = (r.left - pr.left + Math.max(0, Math.min(r.width - w, frac * r.width - w / 2))) + 'px';
   box.querySelector('span').textContent = fmtClock(t);
 }
-bar.addEventListener('pointermove', showSeekPreview);
-bar.addEventListener('pointerleave', () => { if (!seeking) $('seekPreview').hidden = true; });
-
-bar.addEventListener('pointerdown', (e) => { seeking = true; bar.setPointerCapture(e.pointerId); seekFromBar(e); showSeekPreview(e); });
-bar.addEventListener('pointermove', (e) => { if (seeking) seekFromBar(e); });
-bar.addEventListener('pointerup', () => {
-  seeking = false;
-  $('seekPreview').hidden = true;
-  if (seekPreview !== null) { const t = seekPreview; seekPreview = null; seekTo(t); }
-});
-
-// Tastatur im Player: Leertaste/K Play, ←/→ ±5 s, F Vollbild, M Ton
-document.addEventListener('keydown', (e) => {
-  if (e.target.closest('input, select, textarea') || document.body.dataset.view !== 'player') return;
-  if (e.code === 'Space' || e.key === 'k') { e.preventDefault(); togglePlay(); showOverlay(); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); seekBy(-5); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); seekBy(5); }
-  else if (e.key === 'f') toggleFullscreen();
-  else if (e.key === 'm') { video.muted = !video.muted; showOverlay(); }
-});
 
 // ---------------------------------------------------------------------------
 // Not-Aus: schwebender Knopf, Esc-Taste, automatisch bei Bildschirmsperre
@@ -317,48 +212,11 @@ function anyRunning() {
   const devices = handy.connected || allVibes().length > 0;
   return devices && ((videoPlaying() && !!script && syncActive()) || !!active || hampOn || vibeLevel > 0 || (modulesReady.has('finale') && fin.active) || (modulesReady.has('selfctl') && selfRunning()));
 }
-
-// Abschaltbar (⚙️ → Notaus); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
-// 1.19.8: STOPP-Knöpfe und Stopp bei Bildschirmsperre standardmäßig aus – Esc und „Alles stoppen“ im Geräte-Fenster bleiben
-$('stopButton').checked = store.get('stopButton', false);
 const applyStopButton = () => document.body.classList.toggle('no-stop-btn', !$('stopButton').checked);
-$('stopButton').addEventListener('change', () => { store.set('stopButton', $('stopButton').checked); applyStopButton(); });
-applyStopButton();
-setInterval(() => { $('fabStop').hidden = !anyRunning() || !$('stopButton').checked; }, 300);
-$('fabStop').addEventListener('click', () => emergencyStop());
-
-document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape') return;
-  if (anyRunning()) emergencyStop();
-  exitFullscreen();
-});
-
-$('stopHidden').checked = store.get('stopHidden', false);
-$('stopHidden').addEventListener('change', () => store.set('stopHidden', $('stopHidden').checked));
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'hidden' || !$('stopHidden').checked || !anyRunning()) return;
-  // Läuft das Video als Bild-in-Bild weiter, schaut man noch zu -> nicht stoppen.
-  // Kurz warten: das kleine Fenster öffnet sich erst nach dem Verlassen der App.
-  setTimeout(() => {
-    if (document.visibilityState === 'hidden' && !document.pictureInPictureElement && anyRunning()) {
-      emergencyStop('Bildschirm gesperrt / App gewechselt');
-    }
-  }, 700);
-});
 
 // Auto-Stopp (⚙️ → Notaus): keine Bedienung und kein laufendes Video -> nach X Minuten alles aus.
 // Ein laufendes Video mit Script zählt als „dabei“ – nur Direktsteuerung, Patterns, manuelle Stärke usw.
-let lastInput = Date.now();
-['pointerdown', 'keydown', 'input', 'wheel'].forEach((ev) => document.addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
-// 1.19.7: Standard „nie“ (vorher 10 min) – STOPP-Knopf, Esc und Stopp bei Bildschirmsperre bleiben
-$('autoStop').value = String(store.get('autoStop', 0));
-$('autoStop').addEventListener('change', () => store.set('autoStop', Number($('autoStop').value)));
-setInterval(() => {
-  const min = Number(store.get('autoStop', 0));
-  if (!min || videoPlaying() || !anyRunning() || Date.now() - lastInput < min * 60000) return;
-  emergencyStop(`Auto-Stopp: ${min} min keine Bedienung`);
-  lastInput = Date.now();
-}, 15000);
+let lastInput;
 
 // ---------------------------------------------------------------------------
 // Bildschirm nicht abschalten, solange etwas läuft
@@ -377,5 +235,142 @@ async function updateWakeLock() {
     wakeLock = null;
   }
 }
-setInterval(updateWakeLock, 2000);
-document.addEventListener('visibilitychange', updateWakeLock);
+
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  // Bedienung erst zeigen, wenn ein Video geladen ist
+  video.addEventListener('loadedmetadata', () => { stage.classList.add('ready'); showOverlay(); drawOvBar(); });
+  video.addEventListener('emptied', () => stage.classList.remove('ready'));
+  // Zurück-Geste / Esc beendet das echte Fullscreen -> auch unseren Modus
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => {
+    if (nativeFs && document.fullscreenElement !== video) { nativeFs = false; video.controls = false; try { screen.orientation.unlock(); } catch { /* egal */ } }
+    if (realFullscreen && !document.fullscreenElement && !document.webkitFullscreenElement) exitFullscreen();
+  }));
+  $('ovFs').addEventListener('click', toggleFullscreen);
+  // nach test2: Player verlassen (Zurück-Geste, Navigation) beendet das Vollbild – sonst blieb der Player im
+  // Vollbild-Zustand hängen und der Mini-Player beim Stöbern war leer/schwarz
+  window.addEventListener('hp:view', () => { if (document.body.dataset.view !== 'player' && isFs()) exitFullscreen(); });
+  setFit(store.get('fit', 'cover'));
+  $('ovFit').addEventListener('click', () => { setFit(stage.dataset.fit === 'cover' ? 'contain' : 'cover'); showOverlay(); });
+  $('ovHit').addEventListener('pointerdown', (e) => {
+    const r = stage.getBoundingClientRect();
+    const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;
+    held = false;
+    if (!side) return;
+    holdTimer = setTimeout(() => {
+      held = true;
+      showOverlay();
+      holdState = { paused: video.paused, rate: video.playbackRate, target: null };
+      if (side > 0) {
+        video.playbackRate = 2;
+        if (video.paused) video.play().catch(() => {});
+        ov.classList.add('fast');
+      } else {
+        video.pause();
+        ov.classList.add('rewind');
+        holdState.target = mediaTime();
+        const step = () => {
+          holdState.target = Math.max(0, holdState.target - 0.2);
+          ov.dataset.t = fmtClock(holdState.target);
+          if (!hq.active) seekTo(holdState.target);
+          showOverlay();
+        };
+        step();
+        holdRepeat = setInterval(step, 100);
+      }
+    }, 450);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => $('ovHit').addEventListener(ev, endHold));
+  $('ovHit').addEventListener('click', (e) => {
+    if (held) { held = false; return; } // war gedrückt halten, kein Tippen
+    const now = Date.now();
+    const r = stage.getBoundingClientRect();
+    const side = e.clientX < r.left + r.width / 3 ? -1 : e.clientX > r.right - r.width / 3 ? 1 : 0;
+    if (now - lastTap < 300) {
+      clearTimeout(tapTimer);
+      lastTap = 0;
+      if (side) seekBy(side * skipSec());
+      else toggleFullscreen();
+      return;
+    }
+    lastTap = now;
+    tapTimer = setTimeout(() => {
+      // Maus: Klick = Play/Pause (wie gewohnt). Touch: Bedienung ein/aus.
+      if (e.pointerType === 'mouse' || (!e.pointerType && matchMedia('(hover: hover)').matches)) { togglePlay(); showOverlay(); }
+      else if (ov.classList.contains('hide')) showOverlay();
+      else hideOverlay();
+    }, 280);
+  });
+  stage.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') showOverlay(); });
+  $('ovPlay').addEventListener('click', () => { togglePlay(); showOverlay(); });
+  $('skipSec').addEventListener('change', () => { store.set('skipSec', Number($('skipSec').value)); applySkip(); });
+  applySkip();
+  $('ovVibe').addEventListener('click', () => { setVibePaused(!vibePaused); showOverlay(); });
+  $('ovStop').addEventListener('click', () => emergencyStop());
+  $('ovMute').addEventListener('click', () => { video.muted = !video.muted; store.set('muted', video.muted); showOverlay(); });
+  video.addEventListener('volumechange', updateMute);
+  video.muted = store.get('muted', false);
+  updateMute();
+  video.addEventListener('play', () => { $('ovPlay').textContent = '❚❚'; showOverlay(); });
+  video.addEventListener('pause', () => { $('ovPlay').textContent = '▶'; showOverlay(); });
+  // 1.19.7: Videowechsel – load() hält das alte Video an, ohne „pause“ zu melden; sonst bliebe ❚❚ stehen
+  ['emptied', 'loadstart'].forEach((ev) => video.addEventListener(ev, () => { $('ovPlay').textContent = video.paused ? '▶' : '❚❚'; }));
+  bctx = bar.getContext('2d');
+  setInterval(drawOvBar, 250);
+  video.addEventListener('timeupdate', drawOvBar);
+  bar.addEventListener('pointermove', showSeekPreview);
+  bar.addEventListener('pointerleave', () => { if (!seeking) $('seekPreview').hidden = true; });
+  bar.addEventListener('pointerdown', (e) => { seeking = true; bar.setPointerCapture(e.pointerId); seekFromBar(e); showSeekPreview(e); });
+  bar.addEventListener('pointermove', (e) => { if (seeking) seekFromBar(e); });
+  bar.addEventListener('pointerup', () => {
+    seeking = false;
+    $('seekPreview').hidden = true;
+    if (seekPreview !== null) { const t = seekPreview; seekPreview = null; seekTo(t); }
+  });
+  // Tastatur im Player: Leertaste/K Play, ←/→ ±5 s, F Vollbild, M Ton
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, select, textarea') || document.body.dataset.view !== 'player') return;
+    if (e.code === 'Space' || e.key === 'k') { e.preventDefault(); togglePlay(); showOverlay(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); seekBy(-5); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); seekBy(5); }
+    else if (e.key === 'f') toggleFullscreen();
+    else if (e.key === 'm') { video.muted = !video.muted; showOverlay(); }
+  });
+  // Abschaltbar (⚙️ → Notaus); Esc, „Alles stoppen“ und Stopp bei Bildschirmsperre bleiben
+  // 1.19.8: STOPP-Knöpfe und Stopp bei Bildschirmsperre standardmäßig aus – Esc und „Alles stoppen“ im Geräte-Fenster bleiben
+  $('stopButton').checked = store.get('stopButton', false);
+  $('stopButton').addEventListener('change', () => { store.set('stopButton', $('stopButton').checked); applyStopButton(); });
+  applyStopButton();
+  setInterval(() => { $('fabStop').hidden = !anyRunning() || !$('stopButton').checked; }, 300);
+  $('fabStop').addEventListener('click', () => emergencyStop());
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (anyRunning()) emergencyStop();
+    exitFullscreen();
+  });
+  $('stopHidden').checked = store.get('stopHidden', false);
+  $('stopHidden').addEventListener('change', () => store.set('stopHidden', $('stopHidden').checked));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'hidden' || !$('stopHidden').checked || !anyRunning()) return;
+    // Läuft das Video als Bild-in-Bild weiter, schaut man noch zu -> nicht stoppen.
+    // Kurz warten: das kleine Fenster öffnet sich erst nach dem Verlassen der App.
+    setTimeout(() => {
+      if (document.visibilityState === 'hidden' && !document.pictureInPictureElement && anyRunning()) {
+        emergencyStop('Bildschirm gesperrt / App gewechselt');
+      }
+    }, 700);
+  });
+  lastInput = Date.now();
+  ['pointerdown', 'keydown', 'input', 'wheel'].forEach((ev) => document.addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
+  // 1.19.7: Standard „nie“ (vorher 10 min) – STOPP-Knopf, Esc und Stopp bei Bildschirmsperre bleiben
+  $('autoStop').value = String(store.get('autoStop', 0));
+  $('autoStop').addEventListener('change', () => store.set('autoStop', Number($('autoStop').value)));
+  setInterval(() => {
+    const min = Number(store.get('autoStop', 0));
+    if (!min || videoPlaying() || !anyRunning() || Date.now() - lastInput < min * 60000) return;
+    emergencyStop(`Auto-Stopp: ${min} min keine Bedienung`);
+    lastInput = Date.now();
+  }, 15000);
+  setInterval(updateWakeLock, 2000);
+  document.addEventListener('visibilitychange', updateWakeLock);
+}

@@ -2,7 +2,7 @@
 //   Handy     = eingestellter Hub (Bereich min–max)
 //   Satisfyer = Stärke dieser Szene (begrenzt durch „Stärke max“)
 // Mit „Bewegung“ (⚙️ → Anzeige, body.motion) folgen die Balken dem, was die Geräte gerade tun.
-// Antippen öffnet das Geräte-Fenster beim passenden Gerät. Neues Modul ohne Arbeit beim Laden: boot.js ruft init().
+// Antippen öffnet das Geräte-Fenster beim passenden Gerät. Neues Modul ohne Arbeit beim Laden: main.js ruft init().
 import { modulesReady } from './state.js';
 import { $, positionAt, store } from './handy.js';
 import { mediaTime, openDevices, script, toolActions } from './app.js';

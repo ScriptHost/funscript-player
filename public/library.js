@@ -1,5 +1,5 @@
-import './app.js'; // Ladereihenfolge wie bisher – siehe boot.js
-import { modulesReady, video } from './state.js';
+
+import { video } from './state.js';
 import { $, downloadFunscript, log, store } from './handy.js';
 import {
   appMode, backToLibrary, clearScript, drawHeatmap, duration, heatColor, loadScript, loadVideo, mediaTime,
@@ -9,7 +9,6 @@ import { showOverlay } from './fullscreen.js';
 import { tr } from './tools.js';
 import { lang, t } from './lang.js';
 import { selfCtl, selfUI } from './selfctl.js';
-modulesReady.add('library');
 
 // ===========================================================================
 // Bibliothek: Stash (Szenen, Tags, Darsteller, Studios) und lokaler Ordner.
@@ -204,10 +203,7 @@ function updateLibInfo() {
 const heatMem = new Map();
 const heatQueue = [];
 let heatBusy = 0;
-const heatObserver = new IntersectionObserver((entries) => {
-  for (const e of entries) if (e.isIntersecting) { heatObserver.unobserve(e.target); heatQueue.push(e.target); }
-  pumpHeat();
-}, { rootMargin: '200px' });
+let heatObserver;
 function heatStrip(src) {
   const strip = el('div', { className: 'heatstrip' });
   strip.dataset.src = src;
@@ -245,7 +241,7 @@ async function loadHeat(strip) {
 const heatCat = (avg) => (avg < 120 ? 'calm' : avg < 250 ? 'mid' : 'hot');
 let heatFilterTimer = null;
 function scheduleHeatFilter() { clearTimeout(heatFilterTimer); heatFilterTimer = setTimeout(applyHeatFilter, 150); }
-const gridObserver = new MutationObserver(() => { if ($('heatFilter').value) scheduleHeatFilter(); });
+let gridObserver;
 function applyHeatFilter() {
   const f = $('heatFilter').value;
   const grid = $('sceneGrid');
@@ -405,7 +401,6 @@ function checkSentinel() {
     renderFacets(false);
   }
 }
-new IntersectionObserver(checkSentinel, { rootMargin: '600px' }).observe($('libSentinel'));
 
 // ---------------------------------------------------------------------------
 // Lokaler Bibliotheksordner
@@ -491,7 +486,6 @@ let ownList = {};
 async function refreshOwn() {
   try { ownList = await (await fetch('/api/userscripts')).json(); } catch { /* ohne Liste */ }
 }
-refreshOwn();
 
 // Kachel-Symbole: ⚡ Funscript, ✋ eigenes Script, 🎯 Offset eingemessen
 function tileBadge(src, hasScript) {
@@ -578,26 +572,6 @@ export function renderScriptBox() {
   $('sbSelf').hidden = $('sbHot').hidden = !script;
   $('sbDelete').hidden = !(scriptMeta.choice === 'own' || scriptMeta.choice.startsWith('own:')) || !!suspended;
 }
-$('sbChoice').addEventListener('click', (e) => {
-  const b = e.target.closest('button[data-choice]');
-  if (!b) return;
-  const map = store.get('scriptChoice', {});
-  map[scriptMeta.src] = b.dataset.choice;
-  store.set('scriptChoice', map);
-  loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
-});
-
-// Script anhalten -> „Selbst steuern“ mit ⏺ Mitschnitt; ↩ spielt es wieder
-$('sbSelf').addEventListener('click', () => {
-  if (!script) return;
-  suspended = { name: script.name, actions: script.actions };
-  clearScript();
-  selfCtl.mode = 'self';
-  store.set('selfMode', 'self');
-  selfUI();
-  renderScriptBox();
-  log('✋ Script angehalten – steuere selbst. ⏺ Mitschnitt nimmt neu auf, ↩ spielt das Script wieder.');
-});
 function resumeScript() {
   if (!suspended) return;
   const s = suspended;
@@ -605,44 +579,6 @@ function resumeScript() {
   loadScript(JSON.stringify({ actions: s.actions }), s.name);
   renderScriptBox();
 }
-$('selfResume').addEventListener('click', resumeScript);
-$('sbResume').addEventListener('click', resumeScript);
-
-$('sbDelete').addEventListener('click', async () => {
-  const name = scriptMeta.choice.startsWith('own:') ? scriptMeta.choice.slice(4) : null;
-  if (!confirm(name ? t('player.deleteNamedAsk', { name }) : t('player.deleteOwnAsk'))) return;
-  try {
-    const res = await fetch('/api/userscript?src=' + encodeURIComponent(scriptMeta.src) + (name ? '&name=' + encodeURIComponent(name) : ''), { method: 'DELETE' });
-    if (!res.ok) throw new Error(await res.text());
-    await refreshOwn();
-    log('🗑 Eigenes Script gelöscht.');
-    loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
-  } catch (e) { log('Löschen: ' + e.message, true); }
-});
-
-// 📂 Weiteres Script zu dieser Szene laden und unter einem Namen behalten (nur auf dem Player-Server)
-$('sbFile').addEventListener('click', () => $('sbFileInput').click());
-$('sbFileInput').addEventListener('change', async () => {
-  const file = $('sbFileInput').files[0];
-  $('sbFileInput').value = '';
-  const src = nowKey();
-  if (!file || !src) return;
-  try {
-    const funscript = JSON.parse(await file.text());
-    if (!Array.isArray(funscript?.actions) || !funscript.actions.length) throw new Error(t('player.fileNoActions'));
-    const name = prompt(t('player.namePrompt'), file.name.replace(/\.funscript$/i, '').slice(0, 40))?.trim();
-    if (!name) return;
-    const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, name, funscript }) });
-    if (!res.ok) throw new Error(await res.text());
-    const r = await res.json();
-    await refreshOwn();
-    const map = store.get('scriptChoice', {});
-    map[src] = 'own:' + r.name;
-    store.set('scriptChoice', map);
-    log(r.replaced ? t('player.fileReplaced', { name: r.name }) : t('player.fileSaved', { name: r.name }));
-    if (nowKey() === src) loadSceneScript(src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
-  } catch (e) { log(t('player.fileError', { msg: e.message }), true); }
-});
 
 // 🔥 Die drei intensivsten Stellen (10-s-Abschnitte mit dem meisten Weg) der Reihe nach anspringen
 let hotIdx = 0;
@@ -655,14 +591,6 @@ function hotSpots(actions) {
   }
   return [...bins.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([b]) => b * 10).sort((a, b) => a - b);
 }
-$('sbHot').addEventListener('click', () => {
-  if (!script) return;
-  const spots = hotSpots(script.actions);
-  if (!spots.length) return;
-  const n = hotIdx++ % spots.length;
-  seekTo(spots[n]);
-  log(`🔥 Intensive Stelle ${n + 1}/${spots.length} bei ${fmtDuration(spots[n])}`);
-});
 
 // Neuer Mitschnitt nur über einen Zeitabschnitt: das alte eigene Script davor und danach bleibt
 function mergeSection(old, neu) {
@@ -752,25 +680,11 @@ const toggleFavorite = () => sceneAct('favorite', { favorite: !stashSession?.inf
 const addO = () => sceneAct('o', undefined, (r) => ({ oCounter: r.oCounter }), (r) => `O-Zähler: ${r.oCounter}`);
 const undoO = () => stashSession?.info?.oCounter && sceneAct('o-undo', undefined, (r) => ({ oCounter: r.oCounter }), (r) => `O-Zähler: ${r.oCounter}`);
 
-// Dieselben Aktionen unter dem Video und in der Player-Leiste (dort hält jeder Tipp die Bedienung sichtbar,
-// damit sie nicht mitten im Bewerten ausblendet)
-for (const [below, bar, fn] of [['favBtn', 'ovFav', toggleFavorite], ['oBtn', 'ovO', addO], ['oUndo', 'ovOUndo', undoO], ['markBtn', 'ovMark', () => setMarkerHere()]]) {
-  $(below).addEventListener('click', fn);
-  $(bar).addEventListener('click', () => { fn(); showOverlay(); });
-}
-document.querySelectorAll('#stars button, #ovRatePop .stars button').forEach((b) => b.addEventListener('click', () => {
-  rateScene(Number(b.dataset.star));
-  if (b.closest('#ovRatePop')) showOverlay();
-}));
-
 // Player-Leiste: ★ öffnet ein kleines Feld mit Sternen, Favorit und O zurücknehmen
 function toggleRatePop(open = $('ovRatePop').hidden) {
   $('ovRatePop').hidden = !open;
   $('ovRate').classList.toggle('active', open);
 }
-$('ovRate').addEventListener('click', () => { toggleRatePop(); showOverlay(); });
-// Tippen aufs Bild oder Ausblenden der Bedienung schließt das Feld
-$('ovHit').addEventListener('click', () => toggleRatePop(false));
 
 // Marker an der aktuellen Stelle (Taste P); erscheint sofort in Zeitleiste und Liste
 async function setMarkerHere() {
@@ -785,9 +699,6 @@ async function setMarkerHere() {
   log(`📍 Marker bei ${fmtDuration(at) || '0:00'} in Stash gespeichert.`);
 }
 const MARKER_TITLE = 'Lieblingsstelle';
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'p' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) setMarkerHere();
-});
 
 function showSceneInfo(d) {
   showActions(d);
@@ -819,15 +730,6 @@ function showSceneInfo(d) {
     markers.append(b);
   });
 }
-
-// Kann der Browser das Originalformat nicht abspielen (z. B. MKV/HEVC), wandelt Stash um.
-video.addEventListener('error', () => {
-  const m = /\/stash\/scene\/(\d+)\/stream$/.exec(new URL(video.src, location.href).pathname);
-  if (!m) return;
-  log('Format nicht direkt abspielbar – Stash wandelt um (Spulen kann langsamer sein).');
-  video.src = `/stash/scene/${m[1]}/stream.mp4`;
-  video.play().catch(() => {});
-});
 
 // --- Vorschaubilder fürs Spulen (Sprites, die Stash beim Generieren erzeugt) ---
 // Die VTT-Datei sagt, welcher Bildausschnitt im Sprite zu welcher Zeit gehört.
@@ -868,19 +770,6 @@ function resumeIfWanted(session) {
 }
 
 let lastTick = null;
-video.addEventListener('timeupdate', () => {
-  const now = performance.now();
-  if (stashSession && !video.paused && lastTick !== null) stashSession.played += Math.min(1, (now - lastTick) / 1000);
-  lastTick = video.paused ? null : now;
-  if (stashSession && Date.now() - stashSession.lastSave > 15000) saveStashActivity();
-});
-video.addEventListener('playing', () => {
-  if (!stashSession || stashSession.counted) return;
-  stashSession.counted = true;
-  fetch(`/api/stash/scene/${sid(stashSession.id)}/play`, { method: 'POST' }).catch(() => {});
-});
-video.addEventListener('pause', () => { lastTick = null; saveStashActivity(); });
-window.addEventListener('pagehide', () => saveStashActivity(true));
 
 export function saveStashActivity(beacon = false) {
   const s = stashSession;
@@ -893,66 +782,173 @@ export function saveStashActivity(beacon = false) {
   else fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {});
 }
 
-// ---------------------------------------------------------------------------
-// Bedienelemente
-// ---------------------------------------------------------------------------
-document.querySelectorAll('#browseTabs button').forEach((b) => b.addEventListener('click', () => { $('search').value = ''; setBrowse(b.dataset.browse); }));
-$('stashSort').addEventListener('change', () => { store.set('stashSort', $('stashSort').value); refresh(); });
-$('onlyScripts').addEventListener('change', () => { store.set('onlyScripts', $('onlyScripts').checked); refresh(); });
-// „Nur 2D“ (⚙️ → Bibliothek): nur auf diesem Gerät gemerkt, nicht mit dem Server geteilt
-$('only2d').checked = store.get('only2d', false);
-$('only2d').addEventListener('change', () => { store.set('only2d', $('only2d').checked); refresh(); });
-
 let searchTimer;
-$('search').addEventListener('input', () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => (lib.browse === 'scenes' ? refresh() : renderFacets(true)), 300);
-});
 
-// ---------------------------------------------------------------------------
-// Start
-// ---------------------------------------------------------------------------
-(async () => {
-  $('stashSort').value = store.get('stashSort', 'new');
-  $('onlyScripts').checked = store.get('onlyScripts', true);
-  await loadFolder();
-  let status = { configured: false };
-  try { status = await (await fetch('/api/stash/status')).json(); } catch { /* ohne Stash */ }
-  lib.stashOk = status.configured;
-  lib.stashStatus = status;
-  if (status.configured) {
-    if (!status.ok) {
-      log(status.error, true);
-      lib.error = status.error;
-    }
-    // Zuletzt gewählter gespeicherter Filter (wie „Als Voreinstellung“ in Stash)
-    lib.saved = store.get('savedFilter', '');
-    if (status.ok) await loadSavedFilters();
-    if (lib.savedList.length) lib.saved = modeDefaultFilter();
-    if (!lib.savedList.some((f) => f.id === lib.saved)) lib.saved = '';
-    renderSavedFilters();
-    if (lib.saved) $('stashSort').value = 'saved';
-    setSource(store.get('libSource', 'stash'));
-  } else {
-    setSource(store.get('libSource', ''));
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  heatObserver = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { heatObserver.unobserve(e.target); heatQueue.push(e.target); }
+    pumpHeat();
+  }, { rootMargin: '200px' });
+  gridObserver = new MutationObserver(() => { if ($('heatFilter').value) scheduleHeatFilter(); });
+  new IntersectionObserver(checkSentinel, { rootMargin: '600px' }).observe($('libSentinel'));
+  refreshOwn();
+  $('sbChoice').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-choice]');
+    if (!b) return;
+    const map = store.get('scriptChoice', {});
+    map[scriptMeta.src] = b.dataset.choice;
+    store.set('scriptChoice', map);
+    loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
+  });
+  // Script anhalten -> „Selbst steuern“ mit ⏺ Mitschnitt; ↩ spielt es wieder
+  $('sbSelf').addEventListener('click', () => {
+    if (!script) return;
+    suspended = { name: script.name, actions: script.actions };
+    clearScript();
+    selfCtl.mode = 'self';
+    store.set('selfMode', 'self');
+    selfUI();
+    renderScriptBox();
+    log('✋ Script angehalten – steuere selbst. ⏺ Mitschnitt nimmt neu auf, ↩ spielt das Script wieder.');
+  });
+  $('selfResume').addEventListener('click', resumeScript);
+  $('sbResume').addEventListener('click', resumeScript);
+  $('sbDelete').addEventListener('click', async () => {
+    const name = scriptMeta.choice.startsWith('own:') ? scriptMeta.choice.slice(4) : null;
+    if (!confirm(name ? t('player.deleteNamedAsk', { name }) : t('player.deleteOwnAsk'))) return;
+    try {
+      const res = await fetch('/api/userscript?src=' + encodeURIComponent(scriptMeta.src) + (name ? '&name=' + encodeURIComponent(name) : ''), { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      await refreshOwn();
+      log('🗑 Eigenes Script gelöscht.');
+      loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
+    } catch (e) { log('Löschen: ' + e.message, true); }
+  });
+  // 📂 Weiteres Script zu dieser Szene laden und unter einem Namen behalten (nur auf dem Player-Server)
+  $('sbFile').addEventListener('click', () => $('sbFileInput').click());
+  $('sbFileInput').addEventListener('change', async () => {
+    const file = $('sbFileInput').files[0];
+    $('sbFileInput').value = '';
+    const src = nowKey();
+    if (!file || !src) return;
+    try {
+      const funscript = JSON.parse(await file.text());
+      if (!Array.isArray(funscript?.actions) || !funscript.actions.length) throw new Error(t('player.fileNoActions'));
+      const name = prompt(t('player.namePrompt'), file.name.replace(/\.funscript$/i, '').slice(0, 40))?.trim();
+      if (!name) return;
+      const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, name, funscript }) });
+      if (!res.ok) throw new Error(await res.text());
+      const r = await res.json();
+      await refreshOwn();
+      const map = store.get('scriptChoice', {});
+      map[src] = 'own:' + r.name;
+      store.set('scriptChoice', map);
+      log(r.replaced ? t('player.fileReplaced', { name: r.name }) : t('player.fileSaved', { name: r.name }));
+      if (nowKey() === src) loadSceneScript(src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
+    } catch (e) { log(t('player.fileError', { msg: e.message }), true); }
+  });
+  $('sbHot').addEventListener('click', () => {
+    if (!script) return;
+    const spots = hotSpots(script.actions);
+    if (!spots.length) return;
+    const n = hotIdx++ % spots.length;
+    seekTo(spots[n]);
+    log(`🔥 Intensive Stelle ${n + 1}/${spots.length} bei ${fmtDuration(spots[n])}`);
+  });
+  // Dieselben Aktionen unter dem Video und in der Player-Leiste (dort hält jeder Tipp die Bedienung sichtbar,
+  // damit sie nicht mitten im Bewerten ausblendet)
+  for (const [below, bar, fn] of [['favBtn', 'ovFav', toggleFavorite], ['oBtn', 'ovO', addO], ['oUndo', 'ovOUndo', undoO], ['markBtn', 'ovMark', () => setMarkerHere()]]) {
+    $(below).addEventListener('click', fn);
+    $(bar).addEventListener('click', () => { fn(); showOverlay(); });
   }
-  document.dispatchEvent(new Event('library-ready'));
+  document.querySelectorAll('#stars button, #ovRatePop .stars button').forEach((b) => b.addEventListener('click', () => {
+    rateScene(Number(b.dataset.star));
+    if (b.closest('#ovRatePop')) showOverlay();
+  }));
+  $('ovRate').addEventListener('click', () => { toggleRatePop(); showOverlay(); });
+  // Tippen aufs Bild oder Ausblenden der Bedienung schließt das Feld
+  $('ovHit').addEventListener('click', () => toggleRatePop(false));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'p' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) setMarkerHere();
+  });
+  // Kann der Browser das Originalformat nicht abspielen (z. B. MKV/HEVC), wandelt Stash um.
+  video.addEventListener('error', () => {
+    const m = /\/stash\/scene\/(\d+)\/stream$/.exec(new URL(video.src, location.href).pathname);
+    if (!m) return;
+    log('Format nicht direkt abspielbar – Stash wandelt um (Spulen kann langsamer sein).');
+    video.src = `/stash/scene/${m[1]}/stream.mp4`;
+    video.play().catch(() => {});
+  });
+  video.addEventListener('timeupdate', () => {
+    const now = performance.now();
+    if (stashSession && !video.paused && lastTick !== null) stashSession.played += Math.min(1, (now - lastTick) / 1000);
+    lastTick = video.paused ? null : now;
+    if (stashSession && Date.now() - stashSession.lastSave > 15000) saveStashActivity();
+  });
+  video.addEventListener('playing', () => {
+    if (!stashSession || stashSession.counted) return;
+    stashSession.counted = true;
+    fetch(`/api/stash/scene/${sid(stashSession.id)}/play`, { method: 'POST' }).catch(() => {});
+  });
+  video.addEventListener('pause', () => { lastTick = null; saveStashActivity(); });
+  window.addEventListener('pagehide', () => saveStashActivity(true));
+  // ---------------------------------------------------------------------------
+  // Bedienelemente
+  // ---------------------------------------------------------------------------
+  document.querySelectorAll('#browseTabs button').forEach((b) => b.addEventListener('click', () => { $('search').value = ''; setBrowse(b.dataset.browse); }));
+  $('stashSort').addEventListener('change', () => { store.set('stashSort', $('stashSort').value); refresh(); });
+  $('onlyScripts').addEventListener('change', () => { store.set('onlyScripts', $('onlyScripts').checked); refresh(); });
+  // „Nur 2D“ (⚙️ → Bibliothek): nur auf diesem Gerät gemerkt, nicht mit dem Server geteilt
+  $('only2d').checked = store.get('only2d', false);
+  $('only2d').addEventListener('change', () => { store.set('only2d', $('only2d').checked); refresh(); });
+  $('search').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => (lib.browse === 'scenes' ? refresh() : renderFacets(true)), 300);
+  });
+  // ---------------------------------------------------------------------------
+  // Start
+  // ---------------------------------------------------------------------------
+  (async () => {
+    $('stashSort').value = store.get('stashSort', 'new');
+    $('onlyScripts').checked = store.get('onlyScripts', true);
+    await loadFolder();
+    let status = { configured: false };
+    try { status = await (await fetch('/api/stash/status')).json(); } catch { /* ohne Stash */ }
+    lib.stashOk = status.configured;
+    lib.stashStatus = status;
+    if (status.configured) {
+      if (!status.ok) {
+        log(status.error, true);
+        lib.error = status.error;
+      }
+      // Zuletzt gewählter gespeicherter Filter (wie „Als Voreinstellung“ in Stash)
+      lib.saved = store.get('savedFilter', '');
+      if (status.ok) await loadSavedFilters();
+      if (lib.savedList.length) lib.saved = modeDefaultFilter();
+      if (!lib.savedList.some((f) => f.id === lib.saved)) lib.saved = '';
+      renderSavedFilters();
+      if (lib.saved) $('stashSort').value = 'saved';
+      setSource(store.get('libSource', 'stash'));
+    } else {
+      setSource(store.get('libSource', ''));
+    }
+    document.dispatchEvent(new Event('library-ready'));
 
-  // Direktlink: …/?stash=123 öffnet die Szene sofort
-  const id = new URLSearchParams(location.search).get('stash');
-  if (status.configured && /^\d+$/.test(id || '')) openStashScene({ id, title: `Stash-Szene ${id}`, interactive: null });
-})();
-
-// Intensitäts-Filter (Wahl wird gemerkt)
-$('heatFilter').value = store.get('heatFilter', '');
-$('heatFilter').addEventListener('change', () => {
-  store.set('heatFilter', $('heatFilter').value);
-  // Intensität gibt es nur mit Funscript -> „nur mit Funscript“ mit einschalten (lädt die Liste neu)
-  if ($('heatFilter').value && !$('onlyScripts').checked) $('onlyScripts').click();
-  applyHeatFilter();
-});
-gridObserver.observe($('sceneGrid'), { childList: true });
-
-// Eigene Scripts speichern an/aus (⚙️ → Bibliothek)
-$('saveScripts').checked = store.get('saveScripts', true);
-$('saveScripts').addEventListener('change', () => store.set('saveScripts', $('saveScripts').checked));
+    // Direktlink: …/?stash=123 öffnet die Szene sofort
+    const id = new URLSearchParams(location.search).get('stash');
+    if (status.configured && /^\d+$/.test(id || '')) openStashScene({ id, title: `Stash-Szene ${id}`, interactive: null });
+  })();
+  // Intensitäts-Filter (Wahl wird gemerkt)
+  $('heatFilter').value = store.get('heatFilter', '');
+  $('heatFilter').addEventListener('change', () => {
+    store.set('heatFilter', $('heatFilter').value);
+    // Intensität gibt es nur mit Funscript -> „nur mit Funscript“ mit einschalten (lädt die Liste neu)
+    if ($('heatFilter').value && !$('onlyScripts').checked) $('onlyScripts').click();
+    applyHeatFilter();
+  });
+  gridObserver.observe($('sceneGrid'), { childList: true });
+  // Eigene Scripts speichern an/aus (⚙️ → Bibliothek)
+  $('saveScripts').checked = store.get('saveScripts', true);
+  $('saveScripts').addEventListener('change', () => store.set('saveScripts', $('saveScripts').checked));
+}

@@ -1,8 +1,7 @@
-import './gestures.js'; // Ladereihenfolge wie bisher – siehe boot.js
-import { modulesReady, video } from './state.js';
+
+import { video } from './state.js';
 import { $, log, store } from './handy.js';
 import { stage } from './fullscreen.js';
-modulesReady.add('enhance');
 
 // ===========================================================================
 // Bildverbesserung in Echtzeit (WebGL, läuft auf der Grafik des Abspielgeräts)
@@ -213,9 +212,6 @@ export function enhClear() {
 function enhActive() {
   return enh.ok && enh.settings.preset !== 'off' && video.videoWidth > 0 && !video.dataset.noEnhance && !enhBackground();
 }
-// Sofort umschalten (die Zeichen-Schleife läuft im Hintergrund nicht mehr)
-['visibilitychange', 'enterpictureinpicture', 'leavepictureinpicture'].forEach((ev) => (ev === 'visibilitychange' ? document : video)
-  .addEventListener(ev, () => { stage.classList.toggle('enhanced', enhActive()); enh.dirty = true; }));
 
 function enhParams() {
   const s = enh.settings;
@@ -319,7 +315,6 @@ function enhDraw() {
 // nur noch schwarze Bilder an WebGL, obwohl das Video läuft. Alle 2 s wird verglichen: Video hell,
 // Ausgabe schwarz -> Bildverbesserung neu aufbauen; klappt das wiederholt nicht, normales Videobild.
 const enhProbe = document.createElement('canvas');
-enhProbe.width = enhProbe.height = 8;
 function enhBlackCheck(gl, r, ch) {
   try {
     const px = new Uint8Array(4);
@@ -351,11 +346,8 @@ function enhRebuild() {
   enh.ok = enhInit();
   enh.dirty = true;
 }
-setInterval(() => { if (enhActive() && !video.paused) enh.checkDue = true; }, 2000);
 // nach test2: auch beim Wechsel Player <-> Mini-Player (Ansichtswechsel) neu zeichnen und auf Schwarzbild prüfen
 const enhRecheck = () => { enh.dirty = true; setTimeout(() => { enh.checkDue = true; }, 800); setTimeout(() => { enh.checkDue = true; }, 2500); };
-['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, enhRecheck));
-window.addEventListener('hp:view', enhRecheck);
 
 // Neu zeichnen, sobald ein neues Videobild da ist (oder sich etwas geändert hat)
 function enhLoop() {
@@ -397,33 +389,40 @@ export function enhSetPreset(preset) {
   enhApply();
 }
 
-document.querySelectorAll('#enhPresets button').forEach((b) => b.addEventListener('click', () => enhSetPreset(b.dataset.preset)));
-for (const k of ['sharp', 'contrast', 'saturation', 'brightness']) {
-  $('enh_' + k).addEventListener('input', () => {
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  // Sofort umschalten (die Zeichen-Schleife läuft im Hintergrund nicht mehr)
+  ['visibilitychange', 'enterpictureinpicture', 'leavepictureinpicture'].forEach((ev) => (ev === 'visibilitychange' ? document : video)
+    .addEventListener(ev, () => { stage.classList.toggle('enhanced', enhActive()); enh.dirty = true; }));
+  enhProbe.width = enhProbe.height = 8;
+  setInterval(() => { if (enhActive() && !video.paused) enh.checkDue = true; }, 2000);
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, enhRecheck));
+  window.addEventListener('hp:view', enhRecheck);
+  document.querySelectorAll('#enhPresets button').forEach((b) => b.addEventListener('click', () => enhSetPreset(b.dataset.preset)));
+  for (const k of ['sharp', 'contrast', 'saturation', 'brightness']) {
+    $('enh_' + k).addEventListener('input', () => {
+      if (enh.settings.preset !== 'custom') enhSetPreset('custom');
+      enh.settings[k] = Number($('enh_' + k).value);
+      enhApply();
+    });
+  }
+  $('enh_deband').addEventListener('change', () => {
     if (enh.settings.preset !== 'custom') enhSetPreset('custom');
-    enh.settings[k] = Number($('enh_' + k).value);
+    enh.settings.deband = $('enh_deband').checked;
     enhApply();
   });
-}
-$('enh_deband').addEventListener('change', () => {
-  if (enh.settings.preset !== 'custom') enhSetPreset('custom');
-  enh.settings.deband = $('enh_deband').checked;
+  $('enh_compare').addEventListener('change', () => { enh.settings.compare = $('enh_compare').checked; enhApply(); });
+  video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.dirty = true; enh.rebuilds = 0; });
+  ['seeked', 'loadeddata', 'resize'].forEach((ev) => video.addEventListener(ev, () => { enh.dirty = true; }));
+  window.addEventListener('resize', () => { enh.dirty = true; });
+  Object.assign(enh.settings, store.get('enhance', {}));
+  // 1.19.7: einmalig auf „Auto“ – ältere Versionen hatten „Natürlich“ als Standard gespeichert (eigene Werte bleiben)
+  if (!store.get('enhAuto1197', false)) {
+    if (enh.settings.preset !== 'custom') enh.settings.preset = 'auto';
+    if (store.get('hqPreset2', 'auto') !== 'off') store.set('hqPreset2', 'auto');
+    store.set('enhAuto1197', true);
+  }
+  enh.ok = enhInit();
   enhApply();
-});
-$('enh_compare').addEventListener('change', () => { enh.settings.compare = $('enh_compare').checked; enhApply(); });
-
-
-video.addEventListener('loadstart', () => { delete video.dataset.noEnhance; enh.dirty = true; enh.rebuilds = 0; });
-['seeked', 'loadeddata', 'resize'].forEach((ev) => video.addEventListener(ev, () => { enh.dirty = true; }));
-window.addEventListener('resize', () => { enh.dirty = true; });
-
-Object.assign(enh.settings, store.get('enhance', {}));
-// 1.19.7: einmalig auf „Auto“ – ältere Versionen hatten „Natürlich“ als Standard gespeichert (eigene Werte bleiben)
-if (!store.get('enhAuto1197', false)) {
-  if (enh.settings.preset !== 'custom') enh.settings.preset = 'auto';
-  if (store.get('hqPreset2', 'auto') !== 'off') store.set('hqPreset2', 'auto');
-  store.set('enhAuto1197', true);
+  requestAnimationFrame(enhLoop);
 }
-enh.ok = enhInit();
-enhApply();
-requestAnimationFrame(enhLoop);

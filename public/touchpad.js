@@ -1,5 +1,4 @@
-import './selfctl.js'; // Ladereihenfolge wie bisher – siehe boot.js
-import { modulesReady } from './state.js';
+
 import { $, claimHandy, downloadFunscript, handy, handyMaxSpeed, log, store } from './handy.js';
 import { hasHandy, hasVibe, videoPlaying } from './app.js';
 import { nowKey, saveScriptToLibrary } from './library.js';
@@ -7,7 +6,6 @@ import { hampOn, saveRecordingAsPattern, setSpeed, toggleHamp } from './control.
 import { setVibePaused } from './vibe.js';
 import { mapPos, moveAll, strokers } from './stroker.js';
 import { selfCtl, selfTick, selfUI } from './selfctl.js';
-modulesReady.add('touchpad');
 
 // ===========================================================================
 // Touch-Steuerung – wie in der Satisfyer-App.
@@ -231,12 +229,6 @@ function setupTouchPad(pad) {
   show(null);
 }
 
-// Beide Flächen kommen aus derselben Vorlage (index.html, #tpTemplate)
-document.querySelectorAll('.touchpad').forEach((pad) => {
-  pad.replaceChildren($('tpTemplate').content.cloneNode(true));
-  setupTouchPad(pad);
-});
-
 // Umschalter Tempo | Position (gilt für alle Flächen und auch für ⏺ Aufnahmen)
 function showTouchMode() {
   document.querySelectorAll('.tp-mode button').forEach((b) => b.classList.toggle('active', b.dataset.tpm === touchMode()));
@@ -244,15 +236,24 @@ function showTouchMode() {
     h.textContent = touchMode() === 'pos' ? 'Finger auflegen – die Handy folgt dem Finger' : 'Finger auflegen – oben stark, unten schwach';
   });
 }
-document.querySelectorAll('.tp-mode button').forEach((b) => b.addEventListener('click', () => {
-  if (touchMode() === b.dataset.tpm) return;
-  store.set('touchMode', b.dataset.tpm);
-  touchPosEnd();
-  // Wechsel: laufende Bewegung beenden, damit nichts im alten Modus weiterläuft
-  if (hampOn) toggleHamp();
-  selfCtl.handyOn = false;
-  selfUI();
+
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  // Beide Flächen kommen aus derselben Vorlage (index.html, #tpTemplate)
+  document.querySelectorAll('.touchpad').forEach((pad) => {
+    pad.replaceChildren($('tpTemplate').content.cloneNode(true));
+    setupTouchPad(pad);
+  });
+  document.querySelectorAll('.tp-mode button').forEach((b) => b.addEventListener('click', () => {
+    if (touchMode() === b.dataset.tpm) return;
+    store.set('touchMode', b.dataset.tpm);
+    touchPosEnd();
+    // Wechsel: laufende Bewegung beenden, damit nichts im alten Modus weiterläuft
+    if (hampOn) toggleHamp();
+    selfCtl.handyOn = false;
+    selfUI();
+    showTouchMode();
+    if (b.dataset.tpm === 'pos') log('🧪 Position: Die Handy folgt deinem Finger. Hub min/max gelten.');
+  }));
   showTouchMode();
-  if (b.dataset.tpm === 'pos') log('🧪 Position: Die Handy folgt deinem Finger. Hub min/max gelten.');
-}));
-showTouchMode();
+}

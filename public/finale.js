@@ -1,10 +1,8 @@
-import './hq.js'; // Ladereihenfolge wie bisher – siehe boot.js
-import { modulesReady } from './state.js';
+
 import { $, claimHandy, handy, log, setStatus, store } from './handy.js';
 import { applySlide, resync } from './app.js';
 import { allVibes } from './vibe.js';
 import { showOverlay } from './fullscreen.js';
-modulesReady.add('finale');
 
 // ===========================================================================
 // 🔥 Finale: auf Knopfdruck ruhiger – zwei Varianten (⚙️ Einstellungen):
@@ -95,43 +93,6 @@ function finOutputs() {
   document.querySelectorAll('#finMode button').forEach((b) => b.classList.toggle('active', b.dataset.fin === fin.mode));
 }
 
-for (const k of FIN_KEYS) {
-  $('fin_' + k).addEventListener('input', async () => {
-    fin[k] = Number($('fin_' + k).value);
-    if (fin.min >= fin.max) { // Bereich gültig halten
-      if (k === 'min') fin.max = Math.min(100, fin.min + 5); else fin.min = Math.max(0, fin.max - 5);
-      $('fin_min').value = fin.min;
-      $('fin_max').value = fin.max;
-    }
-    finOutputs();
-    finSave();
-    // Während Finale läuft: Änderungen sofort übernehmen
-    if (fin.active && handy.connected) {
-      try {
-        if (k === 'speed' && finDetached()) await handy.hampVelocity(Math.min(fin.speed, Number($('capSpeed').value)));
-        if (k === 'min' || k === 'max') await handy.slide(fin.min, fin.max);
-      } catch (e) { log(e, true); }
-    }
-  });
-}
-
-$('fin_half').addEventListener('change', () => {
-  fin.half = $('fin_half').checked;
-  finSave();
-  if (fin.active && fin.mode === 'soft') resync(); // neues Script sofort übertragen
-});
-
-document.querySelectorAll('#finMode button').forEach((b) => b.addEventListener('click', async () => {
-  if (fin.mode === b.dataset.fin) return;
-  const wasActive = fin.active;
-  if (wasActive) await finaleStop(true); // laufendes Finale im neuen Modus neu starten
-  fin.mode = b.dataset.fin;
-  finSave();
-  finOutputs();
-  finUI();
-  if (wasActive) finaleStart();
-}));
-
 function finUI() {
   for (const id of ['ovFinale', 'finaleBtn']) $(id).classList.toggle('running', fin.active);
   const name = fin.mode === 'soft' ? 'sanfter' : 'gelöst';
@@ -188,20 +149,56 @@ async function finaleStop(quiet = false) {
 }
 
 const finaleToggle = () => (fin.active ? finaleStop() : finaleStart());
-$('ovFinale').addEventListener('click', () => { finaleToggle(); showOverlay(); });
-$('finaleBtn').addEventListener('click', finaleToggle);
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'o' && !e.target.closest('input, select, textarea')) finaleToggle();
-});
 
-// Not-Aus oder ein anderer Bereich (Pattern, Direktsteuerung) übernimmt: Finale ist vorbei
-document.addEventListener('handy-owner', (e) => {
-  if (!fin.active || e.detail === 'finale' || e.detail === 'video') return;
-  fin.active = false;
-  clearTimeout(fin.timer);
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  for (const k of FIN_KEYS) {
+    $('fin_' + k).addEventListener('input', async () => {
+      fin[k] = Number($('fin_' + k).value);
+      if (fin.min >= fin.max) { // Bereich gültig halten
+        if (k === 'min') fin.max = Math.min(100, fin.min + 5); else fin.min = Math.max(0, fin.max - 5);
+        $('fin_min').value = fin.min;
+        $('fin_max').value = fin.max;
+      }
+      finOutputs();
+      finSave();
+      // Während Finale läuft: Änderungen sofort übernehmen
+      if (fin.active && handy.connected) {
+        try {
+          if (k === 'speed' && finDetached()) await handy.hampVelocity(Math.min(fin.speed, Number($('capSpeed').value)));
+          if (k === 'min' || k === 'max') await handy.slide(fin.min, fin.max);
+        } catch (e) { log(e, true); }
+      }
+    });
+  }
+  $('fin_half').addEventListener('change', () => {
+    fin.half = $('fin_half').checked;
+    finSave();
+    if (fin.active && fin.mode === 'soft') resync(); // neues Script sofort übertragen
+  });
+  document.querySelectorAll('#finMode button').forEach((b) => b.addEventListener('click', async () => {
+    if (fin.mode === b.dataset.fin) return;
+    const wasActive = fin.active;
+    if (wasActive) await finaleStop(true); // laufendes Finale im neuen Modus neu starten
+    fin.mode = b.dataset.fin;
+    finSave();
+    finOutputs();
+    finUI();
+    if (wasActive) finaleStart();
+  }));
+  $('ovFinale').addEventListener('click', () => { finaleToggle(); showOverlay(); });
+  $('finaleBtn').addEventListener('click', finaleToggle);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'o' && !e.target.closest('input, select, textarea')) finaleToggle();
+  });
+  // Not-Aus oder ein anderer Bereich (Pattern, Direktsteuerung) übernimmt: Finale ist vorbei
+  document.addEventListener('handy-owner', (e) => {
+    if (!fin.active || e.detail === 'finale' || e.detail === 'video') return;
+    fin.active = false;
+    clearTimeout(fin.timer);
+    finUI();
+    if (handy.connected) applySlide().catch(() => {});
+  });
+  finLoad();
   finUI();
-  if (handy.connected) applySlide().catch(() => {});
-});
-
-finLoad();
-finUI();
+}

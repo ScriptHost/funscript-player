@@ -1,4 +1,4 @@
-import './control.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady } from './state.js';
 import { $, demoMode, log, pillText, positionAt, store } from './handy.js';
 import { deviceLost, mirrorField, resync, videoScriptSource } from './app.js';
@@ -7,7 +7,6 @@ import { fin, finDetached } from './finale.js';
 import { presetVibeEven, presetVibeShape } from './tools.js';
 import { selfVibeLevel } from './selfctl.js';
 import { touchVibeLevel } from './touchpad.js';
-modulesReady.add('vibe');
 
 // ===========================================================================
 // Vibratoren (Satisfyer u. a.)
@@ -391,7 +390,7 @@ class Buttplug {
   }
 }
 
-export const vibe = new Buttplug();
+export let vibe;
 export const allVibes = () => [...bleDevices, ...vibe.devices.values()];
 
 function intifaceUrl(addr) {
@@ -412,36 +411,6 @@ function setVibeStatus(state, text) {
   el.className = 'pill ' + state;
   pillText(el, 'Satisfyer', '〰', text);
 }
-
-$('vibeBle').addEventListener('click', () => addBluetoothDevice());
-$('vibeBleAll').addEventListener('click', () => addBluetoothDevice(true));
-// Schon beim Laden anzeigen, wenn Bluetooth hier nicht gehen kann
-bluetoothProblem().then((problem) => {
-  if (!problem) return;
-  $('vibeBleHint').textContent = problem;
-  $('vibeBleHint').classList.add('warn');
-});
-
-$('vibeAddr').value = store.get('vibeAddr', '');
-$('vibeConnect').addEventListener('click', async () => {
-  if (vibe.connected) return vibe.disconnect();
-  const addr = $('vibeAddr').value.trim();
-  if (!addr) return log('Bitte die IP-Adresse des Smartphones mit Intiface eintragen.', true);
-  store.set('vibeAddr', addr);
-  $('vibeConnect').disabled = true;
-  setVibeStatus('busy', 'verbinde …');
-  try {
-    const info = await vibe.connect(intifaceUrl(addr));
-    log(`Mit ${info.ServerName || 'Intiface'} verbunden.`);
-    if (!vibe.devices.size) await vibe.scan();
-  } catch (e) {
-    log(e, true);
-  } finally {
-    $('vibeConnect').disabled = false;
-    renderVibe();
-  }
-});
-$('vibeScan').addEventListener('click', () => vibe.scan().catch((e) => log(e, true)));
 
 function renderVibe() {
   const devices = allVibes();
@@ -528,27 +497,6 @@ function renderVibe() {
   showVibeSync();
 }
 const devGain = (dev) => store.get('vibeGain.' + dev.name, 1);
-vibe.onchange = renderVibe;
-
-// ---------------------------------------------------------------------------
-// Script -> Vibration
-// ---------------------------------------------------------------------------
-['vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeLevel', 'vibeSmooth'].forEach((id) => {
-  $(id).value = store.get(id, $(id).value);
-  $(id).addEventListener('input', () => { store.set(id, Number($(id).value)); updateVibeOutputs(); });
-});
-$('vibeSource').value = store.get('vibeSource', 'script');
-// Neuer Schlüssel ab 1.1: alle starten mit „Rhythmus“
-$('vibeMap').value = store.get('vibeMap2', 'rhythm');
-$('vibeSource').addEventListener('change', () => { store.set('vibeSource', $('vibeSource').value); updateVibeOutputs(); });
-$('vibeMap').addEventListener('change', () => store.set('vibeMap2', $('vibeMap').value));
-
-// 1.19.7: Übersetzung und Stärke min/max auch am Video (Feineinstellung Satisfyer) – gespiegelt zu ⚙️ → Geräte
-$('dvMap').replaceChildren(...[...$('vibeMap').options].map((o) => new Option(o.text.split(':')[0], o.value)));
-mirrorField('dvMap', 'vibeMap');
-mirrorField('dvMin', 'vibeMin');
-mirrorField('dvMax', 'vibeMax');
-['dvMin', 'dvMax'].forEach((id) => $(id).addEventListener('input', updateVibeOutputs));
 
 function updateVibeOutputs() {
   $('vibeMinVal').textContent = $('dvMinVal').textContent = `${$('vibeMin').value} %`;
@@ -560,7 +508,6 @@ function updateVibeOutputs() {
   $('vibeSmoothVal').textContent = Number($('vibeSmooth').value) ? `${$('vibeSmooth').value} %` : 'aus';
   $('vibeLevelRow').hidden = $('vibeSource').value !== 'manual';
 }
-updateVibeOutputs();
 
 export let vibePaused = false;
 export function setVibePaused(paused) {
@@ -571,10 +518,6 @@ export function setVibePaused(paused) {
   $('ovVibe').title = paused ? 'Geräte pausiert – antippen zum Fortsetzen' : 'Vibration pausieren';
   if (modulesReady.has('app')) resync(); // Handy hält mit an bzw. läuft wieder
 }
-$('vibePause').addEventListener('click', () => setVibePaused(!vibePaused));
-// Nach „Alles stoppen“ läuft die Vibration wieder mit, sobald etwas Neues startet
-document.addEventListener('handy-owner', (e) => { if (e.detail && e.detail !== 'none') setVibePaused(false); });
-$('video').addEventListener('play', () => setVibePaused(false));
 
 // Welches Script gerade läuft: Pattern/Script aus der Steuerung oder das Video.
 function scriptSource() {
@@ -619,7 +562,6 @@ function vibeProbe() {
   if (!allVibes().length || scriptSource()) return;
   probe = { start: performance.now(), until: performance.now() + 2000 };
 }
-['vibeMap', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeScene', 'vibeSmooth'].forEach((id) => $(id).addEventListener('change', vibeProbe));
 // lead = Vorlauf dieses Geräts (ms), map = Übersetzung (zweiter Motor: 'speed')
 function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
   if (vibePaused) return 0;
@@ -672,67 +614,6 @@ export let vibeLevel = 0; // stärkstes Gerät (Anzeige, STOPP-Knopf)
 export function setVibeLevel(v) { vibeLevel = v; }
 let vibeSending = false;
 const RAMP_MS = 500, RAMP_AFTER_MS = 1500;
-setInterval(async () => {
-  // Regler oder Script-Preset (z. B. „Sanft“) – das Ruhigere gilt; Patterns/Steuern nur der Regler
-  const fromPreset = modulesReady.has('tools') && !(modulesReady.has('control') && controlScriptSource()) ? presetVibeEven() : 0;
-  const even = Math.max(Number($('vibeSmooth').value) / 100, fromPreset);
-  const smooth = Math.max($('vibeMap').value === 'rhythm' ? 0 : 0.35, even ? Math.exp(-0.06 / (even * 1.5)) : 0);
-  const hasSource = !!scriptSource();
-  const now = performance.now();
-  const devs = allVibes();
-  let top = 0;
-  for (const dev of devs) {
-    const lead = devLeadMs(dev);
-    const split = dev.motors === 2 && dev.motorMode === 'split';
-    let t1 = targetLevel(lead) * devGain(dev);
-    let t2 = split ? targetLevel(lead, 'speed') * devGain(dev) : t1;
-    // Sanftanlauf: nach mehr als 1,5 s Ruhe in 0,5 s hochfahren statt schlagartig
-    if (!t1 && !t2) dev.quietSince ??= now;
-    else {
-      if (dev.quietSince === undefined || (dev.quietSince !== null && now - dev.quietSince > RAMP_AFTER_MS)) dev.rampAt = now;
-      dev.quietSince = null;
-    }
-    const ramp = dev.rampAt ? Math.min(1, (now - dev.rampAt) / RAMP_MS) : 1;
-    t1 *= ramp;
-    t2 *= ramp;
-    // Not-Aus / ❚❚: sofort aus. 1.19.9: Pause, Spulen, Videoende (keine Quelle mehr) weich in ≈ 0,5 s aus.
-    const stopNow = !t1 && !t2 && (vibePaused || (hasSource && !even));
-    const fadeOut = !t1 && !t2 && !hasSource && !vibePaused;
-    dev.cur = stopNow ? 0 : fadeOut ? (dev.cur || 0) * 0.6 : (dev.cur || 0) * smooth + t1 * (1 - smooth);
-    dev.cur2 = !split ? dev.cur : stopNow ? 0 : fadeOut ? (dev.cur2 || 0) * 0.6 : (dev.cur2 || 0) * 0.6 + t2 * 0.4; // Tempo ruhiger
-    if (dev.cur < 0.01) dev.cur = 0;
-    if (dev.cur2 < 0.01) dev.cur2 = 0;
-    if (dev.enabled) top = Math.max(top, dev.cur, dev.cur2);
-  }
-  vibeLevel = devs.length ? top : 0;
-  $('vibeMeter').style.width = `${Math.round(vibeLevel * 100)}%`;
-  if (vibeSending) return;
-  vibeSending = true;
-  try {
-    for (const dev of devs) {
-      const level = dev.enabled ? Math.round(dev.cur * 100) / 100 : 0;
-      const level2 = dev.enabled ? Math.round(dev.cur2 * 100) / 100 : 0;
-      if (Math.abs(level - dev.level) < 0.02 && Math.abs(level2 - (dev.level2 ?? level)) < 0.02
-        && !(level === 0 && dev.level !== 0)) continue;
-      // Höchstens 1 s warten – eine hängende Übertragung darf die Vibration nicht dauerhaft blockieren
-      await Promise.race([dev.setLevel(level, level2), new Promise((r) => setTimeout(r, 1000))]);
-      dev.level = level;
-      dev.level2 = level2;
-    }
-  } catch (e) {
-    log(e, true);
-  } finally {
-    vibeSending = false;
-  }
-}, 60);
-
-// Beim Schließen der Seite Vibratoren aus
-window.addEventListener('pagehide', () => {
-  for (const dev of allVibes()) Promise.resolve(dev.setLevel(0)).catch(() => {});
-});
-
-renderVibe();
-autoConnectBluetooth();
 
 // ---------------------------------------------------------------------------
 // Vorlauf: automatisch aus der gemessenen Bluetooth-Laufzeit oder von Hand (⚙️ → Geräte)
@@ -761,19 +642,136 @@ function showVibeSync() {
     d.syncEl.title = vibeDevSlow(d) ? 'Bluetooth schwankt – näher ans Gerät oder Hindernisse entfernen' : 'Bluetooth-Laufzeit – wird mit Vorlauf ausgeglichen, im Takt';
   }
 }
-$('vibeLeadAuto').checked = store.get('vibeLeadAuto', true);
-$('vibeLeadAuto').addEventListener('change', () => store.set('vibeLeadAuto', $('vibeLeadAuto').checked));
-setInterval(() => {
-  const m = measuredLead();
-  const rtt = bleDevices.map((d) => d.rtt).filter(Number.isFinite);
-  $('vibeLat').textContent = !rtt.length ? ''
-    : vibeSlow() ? `⚠ Bluetooth schwankt (bis ${Math.round(Math.max(...rtt))} ms) – Vibration kann leicht daneben liegen. Näher ans Gerät gehen.`
-      : `✓ Im Takt – Bluetooth-Laufzeit ${Math.round(Math.max(...rtt))} ms, ${$('vibeLeadAuto').checked ? 'je Gerät automatisch ausgeglichen' : `Vorlauf ${vibeLeadMs()} ms`}`;
-  showVibeSync();
-  $('vibeLeadAutoInfo').textContent = m !== null ? `gemessen: ${m} ms` : 'misst, sobald ein Satisfyer per Bluetooth verbunden ist';
-  $('vibeLead').disabled = $('vibeLeadAuto').checked && m !== null;
-  // Nur den Status-Text auffrischen (Akku), nicht die Geräteliste – sonst klappt eine offene Auswahl zu
-  const devices = allVibes();
-  const bat = devices.map((d) => d.battery).filter((b) => Number.isFinite(b));
-  if (devices.length) setVibeStatus('on', `${devices.length} Gerät(e)${bat.length ? ` · 🔋 ${Math.min(...bat)} %` : ''}`);
-}, 3000);
+
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  vibe = new Buttplug();
+  $('vibeBle').addEventListener('click', () => addBluetoothDevice());
+  $('vibeBleAll').addEventListener('click', () => addBluetoothDevice(true));
+  // Schon beim Laden anzeigen, wenn Bluetooth hier nicht gehen kann
+  bluetoothProblem().then((problem) => {
+    if (!problem) return;
+    $('vibeBleHint').textContent = problem;
+    $('vibeBleHint').classList.add('warn');
+  });
+  $('vibeAddr').value = store.get('vibeAddr', '');
+  $('vibeConnect').addEventListener('click', async () => {
+    if (vibe.connected) return vibe.disconnect();
+    const addr = $('vibeAddr').value.trim();
+    if (!addr) return log('Bitte die IP-Adresse des Smartphones mit Intiface eintragen.', true);
+    store.set('vibeAddr', addr);
+    $('vibeConnect').disabled = true;
+    setVibeStatus('busy', 'verbinde …');
+    try {
+      const info = await vibe.connect(intifaceUrl(addr));
+      log(`Mit ${info.ServerName || 'Intiface'} verbunden.`);
+      if (!vibe.devices.size) await vibe.scan();
+    } catch (e) {
+      log(e, true);
+    } finally {
+      $('vibeConnect').disabled = false;
+      renderVibe();
+    }
+  });
+  $('vibeScan').addEventListener('click', () => vibe.scan().catch((e) => log(e, true)));
+  vibe.onchange = renderVibe;
+  // ---------------------------------------------------------------------------
+  // Script -> Vibration
+  // ---------------------------------------------------------------------------
+  ['vibeMin', 'vibeMax', 'vibeFull', 'vibeLead', 'vibeLevel', 'vibeSmooth'].forEach((id) => {
+    $(id).value = store.get(id, $(id).value);
+    $(id).addEventListener('input', () => { store.set(id, Number($(id).value)); updateVibeOutputs(); });
+  });
+  $('vibeSource').value = store.get('vibeSource', 'script');
+  // Neuer Schlüssel ab 1.1: alle starten mit „Rhythmus“
+  $('vibeMap').value = store.get('vibeMap2', 'rhythm');
+  $('vibeSource').addEventListener('change', () => { store.set('vibeSource', $('vibeSource').value); updateVibeOutputs(); });
+  $('vibeMap').addEventListener('change', () => store.set('vibeMap2', $('vibeMap').value));
+  // 1.19.7: Übersetzung und Stärke min/max auch am Video (Feineinstellung Satisfyer) – gespiegelt zu ⚙️ → Geräte
+  $('dvMap').replaceChildren(...[...$('vibeMap').options].map((o) => new Option(o.text.split(':')[0], o.value)));
+  mirrorField('dvMap', 'vibeMap');
+  mirrorField('dvMin', 'vibeMin');
+  mirrorField('dvMax', 'vibeMax');
+  ['dvMin', 'dvMax'].forEach((id) => $(id).addEventListener('input', updateVibeOutputs));
+  updateVibeOutputs();
+  $('vibePause').addEventListener('click', () => setVibePaused(!vibePaused));
+  // Nach „Alles stoppen“ läuft die Vibration wieder mit, sobald etwas Neues startet
+  document.addEventListener('handy-owner', (e) => { if (e.detail && e.detail !== 'none') setVibePaused(false); });
+  $('video').addEventListener('play', () => setVibePaused(false));
+  ['vibeMap', 'vibeMin', 'vibeMax', 'vibeFull', 'vibeScene', 'vibeSmooth'].forEach((id) => $(id).addEventListener('change', vibeProbe));
+  setInterval(async () => {
+    // Regler oder Script-Preset (z. B. „Sanft“) – das Ruhigere gilt; Patterns/Steuern nur der Regler
+    const fromPreset = modulesReady.has('tools') && !(modulesReady.has('control') && controlScriptSource()) ? presetVibeEven() : 0;
+    const even = Math.max(Number($('vibeSmooth').value) / 100, fromPreset);
+    const smooth = Math.max($('vibeMap').value === 'rhythm' ? 0 : 0.35, even ? Math.exp(-0.06 / (even * 1.5)) : 0);
+    const hasSource = !!scriptSource();
+    const now = performance.now();
+    const devs = allVibes();
+    let top = 0;
+    for (const dev of devs) {
+      const lead = devLeadMs(dev);
+      const split = dev.motors === 2 && dev.motorMode === 'split';
+      let t1 = targetLevel(lead) * devGain(dev);
+      let t2 = split ? targetLevel(lead, 'speed') * devGain(dev) : t1;
+      // Sanftanlauf: nach mehr als 1,5 s Ruhe in 0,5 s hochfahren statt schlagartig
+      if (!t1 && !t2) dev.quietSince ??= now;
+      else {
+        if (dev.quietSince === undefined || (dev.quietSince !== null && now - dev.quietSince > RAMP_AFTER_MS)) dev.rampAt = now;
+        dev.quietSince = null;
+      }
+      const ramp = dev.rampAt ? Math.min(1, (now - dev.rampAt) / RAMP_MS) : 1;
+      t1 *= ramp;
+      t2 *= ramp;
+      // Not-Aus / ❚❚: sofort aus. 1.19.9: Pause, Spulen, Videoende (keine Quelle mehr) weich in ≈ 0,5 s aus.
+      const stopNow = !t1 && !t2 && (vibePaused || (hasSource && !even));
+      const fadeOut = !t1 && !t2 && !hasSource && !vibePaused;
+      dev.cur = stopNow ? 0 : fadeOut ? (dev.cur || 0) * 0.6 : (dev.cur || 0) * smooth + t1 * (1 - smooth);
+      dev.cur2 = !split ? dev.cur : stopNow ? 0 : fadeOut ? (dev.cur2 || 0) * 0.6 : (dev.cur2 || 0) * 0.6 + t2 * 0.4; // Tempo ruhiger
+      if (dev.cur < 0.01) dev.cur = 0;
+      if (dev.cur2 < 0.01) dev.cur2 = 0;
+      if (dev.enabled) top = Math.max(top, dev.cur, dev.cur2);
+    }
+    vibeLevel = devs.length ? top : 0;
+    $('vibeMeter').style.width = `${Math.round(vibeLevel * 100)}%`;
+    if (vibeSending) return;
+    vibeSending = true;
+    try {
+      for (const dev of devs) {
+        const level = dev.enabled ? Math.round(dev.cur * 100) / 100 : 0;
+        const level2 = dev.enabled ? Math.round(dev.cur2 * 100) / 100 : 0;
+        if (Math.abs(level - dev.level) < 0.02 && Math.abs(level2 - (dev.level2 ?? level)) < 0.02
+          && !(level === 0 && dev.level !== 0)) continue;
+        // Höchstens 1 s warten – eine hängende Übertragung darf die Vibration nicht dauerhaft blockieren
+        await Promise.race([dev.setLevel(level, level2), new Promise((r) => setTimeout(r, 1000))]);
+        dev.level = level;
+        dev.level2 = level2;
+      }
+    } catch (e) {
+      log(e, true);
+    } finally {
+      vibeSending = false;
+    }
+  }, 60);
+  // Beim Schließen der Seite Vibratoren aus
+  window.addEventListener('pagehide', () => {
+    for (const dev of allVibes()) Promise.resolve(dev.setLevel(0)).catch(() => {});
+  });
+  renderVibe();
+  autoConnectBluetooth();
+  $('vibeLeadAuto').checked = store.get('vibeLeadAuto', true);
+  $('vibeLeadAuto').addEventListener('change', () => store.set('vibeLeadAuto', $('vibeLeadAuto').checked));
+  setInterval(() => {
+    const m = measuredLead();
+    const rtt = bleDevices.map((d) => d.rtt).filter(Number.isFinite);
+    $('vibeLat').textContent = !rtt.length ? ''
+      : vibeSlow() ? `⚠ Bluetooth schwankt (bis ${Math.round(Math.max(...rtt))} ms) – Vibration kann leicht daneben liegen. Näher ans Gerät gehen.`
+        : `✓ Im Takt – Bluetooth-Laufzeit ${Math.round(Math.max(...rtt))} ms, ${$('vibeLeadAuto').checked ? 'je Gerät automatisch ausgeglichen' : `Vorlauf ${vibeLeadMs()} ms`}`;
+    showVibeSync();
+    $('vibeLeadAutoInfo').textContent = m !== null ? `gemessen: ${m} ms` : 'misst, sobald ein Satisfyer per Bluetooth verbunden ist';
+    $('vibeLead').disabled = $('vibeLeadAuto').checked && m !== null;
+    // Nur den Status-Text auffrischen (Akku), nicht die Geräteliste – sonst klappt eine offene Auswahl zu
+    const devices = allVibes();
+    const bat = devices.map((d) => d.battery).filter((b) => Number.isFinite(b));
+    if (devices.length) setVibeStatus('on', `${devices.length} Gerät(e)${bat.length ? ` · 🔋 ${Math.min(...bat)} %` : ''}`);
+  }, 3000);
+}

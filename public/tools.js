@@ -1,11 +1,10 @@
-import './finale.js'; // Ladereihenfolge wie bisher – siehe boot.js
+
 import { modulesReady, video } from './state.js';
 import { $, handy, handyMaxSpeed, log, store } from './handy.js';
 import {
   drawHeatmap, hasHandy, hasVibe, mediaTime, offsetKey, paintHeat, resync, script, setOffsetSource, toolActions,
 } from './app.js';
 import { renderScriptBox } from './library.js';
-modulesReady.add('tools');
 
 // ===========================================================================
 // 🛠️ Script-Intensität – rechnet das Script beim Abspielen um, Dateien bleiben unverändert.
@@ -20,27 +19,14 @@ modulesReady.add('tools');
 // ===========================================================================
 
 // tooFast: 'shorten' = Hub kürzen, 'half' = voller Hub, dort halbes Tempo
-const tools = Object.assign({ tooFast: 'shorten' }, store.get('scriptTools', {}));
+let tools;
 export let toolCache = {};
 export function clearToolCache() { toolCache = {}; }
 
 export const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv' };
 // 1.19.3: nur noch eine Auswahl für beide Geräte. Alte Werte („Original + Takt-Schutz“, „Eigene“) -> Automatisch
-const presetFix = (p) => (SCRIPT_PRESETS[p] ? p : 'auto');
-// Neuer Schlüssel „scriptIntensity“: die Umstellung läuft nur einmal (auf dem ersten Gerät), weil sie
-// gemeinsam gespeichert wird – ein zweites Gerät überschreibt danach nichts mehr.
-if (store.get('scriptIntensity', null) === null) {
-  store.set('scriptIntensity', presetFix(store.get('scriptPresetHandy', 'auto')));
-  const map = store.get('scenePresets', {});
-  for (const k of Object.keys(map)) {
-    if (typeof map[k] === 'string' && SCRIPT_PRESETS[map[k]]) continue;
-    const v = typeof map[k] === 'string' ? map[k] : map[k]?.handy || map[k]?.vibe;
-    if (SCRIPT_PRESETS[v]) map[k] = v; else delete map[k];
-  }
-  store.set('scenePresets', map);
-}
-if (store.get('scriptPresetHandy', undefined) !== undefined) store.del('scriptPresetHandy'); // umgestellt – alter Schlüssel weg
-let presetDefault = presetFix(store.get('scriptIntensity', 'auto'));
+const presetFix = (p) => (SCRIPT_PRESETS[p] ? p : 'auto'); // umgestellt – alter Schlüssel weg
+let presetDefault;
 let localPreset = null; // Szene ohne festen Schlüssel (lokale Datei): nur bis zum nächsten Video
 
 // Preset dieser Szene (gilt für Handy und Satisfyer)
@@ -159,7 +145,6 @@ function fitHandy(out, maxSpeed, only, res) {
   if (r.changed) only.push(`${r.changed} von ${out.length} Stößen etwas kürzer`);
   return r.changed ? r.actions : out;
 }
-
 
 // 2.0 „Intensiv“: jeden Stoß Richtung vollen Hub verlängern – Spitzen nach oben, Täler nach unten –, aber nur so
 // weit, wie das Tempo (0,9 × Höchsttempo) es zulässt: Beide Enden einer Bewegung teilen sich den Spielraum.
@@ -314,13 +299,6 @@ export function toolsChanged() {
   drawHeatmap();
   if (handy.owner === 'video') resync(); // geändertes Script sofort an die Handy
 }
-
-// Standard (Einstellungen) und Auswahl dieser Szene (Script-Bereich + Popup in der Player-Leiste)
-document.querySelectorAll('[data-preset-default] button').forEach((b) => b.addEventListener('click', () => {
-  presetDefault = b.dataset.preset;
-  store.set('scriptIntensity', presetDefault);
-  toolsChanged();
-}));
 function setScenePreset(p) {
   const k = offsetKey();
   if (!k) localPreset = p;
@@ -332,9 +310,6 @@ function setScenePreset(p) {
   toolsChanged();
   log(`Script: ${tr(SCRIPT_PRESETS[p])}${k ? ' (für diese Szene gemerkt)' : ''}`);
 }
-document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.addEventListener('click', () => setScenePreset(b.dataset.preset)));
-video.addEventListener('emptied', () => { localPreset = null; });
-$('sbWarm').addEventListener('click', () => setWarmup(!warmup));
 
 // 🧪 Vorschau in den Knöpfen: Mini-Heatmap, wie das Script mit diesem Preset aussieht
 function drawPresetPreviews() {
@@ -350,10 +325,6 @@ function drawPresetPreviews() {
   });
 }
 
-
-$('tooFast').value = tools.tooFast;
-$('tooFast').addEventListener('change', () => { tools.tooFast = $('tooFast').value; toolsChanged(); });
-
 // Höchsttempo der Handy (⚙️ → Geräte): automatisch nach erkanntem Modell oder von Hand
 function showHandyMax() {
   const auto = store.get('handyMaxAuto', true);
@@ -363,17 +334,6 @@ function showHandyMax() {
   $('handyMaxVal').textContent = `${handyMaxSpeed()} %/s`;
   $('handyModelInfo').textContent = handy.modelName ? `– erkannt: ${handy.modelName}` : '– Modell wird beim Verbinden erkannt';
 }
-$('handyMaxAuto').addEventListener('change', () => {
-  store.set('handyMaxAuto', $('handyMaxAuto').checked);
-  if (!$('handyMaxAuto').checked) store.set('handyMax', handyMaxSpeed());
-  showHandyMax();
-  toolsChanged();
-});
-$('handyMax').addEventListener('input', () => { $('handyMaxVal').textContent = `${$('handyMax').value} %/s`; });
-$('handyMax').addEventListener('change', () => { store.set('handyMax', Number($('handyMax').value)); showHandyMax(); toolsChanged(); });
-document.addEventListener('handy-info', () => { showHandyMax(); toolsChanged(); });
-showHandyMax();
-toolsChanged();
 
 // ---------------------------------------------------------------------------
 // 🎯 Offset per Takt einmessen
@@ -423,7 +383,48 @@ function calibTap() {
   log(`🎯 Offset eingemessen: ${offset} ms (für diese Szene gespeichert).`);
   calib = null;
 }
-$('calibBtn').addEventListener('click', calibTap);
-document.addEventListener('keydown', (e) => {
-  if (e.key === 't' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) calibTap();
-});
+
+// Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
+export function init() {
+  tools = Object.assign({ tooFast: 'shorten' }, store.get('scriptTools', {}));
+  // Neuer Schlüssel „scriptIntensity“: die Umstellung läuft nur einmal (auf dem ersten Gerät), weil sie
+  // gemeinsam gespeichert wird – ein zweites Gerät überschreibt danach nichts mehr.
+  if (store.get('scriptIntensity', null) === null) {
+    store.set('scriptIntensity', presetFix(store.get('scriptPresetHandy', 'auto')));
+    const map = store.get('scenePresets', {});
+    for (const k of Object.keys(map)) {
+      if (typeof map[k] === 'string' && SCRIPT_PRESETS[map[k]]) continue;
+      const v = typeof map[k] === 'string' ? map[k] : map[k]?.handy || map[k]?.vibe;
+      if (SCRIPT_PRESETS[v]) map[k] = v; else delete map[k];
+    }
+    store.set('scenePresets', map);
+  }
+  if (store.get('scriptPresetHandy', undefined) !== undefined) store.del('scriptPresetHandy');
+  presetDefault = presetFix(store.get('scriptIntensity', 'auto'));
+  // Standard (Einstellungen) und Auswahl dieser Szene (Script-Bereich + Popup in der Player-Leiste)
+  document.querySelectorAll('[data-preset-default] button').forEach((b) => b.addEventListener('click', () => {
+    presetDefault = b.dataset.preset;
+    store.set('scriptIntensity', presetDefault);
+    toolsChanged();
+  }));
+  document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.addEventListener('click', () => setScenePreset(b.dataset.preset)));
+  video.addEventListener('emptied', () => { localPreset = null; });
+  $('sbWarm').addEventListener('click', () => setWarmup(!warmup));
+  $('tooFast').value = tools.tooFast;
+  $('tooFast').addEventListener('change', () => { tools.tooFast = $('tooFast').value; toolsChanged(); });
+  $('handyMaxAuto').addEventListener('change', () => {
+    store.set('handyMaxAuto', $('handyMaxAuto').checked);
+    if (!$('handyMaxAuto').checked) store.set('handyMax', handyMaxSpeed());
+    showHandyMax();
+    toolsChanged();
+  });
+  $('handyMax').addEventListener('input', () => { $('handyMaxVal').textContent = `${$('handyMax').value} %/s`; });
+  $('handyMax').addEventListener('change', () => { store.set('handyMax', Number($('handyMax').value)); showHandyMax(); toolsChanged(); });
+  document.addEventListener('handy-info', () => { showHandyMax(); toolsChanged(); });
+  showHandyMax();
+  toolsChanged();
+  $('calibBtn').addEventListener('click', calibTap);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 't' && document.body.dataset.view === 'player' && !e.target.closest('input, select, textarea')) calibTap();
+  });
+}

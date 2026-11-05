@@ -51,7 +51,7 @@ jobs:
           r=$(docker logs fsp 2>&1 | grep -oE "Self-test: [0-9]+/[0-9]+" | cut -d' ' -f2)
           [ -n "$r" ] && [ "${r%/*}" = "${r#*/}" ]
           curl -fsS http://localhost:8080/healthz
-          curl -fsS http://localhost:8080/ | grep -q "boot.js"
+          curl -fsS http://localhost:8080/ | grep -q "main.js"
 
   release:
     needs: [test, container]
