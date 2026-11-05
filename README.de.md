@@ -28,7 +28,8 @@ docker logs Funscript-Player  # Start-Übersicht mit Selbsttest (englisch), ende
   (Containername). Der Player gibt keine Stash-Adressen an den Browser weiter – ein öffentlicher DNS-Name ist nicht nötig.
 - Der Container läuft als Benutzer `node` (1000), **nie als root**; `PUID`/`PGID` ändern das. `PLAYER_MEM` (Standard 2g)
   begrenzt den Arbeitsspeicher – läuft der Player voll, trifft es nur ihn, nicht Stash.
-- **HQ-Stream:** `/dev/dri` wird durchgereicht, `RENDER_GID` = GID der Host-Gruppe `render` (`getent group render`).
+- **HQ-Stream:** läuft auch ohne Grafikkarte (auf der CPU). Mit Intel-Grafik deutlich schneller: die zwei `/dev/dri`-Zeilen
+  in der `docker-compose.yml` einschalten und `RENDER_GID` = GID der Host-Gruppe `render` setzen (`getent group render`).
 
 ### Update von 1.19.6 oder älter: Container und Volume heißen jetzt anders
 
@@ -162,7 +163,7 @@ Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [C
   *Application ID* (Handy-API v3) bleibt die Handy auch bei 0,5×–2× im Takt. Gelber Status = Handy-Cloud antwortet langsam.
 - **Stash nicht erreichbar** – `STASH_URL` gilt aus Sicht des Containers: im gemeinsamen Docker-Netz den Containernamen
   nehmen (z. B. `http://Stash:9999`), nicht `localhost`. Zeile `Stash:` in `docker logs Funscript-Player` prüfen.
-- **HQ-Stream zeigt „CPU“ oder „nicht verfügbar“** – `/dev/dri` durchreichen und `RENDER_GID` auf die GID der Host-Gruppe
+- **HQ-Stream zeigt „CPU“ oder „nicht verfügbar“** – mit Intel-Grafik `/dev/dri` in der `docker-compose.yml` einschalten und `RENDER_GID` auf die GID der Host-Gruppe
   `render` setzen (`getent group render`).
 - **HereSphere fragt erneut nach dem Passwort** – Passwörter von vor 1.19.5 gelten nicht mehr; unter ⚙️ → VR einmal neu
   setzen.

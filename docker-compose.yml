@@ -24,9 +24,10 @@ services:
     ports:
       - "${PLAYER_PORT:-8080}:8080"
 
-    # Intel graphics for the HQ stream (no Intel graphics: delete these two lines)
-    devices: [/dev/dri:/dev/dri]
-    group_add: ["${RENDER_GID:-992}"]
+    # Intel graphics (Quick Sync) for a faster HQ stream – only if the host HAS Intel graphics: remove the "#" in front
+    # of both lines and set RENDER_GID in .env. Without them the player runs just the same; the HQ stream uses the CPU.
+    # devices: [/dev/dri:/dev/dri]
+    # group_add: ["${RENDER_GID:-992}"]
 
     environment:
       AUTH_USER: ${AUTH_USER:-}

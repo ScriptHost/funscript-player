@@ -84,7 +84,8 @@ docker logs Funscript-Player  # startup summary with self-check, ends with “�
   the player never hands Stash addresses to the browser, so no public DNS name is needed.
 - **Media folders** are commented out by default (Stash only). Every folder under `/media/<name>` becomes a source; a video
   and its script share the same name (`Name.mp4` + `Name.funscript`).
-- **HQ stream:** `/dev/dri` is passed through, `RENDER_GID` = GID of the host group `render` (`getent group render`).
+- **HQ stream:** works without any GPU (on the CPU). With Intel graphics it is much faster: enable the two `/dev/dri`
+  lines in `docker-compose.yml` and set `RENDER_GID` = GID of the host group `render` (`getent group render`).
 - The container runs as user `node` (1000), never as root; `PUID`/`PGID` change it. `PLAYER_MEM` (default 2g) caps
   its memory – if the player runs out, only the player is hit, not Stash.
 
@@ -161,7 +162,7 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
   slowly.
 - **Stash not reachable** – `STASH_URL` is seen from inside the container: on a shared Docker network use the container
   name (e.g. `http://Stash:9999`), not `localhost`. Check the line `Stash:` in `docker logs Funscript-Player`.
-- **HQ stream says “CPU” or “not available”** – pass `/dev/dri` through and set `RENDER_GID` to the GID of the host group
+- **HQ stream says “CPU” or “not available”** – with Intel graphics: enable `/dev/dri` in `docker-compose.yml` and set `RENDER_GID` to the GID of the host group
   `render` (`getent group render`).
 - **HereSphere asks for the password again** – passwords from before 1.19.5 are no longer accepted; set it once more
   under ⚙️ → VR.
