@@ -8,8 +8,19 @@ import { modulesReady } from './state.js';
 import { store } from './handy.js';
 import { closeDevices, goLibrary, openDevices, openPlayer, openSettings } from './app.js';
 
-// Demo-Modus (/demo): Videos, Vorschaubilder und Namen unkenntlich (design.css body.demo) – zum Vorführen
-if (location.pathname === '/demo') document.body.classList.add('demo');
+// Demo-Modus: Videos, Vorschaubilder und Namen unkenntlich (design.css body.demo) und kein Ton – zum Vorführen.
+// An über die Adresse /demo (fest) oder den Schalter in ⚙️ → Notaus & Privatsphäre (pro Gerät).
+const DEMO_URL = location.pathname === '/demo';
+export const isDemo = () => document.body.classList.contains('demo');
+export function setDemo(on) {
+  if (!DEMO_URL) store.set('demo', on);
+  document.body.classList.toggle('demo', DEMO_URL || on);
+  const v = document.getElementById('video');
+  if (v && isDemo()) v.muted = true;
+}
+setDemo(store.get('demo', false));
+// Im Demo-Modus bleibt der Ton aus – auch 🔊, Taste M und Wischen schalten ihn nicht ein
+document.getElementById('video')?.addEventListener('volumechange', (e) => { if (isDemo() && !e.target.muted) e.target.muted = true; });
 
 const AREAS = ['library', 'player', 'devices', 'settings'];
 
@@ -47,6 +58,13 @@ export function init() {
   const glow = document.getElementById('glowOn'), motion = document.getElementById('motionOn');
   if (glow) { glow.checked = store.get('glow', true); glow.addEventListener('change', () => setGlow(glow.checked)); }
   if (motion) { motion.checked = store.get('motion', false); motion.addEventListener('change', () => setMotion(motion.checked)); }
+  const demo = document.getElementById('demoOn');
+  if (demo) {
+    demo.checked = isDemo();
+    demo.disabled = DEMO_URL; // über /demo geöffnet: immer an
+    document.getElementById('demoUrlHint').hidden = !DEMO_URL;
+    demo.addEventListener('change', () => setDemo(demo.checked));
+  }
 
   document.getElementById('appNav')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-area]');
