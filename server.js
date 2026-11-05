@@ -7,7 +7,7 @@ const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
-const { AUTH_IGNORED, PLACEHOLDERS, AUTH_PASS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
+const { AUTH_IGNORED, STASH_IGNORED, PLACEHOLDERS, AUTH_PASS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
 const path = require('path');
 const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
@@ -360,6 +360,7 @@ server.listen(PORT, HOST, async () => {
   else if (LOGIN_MISSING) logLine('⚠ NO LOGIN SET UP: the player only shows a help page. Set AUTH_USER + AUTH_PASS in .env – or LOGIN=off if a proxy protects it.');
   else if (!AUTH_USER) logLine('Note: login switched off (LOGIN=off) – everyone who reaches the player sees your library and Handy key.');
   if (AUTH_IGNORED) logLine('Note: LOGIN=off – AUTH_USER/AUTH_PASS in .env are ignored.');
+  if (STASH_IGNORED) logLine('Note: STASH=off – STASH_URL/STASH_API_KEY in .env are ignored.');
   if (PLACEHOLDERS.length) logLine(`Note: placeholder <…> in .env counts as empty: ${PLACEHOLDERS.join(', ')}`);
   logLine(`Library: reading ${MEDIA_DIR} …`);
   const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashStatus() : null, hqStatus()]);

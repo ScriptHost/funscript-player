@@ -292,3 +292,14 @@ test('2.0: mehrere Scripts je Video (Varianten), Achsen zählen nicht', async ()
     assert.strictEqual(nur.scripts, undefined);
   } finally { s.stop(); }
 });
+
+test('2.0: Schalter STASH=off gewinnt, LOGIN=on ist die normale Anmeldung', async () => {
+  const s = await startServer({ LOGIN: 'on', AUTH_USER: 'u', AUTH_PASS: 'p', STASH: 'off', STASH_URL: 'http://127.0.0.1:9', STASH_API_KEY: 'abc' });
+  const auth = { Authorization: 'Basic ' + Buffer.from('u:p').toString('base64') };
+  try {
+    assert.strictEqual((await fetch(s.base + '/api/version')).status, 401, 'LOGIN=on verlangt Anmeldung');
+    const st = await (await fetch(s.base + '/api/stash/status', { headers: auth })).json();
+    assert.strictEqual(st.configured, false, 'STASH=off: Stash gilt als nicht eingerichtet');
+    assert.strictEqual((await fetch(s.base + '/api/stash/scenes', { headers: auth })).status, 404);
+  } finally { s.stop(); }
+});
