@@ -458,6 +458,7 @@ async function openStashScene(s) {
       session.markers = d.markers;
       loadSprites(session);
       session.resume = d.resume;
+      if (d.scripts?.length) sceneAlts('stash:' + s.id, d.scripts.map((v) => ({ name: v.name, url: mediaUrl(v.script) })));
       showSceneInfo(d);
       drawHeatmap();
       resumeIfWanted(session);
@@ -524,6 +525,17 @@ async function loadSceneScript(src, origName, origUrl, alts = []) {
     clearScript();
     log('Script konnte nicht geladen werden: ' + e.message, true);
   }
+  renderScriptBox();
+}
+
+// 2.0: Varianten, die erst mit den Szenen-Details kommen (Stash): anbieten; war eine davon gewählt oder lief
+// noch gar kein Script, gleich laden
+function sceneAlts(src, alts) {
+  if (nowKey() !== src || scriptMeta.src !== src) return;
+  const want = store.get('scriptChoice', {})[src] || '';
+  const reload = (want.startsWith('alt:') && alts.some((a) => 'alt:' + a.name === want)) || (!script && !scriptMeta.hasOwn && !scriptMeta.hasOrig);
+  if (reload) return loadSceneScript(src, scriptMeta.origName, scriptMeta.origUrl, alts);
+  scriptMeta.alts = alts;
   renderScriptBox();
 }
 

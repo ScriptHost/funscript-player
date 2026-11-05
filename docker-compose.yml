@@ -56,6 +56,8 @@ services:
       # - ${MEDIA_FILME}:/media/Filme:ro
       # - ${MEDIA_DOWNLOADS}:/media/Downloads:ro
       # - ${MEDIA_VR}:/media/VR:ro
+      # Stash's video folder (optional): only needed for extra scripts next to Stash videos (clip.soft.funscript)
+      # - ${MEDIA_STASH}:/media/Stash:ro
 
 volumes:
   funscript-data:
