@@ -19,13 +19,14 @@ services:
     # Memory limit: if the player runs full (e.g. several HQ conversions), only the player is affected – not Stash
     mem_limit: ${PLAYER_MEM:-2g}
 
-    # 2.0: by default only reachable from the server itself (127.0.0.1) – safe even without a login.
-    # A reverse proxy in the same Docker network still reaches the container directly (port 8080).
-    # Open it to your home network: set PLAYER_BIND=0.0.0.0 in .env (then set AUTH_USER/AUTH_PASS, too).
+    # Who can reach the player – switch PLAYER_BIND in .env:
+    #   0.0.0.0   = whole home network: http://<server>:<PLAYER_PORT> (default, simplest start)
+    #   127.0.0.1 = only this server – use it when a reverse proxy runs here (in the same Docker network the
+    #               proxy still reaches port 8080 directly); nobody else in the network gets in past the proxy
     # For HTTPS (needed for Bluetooth and "install as app") put a reverse proxy in front,
     # e.g. https://funscript-player.example.com -> port 8080.
     ports:
-      - "${PLAYER_BIND:-127.0.0.1}:${PLAYER_PORT:-8080}:8080"
+      - "${PLAYER_BIND:-0.0.0.0}:${PLAYER_PORT:-8080}:8080"
 
     # Intel graphics (Quick Sync) for a faster HQ stream – only if the host HAS Intel graphics: remove the "#" in front
     # of both lines and set RENDER_GID in .env. Without them the player runs just the same; the HQ stream uses the CPU.
