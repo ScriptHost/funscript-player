@@ -8,9 +8,11 @@
 //   → selfctl → touchpad → settings
 // Neue Module mit dem 2.0-Design bitte ohne Seiteneffekte beim Laden (init()-Funktion) – dann fällt die Kette weg.
 import './settings.js';
+import { applyLang } from './lang.js';
 
 // Sprache anwenden und für die Entwicklung mit ?selbsttest den Selbsttest nachladen
-I18N.start();
+applyLang();   // 2.0: Texte mit Schlüssel (lang.js)
+I18N.start();  // alte Übersetzung für alles ohne Schlüssel – fällt mit dem Neubau weg
 if (/[?&]selbsttest\b/.test(location.search)) {
   document.body.append(Object.assign(document.createElement('script'), { type: 'module', src: 'selftest.js' }));
 }

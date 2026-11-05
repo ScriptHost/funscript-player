@@ -40,7 +40,8 @@ modules should not do work at load time (export an `init()` instead).
 | `lib/stash.js` · `lib/heresphere.js` | Stash GraphQL, filters, write-back, proxy · HereSphere API (VR only, password, cached list) |
 | `lib/hq.js` | HQ stream via ffmpeg (ffprobe results cached); presets `natural` (auto), `clean`, `strong` |
 | `lib/selfcheck.js` · `lib/update.js` | Startup self-check (data folder, stored files, every UI script compiles, every `$('id')` exists in `index.html`, script intensity) – result in `docker logs`, also used by the tests · “update available” (latest GitHub release, cached 6 h) |
-| `i18n.js` · `i18n-en.js` | Language: English via table (German text → English) and patterns; translates on load and via `MutationObserver` |
+| `lang.js` · `lang/en.js` · `lang/de.js` | Language since 2.0: texts by key (`t('menu.library')`, `data-i18n="…"`), English is the base, German the translation; `test/lang.test.js` checks both files match and every key is used |
+| `i18n.js` · `i18n-en.js` | Old translation (German text → English via table and patterns, `MutationObserver`) for everything not yet on keys – removed when the 2.0 redesign is complete |
 | `handy.js` | Class `Handy` (API v2/v3: HAMP, HSSP with `playback_rate`, clock sync, upload cache), shared settings (`SHARED_PREFS`, synced with `/api/prefs`), `claimHandy()`, helpers `$`, `store`, `log`, `pillText`, `positionAt` |
 | `app.js` | Modes and pages, menu, device window, “devices follow the video”, loading video + script, sync video → Handy (`doSync`), heatmap (`paintHeat`), markers |
 | `library.js` | Library (folders + Stash), filters, opening a scene, Stash actions (`sceneAct`: ★, favourite, O, marker), resume position, sprites |
@@ -54,7 +55,7 @@ modules should not do work at load time (export an `init()` instead).
 | `selfctl.js` · `touchpad.js` | “Control yourself” (`selfCtl.mode`: `off` / `self`) for videos without a Funscript · touch area (tempo or 🧪 position via HDSP, at most 2 commands in flight, slower on HTTP 429), ⏺ recording |
 | `settings.js` | Settings page: collapsible sections, ⓘ explanations, picture/HQ, player display, update notice, “new in” dialog, welcome dialog (only on a fresh install: `freshInstall` from `handy.js` = nothing stored in the browser nor on the server), install as app (`beforeinstallprompt`, otherwise a hint) and “whole app in fullscreen” (`appFs`, next tap), reset |
 | `selftest.js` | Developer self-test in the browser: append `?selbsttest` to the address – runs typical flows with a simulated Handy |
-| `test/` | Automated tests with Node built-ins: server, script logic, `i18n.test.js` (every German UI text has an English entry), `browser.test.js` (runs `?selbsttest` in headless Chrome via the DevTools protocol, fixtures in `test/fixtures/`; skipped locally without Chrome, required on GitHub) |
+| `test/` | Automated tests with Node built-ins: server, script logic, `lang.test.js` (keys complete in en/de, none unused), `i18n.test.js` (every remaining German UI text has an English entry), `browser.test.js` (runs `?selbsttest` in headless Chrome via the DevTools protocol, fixtures in `test/fixtures/`; skipped locally without Chrome, required on GitHub) |
 | `eslint.config.js` | ESLint, only on GitHub (`npm ci && npx eslint .`, versions pinned in `package-lock.json`, updated by Dependabot). All top-level names of the UI scripts are registered as shared globals, so typos are caught without flagging cross-file names |
 | Health check | `checkDevices()` in `app.js` (on return after > 20 s and every minute): Handy `/connected`, Satisfyer `checkVibes()` → `dev.lost()` (one reconnect at a time); `deviceLost()` pauses the video if enabled (`pauseOnLoss`) |
 
@@ -166,8 +167,8 @@ MEDIA_DIR=./testmedia DATA_DIR=./data STASH_URL=http://stash:9999 node server.js
 Without Stash everything works with the folders. Web Bluetooth works on `localhost` without HTTPS.
 
 - **No dependencies:** only the Node standard library and browser APIs. No build, no bundler.
-- **Language:** code comments in German (they explain the why). The interface is bilingual: German texts in the code,
-  English translations in `public/i18n-en.js`.
+- **Language:** code comments in German (they explain the why). The interface is bilingual: new texts get a key in
+  `public/lang/en.js` + `public/lang/de.js`; older German texts are still translated via `public/i18n-en.js`.
 - **Safety first:** everything that moves devices must be stoppable via `emergencyStop()` and stop when the connection
   is lost.
 - **Versioning (from 2.0.0):** `MAJOR.MINOR.PATCH` – major for big breaks (new interface, renamed container/volume),

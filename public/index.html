@@ -28,10 +28,10 @@
       <span id="devState" class="pill off">getrennt</span>
     </button>
     <button id="menuBtn" class="menu-btn" aria-label="Menü" aria-expanded="false">☰</button>
-    <nav id="menu" class="menu" aria-label="Menü" hidden>
-      <button id="menuLibrary">📚 Bibliothek</button>
-      <button data-mode="control">🎮 Steuern <small>Direkt, Patterns</small></button>
-      <button id="navSettings">⚙️ Einstellungen</button>
+    <nav id="menu" class="menu" aria-label="Menu" data-i18n-aria-label="menu.label" hidden>
+      <button id="menuLibrary">📚 <span data-i18n="menu.library">Library</span></button>
+      <button data-mode="control">🎮 <span data-i18n="menu.control">Control</span> <small data-i18n="menu.controlHint">Direct, patterns</small></button>
+      <button id="navSettings">⚙️ <span data-i18n="menu.settings">Settings</span></button>
     </nav>
   </header>
   <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
@@ -498,7 +498,7 @@
           <label>Springen mit Doppeltippen links/rechts
             <select id="skipSec"><option value="10">10 Sekunden</option><option value="5">5 Sekunden</option></select>
           </label>
-          <label>Sprache
+          <label><span data-i18n="settings.language">Language</span>
             <select id="langSel"><option value="en">English</option><option value="de">Deutsch</option></select>
           </label>
           <button id="welcomeAgain" class="small secondary">👋 Willkommen nochmal zeigen</button>

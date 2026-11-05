@@ -1,5 +1,6 @@
 import './touchpad.js'; // Ladereihenfolge wie bisher – siehe boot.js
 import { modulesReady } from './state.js';
+import { lang, setLang } from './lang.js';
 import { $, freshInstall, log, store } from './handy.js';
 import { openDevices, openSettings } from './app.js';
 import { folderRoots, lib, librarySources, renderSavedFilters, setBrowse, setSource } from './library.js';
@@ -54,8 +55,8 @@ document.querySelectorAll('#hudOptions input').forEach((cb) => {
 applyHud();
 
 // --- Sprache (pro Gerät): Englisch / Deutsch – Standard nach Gerätesprache, Wechsel lädt neu ---------
-$('langSel').value = I18N.lang;
-$('langSel').addEventListener('change', () => { store.set('lang', $('langSel').value); location.reload(); });
+$('langSel').value = lang;
+$('langSel').addEventListener('change', () => setLang($('langSel').value));
 
 // --- Aufklappen (1.19.3): Bereiche zu, Erklärtexte hinter ⓘ ----------------------------------------
 // Offene Bereiche merkt sich jedes Gerät. Aufeinanderfolgende Erklärtexte landen unter einem ⓘ.

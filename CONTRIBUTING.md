@@ -33,8 +33,8 @@ The browser self-test needs Chrome or Edge; without one it is skipped locally (o
 ## Code style
 
 - Plain JavaScript, no framework, no build step; match the surrounding code (naming, comment density).
-- The interface is German in the source with English translations in `public/i18n-en.js` – a new German text needs
-  an English entry (the translation test checks this).
+- New interface texts get a key in `public/lang/en.js` and `public/lang/de.js` (use `t('key')` or `data-i18n="key"`);
+  older German texts are still translated via `public/i18n-en.js`. The tests check both.
 - Anything that moves a device must stop with `emergencyStop()` and when the connection is lost.
 - Architecture and core concepts: [DEVELOPMENT.md](DEVELOPMENT.md).
 
