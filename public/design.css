@@ -310,7 +310,6 @@ body.mini-on #view-player > aside.pl-side:not(#drop) { display: none !important;
 .pl-next-it b { font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl-next-it small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Intensität: Text nie abschneiden lassen; während 🌱 Aufwärmen gedimmt (Aufwärmen hat Vorrang) */
+/* Intensität: Text nie abschneiden lassen */
 .int-seg button { min-width: 0; padding: 6px 2px 5px; font-size: 12.5px; }
 .int-seg button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.script-box:has(#sbWarm.on) .sb-presets, .script-box:has(#sbWarm.on) .sb-choice { opacity: .45; }
