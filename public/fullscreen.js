@@ -228,7 +228,7 @@ function drawOvBar() {
     const neon = bctx.createLinearGradient(0, 0, w, 0);
     neon.addColorStop(0, '#22d3ee'); neon.addColorStop(0.55, '#b46cff'); neon.addColorStop(1, '#ff4fa3');
     if (script && syncActive()) {
-      bctx.fillStyle = 'rgba(11,11,13,.55)';
+      bctx.fillStyle = 'rgba(11,11,13,.28)';
       bctx.fillRect(x, 0, w - x, h);
       bctx.fillStyle = neon;
       bctx.fillRect(0, h - 3 * dpr, x, 3 * dpr);

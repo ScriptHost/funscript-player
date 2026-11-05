@@ -227,10 +227,12 @@ const scaleAround = (a, k, mid = 50) => a.map((x) => ({ at: x.at, pos: Math.max(
 // die Handy nur, was sie physisch schafft (Vibrationen bleiben); der Satisfyer ungekürzt,
 // dafür mit eigener Stärke/Gleichmäßigkeit (presetVibeShape, presetVibeEven).
 // preset: zum Ausprobieren (Vorschau in den Knöpfen) – sonst das der Szene.
-export function processScript(actions, target = 'handy', preset = currentPreset()) {
+// noWarm: Vorschau zeigt das Preset selbst, auch wenn gerade 🌱 Aufwärmen läuft (sonst wären alle vier gleich)
+export function processScript(actions, target = 'handy', preset = currentPreset(), noWarm = false) {
   if (!actions) return actions;
-  const key = `${tools.tooFast}|${handyMaxSpeedSafe()}|${warmup}`;
-  const slot = preset === currentPreset() ? target : `${target}:${preset}`;
+  const warm = warmup && !noWarm;
+  const key = `${tools.tooFast}|${handyMaxSpeedSafe()}|${warm}`;
+  const slot = preset === currentPreset() && !noWarm ? target : `${target}:${preset}${noWarm ? ":vorschau" : ""}`;
   const hit = toolCache[slot];
   if (hit && hit.src === actions && hit.key === key && hit.preset === preset) return hit.actions;
   let out = actions;
@@ -241,7 +243,7 @@ export function processScript(actions, target = 'handy', preset = currentPreset(
   const handyTarget = target === 'handy';
   const st = preset === 'original' ? null : analyzeScript(out);
 
-  if (warmup && handyTarget) {
+  if (warm && handyTarget) {
     out = warmupActions(actions);
     notes.push('Aufwärmen: unten, langsam');
   } else if (st) {
@@ -364,7 +366,7 @@ function drawPresetPreviews() {
     const w = (c.width = Math.round(c.clientWidth * dpr)), h = (c.height = Math.round(c.clientHeight * dpr));
     g.clearRect(0, 0, w, h);
     if (!script) return;
-    const a = processScript(script.actions, modulesReady.has('app') && !hasHandy() && hasVibe() ? 'vibe' : 'handy', c.parentElement.dataset.preset);
+    const a = processScript(script.actions, modulesReady.has('app') && !hasHandy() && hasVibe() ? 'vibe' : 'handy', c.parentElement.dataset.preset, true);
     paintHeat(g, a, a[a.length - 1].at || 1, w, h);
   });
 }

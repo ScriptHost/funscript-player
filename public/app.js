@@ -451,7 +451,7 @@ const ctx = canvas.getContext('2d');
 export const base = document.createElement('canvas');
 
 // 2.0 „Graphit + Neon“: ruhig = dunkles Blau, dann Cyan → Violett → Pink
-const HEAT = [[0, [22, 30, 44]], [90, [16, 120, 150]], [200, [20, 175, 205]], [320, [110, 85, 220]], [440, [165, 70, 215]], [560, [225, 55, 135]]];
+const HEAT = [[0, [38, 62, 86]], [90, [24, 145, 175]], [200, [34, 200, 228]], [320, [110, 85, 220]], [440, [165, 70, 215]], [560, [225, 55, 135]]];
 export function heatColor(speed) {
   for (let i = 1; i < HEAT.length; i++) {
     if (speed <= HEAT[i][0]) {
@@ -496,7 +496,9 @@ export function drawHeatmap() {
   const total = duration();
   if (script && total > 0) {
     // Heatmap: Handy-Fassung, wenn eine Handy verbunden ist, sonst die des Satisfyers
-    const a = toolActions(typeof hasHandy === 'function' && !hasHandy() && hasVibe() ? 'vibe' : 'handy');
+    // 2.0: immer das Script selbst – auch während 🌱 Aufwärmen (sonst wäre alles einfarbig ruhig)
+    const tgt = !hasHandy() && hasVibe() ? 'vibe' : 'handy';
+    const a = modulesReady.has('tools') ? processScript(script.actions, tgt, undefined, true) : script.actions;
     const x = (ms) => (ms / total) * w;
     paintHeat(b, a, total, w, h);
     b.strokeStyle = 'rgba(255,255,255,.22)'; // 2.0: dezent – die Farben sollen lesbar bleiben
