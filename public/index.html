@@ -311,7 +311,8 @@
         <div id="setHome" class="set-home">
           <h2 class="page-title" data-i18n="settings.title">Settings</h2>
           <div class="set-group">
-            <button class="set-item" data-page="devices"><span class="ic">◎</span><span class="tx"><span data-i18n="settings.devices">Devices</span><small data-i18n="settings.devicesSub">Handy, Satisfyer, emergency stop</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="devices"><span class="ic">◎</span><span class="tx"><span data-i18n="settings.devices">Devices</span><small data-i18n="settings.devicesSub">Handy, Satisfyer, Intiface</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="safety"><span class="ic">⏻</span><span class="tx"><span data-i18n="settings.safety">Emergency stop</span><small data-i18n="settings.safetySub">Auto stop, STOP buttons, connection loss</small></span><span class="ch">›</span></button>
             <button class="set-item" data-page="script"><span class="ic">⚡</span><span class="tx"><span data-i18n="settings.script">Script</span><small data-i18n="settings.scriptSub">Intensity, finale, speed limit</small></span><span class="ch">›</span></button>
             <button class="set-item" data-page="library"><span class="ic">▦</span><span class="tx"><span data-i18n="settings.library">Library</span><small data-i18n="settings.librarySub">Start, Stash, folders, filters</small></span><span class="ch">›</span></button>
           </div>
@@ -405,8 +406,13 @@
               <p id="intifaceLanHint" class="hint-text" hidden data-i18n="settings.vibe.lanLocked">Fixed via INTIFACE_LAN_ONLY in docker-compose.yml.</p>
             </details>
           </div>
+        </div>
+
+        <!-- ---------- Notaus (nach test2 eigener Bereich) ---------- -->
+        <div class="set-page" data-page="safety" hidden>
+          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
+          <h2 class="page-title" data-i18n="settings.safety">Emergency stop</h2>
           <div id="setSafety" class="card sec">
-            <h3 class="sec-sub" data-i18n="settings.safety.title">🛑 Emergency stop</h3>
             <label class="ui-switch"><input id="pauseOnLoss" type="checkbox" checked><span></span><span data-i18n="settings.safety.pauseOnLoss">Pause the video when a device loses its connection mid-video</span></label>
             <label class="ui-switch"><input id="stopHidden" type="checkbox"><span></span><span data-i18n="settings.safety.stopHidden">Stop everything on screen lock / app switch</span></label>
             <label><span data-i18n="settings.safety.autoStop">Stop automatically when nothing is touched and no video is playing</span>
@@ -642,11 +648,14 @@
             <label class="ui-switch"><input id="hsRedirect" type="checkbox" checked><span></span><span data-i18n="settings.vr.redirect">Send HereSphere from the normal address straight to the VR library</span></label>
             <p class="hint-text" data-i18n="settings.vr.redirectHelp">Then the player’s normal address is enough in HereSphere. HereSphere is recognised by its identifier; only the start page is redirected.</p>
             <label class="ui-switch adv"><input id="hsVrOnly" type="checkbox" checked><span></span><span data-i18n="settings.vr.vrOnly">Show VR videos only (off = regular videos too, as a flat screen)</span></label>
-            <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small>
-              <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="empty = open">
-                <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button>
-                <button id="hsPassClear" class="small secondary" hidden data-i18n="settings.vr.remove">Remove</button></span>
-            </label>
+            <!-- nach test2: Umschalter ohne/mit Passwort; „ohne“ löscht das Passwort und sperrt das Feld -->
+            <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small></label>
+            <div id="hsPassMode" class="seg">
+              <button data-pw="off" data-i18n="settings.vr.pwOff">Without password</button>
+              <button data-pw="on" data-i18n="settings.vr.pwOn">With password</button>
+            </div>
+            <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="new password">
+              <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button></span>
             <p id="hsPassInfo" class="hint-text"></p>
             <p id="hsLoginHint" class="hint-text warn" hidden></p>
             <p data-i18n="settings.vr.urlHelp">Open this address in HereSphere’s browser and bookmark it:</p>

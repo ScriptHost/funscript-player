@@ -303,3 +303,13 @@ test('2.0: Schalter STASH=off gewinnt, LOGIN=on ist die normale Anmeldung', asyn
     assert.strictEqual((await fetch(s.base + '/api/stash/scenes', { headers: auth })).status, 404);
   } finally { s.stop(); }
 });
+
+test('2.0: Demo-Modus /demo liefert die Seite (hinter der Anmeldung)', async () => {
+  const s = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'p' });
+  try {
+    assert.strictEqual((await fetch(s.base + '/demo')).status, 401);
+    const r = await fetch(s.base + '/demo', { headers: { Authorization: 'Basic ' + Buffer.from('u:p').toString('base64') } });
+    assert.strictEqual(r.status, 200);
+    assert.ok((await r.text()).includes('id="view-settings"'));
+  } finally { s.stop(); }
+});

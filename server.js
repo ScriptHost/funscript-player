@@ -291,7 +291,7 @@ const handler = async (req, res) => {
 
     // Dateien: /media/… aus den Videoordnern, sonst die Oberfläche
     const file = pathname.startsWith('/media/') ? safeJoin(MEDIA_DIR, pathname.slice('/media/'.length))
-      : safeJoin(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname.slice(1));
+      : safeJoin(PUBLIC_DIR, pathname === '/' || pathname === '/demo' ? 'index.html' : pathname.slice(1));
     if (!file) {
       res.writeHead(403);
       return res.end();

@@ -8,6 +8,9 @@ import { modulesReady } from './state.js';
 import { store } from './handy.js';
 import { closeDevices, goLibrary, openDevices, openPlayer, openSettings } from './app.js';
 
+// Demo-Modus (/demo): Videos, Vorschaubilder und Namen unkenntlich (design.css body.demo) – zum Vorführen
+if (location.pathname === '/demo') document.body.classList.add('demo');
+
 const AREAS = ['library', 'player', 'devices', 'settings'];
 
 export function currentArea() {

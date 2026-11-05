@@ -84,6 +84,9 @@ const toggleFullscreen = () => (isFs() ? exitFullscreen() : enterFullscreen());
 }));
 
 $('ovFs').addEventListener('click', toggleFullscreen);
+// nach test2: Player verlassen (Zurück-Geste, Navigation) beendet das Vollbild – sonst blieb der Player im
+// Vollbild-Zustand hängen und der Mini-Player beim Stöbern war leer/schwarz
+window.addEventListener('hp:view', () => { if (document.body.dataset.view !== 'player' && isFs()) exitFullscreen(); });
 
 // Füllen (Zoom, schneidet Ränder ab) oder Einpassen (ganzes Bild, ggf. schwarze Balken) – nur im Vollbild
 function setFit(fit) {

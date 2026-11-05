@@ -73,7 +73,7 @@ test('Takt-Schutz: Vibrationen bleiben, große Stöße um ihre eigene Mitte gek�
   assert.ok(r.marks.length === r.changed);
 });
 
-test('Intensität: Original unverändert, Sanft kleiner, Intensiv mehr Stöße – Handy nie zu schnell', () => {
+test('Intensität: Original unverändert, Sanft kleiner, Intensiv im Takt (keine Zusatz-Stöße) – Handy nie zu schnell', () => {
   const { loadPresets, sampleScript, topSpeed } = require('../lib/selfcheck');
   const run = loadPresets(450);
   const a = sampleScript();
@@ -82,7 +82,10 @@ test('Intensität: Original unverändert, Sanft kleiner, Intensiv mehr Stöße �
   assert.ok(Math.min(...soft.map((x) => x.pos)) >= 20 && Math.max(...soft.map((x) => x.pos)) <= 80);
   assert.ok(topSpeed(soft) <= 242);
   const auto = run(a, 'handy', 'auto'), intense = run(a, 'handy', 'intense');
-  assert.ok(intense.length > auto.length);
+  // nach test2: Intensiv bleibt im Takt – keine zusätzlichen Stöße, jeder Punkt liegt auf einem Zeitpunkt des Scripts
+  assert.ok(intense.length <= auto.length, `${intense.length} > ${auto.length}`);
+  const times = new Set(a.map((x) => x.at));
+  assert.ok(intense.every((x) => times.has(x.at)), 'Takt des Scripts');
   assert.ok(topSpeed(intense) <= 452 && topSpeed(auto) <= 452);
 });
 
@@ -127,13 +130,14 @@ test('2.0 Intensiv: kleine, langsame Stöße auf vollen Hub – trotzdem machbar
   assert.ok(topSpeed(intense) <= 452);
 });
 
-test('2.0 Aufwärmen: Handy unten und langsam, Satisfyer bekommt das Script', () => {
+test('2.0 Aufwärmen: Handy unten und ruhig (0–35 %, 1 s je Weg), Satisfyer bekommt das Script', () => {
   const { loadPresets, sampleScript, topSpeed } = require('../lib/selfcheck');
   const run = loadPresets(450);
   const a = sampleScript();
   const w = run(a, 'handy', 'auto', true);
-  assert.ok(w.every((x) => x.pos >= 0 && x.pos <= 20), 'unten');
-  assert.ok(topSpeed(w) === 0 || topSpeed(w) <= 15, 'langsam');
+  assert.ok(w.every((x) => x.pos >= 0 && x.pos <= 35), 'unten');
+  assert.ok(Math.max(...w.map((x) => x.pos)) === 35, 'Hub bis 35 %');
+  assert.ok(topSpeed(w) <= 36, 'ruhig');
   assert.ok(w[w.length - 1].at >= a[a.length - 1].at, 'ganze Länge');
   assert.ok(run(a, 'vibe', 'auto', true).length > 2);
 });

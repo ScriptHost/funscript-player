@@ -234,6 +234,7 @@ function renderSavedFilterOptions() {
 $('hsUrl').value = `${location.origin}/heresphere`;
 
 // Gilt auf dem Server für alle Geräte (HERESPHERE=off / INTIFACE_LAN_ONLY in Docker sperren fest)
+let hsHasPass = false;
 function showServerSettings(s) {
   $('hsOn').checked = s.heresphere;
   $('hsOn').disabled = !!s.heresphereLocked;
@@ -242,7 +243,8 @@ function showServerSettings(s) {
   $('hsOffHint').textContent = s.heresphereLocked ? t('settings.vr.locked') : t('settings.vr.offHint');
   $('hsRedirect').checked = s.hsRedirect !== false;
   $('hsVrOnly').checked = s.hsVrOnly !== false;
-  $('hsPassClear').hidden = !s.hsPassword;
+  hsHasPass = !!s.hsPassword;
+  renderPassMode(hsHasPass);
   $('hsPassInfo').textContent = s.hsPassword ? t('settings.vr.passSet') : t('settings.vr.passNone');
   // Anmeldung im Player an: HereSphere kommt nur mit eigenem Passwort hinein (es kann keine Browser-Anmeldung)
   $('hsLoginHint').hidden = !(s.login && !s.hsPassword);
@@ -264,14 +266,27 @@ async function putSettings(patch, msg) {
 fetch('/api/settings').then((r) => r.json()).then(showServerSettings).catch(() => {});
 $('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? t('settings.vr.logOn') : t('settings.vr.logOff')));
 $('hsRedirect').addEventListener('change', () => putSettings({ hsRedirect: $('hsRedirect').checked }, $('hsRedirect').checked ? t('settings.vr.logRedirectOn') : t('settings.vr.logRedirectOff')));
-$('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? 'HereSphere: nur VR-Videos.' : 'HereSphere: alle Videos.'));
+$('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? t('settings.vr.logVrOnly') : t('settings.vr.logAll')));
 $('hsPassSave').addEventListener('click', () => {
   const pw = $('hsPass').value;
-  if (!pw) return log('Bitte ein Passwort eingeben – oder „Entfernen“.', true);
+  if (!pw) return log(t('settings.vr.passEmpty'), true);
   $('hsPass').value = '';
-  putSettings({ hsPassword: pw }, 'HereSphere-Passwort gespeichert.');
+  putSettings({ hsPassword: pw }, t('settings.vr.logPassSaved'));
 });
-$('hsPassClear').addEventListener('click', () => putSettings({ hsPassword: '' }, 'HereSphere-Passwort entfernt – frei erreichbar.'));
+// nach test2: Umschalter ohne/mit Passwort. „Ohne“ löscht ein gesetztes Passwort sofort und sperrt das Feld;
+// „Mit“ gibt das Feld frei – gilt erst, wenn ein Passwort gespeichert ist.
+function renderPassMode(on) {
+  document.querySelectorAll('#hsPassMode button').forEach((b) => b.classList.toggle('active', (b.dataset.pw === 'on') === on));
+  $('hsPass').disabled = !on;
+  $('hsPassSave').disabled = !on;
+  if (!on) $('hsPass').value = '';
+}
+document.querySelectorAll('#hsPassMode button').forEach((b) => b.addEventListener('click', () => {
+  const on = b.dataset.pw === 'on';
+  renderPassMode(on);
+  if (on) $('hsPass').focus();
+  else if (hsHasPass) putSettings({ hsPassword: '' }, t('settings.vr.logPassRemoved'));
+}));
 $('intifaceLan').addEventListener('change', () => putSettings({ intifaceLan: $('intifaceLan').checked }, $('intifaceLan').checked ? 'Intiface: nur Heimnetz-Adressen.' : 'Intiface: alle privaten Adressen.'));
 $('hsCopy').addEventListener('click', async () => {
   try {

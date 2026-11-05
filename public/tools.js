@@ -13,7 +13,7 @@ modulesReady.add('tools');
 //     Original     – genau die Datei, nichts geändert
 //     Automatisch  – kleinen Hub strecken, was die Handy nicht schafft anpassen (Takt-Schutz)
 //     Sanft        – kleinerer Hub (20–80 %), langsamer, Satisfyer schwächer und ruhiger
-//     Intensiv     – voller Hub, ruhige Stellen im doppelten/dreifachen Takt, Satisfyer stärker
+//     Intensiv     – im Takt des Scripts, jeder Stoß Richtung vollen Hub verlängert, Satisfyer stärker
 //   Standard unter ⚙️ → Script, pro Szene am Video (wird wie der Offset gemerkt).
 //   Takt einmessen:  im Takt der Stöße tippen -> Offset für diese Szene berechnen
 // Ergebnis wird zwischengespeichert (Vibrator fragt ~16× pro Sekunde nach).
@@ -160,27 +160,7 @@ function fitHandy(out, maxSpeed, only, res) {
   return r.changed ? r.actions : out;
 }
 
-// „Intensiv“: ruhige Stellen im mehrfachen Takt – aus einer langsamen Bewegung A→B wird A→B→A→B
-// (dreifaches Tempo) bzw. bei mittlerem Tempo A→B→Mitte→B (doppelt). Nur wo das Ergebnis noch
-// unter dem Höchsttempo bleibt; Vibrationen (kleiner Hub) und Pausen bleiben.
-function multiplyCalm(a, maxSpeed) {
-  const out = [a[0]];
-  let added = 0;
-  for (let i = 1; i < a.length; i++) {
-    const p = a[i - 1], x = a[i];
-    const dt = x.at - p.at, d = Math.abs(x.pos - p.pos);
-    const speed = dt > 0 ? (d / dt) * 1000 : 0;
-    if (d > VIB_AMP && dt >= 450 && speed * 3 <= maxSpeed * 0.9) {
-      out.push({ at: Math.round(p.at + dt / 3), pos: x.pos }, { at: Math.round(p.at + (2 * dt) / 3), pos: p.pos });
-      added++;
-    } else if (d > VIB_AMP && dt >= 350 && speed * 2 <= maxSpeed * 0.9) {
-      out.push({ at: Math.round(p.at + dt / 2), pos: x.pos }, { at: Math.round(p.at + (3 * dt) / 4), pos: Math.round((p.pos + x.pos) / 2) });
-      added++;
-    }
-    out.push(x);
-  }
-  return { actions: out, added };
-}
+
 // 2.0 „Intensiv“: jeden Stoß Richtung vollen Hub verlängern – Spitzen nach oben, Täler nach unten –, aber nur so
 // weit, wie das Tempo (0,9 × Höchsttempo) es zulässt: Beide Enden einer Bewegung teilen sich den Spielraum.
 // Vibrationen (kleiner Hub) und Haltepunkte bleiben.
@@ -203,9 +183,9 @@ function expandStrokes(a, maxSpeed) {
   return { actions: out, changed };
 }
 
-// 2.0 Aufwärmen: die Handy ganz unten, langsam (0–20 %, ein Weg 1,5 s) – eigener ruhiger Rhythmus über die ganze
+// 2.0 Aufwärmen: die Handy unten, ruhig (nach test2: 0–35 %, ein Weg 1 s – vorher 0–20 %, 1,5 s) – eigener ruhiger Rhythmus über die ganze
 // Videolänge, damit Spulen und Sync wie gewohnt funktionieren. Der Satisfyer läuft nur ganz leicht (presetVibeShape).
-const WARMUP = { lo: 0, hi: 20, ms: 1500 };
+const WARMUP = { lo: 0, hi: 35, ms: 1000 };
 let warmup = false;
 function warmupActions(actions) {
   const end = (actions[actions.length - 1]?.at || 0) + WARMUP.ms;
@@ -265,8 +245,7 @@ export function processScript(actions, target = 'handy', preset = currentPreset(
     if (preset === 'intense') {
       const x = expandStrokes(out, max);
       if (x.changed) { out = x.actions; notes.push(`${x.changed} Stöße auf vollen Hub verlängert`); }
-      const m = multiplyCalm(out, max);
-      if (m.added) { out = m.actions; notes.push(`${m.added} ruhige Stellen im mehrfachen Takt`); }
+      // nach test2: keine zusätzlichen Stöße mehr – Intensiv bleibt im Takt des Scripts, nur längere Stöße
     }
     if (handyTarget) {
       // Was die Handy nicht schafft, anpassen (nach dem Strecken – das macht Bewegungen schneller).

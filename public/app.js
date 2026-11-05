@@ -86,7 +86,12 @@ export function openSettings(section) {
   const el = section ? $(section) : null;
   // Ziel liegt bei den erweiterten Einstellungen -> diese einblenden
   if (el?.closest('.adv') && modulesReady.has('settings')) setAdvMode(true);
-  showSetPage(el?.closest('.set-page')?.dataset.page || null);
+  const page = el?.closest('.set-page')?.dataset.page || null;
+  // Verlauf: #settings (Liste) und ggf. #settings/<seite> – zurück führt erst zur Liste, dann aus den Einstellungen
+  if (location.hash.startsWith('#settings')) history.replaceState(null, '', '#settings');
+  else history.pushState(null, '', '#settings');
+  if (page) history.pushState(null, '', '#settings/' + page);
+  showSetPage(page);
   // Zugeklappte Bereiche auf dem Weg zum Ziel öffnen
   for (let d = el?.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
   if (el && !el.matches('.set-page > .sec:first-of-type')) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -102,6 +107,9 @@ document.addEventListener('click', (e) => {
   }
   const item = e.target.closest('#view-settings .set-item, #view-settings .set-back');
   if (!item) return;
+  // ‹ Einstellungen = wie die Zurück-Geste (Verlaufseintrag der Seite entfernen)
+  if (!item.dataset.page && /^#settings\/\w+$/.test(location.hash)) return history.back();
+  if (item.dataset.page) history.pushState(null, '', '#settings/' + item.dataset.page);
   showSetPage(item.dataset.page || null);
   window.scrollTo(0, 0);
 });
@@ -159,7 +167,16 @@ export function backToLibrary() {
   else showView('library');
 }
 window.addEventListener('popstate', () => {
-  if (location.hash !== '#player' && document.body.dataset.view === 'player') {
+  // nach test2: Einstellungen haben eigene Verlaufseinträge (#settings, #settings/<seite>) – die Zurück-Geste
+  // der installierten App geht so eine Ebene zurück statt die App zu verlassen
+  const set = /^#settings(?:\/(\w+))?$/.exec(location.hash);
+  if (set) {
+    if (document.body.dataset.view !== 'settings') showView('settings');
+    showSetPage(set[1] || null);
+    window.scrollTo(0, 0);
+  } else if (document.body.dataset.view === 'settings') {
+    showView(location.hash === '#player' && video.src ? 'player' : 'library');
+  } else if (location.hash !== '#player' && document.body.dataset.view === 'player') {
     showView('library');
   } else if (location.hash === '#player' && video.src && appMode !== 'control') {
     showView('player');
@@ -466,7 +483,8 @@ const ctx = canvas.getContext('2d');
 export const base = document.createElement('canvas');
 
 // 2.0 „Graphit + Neon“: ruhig = dunkles Blau, dann Cyan → Violett → Pink
-const HEAT = [[0, [38, 62, 86]], [90, [24, 145, 175]], [200, [34, 200, 228]], [320, [110, 85, 220]], [440, [165, 70, 215]], [560, [225, 55, 135]]];
+// nach test2 gedämpft (weniger Neon): gleiche Farbfolge, weniger Sättigung/Helligkeit
+const HEAT = [[0, [36, 50, 64]], [90, [32, 112, 134]], [200, [44, 152, 172]], [320, [96, 82, 172]], [440, [136, 72, 166]], [560, [178, 62, 118]]];
 export function heatColor(speed) {
   for (let i = 1; i < HEAT.length; i++) {
     if (speed <= HEAT[i][0]) {
@@ -1042,7 +1060,7 @@ window.addEventListener('pagehide', () => {
 });
 
 // Start: ohne geladenes Video nie auf der Player-Seite landen
-if (location.hash === '#player') history.replaceState(null, '', location.pathname + location.search);
+if (location.hash === '#player' || location.hash.startsWith('#settings')) history.replaceState(null, '', location.pathname + location.search);
 setMode(appMode);
 requestAnimationFrame(renderLoop);
 // Gespeicherten Key gleich beim Start verbinden

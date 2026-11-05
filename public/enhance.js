@@ -352,7 +352,10 @@ function enhRebuild() {
   enh.dirty = true;
 }
 setInterval(() => { if (enhActive() && !video.paused) enh.checkDue = true; }, 2000);
-['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, () => { enh.dirty = true; setTimeout(() => { enh.checkDue = true; }, 800); }));
+// nach test2: auch beim Wechsel Player <-> Mini-Player (Ansichtswechsel) neu zeichnen und auf Schwarzbild prüfen
+const enhRecheck = () => { enh.dirty = true; setTimeout(() => { enh.checkDue = true; }, 800); setTimeout(() => { enh.checkDue = true; }, 2500); };
+['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, enhRecheck));
+window.addEventListener('hp:view', enhRecheck);
 
 // Neu zeichnen, sobald ein neues Videobild da ist (oder sich etwas geändert hat)
 function enhLoop() {
