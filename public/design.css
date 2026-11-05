@@ -313,4 +313,4 @@ body.mini-on #view-player > aside.pl-side:not(#drop) { display: none !important;
 /* Intensität: Text nie abschneiden lassen; während 🌱 Aufwärmen gedimmt (Aufwärmen hat Vorrang) */
 .int-seg button { min-width: 0; padding: 6px 2px 5px; font-size: 12.5px; }
 .int-seg button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.script-box:has(#sbWarm.on) .sb-presets { opacity: .45; }
+.script-box:has(#sbWarm.on) .sb-presets, .script-box:has(#sbWarm.on) .sb-choice { opacity: .45; }
