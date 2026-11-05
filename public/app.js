@@ -449,7 +449,8 @@ const canvas = $('heatmap');
 const ctx = canvas.getContext('2d');
 export const base = document.createElement('canvas');
 
-const HEAT = [[0, [30, 60, 160]], [120, [30, 144, 255]], [220, [40, 200, 100]], [320, [240, 210, 40]], [420, [250, 130, 30]], [520, [230, 40, 50]]];
+// 2.0 „Graphit + Neon“: ruhig = dunkles Blau, dann Cyan → Violett → Pink
+const HEAT = [[0, [26, 42, 58]], [120, [34, 211, 238]], [250, [124, 108, 255]], [380, [180, 108, 255]], [520, [255, 79, 163]]];
 export function heatColor(speed) {
   for (let i = 1; i < HEAT.length; i++) {
     if (speed <= HEAT[i][0]) {

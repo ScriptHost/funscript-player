@@ -224,3 +224,28 @@ body:not(.has-dev) .pl-row { display: none; }
 @media (prefers-reduced-motion: reduce) {
   body.motion .ui-bar > i, .ui-switch span, .ui-switch span::after { transition: none; }
 }
+
+/* ---------- Player-Leiste und eigenes Vollbild ---------- */
+.ov-top { background: linear-gradient(rgba(11, 11, 13, .8), transparent); }
+.ov-bottom { background: linear-gradient(transparent, rgba(11, 11, 13, .85) 45%); }
+#ovBar { border-radius: 6px; box-shadow: var(--glow-accent); }
+.drop:not(.fs) #ovBar { height: 18px; }
+.ov-row button {
+  min-width: 38px; min-height: 38px; padding: 6px 10px; border-radius: var(--pill);
+  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); color: #fff; font-weight: 600;
+  backdrop-filter: blur(6px);
+}
+.ov-row button:hover { border-color: rgba(180, 108, 255, .6); }
+.drop:not(.fs) .ov-row button { min-width: 32px; min-height: 32px; padding: 4px 8px; }
+.ov-play, .drop:not(.fs) .ov-play {
+  background: var(--neon); border: 0; color: #fff; box-shadow: var(--glow-strong);
+}
+.drop:not(.fs) .ov-play { width: 52px; height: 52px; font-size: 20px; }
+/* STOPP: klar rot, im Vollbild immer oben rechts */
+#ovStop, .fab-stop, #stopAll { background: var(--stop); color: #fff; border: 0; border-radius: var(--radius); font-weight: 700; letter-spacing: .04em; }
+#ovStop { min-height: var(--tap); padding: 0 20px; }
+.ov-row #ovVibe.off { background: var(--stop); border-color: var(--stop); }
+.ov-row #ovFinale.running { border-color: var(--vibe); box-shadow: var(--glow-accent); }
+.swipe-hud { background: rgba(11, 11, 13, .78); border: 1px solid var(--line); }
+/* Vollbild: keine Kopfzeile, keine Daumen-Leiste – nur das Video */
+body.fs-open header { visibility: hidden; }

@@ -224,15 +224,20 @@ function drawOvBar() {
   const total = duration();
   if (total > 0) {
     const x = ((seekPreview ?? mediaTime()) * 1000 / total) * w;
+    // 2.0: Play-Verlauf als Neon-Linie unten; mit Script bleibt die Heatmap sichtbar, der Rest wird dunkler
+    const neon = bctx.createLinearGradient(0, 0, w, 0);
+    neon.addColorStop(0, '#22d3ee'); neon.addColorStop(0.55, '#b46cff'); neon.addColorStop(1, '#ff4fa3');
     if (script && syncActive()) {
-      bctx.fillStyle = 'rgba(0,0,0,.45)';
+      bctx.fillStyle = 'rgba(11,11,13,.55)';
       bctx.fillRect(x, 0, w - x, h);
+      bctx.fillStyle = neon;
+      bctx.fillRect(0, h - 3 * dpr, x, 3 * dpr);
     } else {
-      bctx.fillStyle = '#e0457b';
+      bctx.fillStyle = neon;
       bctx.fillRect(0, 0, x, h);
     }
     bctx.fillStyle = '#fff';
-    bctx.fillRect(x - dpr, 0, 3 * dpr, h);
+    bctx.fillRect(x - dpr, 0, 2 * dpr, h);
     paintMarkers(bctx, total, w, h, dpr);
   }
   $('ovTime').textContent = `${fmtClock(seekPreview ?? mediaTime())} /${fmtClock(total / 1000)}${hq.active ? ' · HQ' : ''}`;
