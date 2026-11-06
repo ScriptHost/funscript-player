@@ -234,7 +234,11 @@ function closeVideo() {
   $('scriptName').textContent = t('app.noScript');
   drawHeatmap();
   if (modulesReady.has('tools')) toolsChanged();
-  if (document.body.dataset.view === 'player') backToLibrary();
+  // nach test8: im Player geschlossen -> der Player zeigt Steuern (ohne Video gibt es dort nichts anderes)
+  if (document.body.dataset.view === 'player') {
+    if (location.hash === '#player') history.replaceState(null, '', location.pathname);
+    setMode('control');
+  }
   updateNowBar();
 }
 
@@ -807,6 +811,8 @@ export function init() {
     }
   });
   $('backToLib').addEventListener('click', backToLibrary);
+  $('closeVideoBtn').addEventListener('click', closeVideo);
+  $('toControl').addEventListener('click', () => setMode('control'));
   document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.mode !== 'control') store.set('lastWatchMode', b.dataset.mode);
   }));

@@ -18,7 +18,6 @@ export default {
   'nav.library': 'Bibliothek',
   'nav.player': 'Player',
   'nav.devices': 'Geräte',
-  'nav.control': 'Steuern',
   'nav.settings': 'Einstellungen',
 
   // Bibliothek
@@ -741,4 +740,6 @@ export default {
   'player.nextSearch': "Bibliothek durchsuchen …",
   'library.searchKind': "{kind} suchen …",
   'library.recNamePrompt': "Name für die Aufnahme (leer = als „Eigenes Script“ ohne Namen):",
+  'player.toControl': "🎮 Steuern",
+  'player.closeVideo': "✕ Video schließen",
 };

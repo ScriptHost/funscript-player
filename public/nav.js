@@ -22,21 +22,23 @@ setDemo(store.get('demo', false));
 // Im Demo-Modus bleibt der Ton aus – auch 🔊, Taste M und Wischen schalten ihn nicht ein
 document.getElementById('video')?.addEventListener('volumechange', (e) => { if (isDemo() && !e.target.muted) e.target.muted = true; });
 
-// nach test7: „Steuern“ (Direkt, Patterns, Touch) als eigener Bereich in der Leiste
-const AREAS = ['library', 'player', 'control', 'devices', 'settings'];
+// nach test8: „Steuern“ gehört zum Player – ohne geöffnetes Video zeigt „Player“ direkt Steuern (Direkt, Patterns, Aufnahmen)
+const AREAS = ['library', 'player', 'devices', 'settings'];
 
 export function currentArea() {
   if (document.body.classList.contains('dev-open')) return 'devices';
   const v = document.body.dataset.view;
-  return AREAS.includes(v) ? v : 'library';
+  return v === 'control' ? 'player' : AREAS.includes(v) ? v : 'library';
 }
 
 export function goArea(area) {
   if (area !== 'devices') closeDevices();
   if (area === 'library') goLibrary();
-  else if (area === 'player') openPlayer();
+  else if (area === 'player') {
+    if (document.getElementById('video').getAttribute('src')) openPlayer();
+    else document.querySelector('#devices [data-mode="control"]')?.click();
+  }
   else if (area === 'settings') openSettings();
-  else if (area === 'control') document.querySelector('#devices [data-mode="control"]')?.click();
   else if (area === 'devices') {
     if (document.body.classList.contains('dev-open')) closeDevices(); else openDevices();
   }

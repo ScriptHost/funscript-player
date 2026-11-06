@@ -19,7 +19,6 @@ export default {
   'nav.library': 'Library',
   'nav.player': 'Player',
   'nav.devices': 'Devices',
-  'nav.control': 'Control',
   'nav.settings': 'Settings',
 
   // Library
@@ -742,4 +741,6 @@ export default {
   'player.nextSearch': "Search the library …",
   'library.searchKind': "Search {kind} …",
   'library.recNamePrompt': "Name for the recording (empty = save as “own script” without a name):",
+  'player.toControl': "🎮 Control",
+  'player.closeVideo': "✕ Close video",
 };

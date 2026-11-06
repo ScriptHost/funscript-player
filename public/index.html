@@ -22,7 +22,6 @@
     <nav id="appNav" class="ui-nav" aria-label="Areas" data-i18n-aria-label="nav.label">
       <button data-area="library"><b aria-hidden="true">▦</b><span data-i18n="nav.library">Library</span></button>
       <button data-area="player"><b aria-hidden="true">▶︎</b><span data-i18n="nav.player">Player</span></button>
-      <button data-area="control"><b aria-hidden="true">🎮&#xFE0E;</b><span data-i18n="nav.control">Control</span></button>
       <button data-area="devices"><b aria-hidden="true">◎</b><span data-i18n="nav.devices">Devices</span></button>
       <button data-area="settings"><b aria-hidden="true">⚙︎</b><span data-i18n="nav.settings">Settings</span></button>
     </nav>
@@ -118,7 +117,12 @@
       <!-- 2.0: links (PC) bzw. oben (Smartphone) das Video, daneben bzw. darunter Script, Geräte, Finale/Pause -->
       <section id="view-player" class="view pl" hidden>
        <div class="pl-main">
-        <button data-i18n="ui.library" id="backToLib" class="back">← Library</button>
+        <div class="pl-top">
+          <button data-i18n="ui.library" id="backToLib" class="back">← Library</button>
+          <span class="grow"></span>
+          <button id="toControl" class="back" data-i18n="player.toControl">🎮 Control</button>
+          <button id="closeVideoBtn" class="back" data-i18n="player.closeVideo">✕ Close video</button>
+        </div>
         <div id="drop" class="drop" data-fit="cover">
           <video id="video" playsinline preload="metadata"></video>
           <canvas id="enh" class="enh"></canvas>
