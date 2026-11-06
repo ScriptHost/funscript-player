@@ -18,6 +18,7 @@ export default {
   'nav.library': 'Bibliothek',
   'nav.player': 'Player',
   'nav.devices': 'Geräte',
+  'nav.control': 'Steuern',
   'nav.settings': 'Einstellungen',
 
   // Bibliothek

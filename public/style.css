@@ -1057,11 +1057,12 @@ body.motion .ui-bar > i { transition: width .25s ease-out; }
 }
 
 @media (max-width: 900px) {
-  :root { --nav-h: calc(60px + env(safe-area-inset-bottom)); }
+  /* nach test7: unten immer etwas Luft – in der installierten App (Vollbild) meldet Android oft 0 */
+  :root { --nav-h: calc(60px + max(10px, env(safe-area-inset-bottom))); }
   .ui-nav {
     position: fixed; z-index: 1400; left: 0; right: 0; bottom: 0; height: var(--nav-h);
     justify-content: space-around; align-items: flex-start; gap: 0;
-    padding: 6px calc(4px + env(safe-area-inset-right)) env(safe-area-inset-bottom) calc(4px + env(safe-area-inset-left));
+    padding: 6px calc(4px + env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left));
     background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px);
     border-top: 1px solid var(--line);
   }

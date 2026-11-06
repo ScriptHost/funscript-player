@@ -19,6 +19,7 @@ export default {
   'nav.library': 'Library',
   'nav.player': 'Player',
   'nav.devices': 'Devices',
+  'nav.control': 'Control',
   'nav.settings': 'Settings',
 
   // Library
