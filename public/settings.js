@@ -187,10 +187,18 @@ function showServerSettings(s) {
   $('hsLoginHint').textContent = t('settings.vr.loginHint');
   $('setSubVr').textContent = !s.heresphere ? t('settings.vr.subOff')
     : s.hsPassword ? t('settings.vr.subPass') : t('settings.vr.subOn');
-  // Zugang (⚙️ → Sicherheit & Privatsphäre): Anmeldung kommt aus der .env, HereSphere aus den Einstellungen
-  $('accessLogin').textContent = !s.login ? t('settings.access.loginOff') : s.loginOwn ? t('settings.access.loginOwn') : t('settings.access.loginOn');
+  // Zugang (⚙️ → Sicherheit & Privatsphäre): Anmeldung aus der .env oder hier eingerichtet (test11), HereSphere aus den Einstellungen
+  const ui = s.loginSource === 'ui';
+  $('accessLogin').textContent = !s.login ? t('settings.access.loginOff') : ui ? t('settings.access.loginUi', { user: s.loginUser || '' })
+    : s.loginOwn ? t('settings.access.loginOwn') : t('settings.access.loginOn');
+  $('loginSetupArea').hidden = !!s.login;
   $('loginPassArea').hidden = !(s.login && s.loginChangeable);
   $('loginReset').hidden = !s.loginOwn;
+  $('loginRemove').hidden = !ui;
+  $('loginHelpUi').hidden = !ui;
+  $('loginHelpEnv').hidden = ui;
+  srvStash = s.stash || null;
+  renderStashConf();
   $('accessLogin').classList.toggle('warn', !s.login);
   $('accessHs').textContent = !s.heresphere ? t('settings.access.hsOff')
     : s.hsPassword ? t('settings.access.hsPass') : t('settings.access.hsOpen');
@@ -210,6 +218,29 @@ async function putSettings(patch, msg) {
 }
 // nach test2: Umschalter ohne/mit Passwort. „Ohne“ löscht ein gesetztes Passwort sofort und sperrt das Feld;
 // „Mit“ gibt das Feld frei – gilt erst, wenn ein Passwort gespeichert ist.
+// test11: Fehlertexte der Anmelde-Routen
+const loginErr = (code, status) => ({
+  wrongCurrent: t('settings.access.pwWrong'), tooShort: t('settings.access.pwShort'), example: t('settings.access.pwExample'),
+  blocked: t('settings.access.pwBlocked'), badUser: t('settings.access.setupBadUser'), exists: t('settings.access.setupExists'),
+}[code] || code || status);
+// test11: Anmeldung hier einrichten (nur ohne Anmeldung) bzw. die hier eingerichtete wieder entfernen
+async function loginSetup(remove) {
+  const info = remove ? $('loginPwInfo') : $('loginSetInfo');
+  info.classList.remove('warn');
+  if (!remove && $('loginSetPass').value !== $('loginSetPass2').value) { info.textContent = t('settings.access.pwMismatch'); info.classList.add('warn'); return; }
+  if (remove && !confirm(t('settings.access.removeConfirm'))) return;
+  try {
+    const res = await fetch('/api/login/setup', {
+      method: remove ? 'DELETE' : 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(remove ? { current: $('loginCur').value } : { user: $('loginSetUser').value, pass: $('loginSetPass').value }),
+    });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) { info.textContent = loginErr(r.error, res.status); info.classList.add('warn'); return; }
+    for (const id of ['loginSetPass', 'loginSetPass2', 'loginCur']) $(id).value = '';
+    info.textContent = remove ? t('settings.access.removeDone') : t('settings.access.setupDone');
+    setTimeout(() => location.reload(), 2500);
+  } catch (e) { info.textContent = e.message; info.classList.add('warn'); }
+}
 // test10: Player-Passwort ändern / zurück auf die .env. Danach fragt der Browser einmal neu nach dem Passwort.
 async function loginPass(reset) {
   const info = $('loginPwInfo');
@@ -222,13 +253,7 @@ async function loginPass(reset) {
       body: JSON.stringify({ current: $('loginCur').value, next }),
     });
     const r = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = { wrongCurrent: 'settings.access.pwWrong', tooShort: 'settings.access.pwShort', example: 'settings.access.pwExample', blocked: 'settings.access.pwBlocked' }[r.error];
-      info.textContent = err === 'settings.access.pwWrong' ? t('settings.access.pwWrong') : err === 'settings.access.pwShort' ? t('settings.access.pwShort')
-        : err === 'settings.access.pwExample' ? t('settings.access.pwExample') : err === 'settings.access.pwBlocked' ? t('settings.access.pwBlocked') : (r.error || res.status);
-      info.classList.add('warn');
-      return;
-    }
+    if (!res.ok) { info.textContent = loginErr(r.error, res.status); info.classList.add('warn'); return; }
     for (const id of ['loginCur', 'loginNew', 'loginNew2']) $(id).value = '';
     info.textContent = reset ? t('settings.access.pwResetDone') : t('settings.access.pwSaved');
     setTimeout(() => location.reload(), 2500);
@@ -242,14 +267,66 @@ function renderPassMode(on) {
   if (!on) $('hsPass').value = '';
 }
 
+// test11: Stash-Adresse + API-Key aus ⚙️ (Stand vom Server: { url, hasKey, source: env|ui|off, envUrl })
+let srvStash = null;
+function renderStashConf() {
+  const c = srvStash;
+  if (!c) return;
+  const off = c.source === 'off';
+  for (const id of ['stashUrl', 'stashKey', 'stashSave']) $(id).disabled = off;
+  if (document.activeElement !== $('stashUrl')) $('stashUrl').value = c.url || '';
+  $('stashKey').placeholder = c.hasKey ? t('settings.stash.keySet') : t('settings.stash.keyNone');
+  $('stashKeyClear').hidden = off || !c.hasKey;
+  $('stashEnv').hidden = c.source !== 'ui';
+  if (!$('stashConfInfo').dataset.busy) {
+    $('stashConfInfo').textContent = off ? t('settings.stash.confOff') : c.source === 'ui' ? t('settings.stash.confUi') : t('settings.stash.confEnv');
+    $('stashConfInfo').classList.remove('warn');
+  }
+}
+async function stashConfSave(mode) {
+  const info = $('stashConfInfo');
+  info.dataset.busy = '1';
+  info.classList.remove('warn');
+  info.textContent = t('settings.stash.testing');
+  try {
+    const body = mode === 'clearKey' ? { url: $('stashUrl').value, clearKey: true } : { url: $('stashUrl').value, key: $('stashKey').value };
+    const res = await fetch('/api/stash/config', {
+      method: mode === 'env' ? 'DELETE' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: mode === 'env' ? undefined : JSON.stringify(body),
+    });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(r.error === 'badUrl' ? t('settings.stash.badUrl') : r.error || res.status);
+    $('stashKey').value = '';
+    srvStash = r.settings?.stash || srvStash;
+    const was = lib.stashStatus;
+    await stashRecheck(false);
+    delete info.dataset.busy;
+    renderStashConf();
+    renderStash();
+    const st = lib.stashStatus || {};
+    info.textContent = !st.configured ? t('settings.stash.savedNone') : st.ok ? t('settings.stash.savedOk') : t('settings.stash.savedErr');
+    info.classList.toggle('warn', !!st.configured && !st.ok);
+    // Bibliothek mit der neuen Verbindung neu aufbauen (Filter, Szenen), wenn sich etwas Sichtbares ändert
+    if (st.ok || (was?.configured && !st.configured)) setTimeout(() => location.reload(), 1800);
+  } catch (e) {
+    delete info.dataset.busy;
+    info.textContent = e.message;
+    info.classList.add('warn');
+  }
+}
+
 // test10: Stash-Verbindung in ⚙️ → Bibliothek und kurz in der Übersicht
 function renderStash() {
   const st = lib.stashStatus || {};
-  $('setStash').hidden = !st.configured;
   $('setSubStash').textContent = !st.configured ? '' : st.ok ? t('settings.stash.subOk') : t('settings.stash.subErr');
   $('setSubStash').classList.toggle('warn', !!st.configured && !st.ok);
-  if (!st.configured) return;
   const line = $('stashLine');
+  $('stashTest').hidden = !st.configured;
+  if (!st.configured) {
+    line.textContent = t('settings.stash.none');
+    line.classList.remove('warn');
+    for (const id of ['stashHelp403', 'stashHelpOther']) $(id).hidden = true;
+    return;
+  }
   line.textContent = st.ok
     ? t('settings.stash.ok', { version: st.version || '?' }) + (st.scenes != null ? ' · ' + t('settings.stash.scenes', { n: st.scenes.toLocaleString(lang) }) : '')
     : '⚠ ' + (st.code === 'forbidden' ? t('settings.stash.err403') : stashErrorText(st));
@@ -418,6 +495,11 @@ export function init() {
   $('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? t('settings.vr.logVrOnly') : t('settings.vr.logAll')));
   $('loginSave').addEventListener('click', () => loginPass(false));
   $('loginReset').addEventListener('click', () => loginPass(true));
+  $('loginSetSave').addEventListener('click', () => loginSetup(false));
+  $('loginRemove').addEventListener('click', () => loginSetup(true));
+  $('stashSave').addEventListener('click', () => stashConfSave('save'));
+  $('stashKeyClear').addEventListener('click', () => stashConfSave('clearKey'));
+  $('stashEnv').addEventListener('click', () => stashConfSave('env'));
   $('hsPassSave').addEventListener('click', () => {
     const pw = $('hsPass').value;
     if (!pw) return log(t('settings.vr.passEmpty'), true);

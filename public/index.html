@@ -429,7 +429,22 @@
           <div id="setAccess" class="card sec">
             <h3 class="sec-sub" data-i18n="settings.access.title">Access</h3>
             <p id="accessLogin" class="hint-text"></p>
-            <!-- test10: Player-Passwort ändern – nur mit Anmeldung aus der .env (AUTH_USER/AUTH_PASS) -->
+            <!-- test11: Anmeldung hier einrichten – nur solange es keine gibt (LOGIN=off) -->
+            <details id="loginSetupArea" class="more-info" hidden>
+              <summary data-i18n="settings.access.setup">🔑 Set up a login</summary>
+              <label><span data-i18n="settings.access.setupUser">User name</span>
+                <input id="loginSetUser" type="text" autocomplete="username" maxlength="64"></label>
+              <label><span data-i18n="settings.access.pwNew">New password (at least 8 characters)</span>
+                <input id="loginSetPass" type="password" autocomplete="new-password"></label>
+              <label><span data-i18n="settings.access.pwRepeat">Repeat new password</span>
+                <input id="loginSetPass2" type="password" autocomplete="new-password"></label>
+              <div class="pw-actions">
+                <button id="loginSetSave" class="small secondary" data-i18n="settings.access.setupSave">Switch login on</button>
+              </div>
+              <p id="loginSetInfo" class="hint-text"></p>
+              <p class="hint-text" data-i18n-html="settings.access.setupHelp">Afterwards the browser asks for user name and password. Forgotten? Add <code>LOGIN_RESET=1</code> to the <code>.env</code>, run <code>docker compose up -d</code>, then remove the line again.</p>
+            </details>
+            <!-- test10: Player-Passwort ändern (Anmeldung aus der .env oder hier eingerichtet); test11: hier eingerichtete entfernen -->
             <details id="loginPassArea" class="more-info" hidden>
               <summary data-i18n="settings.access.pwChange">🔑 Change player password</summary>
               <label><span data-i18n="settings.access.pwCurrent">Current password</span>
@@ -441,9 +456,11 @@
               <div class="pw-actions">
                 <button id="loginSave" class="small secondary" data-i18n="settings.vr.save">Save</button>
                 <button id="loginReset" class="small ghost" data-i18n="settings.access.pwReset" hidden>Use the .env password again</button>
+                <button id="loginRemove" class="small ghost" data-i18n="settings.access.remove" hidden>Remove login</button>
               </div>
               <p id="loginPwInfo" class="hint-text"></p>
-              <p class="hint-text" data-i18n-html="settings.access.pwHelp">The user name stays as in the <code>.env</code>. Forgotten? Change <code>AUTH_PASS</code> in the <code>.env</code> and run <code>docker compose up -d</code> – then the .env password applies again.</p>
+              <p id="loginHelpUi" class="hint-text" data-i18n-html="settings.access.pwHelpUi" hidden>Forgotten? Add <code>LOGIN_RESET=1</code> to the <code>.env</code>, run <code>docker compose up -d</code>, then remove the line again. “Remove login” needs the current password.</p>
+              <p id="loginHelpEnv" class="hint-text" data-i18n-html="settings.access.pwHelp">The user name stays as in the <code>.env</code>. Forgotten? Change <code>AUTH_PASS</code> in the <code>.env</code> and run <code>docker compose up -d</code> – then the .env password applies again.</p>
             </details>
             <p id="accessHs" class="hint-text"></p>
             <a href="#" class="more-settings" data-settings="hsPassArea" data-i18n="settings.access.toVr">⚙️ HereSphere: switches, address and password</a>
@@ -518,7 +535,7 @@
         <div class="set-page" data-page="library" hidden>
           <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.library">Library</h2></div>
           <!-- test10: Stash-Verbindung auf einen Blick (settings.js renderStash) -->
-          <div id="setStash" class="card sec" hidden>
+          <div id="setStash" class="card sec">
             <h3 class="sec-sub">Stash</h3>
             <p id="stashLine" class="stash-line"></p>
             <div id="stashHelp403" class="stash-help" hidden>
@@ -529,6 +546,20 @@
             </div>
             <p id="stashHelpOther" class="hint-text" hidden></p>
             <button id="stashTest" class="small secondary" data-i18n="settings.stash.test">Test connection</button>
+            <!-- test11: Adresse + API-Key hier ändern (überschreibt STASH_URL/STASH_API_KEY aus der .env) -->
+            <details id="stashConfArea" class="more-info">
+              <summary data-i18n="settings.stash.conf">🔧 Change connection</summary>
+              <label><span data-i18n="settings.stash.url">Stash address</span>
+                <input id="stashUrl" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://stash:9999"></label>
+              <label><span data-i18n="settings.stash.key">API key (only if Stash has a login)</span>
+                <input id="stashKey" type="password" autocomplete="off" spellcheck="false"></label>
+              <div class="pw-actions">
+                <button id="stashSave" class="small secondary" data-i18n="settings.stash.save">Save and test</button>
+                <button id="stashKeyClear" class="small ghost" data-i18n="settings.stash.keyClear" hidden>Remove API key</button>
+                <button id="stashEnv" class="small ghost" data-i18n="settings.stash.env" hidden>Use the .env values again</button>
+              </div>
+              <p id="stashConfInfo" class="hint-text"></p>
+            </details>
           </div>
           <div id="setLibrary" class="card sec">
             <label><span data-i18n="settings.lib.start">Show at start</span>
@@ -536,7 +567,7 @@
             </label>
             <label class="ui-switch"><input id="resumeOn" type="checkbox" checked><span></span><span data-i18n="settings.lib.resume">Continue watching – Stash scenes start where you left off</span></label>
             <label class="ui-switch"><input id="only2d" type="checkbox"><span></span><span data-i18n="settings.lib.only2d">Show 2D videos only</span></label>
-            <p class="hint-text" data-i18n="settings.lib.only2dHelp">The library then only shows scenes with the Stash tag “2D”. Applies to this device only – e.g. on for the phone, off for the VR headset.</p>
+            <p class="hint-text" data-i18n="settings.lib.only2dHelp">Hides Stash scenes with a VR tag (VR, 180°, 360°, Virtual Reality). Applies to this device only – e.g. on for the phone, off for the VR headset.</p>
             <label class="ui-switch adv"><input id="setHoverPreview" type="checkbox" checked><span></span><span data-i18n="settings.lib.hover">Preview video on mouse hover</span></label>
             <label class="ui-switch adv"><input id="saveScripts" type="checkbox" checked><span></span><span data-i18n="settings.lib.save">💾 Save own scripts with videos (touch recordings, recordings along the video, dropped ones) – folder videos: next to them, Stash scenes: on the player server</span></label>
             <p class="adv hint-text" data-i18n-html="settings.lib.saveHelp">Next to folder videos only if the folder is mounted in <code>docker-compose.yml</code> without <code>:ro</code> – otherwise the player stores it on the server. Original files are never overwritten.</p>

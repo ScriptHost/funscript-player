@@ -148,8 +148,11 @@ Verbindung über `/intiface` weiter (standardmäßig nur Heimnetz, mit `INTIFACE
 
 ## Sicherheit
 
-- Anmeldung ist seit 2.0 Pflicht: `AUTH_USER`/`AUTH_PASS` setzen (Basic Auth) – oder bewusst `LOGIN=off`, z. B. hinter
-  einem Reverse Proxy mit eigener Anmeldung.
+- Anmeldung ist seit 2.0 Pflicht: `AUTH_USER`/`AUTH_PASS` setzen (Basic Auth), oder Benutzer + Passwort auf der ersten
+  Seite des Players / in ⚙️ → Sicherheit & Privatsphäre festlegen (auch bei `LOGIN=off`; dort wieder entfernbar) – oder
+  bewusst `LOGIN=off`, z. B. hinter einem Reverse Proxy mit eigener Anmeldung. Rangfolge: `.env` > in ⚙️ gesetzt >
+  `LOGIN=off`. Vergessen? `LOGIN_RESET=1` + Neustart.
+- Stash-Adresse und API-Key lassen sich auch in ⚙️ → Bibliothek ändern (überschreibt `STASH_URL`/`STASH_API_KEY`).
 - Der Server nimmt Änderungen nur von der eigenen Seite an (Herkunftsprüfung) und lässt sich nicht einbetten.
 - Der Container läuft schreibgeschützt, mit `/tmp` als tmpfs, ohne Linux-Rechte (`cap_drop: ALL`) und mit
   `no-new-privileges`; schreiben kann er nur in sein Daten-Volume.

@@ -142,8 +142,10 @@ Every settings section is collapsible; fine-tuning (Satisfyer translation, pictu
 
 ## Security
 
-- Login is required since 2.0: set `AUTH_USER`/`AUTH_PASS` (basic auth) – or `LOGIN=off` on purpose, e.g. behind a
-  reverse proxy with its own login.
+- Login is required since 2.0: set `AUTH_USER`/`AUTH_PASS` (basic auth), or set user + password on the player's first
+  page / in ⚙️ → Security & privacy (also with `LOGIN=off`; removable there again) – or `LOGIN=off` on purpose, e.g. behind
+  a reverse proxy with its own login. Order: `.env` > set in ⚙️ > `LOGIN=off`. Forgotten? `LOGIN_RESET=1` + restart.
+- Stash address and API key can also be changed in ⚙️ → Library (overrides `STASH_URL`/`STASH_API_KEY`).
 - The server only accepts changes from its own page (origin check) and can’t be embedded in other sites.
 - Intiface forwarding: home-network addresses only by default (192.168.x / 10.x; fixed with `INTIFACE_LAN_ONLY=1`),
   port 12345 only – allow more with `INTIFACE_PORTS` (comma-separated).

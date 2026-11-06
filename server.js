@@ -7,14 +7,15 @@ const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
-const { AUTH_IGNORED, STASH_IGNORED, PLACEHOLDERS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
+const { AUTH_IGNORED, STASH_IGNORED, PLACEHOLDERS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_OFF, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, VERSION, VIDEO_EXT } = require('./lib/config');
 const path = require('path');
 const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
-const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, intifaceLanOnly, loginCheckHeader, loginOwnActive, publicSettings, serverSettings, setLoginPassword, writeSettings } = require('./lib/settings');
+const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, intifaceLanOnly, loginCheckHeader, loginOwnActive, publicSettings, serverSettings, setLoginPassword, writeSettings,
+  LOGIN_RESET, LOGIN_RESET_DONE, loginMissing, loginSource, loginUser, removeLogin, setupLogin, setStashConf, stashConf } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
-const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashCheck, stashCurrent, stashMonitor } = require('./lib/stash');
+const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashCheck, stashCurrent, stashMonitor, stashReconfigure } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
 const { GPU_TEXT, hqBench, hqKillAll, hqProbe, hqStatus, hqStream } = require('./lib/hq');
 const { UPDATE_OFF, updateInfo } = require('./lib/update');
@@ -23,18 +24,19 @@ const { runSelfcheck } = require('./lib/selfcheck');
 const sha = (s) => crypto.createHash('sha256').update(s).digest();
 
 function authOk(req) {
-  if (!AUTH_USER) return true;
+  const user0 = loginUser();
+  if (!user0) return true;
   const m = /^Basic (.+)$/.exec(req.headers.authorization || '');
   if (!m) return false;
   const [user, ...rest] = Buffer.from(m[1], 'base64').toString().split(':');
-  const okUser = crypto.timingSafeEqual(sha(user), sha(AUTH_USER));
-  // test10: eigenes Passwort aus ⚙️ (lib/settings.js) – sonst AUTH_PASS aus der .env
+  const okUser = crypto.timingSafeEqual(sha(user), sha(user0));
+  // test10/11: Passwort aus ⚙️ (lib/settings.js) – sonst AUTH_PASS aus der .env
   const okPass = loginCheckHeader(m[1], rest.join(':'));
   return okUser && okPass;
 }
 
 function checkAuth(req, res) {
-  if (!AUTH_USER) return true;
+  if (!loginUser()) return true;
   // 2.0: nach zu vielen Fehlversuchen eine Minute Pause (auch für das richtige Passwort)
   if (req.headers.authorization && loginBlocked(req)) {
     res.writeHead(429, { 'Retry-After': '60', 'Content-Type': 'text/plain; charset=utf-8' });
@@ -54,6 +56,27 @@ async function loginPassRoute(req, res, reset) {
   const r = await setLoginPassword(body.current, reset ? null : body.next);
   if (r.msg === 'wrongCurrent') loginFailed(req);
   json(res, r.status === 200 ? { ok: true, own: loginOwnActive() } : { error: r.msg }, 'no-store', r.status);
+}
+
+// test11: Anmeldung in ⚙️ einrichten (nur ohne Anmeldung) bzw. wieder entfernen (nur die in ⚙️ eingerichtete)
+async function loginSetupRoute(req, res, remove) {
+  if (loginBlocked(req)) return json(res, { error: 'blocked' }, 'no-store', 429);
+  const body = JSON.parse(await readBody(req, 2000) || '{}');
+  const r = remove ? await removeLogin(body.current) : await setupLogin(body.user, body.pass);
+  if (r.msg === 'wrongCurrent') loginFailed(req);
+  if (r.status === 200) logLine(remove ? 'Login removed in the interface' : `Login set up in the interface (user “${loginUser()}”)`);
+  json(res, r.status === 200 ? { ok: true } : { error: r.msg }, 'no-store', r.status);
+}
+// test11: Stash-Adresse/API-Key aus ⚙️ – danach neu prüfen und Überwachung neu starten
+async function stashConfRoute(req, res, reset) {
+  const body = reset ? {} : JSON.parse(await readBody(req, 5000) || '{}');
+  const r = await setStashConf(body, reset);
+  if (r.status !== 200) return json(res, { error: r.msg }, 'no-store', r.status);
+  stashReconfigure();
+  const st = stashConf().url ? await stashCheck() : { configured: false };
+  logLine(`Stash: connection changed in the interface → ${stashConf().url || 'none'} (${st.ok ? 'connected' : st.configured ? st.error : 'not configured'})`);
+  startStashMonitor();
+  json(res, { settings: publicSettings(), status: st });
 }
 
 // Optional direkt HTTPS: entweder TLS_PFX (+ TLS_PFX_PASS) oder TLS_CERT + TLS_KEY (PEM).
@@ -89,21 +112,65 @@ function sameOrigin(req) {
   } catch { return false; }
 }
 
-// 2.0: Seite, solange weder AUTH_USER/AUTH_PASS noch LOGIN=off gesetzt ist
-const LOGIN_PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>Funscript Player – set up a login</title>
-<body style="font:16px/1.5 system-ui,sans-serif;max-width:40em;margin:2em auto;padding:0 1em;background:#111;color:#eee">
-<h1>Funscript Player: please set up a login</h1>
-<p>Since 2.0 the player needs a login, because otherwise everyone who can reach it also sees your
-Handy connection key and your library.</p>
-<p>In the <code>.env</code> file next to <code>docker-compose.yml</code>, either</p>
-<p><b>Still set to the example password <code>change-me</code>? Choose your own.</b></p>
-<ul><li>set <code>AUTH_USER=</code> and <code>AUTH_PASS=</code> (recommended), or</li>
-<li>set <code>LOGIN=off</code> if the player is protected otherwise (e.g. a reverse proxy with its own login).</li></ul>
-<p>Then run <code>docker compose up -d</code>.</p>
-<hr><p lang="de">Seit 2.0 braucht der Player eine Anmeldung. In der <code>.env</code> entweder
-<code>AUTH_USER</code>/<code>AUTH_PASS</code> setzen (empfohlen – das Beispielpasswort <code>change-me</code> gilt nicht) oder <code>LOGIN=off</code>, wenn er anders geschützt ist
-(z. B. Reverse Proxy mit eigener Anmeldung). Danach <code>docker compose up -d</code>.</p>`;
+// 2.0: Seite, solange keine Anmeldung eingerichtet und LOGIN=off nicht gesetzt ist.
+// test11: Einrichtungsseite – Benutzer + Passwort hier festlegen (wie bei Portainer) oder wie bisher über die .env.
+// Ohne JavaScript (normales Formular), Aussehen aus /setup.css (die Sicherheitsregeln erlauben kein Inline-CSS).
+const SETUP_CSS = `body{font:16px/1.5 system-ui,sans-serif;max-width:34em;margin:2em auto;padding:0 1em;background:#0b0b0d;color:#eee}
+h1{font-size:1.4em}label{display:block;margin:.8em 0}input{display:block;width:100%;box-sizing:border-box;margin-top:.3em;padding:.7em;
+font:inherit;background:#18181c;color:#eee;border:1px solid #333;border-radius:8px}button{margin-top:1em;padding:.8em 1.4em;font:inherit;
+font-weight:600;color:#fff;background:#7c3aed;border:0;border-radius:10px;cursor:pointer}.err{color:#ffb020}.note{color:#aaa;font-size:.9em}
+code{background:#222;padding:0 .3em;border-radius:4px}hr{border:0;border-top:1px solid #333;margin:2em 0}`;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const SETUP_ERR = {
+  badUser: 'Please enter a user name (no colon) · Bitte einen Benutzernamen eingeben (ohne Doppelpunkt)',
+  tooShort: 'The password needs at least 8 characters · Das Passwort braucht mindestens 8 Zeichen',
+  example: 'Please choose your own password · Bitte ein eigenes Passwort wählen',
+  mismatch: 'The passwords don’t match · Die Passwörter stimmen nicht überein',
+  blocked: 'Too many attempts – wait a minute · Zu viele Versuche – eine Minute warten',
+  origin: 'Please send the form from this page · Bitte das Formular auf dieser Seite absenden',
+};
+const loginPage = (err = '', user = '') => `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Funscript Player – set up a login</title><link rel="stylesheet" href="/setup.css">
+<h1>Funscript Player: set up a login · Anmeldung einrichten</h1>
+<p>The player needs a login – otherwise everyone who can reach it sees your library and Handy key.<br>
+<span lang="de">Der Player braucht eine Anmeldung – sonst sieht jeder, der ihn erreicht, deine Bibliothek und den Handy-Key.</span></p>
+${LOGIN_EXAMPLE ? '<p class="err">AUTH_PASS in the .env is still the example password <code>change-me</code> – it does not count. · Das Beispielpasswort <code>change-me</code> gilt nicht.</p>' : ''}
+${err ? `<p class="err">${esc(SETUP_ERR[err] || err)}</p>` : ''}
+<form method="post" action="/setup-login">
+<label>User name · Benutzername<input name="user" autocomplete="username" required maxlength="64" value="${esc(user)}"></label>
+<label>Password (at least 8 characters) · Passwort (mind. 8 Zeichen)<input name="pass" type="password" autocomplete="new-password" required minlength="8"></label>
+<label>Repeat password · Passwort wiederholen<input name="pass2" type="password" autocomplete="new-password" required minlength="8"></label>
+<button type="submit">Set up login · Anmeldung einrichten</button>
+</form>
+<p class="note">Afterwards the browser asks for user name and password. Change or remove it later in ⚙️ → Security &amp; privacy.
+Forgotten? Add <code>LOGIN_RESET=1</code> to the .env, run <code>docker compose up -d</code>, then remove the line again.<br>
+<span lang="de">Danach fragt der Browser nach Benutzer und Passwort. Ändern oder entfernen später in ⚙️ → Sicherheit &amp; Privatsphäre.
+Vergessen? <code>LOGIN_RESET=1</code> in die .env, <code>docker compose up -d</code>, Zeile danach wieder entfernen.</span></p>
+<hr><p class="note">Alternatively in the <code>.env</code>: <code>AUTH_USER=</code> + <code>AUTH_PASS=</code> (takes precedence), or <code>LOGIN=off</code>
+if the player is protected otherwise (e.g. a reverse proxy with its own login). Then <code>docker compose up -d</code>.<br>
+<span lang="de">Alternativ in der <code>.env</code>: <code>AUTH_USER</code>/<code>AUTH_PASS</code> (gehen vor) oder <code>LOGIN=off</code>, wenn er anders
+geschützt ist (z. B. Reverse Proxy mit eigener Anmeldung).</span></p>`;
+async function loginSetupPage(req, res) {
+  const path0 = req.url.split('?')[0];
+  if (path0 === '/setup.css') {
+    res.writeHead(200, { 'Content-Type': MIME['.css'], 'Cache-Control': 'no-store' });
+    return res.end(SETUP_CSS);
+  }
+  const page = (status, err, user) => {
+    res.writeHead(status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...SECURITY_HEADERS });
+    res.end(loginPage(err, user));
+  };
+  if (path0 !== '/setup-login' || req.method !== 'POST') return page(503);
+  if (!sameOrigin(req)) return page(403, 'origin');
+  if (loginBlocked(req)) return page(429, 'blocked');
+  const f = new URLSearchParams(await readBody(req, 4000));
+  if (f.get('pass') !== f.get('pass2')) return page(400, 'mismatch', f.get('user') || '');
+  const r = await setupLogin(f.get('user'), f.get('pass'));
+  if (r.status !== 200) { loginFailed(req); return page(r.status === 409 ? 503 : 400, r.msg, f.get('user') || ''); }
+  logLine(`Login set up on the setup page (user “${loginUser()}”)`);
+  res.writeHead(303, { Location: '/', 'Cache-Control': 'no-store' });
+  res.end();
+}
 
 // Antworten und kleine Helfer für die Routen
 const json = (res, data, cache = 'no-store', status = 200) => {
@@ -111,7 +178,7 @@ const json = (res, data, cache = 'no-store', status = 200) => {
   res.end(JSON.stringify(data));
 };
 const noContent = (res) => { res.writeHead(204); res.end(); };
-const needStash = () => { if (!STASH_URL) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 }); };
+const needStash = () => { if (!stashConf().url) throw Object.assign(new Error('Stash ist nicht eingerichtet'), { status: 404 }); };
 const userSrc = (url) => {
   const src = url.searchParams.get('src') || '';
   if (!/^(stash|media):/.test(src)) throw Object.assign(new Error('Ungültige Quelle'), { status: 400 });
@@ -153,7 +220,17 @@ const ROUTES = {
   // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
   '/api/userscripts': { GET: async (req, res) => json(res, await ownScripts()) },
   '/api/heat': { GET: async (req, res, url) => json(res, await scriptHeat(url.searchParams.get('src')), 'max-age=3600') },
-  // test10: Player-Passwort ändern (nur mit .env-Anmeldung); DELETE = wieder das Passwort aus der .env
+  // test11: Anmeldung in ⚙️ einrichten (POST, nur ohne Anmeldung) / entfernen (DELETE, nur die in ⚙️ eingerichtete)
+  '/api/login/setup': {
+    POST: async (req, res) => loginSetupRoute(req, res, false),
+    DELETE: async (req, res) => loginSetupRoute(req, res, true),
+  },
+  // test11: Stash-Adresse + API-Key aus ⚙️ (PUT), DELETE = wieder die Werte aus der .env
+  '/api/stash/config': {
+    PUT: async (req, res) => stashConfRoute(req, res, false),
+    DELETE: async (req, res) => stashConfRoute(req, res, true),
+  },
+  // test10: Player-Passwort ändern (Anmeldung aus .env oder ⚙️); DELETE = wieder das Passwort aus der .env
   '/api/login/password': {
     POST: async (req, res) => loginPassRoute(req, res, false),
     DELETE: async (req, res) => loginPassRoute(req, res, true),
@@ -194,11 +271,8 @@ const handler = async (req, res) => {
   });
   try {
     if (req.url === '/healthz') return res.end('ok'); // für den Docker-Healthcheck – ohne Anmeldung, verrät nichts
-    // 2.0: keine Anmeldung eingerichtet und nicht bewusst abgeschaltet → nur eine Erklärseite, sonst nichts
-    if (LOGIN_MISSING) {
-      res.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', ...SECURITY_HEADERS });
-      return res.end(LOGIN_PAGE);
-    }
+    // 2.0: keine Anmeldung eingerichtet und nicht bewusst abgeschaltet → nur die Einrichtungsseite, sonst nichts
+    if (loginMissing()) return await loginSetupPage(req, res);
     // 2.0: HereSphere mit der normalen Adresse → gleich zur VR-Bibliothek. Vor der Anmeldung, denn HereSphere kann
     // keine Browser-Anmeldung; umgeleitet wird nur genau „/“, alles andere bleibt hinter der Anmeldung.
     if (req.url.split('?')[0] === '/' && (req.method === 'GET' || req.method === 'HEAD') && /HereSphere/i.test(req.headers['user-agent'] || '') && hsRedirectOn()) {
@@ -340,7 +414,7 @@ server.on('upgrade', (req, socket, head) => {
   socket.on('error', () => {});
   const url = new URL(req.url, 'http://localhost');
   if (url.pathname !== '/intiface') return fail(404, 'Not Found');
-  if (LOGIN_MISSING || !authOk(req)) return fail(401, 'Unauthorized');
+  if (loginMissing() || !authOk(req)) return fail(401, 'Unauthorized');
   if (!sameOrigin(req)) return fail(403, 'Forbidden'); // keine Verbindung von fremden Webseiten
   const m = /^([\d.]+):(\d{1,5})$/.exec(url.searchParams.get('target') || '');
   if (!m || !(intifaceLanOnly() ? LAN_IP : PRIVATE_IP).test(m[1]) || !INTIFACE_PORTS.has(Number(m[2]))) return fail(400, 'Bad Request');
@@ -384,17 +458,32 @@ for (const sig of ['SIGTERM', 'SIGINT']) {
 function logStash403(st) {
   logLine('  Stash 0.32+ rejects requests from networks it considers public when Stash has no login. Either:');
   logLine(`  a) in Stash's config.yml: public_whitelist: [${(st.networks || []).map((n) => '"' + n + '"').join(', ') || '"<docker network>/16"'}] – then restart Stash, or`);
-  logLine('  b) set a user + password in Stash (Settings → Security) and put its API key into STASH_API_KEY.');
+  logLine('  b) set a user + password in Stash (Settings → Security) and put its API key into ⚙️ → Library or STASH_API_KEY.');
+}
+// Stash von selbst neu prüfen (alle 30 s / 5 min) und Wechsel ins Log schreiben – auch nach Änderung in ⚙️
+function startStashMonitor() {
+  stashMonitor((now) => {
+    if (now.ok) logLine(`Stash: reachable again (version ${now.version || '?'})`);
+    else { logLine(`Stash: no longer reachable – ${now.error}`); if (now.code === 'forbidden') logStash403(now); }
+  });
 }
 server.listen(PORT, HOST, async () => {
   logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
-  if (LOGIN_EXAMPLE) logLine('⚠ AUTH_PASS is still the example password "change-me" – choose your own in .env. Until then the player only shows a help page.');
-  else if (LOGIN_MISSING) logLine('⚠ NO LOGIN SET UP: the player only shows a help page. Set AUTH_USER + AUTH_PASS in .env – or LOGIN=off if a proxy protects it.');
-  else if (!AUTH_USER) logLine('Note: login switched off (LOGIN=off) – everyone who reaches the player sees your library and Handy key.');
+  // test11: welche Anmeldung gilt – .env > in ⚙️ eingerichtet > LOGIN=off > Einrichtungsseite
+  if (LOGIN_RESET_DONE) logLine('LOGIN_RESET=1: the login set in the interface was removed – now remove LOGIN_RESET from .env again.');
+  else if (LOGIN_RESET) logLine('Note: LOGIN_RESET=1 is set but there was nothing to reset – remove the line from .env.');
+  if (LOGIN_EXAMPLE) logLine('⚠ AUTH_PASS is still the example password "change-me" – it does not count.');
+  const src = loginSource();
+  if (src === 'env') logLine(`Login: from .env (user “${AUTH_USER}”${loginOwnActive() ? ', password changed in the interface' : ''})${serverSettings.uiLogin ? ' – the login set in the interface is ignored' : ''}`);
+  else if (src === 'ui') logLine(`Login: set up in the interface (user “${loginUser()}”)${LOGIN_OFF ? ' – takes precedence over LOGIN=off' : ''}`);
+  else if (src === 'off') logLine('Login: off (LOGIN=off) – everyone who reaches the player sees your library and Handy key. A login can be set up in ⚙️.');
+  else logLine('⚠ NO LOGIN SET UP: the player shows the setup page – set user + password there (or AUTH_USER + AUTH_PASS in .env, or LOGIN=off).');
   if (AUTH_IGNORED) logLine('Note: LOGIN=off – AUTH_USER/AUTH_PASS in .env are ignored.');
   if (STASH_IGNORED) logLine('Note: STASH=off – STASH_URL/STASH_API_KEY in .env are ignored.');
+  if (stashConf().source === 'ui') logLine('Stash: address/API key set in the interface (overrides STASH_URL/STASH_API_KEY from .env)');
   if (PLACEHOLDERS.length) logLine(`Note: placeholder <…> in .env counts as empty: ${PLACEHOLDERS.join(', ')}`);
   logLine(`Library: reading ${MEDIA_DIR} …`);
+  const STASH_URL = stashConf().url;
   const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashCheck() : null, hqStatus()]);
   if (lib.status === 'fulfilled') {
     const roots = new Set(lib.value.map((it) => it.root || '(main folder)'));
@@ -406,10 +495,7 @@ server.listen(PORT, HOST, async () => {
   if (stash.value?.code === 'forbidden') logStash403(stash.value);
   if (STASH_URL) {
     if (!stash.value?.ok) logLine('Stash: trying again every 30 s …');
-    stashMonitor((now) => {
-      if (now.ok) logLine(`Stash: reachable again (version ${now.version || '?'})`);
-      else { logLine(`Stash: no longer reachable – ${now.error}`); if (now.code === 'forbidden') logStash403(now); }
-    });
+    startStashMonitor();
   }
   logLine(`HQ stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel graphics (VAAPI)' : 'CPU') : 'not available (no ffmpeg)'}`);
   const gpu = hqs.value?.gpu;

@@ -1270,7 +1270,7 @@ details.dev-row > summary { display: flex; align-items: center; gap: var(--s2); 
   min-height: var(--tap); font: inherit; font-size: 15px; cursor: pointer;
 }
 .set-page .sec { margin-bottom: var(--s3); }
-.set-page .sec > .sec-sub:first-child { margin-top: 0; }
+#view-settings .set-page .sec > .sec-sub:first-child { margin-top: 0; padding-top: 0; border-top: 0; } /* test11: keine leere Fläche oben */
 .set-page .ui-switch { min-height: 40px; }
 .hint-text.warn { color: var(--warn); }
 

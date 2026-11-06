@@ -362,3 +362,85 @@ test('test10: Stash antwortet 403 (ab 0.32) – Status mit Art und Netzen', asyn
     assert.ok(Array.isArray(st.networks));
   } finally { s.stop(); fake.close(); }
 });
+
+test('test11: Anmeldung in der Oberfläche einrichten, ändern, entfernen; Einrichtungsseite; LOGIN_RESET', async () => {
+  const basic = (u, p) => ({ Authorization: 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64') });
+  const s = await startServer({ LOGIN: 'off' });
+  const call = (m, p, body, h = {}) => fetch(s.base + p, { method: m, headers: { ...h, 'Content-Type': 'application/json', Origin: s.base }, body: JSON.stringify(body) });
+  let saved;
+  try {
+    assert.strictEqual((await call('POST', '/api/login/setup', { user: 'anna', pass: 'kurz' })).status, 400);
+    assert.strictEqual((await call('POST', '/api/login/setup', { user: 'a:b', pass: 'langes-pw' })).status, 400);
+    assert.strictEqual((await call('POST', '/api/login/setup', { user: 'anna', pass: 'geheim123' })).status, 200);
+    assert.strictEqual((await fetch(s.base + '/api/version')).status, 401, 'jetzt mit Anmeldung (vor LOGIN=off)');
+    const st = await (await fetch(s.base + '/api/settings', { headers: basic('anna', 'geheim123') })).json();
+    assert.strictEqual(st.loginSource, 'ui');
+    assert.strictEqual(st.loginUser, 'anna');
+    assert.strictEqual((await call('POST', '/api/login/setup', { user: 'x', pass: 'nochmal123' }, basic('anna', 'geheim123'))).status, 409, 'nur eine Anmeldung');
+    assert.strictEqual((await call('POST', '/api/login/password', { current: 'geheim123', next: 'neues-pw1' }, basic('anna', 'geheim123'))).status, 200);
+    assert.strictEqual((await fetch(s.base + '/api/version', { headers: basic('anna', 'neues-pw1') })).status, 200);
+    saved = fs.readFileSync(path.join(s.data, 'settings.json'), 'utf8');
+    assert.ok(!saved.includes('neues-pw1'), 'kein Klartext');
+    assert.strictEqual((await call('DELETE', '/api/login/setup', { current: 'falsch' }, basic('anna', 'neues-pw1'))).status, 403);
+    assert.strictEqual((await call('DELETE', '/api/login/setup', { current: 'neues-pw1' }, basic('anna', 'neues-pw1'))).status, 200);
+    assert.strictEqual((await fetch(s.base + '/api/version')).status, 200, 'wieder LOGIN=off');
+  } finally { s.stop(); }
+  // .env-Anmeldung geht vor
+  const e = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'envpass1' }, (media) => fs.writeFileSync(path.join(media, '..', 'data', 'settings.json'), saved));
+  try {
+    assert.strictEqual((await fetch(e.base + '/api/version', { headers: basic('anna', 'neues-pw1') })).status, 401);
+    assert.strictEqual((await fetch(e.base + '/api/version', { headers: basic('u', 'envpass1') })).status, 200);
+  } finally { e.stop(); }
+  // LOGIN_RESET=1 löscht die in ⚙️ gesetzte Anmeldung
+  const r = await startServer({ LOGIN: 'off', LOGIN_RESET: '1' }, (media) => fs.writeFileSync(path.join(media, '..', 'data', 'settings.json'), saved));
+  try {
+    assert.strictEqual((await fetch(r.base + '/api/version')).status, 200);
+  } finally { r.stop(); }
+  // Ohne alles: Einrichtungsseite mit Formular
+  const m = await startServer({ LOGIN: '' });
+  try {
+    const page = await fetch(m.base + '/');
+    assert.strictEqual(page.status, 503);
+    assert.match(await page.text(), /setup-login/);
+    assert.strictEqual((await fetch(m.base + '/setup.css')).status, 200);
+    const form = (b) => fetch(m.base + '/setup-login', { method: 'POST', redirect: 'manual', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: m.base }, body: new URLSearchParams(b).toString() });
+    assert.strictEqual((await form({ user: 'bob', pass: 'passwort1', pass2: 'anders123' })).status, 400);
+    const ok = await form({ user: 'bob', pass: 'passwort1', pass2: 'passwort1' });
+    assert.strictEqual(ok.status, 303);
+    assert.strictEqual((await fetch(m.base + '/api/version')).status, 401);
+    assert.strictEqual((await fetch(m.base + '/api/version', { headers: basic('bob', 'passwort1') })).status, 200);
+    assert.strictEqual((await form({ user: 'eve', pass: 'passwort2', pass2: 'passwort2' })).status, 401, 'Seite gibt es danach nicht mehr');
+  } finally { m.stop(); }
+});
+
+test('test11: Stash-Adresse und API-Key in der Oberfläche', async () => {
+  const http = require('http');
+  let gotKey = '';
+  const fake = http.createServer((req, res) => {
+    gotKey = req.headers.apikey || '';
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ data: { version: { version: 'v0.32.0' }, findScenes: { count: 7 } } }));
+  });
+  await new Promise((r) => fake.listen(0, '127.0.0.1', r));
+  const s = await startServer({});
+  const put = (body) => fetch(s.base + '/api/stash/config', { method: 'PUT', headers: { 'Content-Type': 'application/json', Origin: s.base }, body: JSON.stringify(body) });
+  try {
+    assert.strictEqual((await (await fetch(s.base + '/api/stash/status')).json()).configured, false);
+    assert.strictEqual((await put({ url: 'ftp://x' })).status, 400);
+    const r = await (await put({ url: `127.0.0.1:${fake.address().port}/`, key: 'k1' })).json();
+    assert.strictEqual(r.status.ok, true);
+    assert.strictEqual(r.status.scenes, 7);
+    assert.strictEqual(gotKey, 'k1');
+    assert.strictEqual(r.settings.stash.source, 'ui');
+    assert.strictEqual(r.settings.stash.hasKey, true);
+    assert.ok(!JSON.stringify(r.settings).includes('k1'), 'Key geht nicht an den Browser');
+    await put({ url: `http://127.0.0.1:${fake.address().port}` }); // Key leer = bleibt
+    await fetch(s.base + '/api/stash/status?fresh=1');
+    assert.strictEqual(gotKey, 'k1');
+    const c = await (await put({ url: `http://127.0.0.1:${fake.address().port}`, clearKey: true })).json();
+    assert.strictEqual(c.settings.stash.hasKey, false);
+    const back = await (await fetch(s.base + '/api/stash/config', { method: 'DELETE', headers: { Origin: s.base } })).json();
+    assert.strictEqual(back.settings.stash.source, 'env');
+    assert.strictEqual(back.status.configured, false);
+  } finally { s.stop(); fake.close(); }
+});
