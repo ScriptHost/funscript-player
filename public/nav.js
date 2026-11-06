@@ -1,9 +1,6 @@
-// Navigation 2.0: vier Bereiche (Bibliothek, Player, Geräte, Einstellungen) – am Smartphone als Daumen-Leiste
-// unten, am PC oben im Kopf (style.css). Dazu die Anzeige-Schalter „Leuchten aus“ und „Bewegung“ als Klassen
-// an <body>. Neues Modul ohne Arbeit beim Laden: main.js ruft init() auf.
-//
-// Bis die Bereiche neu gebaut sind (Phasen 4–7), führen die Knöpfe zu den alten Seiten: Geräte = das alte
-// Geräte-Fenster, Steuern zählt zu Geräte.
+// Navigation 2.0: vier Bereiche (Bibliothek, Player bzw. Steuern, Geräte, Einstellungen) – am Smartphone als
+// Daumen-Leiste unten, am PC oben im Kopf (style.css). Geräte = das Geräte-Fenster; „Player“ ohne Video zeigt
+// Steuern. Dazu der Anzeige-Schalter „Bewegung“ und der Demo-Modus als Klassen an <body>. main.js ruft init() auf.
 import { modulesReady } from './state.js';
 import { store } from './handy.js';
 import { closeDevices, goLibrary, openDevices, openPlayer, openSettings, setMode } from './app.js';
@@ -59,7 +56,7 @@ function mark() {
   }
 }
 
-// Anzeige-Schalter: Leuchten ab Werk an, Bewegung ab Werk aus
+// Anzeige-Schalter: Bewegung ab Werk aus
 export function setMotion(on) { store.set('motion', on); document.body.classList.toggle('motion', on); }
 
 export function init() {

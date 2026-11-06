@@ -5,7 +5,7 @@
    2.0-Bausteine (ui-…) und Feinschliff – spätere Regeln gewinnen.
    Grundsatz: dunkel, feine 1-px-Linien statt Schatten, Systemschrift. Neon NUR mit Bedeutung
    (Heatmap/Fortschritt, Play, Handy Cyan, Satisfyer Pink, aktive Auswahl violett). STOPP klar rot.
-   Schalter an <body>: .no-glow = Leuchten aus, .motion = Bewegung (Geräte-Balken bewegen sich weich).
+   Schalter an <body>: .motion = Bewegung (Geräte-Balken bewegen sich weich).
    ============================================================================= */
 :root {
   color-scheme: dark;
@@ -32,7 +32,6 @@
   --neon-1: #22d3ee; --neon-2: #b46cff; --neon-3: #ff4fa3;
   --neon: linear-gradient(90deg, var(--neon-1), var(--neon-2) 55%, var(--neon-3));
 
-  /* Leuchten (dezent; .no-glow schaltet alles ab) */
   /* nach test8: Leuchten deutlich schwächer (Nutzer: „zu aggressiv“) */
   --glow-accent: 0 0 6px rgba(180, 108, 255, .08);
   --glow-strong: 0 0 8px rgba(180, 108, 255, .12);
@@ -486,8 +485,6 @@ aside { min-width: 0; }
 .chip.performers { background: #43304a; }
 /* 1.2: Finale, Qualitätsschalter, Spul-Vorschau, Weiterschauen */
 .finale-btn { background: #6d2a8c; color: #fff; }
-.finale-btn.running, .ov-row .finale-btn.running { background: var(--warn); color: #fff; animation: pulse 1.2s ease-in-out infinite; }
-@keyframes pulse { 50% { filter: brightness(1.35); } }
 #finaleBtn { margin-bottom: 10px; }
 .big-seg button { padding: 12px 10px !important; font-size: 15px; font-weight: 700; }
 #qualityAdvanced { margin-top: 6px; }
@@ -960,7 +957,7 @@ body.hud-off-script .sb-head:has(#sbChoice[hidden]) { display: none; }
 .off-box[open] > summary::after { transform: rotate(90deg); }
 /* ---------------------------------------------------------------------------
    2.0-Bausteine und Feinschliff
-   --------------------------------------------------------------------------- */body.no-glow { --glow-accent: none; --glow-strong: none; --glow-text: none; --glow-dot: none; }
+   --------------------------------------------------------------------------- */
 
 body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 
@@ -985,7 +982,8 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 .ui-btn.ghost { background: transparent; }
 .ui-btn.stop { background: var(--stop); color: #fff; border: 0; font-weight: 700; letter-spacing: .04em; }
 .ui-btn.round { width: var(--tap); padding: 0; border-radius: 50%; }
-.ui-btn.round.primary { width: 56px; min-height: 56px; font-size: 20px; box-shadow: var(--glow-strong); }
+.ui-btn.round.primary { width: 56px; min-height: 56px; font-size: 20px; background: var(--surface2); border: 1.5px solid rgba(255, 255, 255, .22); box-shadow: none; }
+.ui-btn.round.primary:hover { border-color: rgba(255, 255, 255, .45); }
 .ui-btn.wide { width: 100%; }
 
 /* ---------- Schalter: <label class="ui-switch"><input type="checkbox"><span></span> Text</label> ---------- */
@@ -1030,7 +1028,6 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 .ui-bar { display: block; position: relative; height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; color: var(--accent); }
 .ui-bar.handy { color: var(--handy); }
 .ui-bar.vibe { color: var(--vibe); }
-.ui-bar.neon > i { background: var(--neon); }
 .ui-bar > i { display: block; width: var(--v, 0%); height: 100%; border-radius: inherit; background: currentColor; box-shadow: var(--glow-dot); }
 body.motion .ui-bar > i { transition: width .25s ease-out; }
 .ui-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: var(--glow-dot); }
@@ -1038,8 +1035,6 @@ body.motion .ui-bar > i { transition: width .25s ease-out; }
 .ui-dot.vibe { color: var(--vibe); }
 .ui-dot.off { color: var(--muted); box-shadow: none; }
 
-/* Neon-Linie (z. B. Fortschritt) */
-.ui-neon { height: 3px; border-radius: 2px; background: var(--neon); box-shadow: var(--glow-accent); }
 
 /* ---------- Navigation: 4 Bereiche. Smartphone = Daumen-Leiste unten, PC = oben im Kopf ---------- */
 .ui-nav { display: flex; gap: var(--s1); }
@@ -1133,7 +1128,6 @@ body.hud-off-devices .pl-dock { display: none; }
 .pl-row { display: flex; gap: var(--s3); }
 .pl-row .ui-btn { flex: 1; }
 #finaleBtn { margin: 0; }
-#finaleBtn.running { border-color: var(--vibe); color: #fff; box-shadow: var(--glow-accent); }
 #handyOff[hidden] { display: none; }
 
 @media (max-width: 900px) {
@@ -1157,18 +1151,14 @@ body.hud-off-devices .pl-dock { display: none; }
   }
 .ov-row button:hover { border-color: rgba(180, 108, 255, .6); }
 .drop:not(.fs) .ov-row button { min-width: 32px; min-height: 32px; padding: 4px 8px; }
-/* Play/Pause: nach test2 ruhiger – dünner, blasser Neon-Rand ohne Leuchten */
-.ov-play, .drop:not(.fs) .ov-play {
-  color: #fff; border: 1.5px solid transparent; box-shadow: none;
-  background: linear-gradient(rgba(11, 11, 13, .78), rgba(11, 11, 13, .78)) padding-box,
-    linear-gradient(90deg, rgba(34, 211, 238, .5), rgba(180, 108, 255, .5) 55%, rgba(255, 79, 163, .5)) border-box;
-}
+/* Play/Pause: test10 schlichter heller Rand statt Neon-Verlauf, kein Leuchten */
+.ov-play, .drop:not(.fs) .ov-play { color: #fff; background: rgba(11, 11, 13, .72); border: 1.5px solid rgba(255, 255, 255, .28); box-shadow: none; }
+.ov-play:hover { border-color: rgba(255, 255, 255, .5); }
 .drop:not(.fs) .ov-play { width: 52px; height: 52px; font-size: 20px; }
 /* STOPP: klar rot, im Vollbild immer oben rechts */
 #ovStop, .fab-stop, #stopAll { background: var(--stop); color: #fff; border: 0; border-radius: var(--radius); font-weight: 700; letter-spacing: .04em; }
 #ovStop { min-height: var(--tap); padding: 0 20px; }
 .ov-row #ovVibe.off { background: var(--stop); border-color: var(--stop); }
-.ov-row #ovFinale.running { border-color: var(--vibe); box-shadow: var(--glow-accent); }
 .swipe-hud { background: rgba(11, 11, 13, .78); border: 1px solid var(--line); }
 /* Vollbild: keine Kopfzeile, keine Daumen-Leiste – nur das Video */
 body.fs-open header { visibility: hidden; }
@@ -1382,15 +1372,6 @@ details.dev-fold[open] > summary { margin-bottom: var(--s3); }
   #view-settings .set-item[aria-current] { background: var(--surface2); box-shadow: inset 3px 0 0 var(--accent); }
 }
 
-/* test10: Play/Pause dezenter – schlichter heller Rand statt Neon-Verlauf, kein Leuchten */
-.ov-play, .drop:not(.fs) .ov-play {
-  background: rgba(11, 11, 13, .72); border: 1.5px solid rgba(255, 255, 255, .28); box-shadow: none;
-}
-.ov-play:hover { border-color: rgba(255, 255, 255, .5); }
-.ui-btn.round.primary {
-  background: var(--surface2); border: 1.5px solid rgba(255, 255, 255, .22); box-shadow: none;
-}
-.ui-btn.round.primary:hover { border-color: rgba(255, 255, 255, .45); }
 
 /* test10: Script angehalten – Karte bleibt, zeigt nur den Rückweg */
 #scriptBox.suspended .sb-warm, #scriptBox.suspended .sb-presets, #scriptBox.suspended #sbChoice,
