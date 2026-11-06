@@ -390,19 +390,16 @@ export const base = document.createElement('canvas');
 // 2.0 „Graphit + Neon“: ruhig = dunkles Blau, dann Cyan → Violett → Pink
 // nach test2 gedämpft (weniger Neon): gleiche Farbfolge, weniger Sättigung/Helligkeit
 const HEAT = [[0, [36, 50, 64]], [90, [32, 112, 134]], [200, [44, 152, 172]], [320, [96, 82, 172]], [440, [136, 72, 166]], [560, [178, 62, 118]]];
-// nach test6: „Ruhige Farben“ (body.calm) – Graphit bis Hellgrau, nur ganz oben ein Hauch Violett
-const HEAT_CALM = [[0, [34, 34, 40]], [150, [62, 62, 72]], [320, [110, 108, 122]], [560, [178, 170, 196]]];
 export function heatColor(speed) {
-  const scale = document.body.classList.contains('calm') ? HEAT_CALM : HEAT;
-  for (let i = 1; i < scale.length; i++) {
-    if (speed <= scale[i][0]) {
-      const [s0, c0] = scale[i - 1];
-      const [s1, c1] = scale[i];
+  for (let i = 1; i < HEAT.length; i++) {
+    if (speed <= HEAT[i][0]) {
+      const [s0, c0] = HEAT[i - 1];
+      const [s1, c1] = HEAT[i];
       const t = (speed - s0) / (s1 - s0);
       return `rgb(${c0.map((c, k) => Math.round(c + (c1[k] - c) * t)).join(',')})`;
     }
   }
-  return `rgb(${scale[scale.length - 1][1].join(',')})`;
+  return `rgb(${HEAT[HEAT.length - 1][1].join(',')})`;
 }
 
 export function duration() {

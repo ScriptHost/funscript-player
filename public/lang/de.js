@@ -737,7 +737,6 @@ export default {
   'settings.lib.resume': "Weiterschauen – Stash-Szenen starten dort, wo du aufgehört hast",
   'settings.img.gpu': "Hochskalieren auf dem Server (Intel Quick Sync): {state}",
   'selfctl.limit': " (Grenze)",
-  'settings.calm': "Ruhige Farben – Script grau statt bunt, weniger Neon-Akzente",
   'player.nextSearch': "Bibliothek durchsuchen …",
   'library.searchKind': "{kind} suchen …",
 };
