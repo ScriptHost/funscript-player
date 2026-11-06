@@ -10,6 +10,56 @@ a new minor for a batch of features, a patch only for bug fixes. Every push to `
 The 34 versions up to 1.19.9 (31.10.–04.11.2026) are summarised below. Only 1.19.9 and newer are still available on
 GitHub (release, git tag, Docker image) – older ones were removed when the versioning was cleaned up.
 
+## 2.0.0-beta1 – 06.11.2026
+
+The big redesign. A beta: please report anything odd.
+
+**Before you update**
+
+- **A login is now required.** If your player ran without `AUTH_USER`/`AUTH_PASS`, it now opens a setup page where you
+  choose user name and password. Or set `AUTH_USER` + `AUTH_PASS` in `.env`, or `LOGIN=off` if a reverse proxy with
+  its own login protects it. The example password `change-me` does not count.
+- **HereSphere is off by default on new installs** (existing installs keep their setting) – switch it on in ⚙️ → VR & HereSphere.
+- **Stash 0.32+ answers “HTTP 403”** when Stash has no login and the player's Docker network counts as public. The player
+  shows the exact `public_whitelist` line for Stash's `config.yml` in ⚙️ → Library and in `docker logs`.
+
+**New look**
+
+- New dark “graphite” design with a thumb bar at the bottom (Library, Player, Devices, Settings); on a PC the navigation
+  sits at the top, settings use two columns
+- Settings in clear pages (Devices, Security & privacy, Script, Library, Picture, VR & HereSphere, System) with a back button
+- The script shows as a “mountain” in the player bar: height and colour by tempo (blue calm … red/purple intense),
+  Stash markers on top
+- New app icon; quieter play/pause and finale buttons
+
+**Player and devices**
+
+- Several scripts per video (`clip.soft.funscript` …) for folders and Stash, switchable while playing
+- Intensity presets Auto · Original · Gentle · Intense – Intense keeps the rhythm and only uses a longer stroke
+- 🌱 Warm-up: slow, gentle movement/vibration – also while the video is paused
+- ⏺ Record your own script along the video, name your recordings; patterns and recordings as cards
+- “✕ Close video”; the player area becomes “Control” without a video
+- Picture-in-picture only via ⧉ (no more black mini window when leaving fullscreen)
+- Device checks every time you come back to the app; no Handy warning while another device (e.g. Satisfyer) plays
+- Demo mode: blurred videos, previews and names, no sound, virtual Handy and Satisfyer
+
+**Login, Stash and HereSphere**
+
+- Set up, change or remove the login in ⚙️ → Security & privacy (also with `LOGIN=off`). Order: `.env` > ⚙️ > `LOGIN=off`.
+  Forgotten? `LOGIN_RESET=1` in `.env`, restart, remove the line again
+- Stash address and API key can be changed in ⚙️ → Library (overrides `STASH_URL`/`STASH_API_KEY`); connection status
+  with “Test connection”; the player reconnects on its own every 30 s
+- “Show 2D videos only” now works without a “2D” tag: it hides Stash scenes with a VR tag and folder videos with a VR
+  marker in the file name
+- HereSphere: just enter the normal address – the player redirects HereSphere to `/heresphere` (switchable); its own
+  password (log in once); the library opens faster (lists load in parallel and are kept for up to 10 minutes)
+
+**Security and Docker**
+
+- Brake against password guessing (10 attempts per minute), login password stored as scrypt hash
+- `PLAYER_BIND` to publish the port only locally (e.g. behind a proxy); `UPDATE_CHECK=off`
+- Intel graphics check in `docker logs` and ⚙️ → System; the container stops immediately on `docker stop`
+
 ## 1.19.11 – 04.11.2026
 
 - **Own fullscreen is back** – with STOP, finale, sound and fit/fill (“stretched”); swiping shows its value in the middle of

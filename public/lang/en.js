@@ -808,4 +808,5 @@ export default {
   'settings.stash.savedErr': "Saved, but Stash does not answer yet – see above.",
   'settings.stash.savedNone': "Saved – no Stash connection.",
   'settings.lib.only2dHelp': "Hides VR videos: Stash scenes with a VR tag (VR, 180°, 360°, Virtual Reality) and folder videos with a VR marker in the file name (e.g. _180_sbs). Applies to this device only – e.g. on for the phone, off for the VR headset.",
+  'settings.stash.badKey': "The API key looks wrong (no spaces or line breaks).",
 };

@@ -294,7 +294,7 @@ async function stashConfSave(mode) {
       method: mode === 'env' ? 'DELETE' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: mode === 'env' ? undefined : JSON.stringify(body),
     });
     const r = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(r.error === 'badUrl' ? t('settings.stash.badUrl') : r.error || res.status);
+    if (!res.ok) throw new Error(r.error === 'badUrl' ? t('settings.stash.badUrl') : r.error === 'badKey' ? t('settings.stash.badKey') : r.error || res.status);
     $('stashKey').value = '';
     srvStash = r.settings?.stash || srvStash;
     const was = lib.stashStatus;

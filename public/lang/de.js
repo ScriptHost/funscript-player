@@ -807,4 +807,5 @@ export default {
   'settings.stash.savedErr': "Gespeichert, aber Stash antwortet noch nicht – siehe oben.",
   'settings.stash.savedNone': "Gespeichert – keine Stash-Verbindung.",
   'settings.lib.only2dHelp': "Blendet VR-Videos aus: Stash-Szenen mit VR-Tag (VR, 180°, 360°, Virtual Reality) und Ordner-Videos mit VR-Kennung im Dateinamen (z. B. _180_sbs). Gilt nur für dieses Gerät – z. B. am Smartphone an, in der VR-Brille aus.",
+  'settings.stash.badKey': "Der API-Key sieht falsch aus (keine Leerzeichen oder Zeilenumbrüche).",
 };
