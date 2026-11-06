@@ -13,7 +13,7 @@ const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
 const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, intifaceLanOnly, loginCheckHeader, loginOwnActive, publicSettings, serverSettings, setLoginPassword, writeSettings,
-  LOGIN_RESET, LOGIN_RESET_DONE, loginMissing, loginSource, loginUser, removeLogin, setupLogin, setStashConf, stashConf } = require('./lib/settings');
+  castToken, castValid, LOGIN_RESET, LOGIN_RESET_DONE, loginMissing, loginSource, loginUser, removeLogin, setupLogin, setStashConf, stashConf } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashCheck, stashCurrent, stashMonitor, stashReconfigure } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash, isVrVideo } = require('./lib/heresphere');
@@ -219,6 +219,8 @@ const ROUTES = {
   },
   // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
   '/api/userscripts': { GET: async (req, res) => json(res, await ownScripts()) },
+  // test13: Cast-Token für „Auf den TV streamen“
+  '/api/cast/token': { GET: async (req, res) => json(res, castToken()) },
   '/api/heat': { GET: async (req, res, url) => json(res, await scriptHeat(url.searchParams.get('src')), 'max-age=3600') },
   // test11: Anmeldung in ⚙️ einrichten (POST, nur ohne Anmeldung) / entfernen (DELETE, nur die in ⚙️ eingerichtete)
   '/api/login/setup': {
@@ -260,6 +262,9 @@ const ROUTES = {
   '/api/hq/bench': { GET: async (req, res, url) => json(res, await hqBench(url.searchParams)) },
 };
 
+// test13: nur diese Adressen gehen mit Cast-Token (Video, Standbild, HQ-Stream) – keine Einstellungen, keine API
+const CAST_PATH = /^\/(media\/[^?]+|stash\/scene\/\d+\/(stream|stream\.mp4|screenshot)|hq\/stream)$/;
+
 // LOG_LEVEL=debug: jede Anfrage; sonst nur langsame (> 1 s) API-Anfragen – Videos/Streams nicht
 const LOG_DEBUG = /^debug$/i.test(process.env.LOG_LEVEL || '');
 const handler = async (req, res) => {
@@ -283,7 +288,10 @@ const handler = async (req, res) => {
     // 2.0: HereSphere kann keine Browser-Anmeldung. Mit eigenem HereSphere-Passwort prüft der Player /heresphere selbst
     // (Token je Anfrage) – dann gilt die Anmeldung dort nicht. Ohne Passwort bleibt auch /heresphere hinter der Anmeldung.
     const hsOwnLogin = /^\/heresphere(\/|$)/.test(req.url.split('?')[0]) && heresphereOn() && !!serverSettings.hsPass;
-    if (!hsOwnLogin && !checkAuth(req, res)) return;
+    // test13: Fernseher (Chromecast/AirPlay) holt nur das Video – mit gültigem Cast-Token ohne Browser-Anmeldung
+    const castOk = (req.method === 'GET' || req.method === 'HEAD') && CAST_PATH.test(req.url.split('?')[0])
+      && castValid(new URL(req.url, 'http://localhost').searchParams.get('cast'));
+    if (!hsOwnLogin && !castOk && !checkAuth(req, res)) return;
     // 1.19.10: Versionsnummer erst nach der Anmeldung (CodeQL #17)
     if (req.url === '/api/version') {
       res.writeHead(200, { 'Content-Type': MIME['.json'] });
@@ -376,7 +384,11 @@ const handler = async (req, res) => {
       || /^\/stash\/(tag|performer|studio)\/(\d+)\/(image)$/.exec(pathname);
     if (sm) {
       needStash();
-      return await proxyStash(req, res, sm[1], sm[2], sm[3], url.search);
+      // test13: das Cast-Token geht nicht an Stash weiter
+      const sp = new URLSearchParams(url.search);
+      sp.delete('cast');
+      const search = sp.toString() ? '?' + sp : '';
+      return await proxyStash(req, res, sm[1], sm[2], sm[3], search);
     }
 
     // Dateien: /media/… aus den Videoordnern, sonst die Oberfläche

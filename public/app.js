@@ -12,6 +12,7 @@ import { strokers } from './stroker.js';
 import { selfCtl } from './selfctl.js';
 import { setAdvMode, setQualityMode } from './settings.js';
 import { t } from './lang.js';
+import { castActive, withCast } from './cast.js';
 
 // ===========================================================================
 // Modi (Streamen / Sync / Steuern), Seiten (Bibliothek / Player / Steuern),
@@ -192,6 +193,7 @@ export function loadVideo(src, name, hqSrc = '') {
   video.load();
   if (modulesReady.has('enhance')) enhClear(); // altes Bild der Bildverbesserung weg (sonst kurz Standbild des vorigen Videos)
   $('drop').classList.add('loading');
+  src = withCast(src); // test13: mit Cast-Token, damit ein Fernseher das Video selbst laden kann
   Object.assign(hq, { active: false, offset: 0, duration: 0, height: 0, src: hqSrc, url: src });
   // HQ prüft erst Auflösung/Format und setzt die Quelle dann selbst
   if (!(modulesReady.has('hq') && hqMaybeStart())) video.src = src;
@@ -330,7 +332,8 @@ export function resync() {
 async function doSync() {
   if (!handy.connected || !script || (modulesReady.has('finale') && finDetached())) return;
   try {
-    const playing = syncActive() && videoPlaying() && !vibePaused && video.readyState >= 3;
+    // test13: beim Streamen auf den TV lädt der Fernseher – readyState des lokalen Videos zählt dann nicht
+    const playing = syncActive() && videoPlaying() && !vibePaused && (castActive() || video.readyState >= 3);
     if (!playing) {
       if (handy.owner === 'video') await handy.stop();
       return;
@@ -379,7 +382,7 @@ function vibeActions() {
 // Springt oder lädt das Video (seeking/waiting), ruhen die Geräte – sonst vibriert der Satisfyer
 // schon mit der neuen Stelle, während das Bild noch steht.
 export function videoScriptSource() {
-  if (!syncActive() || !script || !videoPlaying() || video.seeking || video.readyState < 3) return null;
+  if (!syncActive() || !script || !videoPlaying() || video.seeking || (!castActive() && video.readyState < 3)) return null;
   return { actions: vibeActions(), ms: mediaTime() * 1000, video: true };
 }
 
@@ -960,6 +963,8 @@ export function init() {
   video.addEventListener('pause', () => { if (document.pictureInPictureElement && document.visibilityState === 'hidden') pipWasPlaying = false; });
   video.addEventListener('leavepictureinpicture', () => {
     video.disablePictureInPicture = true;
+    // test13: nach Bild-in-Bild wieder der normale Player (Nutzer: Mini-Player über der Bibliothek war „blöd gelöst“)
+    if (video.currentSrc && location.hash !== '#player') openPlayer();
     const resume = pipWasPlaying;
     setTimeout(() => { if (resume && video.paused && video.currentSrc) video.play().catch(() => {}); updateNowBar(); }, 300);
   });

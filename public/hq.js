@@ -3,6 +3,7 @@ import { video } from './state.js';
 import { $, log, store } from './handy.js';
 import { drawHeatmap, hq, mediaTime } from './app.js';
 import { t } from './lang.js';
+import { withCast } from './cast.js';
 
 // ===========================================================================
 // HQ-Stream: der Server wandelt das Video live um (Intel Quick Sync / VAAPI):
@@ -44,7 +45,7 @@ function hqDecision(info) {
 
 function hqUrl(start) {
   const preset = hqState.preset === 'auto' ? 'natural' : hqState.preset; // Auto: natürlich, nur hochgerechnet
-  return '/hq/stream?' + new URLSearchParams({ src: hq.src, t: start.toFixed(2), preset, h: hq.height || 1080 });
+  return withCast('/hq/stream?' + new URLSearchParams({ src: hq.src, t: start.toFixed(2), preset, h: hq.height || 1080 }));
 }
 
 async function hqProbe(src) {

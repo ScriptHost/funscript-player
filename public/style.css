@@ -1143,6 +1143,9 @@ body.hud-off-devices .pl-dock { display: none; }
 /* ---------- Player-Leiste und eigenes Vollbild ---------- */
 .ov-top { background: linear-gradient(rgba(11, 11, 13, .8), transparent); }
 .ov-bottom { background: linear-gradient(transparent, rgba(11, 11, 13, .85) 45%); }
+/* test13: Cast-Knopf – Symbol wie üblich, verbunden = Akzentfarbe */
+.cast-btn svg { display: block; margin: auto; }
+.cast-btn.active { color: var(--accent, #b46cff); }
 #ovBar { border-radius: 6px; outline: 1px solid rgba(255, 255, 255, .08); outline-offset: -1px; } /* test12: feine Kontur wie die Karten */
 .drop:not(.fs) #ovBar { height: 18px; }
 .ov-row button {

@@ -809,4 +809,10 @@ export default {
   'settings.stash.savedNone': "Saved – no Stash connection.",
   'settings.lib.only2dHelp': "Hides VR videos: Stash scenes with a VR tag (VR, 180°, 360°, Virtual Reality) and folder videos with a VR marker in the file name (e.g. _180_sbs). Applies to this device only – e.g. on for the phone, off for the VR headset.",
   'settings.stash.badKey': "The API key looks wrong (no spaces or line breaks).",
+  'ui.castTitle': "Stream to TV (Chromecast / AirPlay)",
+  'cast.connected': "📺 Streaming to the TV – the devices keep following the video",
+  'cast.disconnected': "📺 TV stream ended – playing here again",
+  'cast.none': "No TV found – Chromecast / Android TV in the same Wi-Fi?",
+  'cast.noToken': "Streaming is not ready yet – please try again in a moment",
+  'cast.error': "Streaming not possible: {msg}",
 };
