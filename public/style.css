@@ -1325,3 +1325,8 @@ button.secondary { background: transparent; }
 
 /* nach test8: „🎮 Steuern“ und „✕ Video schließen“ immer sichtbar (zurück zur Bibliothek = Navigation) */
 .pl .pl-top #toControl, .pl .pl-top #closeVideoBtn { display: inline-block; margin: 0 0 var(--s2); font-size: 13px; }
+
+/* nach test8: in der installierten App lädt Herunterziehen die Seite nicht mehr neu (die Verbindungen blieben weg) */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html, body { overscroll-behavior-y: none; }
+}
