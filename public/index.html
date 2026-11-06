@@ -751,40 +751,48 @@
         </div>
 
         <div class="card" data-panel="control:patterns" hidden>
-          <h2 data-i18n="ui.patternEditor">Pattern editor</h2>
-          <div class="toolbar">
-            <select id="patternSelect" aria-label="Pattern"></select>
-            <button data-i18n="ui.new" id="patternNew" class="small">New</button>
-            <button data-i18n="ui.copy" id="patternDup" class="small">Copy</button>
-            <button data-i18n="ui.delete" id="patternDel" class="small danger">Delete</button>
-          </div>
-          <div class="grid2">
-            <label>Name<input id="patternName" type="text" maxlength="60"></label>
-            <label><span data-i18n="ui.applyTemplate">Apply template</span>
-              <select id="patternPreset"><option data-i18n="ui.chooseTemplate" value="">– choose template –</option></select>
-            </label>
-          </div>
-          <div class="editor">
-            <canvas id="patternCanvas"></canvas>
-            <div class="stroker" title="Current position" data-i18n-title="ui.currentPosition"><div id="strokerFill"></div></div>
-          </div>
-          <p data-i18n="ui.clickAddPointDrag" class="hint-text">Click = add point · drag = move · double/right click = delete point</p>
-          <div class="grid2">
-            <label><span data-i18n="ui.cycleLength">Cycle length</span> <output id="lengthVal"></output>
-              <input id="patternLength" type="range" min="200" max="8000" step="50">
-            </label>
-            <label>Tempo <output id="tempoVal"></output>
-              <input id="patternTempo" type="range" min="25" max="300" step="5" value="100">
-            </label>
-          </div>
-          <p id="patternInfo" class="hint-text"></p>
-          <div class="actions">
-            <button data-i18n="ui.playPattern" id="patternPlay">▶ Play pattern</button>
-            <label class="inline">Export
-              <input id="patternExportMin" type="number" min="1" max="120" value="5"> min
-            </label>
-            <button data-i18n="ui.exportAsFunscript" id="patternExport" class="secondary">Export as .funscript</button>
-          </div>
+          <!-- nach test8: Patterns und Aufnahmen als Karten (control.js renderPatternCards), Editor zugeklappt -->
+          <h3 class="sec-sub" data-i18n="control.cards.patterns">Patterns</h3>
+          <div id="patternCards" class="pattern-cards"></div>
+          <h3 class="sec-sub" data-i18n="control.cards.recordings">Recordings</h3>
+          <div id="recordingCards" class="pattern-cards"></div>
+          <p id="recordingNone" class="hint-text" data-i18n="control.cards.recNone">No recordings yet – record in the “Direct” tab or under the video with ⏺ and save as a pattern.</p>
+          <details id="patternEditorBox" class="pattern-editor">
+            <summary data-i18n="control.cards.edit">✎ Edit pattern</summary>
+            <div class="toolbar">
+              <select id="patternSelect" aria-label="Pattern"></select>
+              <button data-i18n="ui.new" id="patternNew" class="small">New</button>
+              <button data-i18n="ui.copy" id="patternDup" class="small">Copy</button>
+              <button data-i18n="ui.delete" id="patternDel" class="small danger">Delete</button>
+            </div>
+            <div class="grid2">
+              <label>Name<input id="patternName" type="text" maxlength="60"></label>
+              <label><span data-i18n="ui.applyTemplate">Apply template</span>
+                <select id="patternPreset"><option data-i18n="ui.chooseTemplate" value="">– choose template –</option></select>
+              </label>
+            </div>
+            <div class="editor">
+              <canvas id="patternCanvas"></canvas>
+              <div class="stroker" title="Current position" data-i18n-title="ui.currentPosition"><div id="strokerFill"></div></div>
+            </div>
+            <p data-i18n="ui.clickAddPointDrag" class="hint-text">Click = add point · drag = move · double/right click = delete point</p>
+            <div class="grid2">
+              <label><span data-i18n="ui.cycleLength">Cycle length</span> <output id="lengthVal"></output>
+                <input id="patternLength" type="range" min="200" max="8000" step="50">
+              </label>
+              <label>Tempo <output id="tempoVal"></output>
+                <input id="patternTempo" type="range" min="25" max="300" step="5" value="100">
+              </label>
+            </div>
+            <p id="patternInfo" class="hint-text"></p>
+            <div class="actions">
+              <button data-i18n="ui.playPattern" id="patternPlay">▶ Play pattern</button>
+              <label class="inline">Export
+                <input id="patternExportMin" type="number" min="1" max="120" value="5"> min
+              </label>
+              <button data-i18n="ui.exportAsFunscript" id="patternExport" class="secondary">Export as .funscript</button>
+            </div>
+          </details>
         </div>
 
       </section>

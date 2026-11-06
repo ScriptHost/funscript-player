@@ -1338,3 +1338,15 @@ details.dev-fold > summary h3 { margin: 0; padding: 0; border: 0; }
 details.dev-fold > summary::after { content: '›'; font-size: 22px; color: var(--muted); transition: transform .15s; }
 details.dev-fold[open] > summary::after { transform: rotate(90deg); }
 details.dev-fold[open] > summary { margin-bottom: var(--s3); }
+
+/* nach test8: Patterns/Aufnahmen als Karten */
+.pattern-cards { display: grid; gap: var(--s2); margin-bottom: var(--s3); }
+.pattern-card { display: flex; align-items: center; gap: var(--s2); padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface); cursor: pointer; }
+.pattern-card.current { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.pattern-card canvas { flex: none; width: 120px; height: 32px; }
+.pattern-card .pc-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.pattern-card .ui-btn.round { flex: none; width: 36px; min-height: 36px; margin: 0; padding: 0; }
+.pattern-editor > summary { cursor: pointer; padding: var(--s2) 0; color: var(--muted); }
+.pattern-cards { grid-template-columns: minmax(0, 1fr); }
+.pattern-card { min-width: 0; }
+@media (max-width: 600px) { .pattern-card canvas { width: 72px; } .pattern-card .ui-btn.round { width: 32px; min-height: 32px; } }

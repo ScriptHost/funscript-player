@@ -53,7 +53,7 @@ async function loadStore() {
 export function saveRecordingAsPattern(name, length, actions) {
   const step = Math.max(1, Math.ceil(actions.length / 2000));
   const points = actions.filter((_, i) => i % step === 0).map((a) => ({ t: Math.min(0.9999, a.at / length), pos: a.pos }));
-  db.patterns.push({ id: uid(), name, length: Math.round(length), points });
+  db.patterns.push({ id: uid(), name, length: Math.round(length), points, rec: true }); // rec: Aufnahme (eigene Liste)
   saveStore();
   fillPatternSelects();
 }
@@ -242,6 +242,59 @@ function fillPatternSelects() {
   const sel = $('patternSelect');
   sel.replaceChildren(...db.patterns.map((p) => new Option(p.name, p.id)));
   sel.value = currentPattern().id;
+  renderPatternCards();
+}
+
+// nach test8: Karten je Pattern – Mini-Kurve, ▶/■, umbenennen, löschen; antippen = im Editor öffnen.
+// Aufnahmen (rec) stehen in einer eigenen Liste darunter.
+function miniCurve(p) {
+  const c = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  c.width = 120 * dpr; c.height = 32 * dpr;
+  const g = c.getContext('2d');
+  g.strokeStyle = 'rgba(180,108,255,.85)';
+  g.lineWidth = 1.5 * dpr;
+  g.beginPath();
+  const pts = [...p.points].sort((x, y) => x.t - y.t);
+  pts.forEach((q, i) => { const x = q.t * c.width, y = c.height - (q.pos / 100) * (c.height - 4 * dpr) - 2 * dpr; i ? g.lineTo(x, y) : g.moveTo(x, y); });
+  g.stroke();
+  return c;
+}
+function renderPatternCards() {
+  const playing = active?.kind === 'pattern' ? currentPatternId : null;
+  const card = (p) => {
+    const el = document.createElement('div');
+    el.className = 'pattern-card' + (p.id === currentPatternId ? ' current' : '');
+    const btn = (txt, title, fn) => {
+      const b = Object.assign(document.createElement('button'), { className: 'ui-btn round', textContent: txt, title });
+      b.addEventListener('click', (ev) => { ev.stopPropagation(); fn(); });
+      return b;
+    };
+    const name = Object.assign(document.createElement('span'), { className: 'pc-name', textContent: p.name });
+    el.append(miniCurve(p), name,
+      btn(playing === p.id ? '■' : '▶', t('control.cards.play'), () => {
+        if (playing === p.id) { stopPlayback(); return; }
+        currentPatternId = p.id; showPattern(); playPattern(); renderPatternCards();
+      }),
+      btn('✎', t('control.cards.rename'), () => {
+        const n = prompt(t('control.cards.renamePrompt'), p.name)?.trim();
+        if (!n) return;
+        p.name = n.slice(0, 60); saveStore(); fillPatternSelects(); if (p.id === currentPatternId) showPattern();
+      }),
+      btn('🗑', t('control.cards.delete'), () => {
+        if (db.patterns.length <= 1) return log(t('control.theLastPatternCan'), true);
+        if (!confirm(t('control.deleteConfirm', { name: p.name }))) return;
+        db.patterns = db.patterns.filter((x) => x !== p);
+        if (currentPatternId === p.id) currentPatternId = db.patterns[0].id;
+        fillPatternSelects(); showPattern(); saveStore();
+      }));
+    el.addEventListener('click', () => { currentPatternId = p.id; showPattern(); renderPatternCards(); $('patternEditorBox').open = true; });
+    return el;
+  };
+  $('patternCards').replaceChildren(...db.patterns.filter((p) => !p.rec).map(card));
+  const recs = db.patterns.filter((p) => p.rec);
+  $('recordingCards').replaceChildren(...recs.map(card));
+  $('recordingNone').hidden = recs.length > 0;
 }
 
 function showPattern() {
