@@ -42,7 +42,7 @@ The big redesign. A beta: please report anything odd.
 
 - Several scripts per video (`clip.soft.funscript` …) for folders and Stash, switchable while playing
 - Intensity presets Auto · Original · Soft · Intense – Intense keeps the rhythm and only uses a longer stroke
-- 🌱 Warm-up: slow, gentle movement/vibration – also while the video is paused
+- 🌱 Warm-up: short, gentle strokes at the bottom and a soft vibration – also while the video is paused
 - ⏺ Record your own script along the video, name your recordings; patterns and recordings as cards
 - “✕ Close video”; the player area becomes “Control” without a video
 - Picture-in-picture only via ⧉ (no more black mini window when leaving fullscreen); leaving it returns to the full player

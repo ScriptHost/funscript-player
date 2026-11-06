@@ -130,14 +130,14 @@ test('2.0 Intensiv: kleine, langsame Stöße auf vollen Hub – trotzdem machbar
   assert.ok(topSpeed(intense) <= 452);
 });
 
-test('2.0 Aufwärmen: Handy unten und ruhig (0–35 %, 1 s je Weg), Satisfyer bekommt das Script', () => {
+test('2.0 Aufwärmen: Handy unten mit kurzen Hüben (0–35 %, 0,4 s je Weg), Satisfyer bekommt das Script', () => {
   const { loadPresets, sampleScript, topSpeed } = require('../lib/selfcheck');
   const run = loadPresets(450);
   const a = sampleScript();
   const w = run(a, 'handy', 'auto', true);
   assert.ok(w.every((x) => x.pos >= 0 && x.pos <= 35), 'unten');
   assert.ok(Math.max(...w.map((x) => x.pos)) === 35, 'Hub bis 35 %');
-  assert.ok(topSpeed(w) <= 36, 'ruhig');
+  assert.ok(topSpeed(w) <= 90, 'nicht zu schnell (beta1: 0,4 s je Weg)');
   assert.ok(w[w.length - 1].at >= a[a.length - 1].at, 'ganze Länge');
   assert.ok(run(a, 'vibe', 'auto', true).length > 2);
 });

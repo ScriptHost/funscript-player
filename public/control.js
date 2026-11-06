@@ -424,14 +424,16 @@ export function controlScriptSource() {
   return { actions: active.actions, ms: active.loop ? elapsed % active.duration : elapsed, warm: active.kind === 'warmup' };
 }
 
-// test10: 🌱 Aufwärmen bei angehaltenem Video – eigener ruhiger Takt wie beim Video-Aufwärmen (Handy unten
-// 0–35 %, 1 s je Weg, 10 min), der Satisfyer in seiner eigenen Welle (vibe.js). handover = das Video startet
+// beta1: Aufwärmen deutlich schneller (Nutzer: „viel schneller“) – ein Weg 0,4 s statt 1 s (gleicher Wert in tools.js WARMUP)
+const WARMUP_MS = 400;
+// test10: 🌱 Aufwärmen bei angehaltenem Video – eigener Takt wie beim Video-Aufwärmen (Handy unten
+// 0–35 %, WARMUP_MS je Weg, 10 min), der Satisfyer in seiner eigenen Welle (vibe.js). handover = das Video startet
 // und übernimmt die Handy selbst (kein Stopp dazwischen, sonst überholt der Stopp das neue Script).
 export function warmIdle(on, handover = false) {
   if (on) {
     if (active?.kind === 'warmup' || hampOn || active || !(handy.connected || allVibes().length)) return;
     const actions = [];
-    for (let i = 0; i <= 600; i++) actions.push({ at: i * 1000, pos: i % 2 ? 35 : 0 });
+    for (let i = 0; i * WARMUP_MS <= 600000; i++) actions.push({ at: i * WARMUP_MS, pos: i % 2 ? 35 : 0 });
     startPlayback('warmup', actions, 600000, true);
   } else if (active?.kind === 'warmup') {
     if (!handover && handy.owner === 'warmup') stopPlayback();

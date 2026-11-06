@@ -173,7 +173,7 @@ function expandStrokes(a, maxSpeed) {
 // 2.0 Aufwärmen: die Handy unten, ruhig (nach test2: 0–35 %, ein Weg 1 s – vorher 0–20 %, 1,5 s) – eigener ruhiger Rhythmus über die ganze
 // Videolänge, damit Spulen und Sync wie gewohnt funktionieren. Der Satisfyer läuft unabhängig vom Script in einer
 // ruhigen Welle (warmupVibe, nach test6: etwas stärker als vorher).
-const WARMUP = { lo: 0, hi: 35, ms: 1000 };
+const WARMUP = { lo: 0, hi: 35, ms: 400 }; // beta1: 0,4 s je Weg (vorher 1 s) – wie WARMUP_MS in control.js
 let warmup = false;
 function warmupActions(actions) {
   const end = (actions[actions.length - 1]?.at || 0) + WARMUP.ms;

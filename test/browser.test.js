@@ -42,7 +42,8 @@ test('Browser-Selbsttest (?selbsttest) läuft komplett grün', { skip: !BROWSER 
   try {
     // Seite des Browsers finden und per DevTools-Protokoll verbinden
     let target;
-    for (let i = 0; i < 60 && !target; i++) {
+    // beta1: bis 40 s – auf GitHub startet Chrome manchmal langsam (Release-Lauf scheiterte an „Chrome startet nicht“)
+    for (let i = 0; i < 160 && !target; i++) {
       await wait(250);
       try { target = (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).find((t) => t.type === 'page'); } catch { /* startet noch */ }
     }
