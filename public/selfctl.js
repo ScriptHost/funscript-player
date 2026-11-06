@@ -1,7 +1,7 @@
 
 import { modulesReady, video } from './state.js';
 import { $, claimHandy, downloadFunscript, handy, log, store } from './handy.js';
-import { hasHandy, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
+import { hasHandy, hasVibe, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
 import { askRecName, saveScriptToLibrary, scriptMeta, suspended } from './library.js';
 import { strokers } from './stroker.js';
 import { touchMode, touchPosActive, touchSync, touchToPositionActions, touchToTempoActions, tpos } from './touchpad.js';
@@ -41,9 +41,10 @@ export function selfRunning() {
 }
 
 export function selfUI() {
-  // nach test6: bei Videos ohne Funscript immer da (mit Umschalter „Keine Steuerung / Selbst steuern“), auch ohne
-  // verbundenes Gerät – vorher verschwand der ganze Bereich. Welche Regler erscheinen, regelt CSS (has-handy / has-vibe).
-  $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player';
+  // nach test8: mit verbundenem Gerät, bei „Selbst steuern“ – oder immer, wenn ⚙️ → Bild & Anzeige „Steuerung unterm Video
+  // auch ohne Gerät“ an ist (ab Werk aus). Welche Regler erscheinen, regelt CSS (has-handy / has-vibe).
+  $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
+    || !(selfCtl.mode === 'self' || store.get('selfAlways', false) || (modulesReady.has('app') && (hasHandy() || hasVibe())));
   document.querySelector('.self-head > span').textContent = modulesReady.has('library') && suspended ? t('selfctl.scriptPaused') : t('selfctl.noFunscript');
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';

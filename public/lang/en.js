@@ -272,7 +272,6 @@ export default {
   'settings.pl.skip': 'Jump with double tap left/right',
   'settings.pl.sec10': '10 seconds',
   'settings.pl.sec5': '5 seconds',
-  'settings.pl.autoPip': 'Leave the app while the video plays = small window (picture-in-picture), the video keeps playing (if the browser allows it, otherwise ⧉)',
   'settings.pl.swipeTitle': 'Swipe in fullscreen',
   'settings.pl.swipeLeft': 'Left half up/down',
   'settings.pl.volume': 'Volume',
@@ -743,4 +742,5 @@ export default {
   'library.recNamePrompt': "Name for the recording (empty = save as “own script” without a name):",
   'player.toControl': "🎮 Control",
   'player.closeVideo': "✕ Close video",
+  'settings.pl.selfAlways': "Control under the video even without a connected device (videos without script)",
 };

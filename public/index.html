@@ -276,7 +276,7 @@
           </div>
 
           <!-- Geräte: ruhige Balken (⚙️ → Anzeige: „Bewegung“ = Balken folgen dem Gerät); antippen = Geräte-Fenster -->
-          <div id="plDock" class="pl-dock">
+          <div id="plDock" class="pl-dock sync-only">
             <button id="dockHandy" class="ui-card pl-dev" data-dev="handy">
               <span class="ui-label"><span><i class="ui-dot handy"></i> The Handy</span><small id="dockHandyVal"></small></span>
               <span class="ui-bar handy"><i></i></span>
@@ -287,7 +287,7 @@
             </button>
             <button id="dockConnect" class="ui-btn wide pl-connect">◎ <span data-i18n="player.connect">Connect devices</span></button>
           </div>
-          <div class="pl-row">
+          <div class="pl-row sync-only">
             <button id="sbFile" class="ui-btn" title="Load another .funscript for this scene and keep it under a name" data-i18n-title="player.loadFileTitle">📂 <span data-i18n="player.loadFile">Script file</span></button>
             <button id="vibePause" class="ui-btn">❚❚ <span data-i18n="player.pause">Pause</span></button>
           </div>
@@ -612,6 +612,7 @@
             <h3 class="sec-sub" data-i18n="settings.pl.title">▶︎ Player</h3>
             <p class="adv hint-text" data-i18n="settings.pl.hudHelp">What appears below the video – just hide what you don’t need.</p>
             <div id="hudOptions" class="adv hud-options">
+              <label class="ui-switch"><input id="selfAlways" type="checkbox"><span></span><span data-i18n="settings.pl.selfAlways">Control under the video even without a connected device (videos without script)</span></label>
               <label class="ui-switch"><input type="checkbox" data-hud="devices"><span></span><span data-i18n="settings.pl.hudDevices">Device controls at the video (connect, offset, stroke, strength – on PC to the right)</span></label>
               <label class="ui-switch"><input type="checkbox" data-hud="meta"><span></span><span data-i18n="settings.pl.hudMeta">Date, length, views</span></label>
               <label class="ui-switch"><input type="checkbox" data-hud="script"><span></span><span data-i18n="settings.pl.hudScript">Line “⚡ script name (points)”</span></label>
@@ -629,7 +630,6 @@
             <label><span data-i18n="settings.pl.skip">Jump with double tap left/right</span>
               <select id="skipSec"><option value="10" data-i18n="settings.pl.sec10">10 seconds</option><option value="5" data-i18n="settings.pl.sec5">5 seconds</option></select>
             </label>
-            <label class="ui-switch"><input id="autoPip" type="checkbox" checked><span></span><span data-i18n="settings.pl.autoPip">Leave the app while the video plays = small window (picture-in-picture), the video keeps playing (if the browser allows it, otherwise ⧉)</span></label>
             <h4 data-i18n="settings.pl.swipeTitle">Swipe in fullscreen</h4>
             <div class="grid2">
               <label><span data-i18n="settings.pl.swipeLeft">Left half up/down</span>

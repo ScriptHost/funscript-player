@@ -271,7 +271,6 @@ export default {
   'settings.pl.skip': 'Springen mit Doppeltippen links/rechts',
   'settings.pl.sec10': '10 Sekunden',
   'settings.pl.sec5': '5 Sekunden',
-  'settings.pl.autoPip': 'App verlassen, während das Video läuft = kleines Fenster (Bild-in-Bild), das Video läuft weiter (sofern der Browser es zulässt, sonst ⧉)',
   'settings.pl.swipeTitle': 'Wischen im Vollbild',
   'settings.pl.swipeLeft': 'Linke Hälfte hoch/runter',
   'settings.pl.volume': 'Lautstärke',
@@ -742,4 +741,5 @@ export default {
   'library.recNamePrompt': "Name für die Aufnahme (leer = als „Eigenes Script“ ohne Namen):",
   'player.toControl': "🎮 Steuern",
   'player.closeVideo': "✕ Video schließen",
+  'settings.pl.selfAlways': "Steuerung unterm Video auch ohne verbundenes Gerät (Videos ohne Script)",
 };

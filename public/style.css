@@ -798,7 +798,7 @@ body.mini-on .mini-ctl { display: flex; position: absolute; right: 6px; bottom: 
 .seek-preview.time-only span { position: static; transform: none; display: block; font-size: 13px; padding: 2px 8px; }
 
 /* 1.17: Video ohne Funscript + „Keine Steuerung“ -> Geräte-Regler und Geräte-Knöpfe weg */
-body.dev-idle #ovFinale, body.dev-idle #ovVibe, body.dev-idle[data-view=player] #plDock, body.dev-idle #finaleBtn, body.dev-idle #vibePause { display: none !important; }
+body.dev-idle #ovFinale, body.dev-idle #ovVibe, body.dev-idle[data-view=player] .pl-dev, body.dev-idle #finaleBtn, body.dev-idle #vibePause { display: none !important; }
 /* Knöpfe ohne passendes Gerät */
 body:not(.has-handy) #resyncBtn, body:not(.has-dev) #ovVibe, body:not(.has-dev) #ovFinale { display: none !important; }
 /* Leiste: vom Nutzer ausgeblendete Knöpfe */
@@ -1303,8 +1303,6 @@ body.demo #homeBtn::after {
 /* nach test6: Video bereit (gepuffert) – kein Ladekreis mehr über dem Vorschaubild */
 .start-cover.ready .spin { display: none; }
 
-/* nach test6: Script-Karte ohne Script – gleiche Knöpfe, ausgegraut */
-.script-box.no-script .sb-presets, #scriptBox button:disabled { opacity: .4; pointer-events: none; }
 
 /* nach test6: „Als Nächstes“ mit Suche, Liste scrollt neben dem Video */
 .pl-next-search { width: 100%; margin: 0 0 var(--s2); }

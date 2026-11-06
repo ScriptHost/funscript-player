@@ -627,24 +627,9 @@ function updateSceneMore() {
   $('sceneMore').classList.toggle('single', single);
   if (single) $('sceneMore').open = true;
 }
-function applyAutoPip() {
-  const on = $('autoPip').checked;
-  video.autoPictureInPicture = on;
-  try {
-    navigator.mediaSession?.setActionHandler('enterpictureinpicture', on ? () => {
-      if (!document.pictureInPictureElement && videoPlaying()) video.requestPictureInPicture().catch(() => {});
-    } : null);
-  } catch { /* Browser kennt die Aktion nicht */ }
-}
 // Zurück aus dem kleinen Fenster: Android schließt es und hält das Video dabei an – lief es, weiterspielen.
 // (Im kleinen Fenster selbst pausiert = bleibt pausiert: dann war es schon vorher angehalten.)
 let pipWasPlaying = false;
-// Aus dem Vollbild in den Hintergrund: das Video selbst ins kleine Fenster
-// (sonst nimmt Android den ganzen Vollbild-Bereich – der bleibt im Hintergrund schwarz).
-// 1.19.9: wieder nur aus dem Video-Vollbild – von der Player-Seite schaltete Chrome (Android) das Video auf
-// Bild-in-Bild, zeigte aber kein Fenster; zurück in der App blieb es grau. Ein so hängendes Bild-in-Bild
-// beendet der Player beim Zurückkommen selbst.
-let autoPipAt = 0;
 const applyHdr = () => document.body.classList.toggle('hdr-notch', $('hdrNotch').checked);
 
 async function manualResync() {
@@ -947,31 +932,15 @@ export function init() {
     video.requestPictureInPicture().then(() => {
     }).catch((e) => log(t('app.pipError', { msg: e.message }), true));
   });
-  // App verlassen, während das Video läuft -> Bild-in-Bild (⚙️ → Anzeige, pro Gerät).
-  // Chrome erlaubt das automatisch nur über die Media Session („enterpictureinpicture“);
-  // Safari kennt dafür autoPictureInPicture. Ob der Browser es tut, entscheidet er selbst.
-  $('autoPip').checked = store.get('autoPip', true);
-  $('autoPip').addEventListener('change', () => { store.set('autoPip', $('autoPip').checked); applyAutoPip(); });
-  applyAutoPip();
+  // nach test8: kein automatisches Bild-in-Bild mehr beim Verlassen der App – aus dem eigenen Vollbild macht Android
+  // daraus ein schwarzes Fenster (die ganze Bühne statt des Videos), und Chrome erlaubt den Wechsel nur nach einem Tipp.
+  // Bild-in-Bild gibt es zuverlässig über ⧉.
+  video.autoPictureInPicture = false;
   video.addEventListener('enterpictureinpicture', () => { pipWasPlaying = !video.paused; updateNowBar(); });
   video.addEventListener('pause', () => { if (document.pictureInPictureElement && document.visibilityState === 'hidden') pipWasPlaying = false; });
   video.addEventListener('leavepictureinpicture', () => {
     const resume = pipWasPlaying;
     setTimeout(() => { if (resume && video.paused && video.currentSrc) video.play().catch(() => {}); updateNowBar(); }, 300);
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      if (autoPipAt && document.pictureInPictureElement === video) document.exitPictureInPicture().catch(() => {});
-      autoPipAt = 0;
-      return;
-    }
-    if (!$('autoPip').checked || !videoPlaying()) return;
-    // nach test6: seit dem eigenen Vollbild (1.19.11) ist die Bühne bzw. die ganze App im Vollbild, nicht das Video –
-    // darum „enthält das Video“ statt „ist das Video“ (sonst wurde der Player im Hintergrund schwarz)
-    if (!document.pictureInPictureElement && document.fullscreenElement?.contains(video)) {
-      autoPipAt = Date.now();
-      video.requestPictureInPicture().catch(() => { autoPipAt = 0; });
-    }
   });
   // Kopfzeile kompakt um die Kamera herum (⚙️ → Anzeige)
   // Pixel-Smartphones haben die Kamera oben mittig -> dort standardmäßig an

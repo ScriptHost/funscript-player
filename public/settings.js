@@ -8,6 +8,7 @@ import { bluetoothProblem } from './vibe.js';
 import { enh, enhSetPreset } from './enhance.js';
 import { HQ_ACCEL_LABEL, hqApply, hqState } from './hq.js';
 import { SCRIPT_PRESETS, clearToolCache, processScript } from './tools.js';
+import { selfUI } from './selfctl.js';
 
 // ===========================================================================
 // Einstellungen-Seite: HereSphere-Adresse, Bibliothek, System-Infos.
@@ -165,6 +166,8 @@ function renderSavedFilterOptions() {
 let hsHasPass = false;
 // Weiterschauen (pro Gerät)
 function initResume() {
+  $('selfAlways').checked = store.get('selfAlways', false);
+  $('selfAlways').addEventListener('change', () => { store.set('selfAlways', $('selfAlways').checked); selfUI(); });
   $('resumeOn').checked = store.get('resume', true);
   $('resumeOn').addEventListener('change', () => store.set('resume', $('resumeOn').checked));
 }

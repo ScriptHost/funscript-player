@@ -551,7 +551,8 @@ function sceneAlts(src, alts) {
 
 // Script-Bereich im Geräte-Kasten
 export function renderScriptBox() {
-  const show = !!nowKey(); // 2.0: immer bei Szenen aus der Bibliothek – 📂 lädt weitere Scripts dazu
+  // nach test8: nur mit Script (auch nicht bei „Selbst steuern“ mit angehaltenem Script) – „📂 Script-Datei“ steht darunter
+  const show = !!nowKey() && !!script;
   $('scriptBox').hidden = !show;
   $('selfResume').hidden = $('sbResume').hidden = !suspended;
   if (!show) return;
@@ -567,10 +568,6 @@ export function renderScriptBox() {
     $('sbChoice').replaceChildren(...opts.map((o) => { const b = el('button', { type: 'button' }, o.label); b.dataset.choice = o.id; return b; }));
   }
   document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', b.dataset.choice === scriptMeta.choice));
-  // nach test6: Karte sieht mit und ohne Script gleich aus – ohne Script ist das Script-Abhängige ausgegraut
-  $('scriptBox').classList.toggle('no-script', !script);
-  for (const id of ['sbWarm', 'sbSelf', 'sbHot', 'finaleBtn']) $(id).disabled = !script;
-  document.querySelectorAll('#scriptBox [data-preset-scene] button').forEach((b) => { b.disabled = !script; });
   $('sbDelete').hidden = !(scriptMeta.choice === 'own' || scriptMeta.choice.startsWith('own:')) || !!suspended;
 }
 function resumeScript() {
