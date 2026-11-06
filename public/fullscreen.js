@@ -148,13 +148,11 @@ function drawOvBar() {
     const x = ((seekPreview ?? mediaTime()) * 1000 / total) * w;
     // nach test7: mit Script nur das Gebirge – Gespieltes hell, Kommendes gedämpft, keine Verlaufslinie mehr;
     // ohne Script der Neon-Fortschritt wie bisher
-    const neon = bctx.createLinearGradient(0, 0, w, 0);
-    neon.addColorStop(0, '#22d3ee'); neon.addColorStop(0.55, '#b46cff'); neon.addColorStop(1, '#ff4fa3');
     if (script && syncActive()) {
       bctx.fillStyle = 'rgba(11,11,13,.5)';
       bctx.fillRect(x, 0, w - x, h);
     } else {
-      bctx.fillStyle = neon;
+      bctx.fillStyle = 'rgba(255,255,255,.55)'; // nach test8: ohne Script schlicht hell statt Neon-Verlauf
       bctx.fillRect(0, 0, x, h);
     }
     bctx.fillStyle = '#fff';

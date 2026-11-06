@@ -251,7 +251,6 @@ export default {
   'settings.img.resAuto': 'Auto (matching the screen)',
   'settings.img.bench': 'Test performance',
   'settings.look.title': 'Look',
-  'settings.glow': 'Glow effects (neon shine around buttons and dots)',
   'settings.motion': 'Moving device bars',
   'settings.next': '“Up next” next to the player (wide screens)',
   'settings.look.notch': 'Compact: Handy and Satisfyer status left and right of the camera (for phones with a centred top camera)',

@@ -250,7 +250,6 @@ export default {
   'settings.img.resAuto': 'Auto (passend zum Bildschirm)',
   'settings.img.bench': 'Leistung testen',
   'settings.look.title': 'Darstellung',
-  'settings.glow': 'Leuchteffekte (Neon-Schein um Knöpfe und Punkte)',
   'settings.motion': 'Geräte-Balken bewegen sich',
   'settings.next': '„Als Nächstes“ neben dem Player (breite Bildschirme)',
   'settings.look.notch': 'Kompakt: Handy- und Satisfyer-Status links und rechts neben der Kamera (für Smartphones mit Kamera oben in der Mitte)',

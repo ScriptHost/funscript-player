@@ -33,9 +33,10 @@
   --neon: linear-gradient(90deg, var(--neon-1), var(--neon-2) 55%, var(--neon-3));
 
   /* Leuchten (dezent; .no-glow schaltet alles ab) */
-  --glow-accent: 0 0 10px rgba(180, 108, 255, .14);
-  --glow-strong: 0 0 14px rgba(180, 108, 255, .22);
-  --glow-text: 0 0 8px rgba(180, 108, 255, .55);
+  /* nach test8: Leuchten deutlich schwächer (Nutzer: „zu aggressiv“) */
+  --glow-accent: 0 0 6px rgba(180, 108, 255, .08);
+  --glow-strong: 0 0 8px rgba(180, 108, 255, .12);
+  --glow-text: none;
   --glow-dot: 0 0 6px color-mix(in srgb, currentColor 45%, transparent);
 
   /* Abstände, Rundungen, Größen */
@@ -1063,7 +1064,7 @@ body.motion .ui-bar > i { transition: width .25s ease-out; }
     position: fixed; z-index: 1400; left: 0; right: 0; bottom: 0; height: var(--nav-h);
     justify-content: space-around; align-items: flex-start; gap: 0;
     padding: 6px calc(4px + env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left));
-    background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
     border-top: 1px solid var(--line);
   }
   .ui-nav button { flex: 1; flex-direction: column; gap: 2px; padding: 4px 0; min-height: 48px; font-size: 10.5px; }
@@ -1153,8 +1154,7 @@ body.hud-off-devices .pl-dock { display: none; }
 .ov-row button {
   min-width: 38px; min-height: 38px; padding: 6px 10px; border-radius: var(--pill);
   background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); color: #fff; font-weight: 600;
-  backdrop-filter: blur(6px);
-}
+  }
 .ov-row button:hover { border-color: rgba(180, 108, 255, .6); }
 .drop:not(.fs) .ov-row button { min-width: 32px; min-height: 32px; padding: 4px 8px; }
 /* Play/Pause: nach test2 ruhiger – dünner, blasser Neon-Rand ohne Leuchten */
@@ -1207,7 +1207,7 @@ body.mini-on #view-player > aside.pl-side:not(#drop) { display: none !important;
 .tile .thumb { border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
 .tile:hover .thumb { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .tile .heatstrip { height: 4px; }
-.tile .badge { background: rgba(11, 11, 13, .72); border: 1px solid rgba(255, 255, 255, .12); border-radius: var(--radius-s); backdrop-filter: blur(6px); }
+.tile .badge { background: rgba(11, 11, 13, .72); border: 1px solid rgba(255, 255, 255, .12); border-radius: var(--radius-s); }
 .tile .dur { background: rgba(11, 11, 13, .72); border-radius: 6px; bottom: 9px; }
 .tile .new { background: var(--accent-soft) !important; color: #fff !important; box-shadow: inset 0 0 0 1px rgba(180, 108, 255, .6); }
 .tile-title { font-weight: 500; font-size: 13.5px; }
@@ -1311,3 +1311,17 @@ body.demo #homeBtn::after {
 /* nach test8: Kopfzeile im Player – zurück, Steuern, Video schließen */
 .pl-top { display: flex; align-items: center; gap: var(--s2); }
 .pl-top .grow { flex: 1; }
+
+/* nach test8: Neon dezenter – Knöpfe dunkel statt lila gefüllt, Auswahl nur leicht getönt mit Rand */
+button, .btn { background: var(--surface2); color: var(--text); border: 1px solid var(--line); }
+button.secondary { background: transparent; }
+.direct .big { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+#library li.active, .enhance .seg button.active, #hqPresets button.active, .savedbar button.active, .chip.active,
+#favBtn.active, .ov-row #ovFav.active, #presetDefault button.active, #imageSettings .seg button.active,
+.self-seg button.active, .tp-mode button.active, .sb-choice button.active, .img-pop .seg button.active,
+.int-seg button.active, .seg button.active {
+  background: var(--accent-soft); color: var(--text); border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+}
+
+/* nach test8: „🎮 Steuern“ und „✕ Video schließen“ immer sichtbar (zurück zur Bibliothek = Navigation) */
+.pl .pl-top #toControl, .pl .pl-top #closeVideoBtn { display: inline-block; margin: 0 0 var(--s2); font-size: 13px; }

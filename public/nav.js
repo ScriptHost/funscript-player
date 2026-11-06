@@ -52,15 +52,12 @@ function mark() {
 }
 
 // Anzeige-Schalter: Leuchten ab Werk an, Bewegung ab Werk aus
-export function setGlow(on) { store.set('glow', on); document.body.classList.toggle('no-glow', !on); }
 export function setMotion(on) { store.set('motion', on); document.body.classList.toggle('motion', on); }
 
 export function init() {
   modulesReady.add('nav');
-  document.body.classList.toggle('no-glow', !store.get('glow', true));
   document.body.classList.toggle('motion', store.get('motion', false));
-  const glow = document.getElementById('glowOn'), motion = document.getElementById('motionOn');
-  if (glow) { glow.checked = store.get('glow', true); glow.addEventListener('change', () => setGlow(glow.checked)); }
+  const motion = document.getElementById('motionOn');
   if (motion) { motion.checked = store.get('motion', false); motion.addEventListener('change', () => setMotion(motion.checked)); }
   const demo = document.getElementById('demoOn');
   if (demo) {
