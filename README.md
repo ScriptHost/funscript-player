@@ -19,18 +19,40 @@
   <a href="https://scorecard.dev/viewer/?uri=github.com/ScriptHost/funscript-player"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/ScriptHost/funscript-player/badge?style=flat-square"></a>
 </p>
 
-**Funscript Player** plays your videos in the browser and drives **The Handy** and **Satisfyer** devices in sync with
-the Funscript – at the same time, from the same script. It runs on your own server in Docker, reads your
-**Stash** library or plain video folders, and works on phone, tablet, PC and in VR (HereSphere).
+<p align="center">
+  <img src="docs/img/gh/live.svg" alt="Animation: the player plays a scene, The Handy strokes and the Satisfyer pulses – both from the same Funscript" width="100%">
+</p>
 
+<p align="center">
+  <img src="docs/img/gh/highlights.svg" alt="One choice for every device · Satisfyer with any script · Natural picture through upscaling" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/img/gh/h-look.svg" alt="See it – the player as it looks today" width="100%">
+</p>
 <p align="center">
   <img src="docs/img/screens/demo.gif" alt="The player in demo mode: video plays, The Handy and Satisfyer follow the script" width="260">&nbsp;
   <img src="docs/img/screens/phone-library.png" alt="Library with script heatmaps" width="260">&nbsp;
   <img src="docs/img/screens/phone-devices.png" alt="Devices: The Handy and Satisfyer" width="260">
 </p>
+<p align="center"><img src="docs/img/screens/desktop-player.png" alt="The player on a PC: video, script intensity, devices and the up-next list" width="100%"></p>
 <p align="center"><sub>Screenshots from the built-in demo mode (<code>/demo</code>): videos, previews and names are blurred.</sub></p>
 
-## ✨ Features
+<p align="center">
+  <img src="docs/img/gh/h-for-whom.svg" alt="Who is it for? Whatever you own" width="100%">
+  <img src="docs/img/gh/for-whom.svg" alt="Just a Handy · Just a Satisfyer · A Stash library" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/img/gh/h-steps.svg" alt="In three steps – connect, pick, play" width="100%">
+  <img src="docs/img/gh/steps.svg" alt="1 Connect · 2 Pick a scene · 3 Play" width="100%">
+</p>
+
+## ✨ All features
+
+**Funscript Player** plays your videos in the browser and drives **The Handy** and **Satisfyer** devices in sync with
+the Funscript – at the same time, from the same script. It runs on your own server in Docker, reads your
+**Stash** library or plain video folders, and works on phone, tablet, PC and in VR (HereSphere).
 
 - **One script, every device** – pick the intensity once for Handy and Satisfyer: **Auto**, **Original**, **Soft**
   or **Intense**, per scene, with a mini heatmap. Several scripts per video (`clip.soft.funscript` …) switchable while playing.
@@ -46,7 +68,7 @@ the Funscript – at the same time, from the same script. It runs on your own se
 - **VR** – HereSphere API for VR headsets.
 - **Emergency stop** – Esc and “Stop everything” always; optional STOP buttons, stop on screen lock, auto-stop.
 
-<p align="center"><img src="docs/img/screens/desktop-player.png" alt="The player on a PC: video, script intensity, devices and the up-next list" width="100%"></p>
+<p align="center"><img src="docs/img/gh/h-install.svg" alt="Installation – Docker in five minutes" width="100%"></p>
 
 ## 🚀 Quick start
 

@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="Funscript Player" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
-<defs><linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient></defs>
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient>
+  <linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient>
+  
+</defs>
 
 <rect width="1280" height="640" fill="#0b0b0d"/>
 <text x="640" y="150" text-anchor="middle" font-size="22" font-weight="700" letter-spacing="3" fill="#8b8a96">FUNSCRIPT PLAYER</text>

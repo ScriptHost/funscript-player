@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 96" width="960" height="96" role="img" aria-label="Installation – Docker in five minutes" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient>
+  <linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient>
+  
+</defs>
+
+<text x="2" y="30" font-size="15" font-weight="700" letter-spacing="1.4" fill="#b46cff">INSTALLATION</text>
+<text x="0" y="76" font-size="36" font-weight="800" fill="#f2f2f5">Docker in five minutes</text>
+</svg>

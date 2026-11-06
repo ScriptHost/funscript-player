@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 196" width="960" height="196" role="img" aria-label="Three steps: connect, pick a scene, play" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs>
+  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient>
+  <linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient>
+  
+</defs>
+<g transform="translate(0 0)">
+  <rect x="1" y="1" width="306" height="194" rx="18" fill="#131316" stroke="#26262c" stroke-width="2"/>
+  
+  
+  <circle cx="36" cy="36" r="18" fill="#b46cff"/><text x="36" y="43" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">1</text>
+  <text x="66" y="42" font-size="19" font-weight="700" fill="#f2f2f5">Connect</text>
+  <text x="18" y="80" font-size="16" fill="#8b8a96" font-weight="400" text-anchor="start"><tspan x="18" dy="0">Tap the status at the top: Handy</tspan><tspan x="18" dy="24">with its connection key,</tspan><tspan x="18" dy="24">Satisfyer via Bluetooth. Once</tspan><tspan x="18" dy="24">set up, the player connects on</tspan><tspan x="18" dy="24">its own – on all your devices.</tspan></text>
+</g>
+<g transform="translate(326 0)">
+  <rect x="1" y="1" width="306" height="194" rx="18" fill="#131316" stroke="#26262c" stroke-width="2"/>
+  
+  
+  <circle cx="36" cy="36" r="18" fill="#b46cff"/><text x="36" y="43" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">2</text>
+  <text x="66" y="42" font-size="19" font-weight="700" fill="#f2f2f5">Pick a scene</text>
+  <text x="18" y="80" font-size="16" fill="#8b8a96" font-weight="400" text-anchor="start"><tspan x="18" dy="0">In the library every tile with a</tspan><tspan x="18" dy="24">Funscript shows its intensity.</tspan><tspan x="18" dy="24">Filter by calm, medium or</tspan><tspan x="18" dy="24">intense – or hit 🎲 Random.</tspan></text>
+</g>
+<g transform="translate(652 0)">
+  <rect x="1" y="1" width="306" height="194" rx="18" fill="#131316" stroke="#26262c" stroke-width="2"/>
+  
+  
+  <circle cx="36" cy="36" r="18" fill="#b46cff"/><text x="36" y="43" text-anchor="middle" font-size="18" font-weight="800" fill="#fff">3</text>
+  <text x="66" y="42" font-size="19" font-weight="700" fill="#f2f2f5">Play</text>
+  <text x="18" y="80" font-size="16" fill="#8b8a96" font-weight="400" text-anchor="start"><tspan x="18" dy="0">Handy and Satisfyer run in sync.</tspan><tspan x="18" dy="24">Below the video you only see the</tspan><tspan x="18" dy="24">controls of connected devices –</tspan><tspan x="18" dy="24">and STOP is always within reach.</tspan></text>
+</g>
+</svg>
