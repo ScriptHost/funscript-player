@@ -3,6 +3,7 @@ import { $, claimHandy, handy, log, setStatus, store } from './handy.js';
 import { applySlide, resync } from './app.js';
 import { allVibes } from './vibe.js';
 import { showOverlay } from './fullscreen.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // 🔥 Finale: auf Knopfdruck ruhiger – zwei Varianten (⚙️ Einstellungen):
@@ -82,25 +83,25 @@ function finOutputs() {
   $('fin_vibeVal').textContent = soft ? `${fin.vibe} % vom Script` : `${fin.vibe} %`;
   $('fin_minVal').textContent = `${fin.min} %`;
   $('fin_maxVal').textContent = `${fin.max} %`;
-  $('fin_timeVal').textContent = fin.time ? `${fin.time} s` : 'nie';
+  $('fin_timeVal').textContent = fin.time ? `${fin.time} s` : t('finale.never');
   $('finSpeedRow').hidden = soft;
   $('finHalfRow').hidden = !soft;
   $('fin_half').checked = fin.half;
-  $('finVibeLabel').textContent = soft ? 'Vibration (Anteil)' : 'Vibration';
+  $('finVibeLabel').textContent = soft ? t('finale.vibrationShare') : 'Vibration';
   $('finModeInfo').textContent = soft
-    ? 'Die Handy bleibt im Takt des Videos, fährt aber nur im Hub-Bereich (Hub von/bis) – kleiner Bereich = sanfter. Der Satisfyer folgt dem Script mit dem eingestellten Anteil.'
-    : 'Die Handy wird vom Script gelöst und fährt gleichmäßig mit eigener Geschwindigkeit im Hub-Bereich (Hub von/bis). Der Satisfyer läuft mit fester Stärke.';
+    ? t('finale.theHandyStaysIn')
+    : t('finale.theHandyIsDetached');
   document.querySelectorAll('#finMode button').forEach((b) => b.classList.toggle('active', b.dataset.fin === fin.mode));
 }
 
 function finUI() {
   for (const id of ['ovFinale', 'finaleBtn']) $(id).classList.toggle('running', fin.active);
-  const name = fin.mode === 'soft' ? 'sanfter' : 'gelöst';
-  $('finaleBtn').textContent = fin.active ? `🔥 Finale (${name}) beenden – zurück zum Sync` : `🔥 Finale (${name})`;
+  const name = fin.mode === 'soft' ? t('finale.gentler') : t('finale.detached');
+  $('finaleBtn').textContent = fin.active ? t('finale.btnEnd', { name }) : t('finale.btn', { name });
 }
 
 async function finaleStart() {
-  if (!handy.connected && !allVibes().length) return log('Bitte zuerst die Handy oder den Satisfyer verbinden.', true);
+  if (!handy.connected && !allVibes().length) return log(t('finale.pleaseConnectTheHandy'), true);
   fin.active = true;
   finUI();
   if (fin.mode === 'detach') {
@@ -122,7 +123,7 @@ async function finaleStart() {
       } catch (e) { log(e, true); }
     }
     if (fin.half) resync(); // halbiertes Script an der aktuellen Stelle übernehmen
-    log(`🔥 Finale – Script läuft sanfter weiter${fin.half ? ' (halbes Tempo)' : ''}.`);
+    log(fin.half ? t('finale.softHalf') : t('finale.soft'));
   }
   clearTimeout(fin.timer);
   if (fin.time) fin.timer = setTimeout(() => finaleStop(), fin.time * 1000);
@@ -141,11 +142,11 @@ async function finaleStop(quiet = false) {
         handy.owner = null;
       }
       await applySlide(); // eigenen Hub wiederherstellen
-      setStatus('on', 'verbunden');
+      setStatus('on', t('finale.connected'));
     } catch (e) { log(e, true); }
   }
   resync(); // läuft das Video, übernimmt der normale Sync wieder
-  if (!quiet) log('Finale beendet – zurück zum normalen Sync.');
+  if (!quiet) log(t('finale.finaleEndedBackTo'));
 }
 
 const finaleToggle = () => (fin.active ? finaleStop() : finaleStart());

@@ -5,7 +5,7 @@
 ## Checks
 
 - [ ] `node --test "test/*.test.js"` is green
-- [ ] New German UI texts have an English entry in `public/i18n-en.js`
+- [ ] New UI texts have a key in `public/lang/en.js` and `public/lang/de.js`
 - [ ] Tried it in the browser (which device/browser?)
 - [ ] Docs updated if needed (README / DEVELOPMENT.md)
 

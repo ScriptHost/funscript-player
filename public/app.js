@@ -21,7 +21,7 @@ import { t } from './lang.js';
 
 function parseFunscript(text) {
   const data = JSON.parse(text);
-  if (!Array.isArray(data.actions) || !data.actions.length) throw new Error('Funscript enthält keine Aktionen');
+  if (!Array.isArray(data.actions) || !data.actions.length) throw new Error(t('app.noActions'));
   const actions = data.actions
     .filter((a) => Number.isFinite(a.at) && Number.isFinite(a.pos))
     .map((a) => ({ at: Math.round(a.at), pos: Math.max(0, Math.min(100, Math.round(a.pos))) }))
@@ -217,7 +217,7 @@ function closeVideo() {
   if (modulesReady.has('library')) saveStashActivity();
   video.pause();
   if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
-  if (handy.connected) setStatus('on', 'verbunden');
+  if (handy.connected) setStatus('on', t('app.connected'));
   if (modulesReady.has('selfctl')) selfCtl.handyOn = false;
   stashSession = null;
   nowPlaying = null;
@@ -228,9 +228,9 @@ function closeVideo() {
   video.load();
   if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
   if (document.pictureInPictureElement) document.exitPictureInPicture().catch(() => {});
-  resetSceneInfo('Kein Video');
+  resetSceneInfo(t('app.noVideo'));
   $('dropHint').classList.remove('hidden');
-  $('scriptName').textContent = 'Kein Script';
+  $('scriptName').textContent = t('app.noScript');
   drawHeatmap();
   if (modulesReady.has('tools')) toolsChanged();
   if (document.body.dataset.view === 'player') backToLibrary();
@@ -250,21 +250,21 @@ function resetSceneInfo(name) {
 export function loadScript(text, name) {
   try {
     script = { name, actions: parseFunscript(text) };
-    $('scriptName').textContent = `⚡ ${name} (${script.actions.length} Punkte)`;
+    $('scriptName').textContent = t('app.scriptLine', { name, n: script.actions.length });
     drawHeatmap();
     if (modulesReady.has('tools')) toolsChanged(); // Info der Script-Werkzeuge für dieses Video
     preloadScript();
   } catch (e) {
     script = null;
-    $('scriptName').textContent = 'Kein Script';
-    log('Funscript ungültig: ' + e.message, true);
+    $('scriptName').textContent = t('app.noScript');
+    log(t('app.invalidScript', { msg: e.message }), true);
     drawHeatmap();
   }
 }
 
 export function clearScript() {
   script = null;
-  $('scriptName').textContent = 'Kein Script';
+  $('scriptName').textContent = t('app.noScript');
   drawHeatmap();
   if (modulesReady.has('tools')) toolsChanged(); // Anpassungs-Zeile ausblenden
   if (handy.connected && handy.owner === 'video') handy.stop().catch(() => {});
@@ -283,21 +283,21 @@ async function handleFiles(fileList) {
     const text = await fs.text();
     loadScript(text, fs.name);
     // Nur ein Script zu einem Bibliotheks-Video gewählt -> anbieten, es dauerhaft dazu zu speichern
-    if (!vid && script && nowKey() && store.get('saveScripts', true) && confirm('Dieses Script dauerhaft zu diesem Video speichern?')) {
+    if (!vid && script && nowKey() && store.get('saveScripts', true) && confirm(t('app.saveThisScriptPermanently'))) {
       saveScriptToLibrary(script.actions);
     }
   }
-  if (!vid && !fs) log('Keine Video- oder .funscript-Datei erkannt', true);
+  if (!vid && !fs) log(t('app.noVideoOrFunscript'), true);
 }
 
 // Script schon vor dem Abspielen übertragen, damit Play sofort reagiert.
 async function preloadScript() {
   if (!syncActive() || !handy.connected || !script || (handy.owner && handy.owner !== 'video')) return;
-  setStatus('busy', 'Script wird übertragen …');
+  setStatus('busy', t('app.uploadingScript'));
   try {
     await handy.prepare(toCsv(sendActions()));
-    setStatus('on', 'bereit');
-    log('Script geladen – Video starten.');
+    setStatus('on', t('app.ready'));
+    log(t('app.scriptLoadedStartThe'));
     resync();
   } catch (e) {
     setStatus('err', handyErrText(e));
@@ -326,20 +326,20 @@ async function doSync() {
     const rate = video.playbackRate;
     if (rate !== 1 && !handy.v3) {
       if (handy.owner === 'video') await handy.stop();
-      log('Handy pausiert: Wiedergabegeschwindigkeit muss 1× sein – mit Application ID (⚙️ → Geräte) läuft sie mit.');
+      log(t('app.handyPausedPlaybackSpeed'));
       return;
     }
     claimHandy('video');
-    if (handy.hsspUrl === null || handy.mode !== 1) setStatus('busy', 'Script wird übertragen …');
+    if (handy.hsspUrl === null || handy.mode !== 1) setStatus('busy', t('app.uploadingScript'));
     await handy.prepare(toCsv(sendActions()));
     if (!videoPlaying() || handy.owner !== 'video') return;
     await handy.play(mediaTime() * 1000 + Number($('offset').value), rate);
-    setStatus('on', 'Video läuft');
+    setStatus('on', t('app.videoPlaying'));
   } catch (e) {
     // Cloud weg, aber die Handy hängt per Bluetooth an Intiface: dorthin wechseln (stroker.js übernimmt)
     if (e.kind === 'net' && modulesReady.has('stroker') && strokers().length) {
       handy.connected = false;
-      log('Handy-Cloud nicht erreichbar – steuere die Handy per Bluetooth (Intiface).', true);
+      log(t('app.handyCloudUnreachableControlling'), true);
       setTimeout(() => connectHandy(true), 60000); // später wieder die Cloud versuchen
       return;
     }
@@ -474,14 +474,14 @@ function updateOutputs() {
   $('offsetVal').textContent = `${$('offset').value} ms`;
   $('minVal').textContent = `${$('slideMin').value} %`;
   $('maxVal').textContent = `${$('slideMax').value} %`;
-  $('hubSummary').textContent = `· Hub ${$('slideMin').value}–${$('slideMax').value} %`;
+  $('hubSummary').textContent = t('app.hubSummary', { lo: $('slideMin').value, hi: $('slideMax').value });
 }
 
 // 1.19.11: welche Handy-API gerade läuft (im Geräte-Fenster)
 function showHandyApi() {
   $('handyApi').textContent = !handy.connected ? ''
-    : handy.v3 ? '✓ Handy-API v3 (mit Application ID) – auch bei 0,5×–2× im Takt'
-      : 'Handy-API v2 – für v3 die Application ID in ⚙️ → Geräte eintragen';
+    : handy.v3 ? t('app.handyApiV3With')
+      : t('app.handyApiV2For');
 }
 
 // 1.19.11: Automatisches Verbinden still – nur der Status oben; erst nach dem letzten Versuch EINE ruhige Meldung
@@ -494,12 +494,12 @@ async function connectHandy(auto = false) {
   if (!demoMode) store.set('key', key);
   const btn = $('connect');
   btn.disabled = true;
-  setStatus('busy', auto ? 'verbinde automatisch …' : 'verbinde …');
+  setStatus('busy', auto ? t('app.connectingAutomatically') : t('app.connecting'));
   if (!auto) log('');
   try {
     claimHandy(null);
     await handy.connect(key, store.get('appId', '').trim());
-    setStatus('on', 'verbunden');
+    setStatus('on', t('app.connected'));
     const api = handy.v3 ? ' (Handy-API v3)' : '';
     if (!auto) log(`Verbunden${api}.`);
     autoRetries = 0;
@@ -507,16 +507,16 @@ async function connectHandy(auto = false) {
     if (script) await preloadScript();
   } catch (e) {
     // Beim Start einfach ausgeschaltet = kein Fehler, nur „aus“
-    if (auto && e.kind === 'offline') setStatus('off', 'aus');
+    if (auto && e.kind === 'offline') setStatus('off', t('app.off'));
     else setStatus(auto ? 'off' : 'err', handyErrText(e));
     // 1.19.7: Nach dem Neuladen ist die Handy-Cloud manchmal kurz nicht bereit (oder bremst wegen vieler Anfragen) –
     // automatisch noch ein paar Mal versuchen statt getrennt zu bleiben
     if (auto && e.kind !== 'auth' && autoRetries < AUTO_RETRY_S.length) {
       setTimeout(() => { if (!handy.connected && $('key').value.trim()) connectHandy(true); }, AUTO_RETRY_S[autoRetries++] * 1000);
     } else if (auto) {
-      log('Handy nicht erreichbar – einschalten (WLAN, LED blau), dann oben auf den Status tippen und verbinden.');
+      log(t('app.handyNotReachableSwitch'));
     } else {
-      log((e.message || e) + ' – oben auf den Status tippen und „Verbinden“.', true);
+      log(t('app.connectFailed', { msg: e.message || e }), true);
     }
   } finally {
     btn.disabled = false;
@@ -571,15 +571,15 @@ export function updateDevClasses() {
   const handySlow = handy.connected && Math.max(handy.rtt || 0, handy.lat || 0) > HANDY_SLOW_MS;
   const bleSlow = modulesReady.has('vibe') && vibeSlow();
   const slow = handySlow || bleSlow;
-  $('devState').textContent = h || v ? (slow ? 'verbunden · langsam' : 'verbunden') : 'getrennt';
+  $('devState').textContent = h || v ? (slow ? t('app.connectedSlow') : t('app.connected')) : t('app.disconnected');
   $('devState').className = 'pill ' + (h || v ? (slow ? 'busy' : 'on') : 'off');
-  $('devChip').title = handySlow ? `Handy-Cloud antwortet langsam (${Math.round(Math.max(handy.rtt || 0, handy.lat || 0))} ms) – Befehle kommen verzögert an`
-    : bleSlow ? 'Bluetooth zum Satisfyer schwankt – Vibration kann leicht daneben liegen' : 'Geräte – antippen für Verbinden, Offset, Hub, Stärke';
-  $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}Handy-Cloud: ${Math.round(Math.max(handy.rtt, handy.lat || 0))} ms Antwortzeit · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
+  $('devChip').title = handySlow ? t('app.cloudSlow', { ms: Math.round(Math.max(handy.rtt || 0, handy.lat || 0)) })
+    : bleSlow ? t('app.bluetoothToTheSatisfyer') : t('app.devicesTapToConnect');
+  $('handyLat').textContent = handy.connected && handy.rtt ? `${handy.modelName ? handy.modelName + ' · ' : ''}${t('app.cloudRtt', { ms: Math.round(Math.max(handy.rtt, handy.lat || 0)) })} · API ${handy.v3 ? 'v3' : 'v2'} – die Uhr wird abgeglichen, kein Vorlauf nötig` : '';
   // Verbinden-Knopf zeigt den Zustand (verbunden = grau, „neu verbinden“)
   const btn = $('connect');
   if (!btn.disabled) {
-    btn.textContent = handy.connected ? '✓ Verbunden – neu verbinden' : 'Verbinden';
+    btn.textContent = handy.connected ? t('app.connectedReconnect') : t('app.connect');
     btn.classList.toggle('secondary', handy.connected);
   }
   // Video ohne Funscript und „Keine Steuerung“: Geräte-Regler und Geräte-Knöpfe sind nutzlos
@@ -619,13 +619,13 @@ let autoPipAt = 0;
 const applyHdr = () => document.body.classList.toggle('hdr-notch', $('hdrNotch').checked);
 
 async function manualResync() {
-  if (!handy.connected) return log('Handy ist nicht verbunden.', true);
-  setStatus('busy', 'synchronisiere …');
+  if (!handy.connected) return log(t('app.handyIsNotConnected'), true);
+  setStatus('busy', t('app.syncing'));
   try {
     await handy.syncTime();
     resync();
-    setStatus('on', 'synchronisiert');
-    log('Handy neu synchronisiert.');
+    setStatus('on', t('app.synced'));
+    log(t('app.handyReSynced'));
   } catch (e) {
     setStatus('err', handyErrText(e));
     log(e, true);
@@ -656,10 +656,10 @@ function showOffsetInfo() {
   const scene = k && k in store.get('offsets', {});
   const info = scene ? store.get('offsetInfo', {})[k] : null;
   const date = info?.at ? ' ' + new Date(info.at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) : '';
-  $('offsetVal').textContent += scene ? (info?.how === 'calib' ? ` · Szene · 🎯 eingemessen${date}` : ' · Szene') : '';
+  $('offsetVal').textContent += scene ? (info?.how === 'calib' ? t('app.offsetSceneCalib', { date }) : t('app.offsetScene')) : '';
   $('offsetReset').hidden = !scene;
   const v = Number($('offset').value);
-  $('offsetSum').textContent = `${v > 0 ? '+' : ''}${v} ms${scene ? ' · Szene' : ''}`;
+  $('offsetSum').textContent = `${v > 0 ? '+' : ''}${v} ms${scene ? t('app.offsetScene') : ''}`;
 }
 function loadOffsetForVideo() {
   loadSceneDev();
@@ -712,7 +712,7 @@ async function checkDevices() {
       try { ok = !!(await handy.req('GET', '/connected')).connected; } catch (e) { ok = e.kind === 'limit'; }
       if (!ok && handy.connected) {
         handy.connected = false;
-        setStatus('off', 'getrennt');
+        setStatus('off', t('app.disconnected'));
         if (typeof updateDevClasses === 'function') updateDevClasses();
         deviceLost('Handy');
         autoRetries = 0;
@@ -727,7 +727,7 @@ async function checkDevices() {
 export function deviceLost(name) {
   if (!$('pauseOnLoss').checked || document.hidden || !videoPlaying()) return;
   video.pause();
-  log(`${name} getrennt – Video angehalten. Oben auf den Status tippen, um neu zu verbinden.`, true);
+  log(t('app.lostPaused', { name }), true);
 }
 
 // Drag & Drop + Dateiauswahl
@@ -800,7 +800,7 @@ export function init() {
     store.set('lastWatchMode', mode);
     if (appMode !== 'control') setMode(mode);
     updateSyncToggles();
-    log(cb.checked ? '🔄 Geräte folgen dem Video.' : '📺 Nur schauen – Geräte folgen dem Video nicht.');
+    log(cb.checked ? t('app.devicesFollowTheVideo') : t('app.justWatchingDevicesDon'));
   }));
   // Unterreiter (Geräte: Handy/Vibrator/Sicherheit, Steuern: Direkt/Patterns/Baukasten)
   document.querySelectorAll('nav.subtabs').forEach((nav) => {
@@ -862,7 +862,7 @@ export function init() {
     await handy.stop().catch(() => {});
     claimHandy(null);
     handy.connected = false;
-    setStatus('off', 'getrennt');
+    setStatus('off', t('app.disconnected'));
     updateDevClasses();
     log(t('devices.handyOff'));
   });
@@ -891,7 +891,7 @@ export function init() {
     setMode('sync');
     showView('player');
     updateDevClasses();
-    log('🔄 Geräte folgen dem Video.');
+    log(t('app.devicesFollowTheVideo'));
   });
   setInterval(updateSceneMore, 1000);
   $('nowPlay').addEventListener('click', () => { togglePlay(); setTimeout(updateNowBar, 100); });
@@ -911,7 +911,7 @@ export function init() {
   $('ovPip').addEventListener('click', () => {
     if (document.pictureInPictureElement) return document.exitPictureInPicture().catch(() => {});
     video.requestPictureInPicture().then(() => {
-    }).catch((e) => log('Bild-in-Bild: ' + e.message, true));
+    }).catch((e) => log(t('app.pipError', { msg: e.message }), true));
   });
   // App verlassen, während das Video läuft -> Bild-in-Bild (⚙️ → Anzeige, pro Gerät).
   // Chrome erlaubt das automatisch nur über die Media Session („enterpictureinpicture“);

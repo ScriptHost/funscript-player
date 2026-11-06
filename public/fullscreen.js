@@ -8,6 +8,7 @@ import { active, emergencyStop, hampOn } from './control.js';
 import { allVibes, setVibePaused, vibeLevel, vibePaused } from './vibe.js';
 import { fin } from './finale.js';
 import { selfRunning } from './selfctl.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // Eigene Player-Bedienung (statt der Browser-Leiste), Vollbild fürs Smartphone,
@@ -43,7 +44,7 @@ async function enterFullscreen() {
   stage.classList.add('fs');
   document.body.classList.add('fs-open');
   $('ovFs').textContent = '✕';
-  $('ovFs').title = 'Vollbild beenden (F)';
+  $('ovFs').title = t('fullscreen.exitFullscreenF');
   realFullscreen = false;
   try {
     if (stage.requestFullscreen) { await stage.requestFullscreen({ navigationUI: 'hide' }); realFullscreen = true; }
@@ -63,7 +64,7 @@ function exitFullscreen() {
   stage.classList.remove('fs');
   document.body.classList.remove('fs-open');
   $('ovFs').textContent = '⛶';
-  $('ovFs').title = 'Vollbild (F)';
+  $('ovFs').title = t('fullscreen.fullscreenF');
   try { screen.orientation.unlock(); } catch { /* egal */ }
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   else if (document.webkitFullscreenElement) document.webkitExitFullscreen?.();
@@ -75,7 +76,7 @@ const toggleFullscreen = () => (isFs() ? exitFullscreen() : enterFullscreen());
 // Füllen (Zoom, schneidet Ränder ab) oder Einpassen (ganzes Bild, ggf. schwarze Balken) – nur im Vollbild
 function setFit(fit) {
   stage.dataset.fit = fit;
-  $('ovFit').textContent = fit === 'cover' ? 'Einpassen' : 'Füllen';
+  $('ovFit').textContent = fit === 'cover' ? t('fullscreen.fit') : t('fullscreen.fill');
   store.set('fit', fit);
   window.dispatchEvent(new Event('resize'));
 }
@@ -356,7 +357,7 @@ export function init() {
     // Kurz warten: das kleine Fenster öffnet sich erst nach dem Verlassen der App.
     setTimeout(() => {
       if (document.visibilityState === 'hidden' && !document.pictureInPictureElement && anyRunning()) {
-        emergencyStop('Bildschirm gesperrt / App gewechselt');
+        emergencyStop(t('fullscreen.screenLockedAppSwitched'));
       }
     }, 700);
   });
@@ -368,7 +369,7 @@ export function init() {
   setInterval(() => {
     const min = Number(store.get('autoStop', 0));
     if (!min || videoPlaying() || !anyRunning() || Date.now() - lastInput < min * 60000) return;
-    emergencyStop(`Auto-Stopp: ${min} min keine Bedienung`);
+    emergencyStop(t('fullscreen.autoStop', { min }));
     lastInput = Date.now();
   }, 15000);
   setInterval(updateWakeLock, 2000);

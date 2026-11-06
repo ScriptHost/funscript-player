@@ -5,6 +5,7 @@ import {
   drawHeatmap, hasHandy, hasVibe, mediaTime, offsetKey, paintHeat, resync, script, setOffsetSource, toolActions,
 } from './app.js';
 import { renderScriptBox } from './library.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // 🛠️ Script-Intensität – rechnet das Script beim Abspielen um, Dateien bleiben unverändert.
@@ -23,7 +24,7 @@ let tools;
 export let toolCache = {};
 export function clearToolCache() { toolCache = {}; }
 
-export const SCRIPT_PRESETS = { original: 'Original', auto: 'Automatisch', soft: 'Sanft', intense: 'Intensiv' };
+export const SCRIPT_PRESETS = { original: 'Original', auto: t('tools.automatic'), soft: t('tools.gentle'), intense: t('tools.intense') };
 // 1.19.3: nur noch eine Auswahl für beide Geräte. Alte Werte („Original + Takt-Schutz“, „Eigene“) -> Automatisch
 const presetFix = (p) => (SCRIPT_PRESETS[p] ? p : 'auto'); // umgestellt – alter Schlüssel weg
 let presetDefault;
@@ -138,11 +139,11 @@ function fitHandy(out, maxSpeed, only, res) {
     const h = halveFast(out, maxSpeed);
     out = h.actions;
     res.marks.push(...h.marks);
-    if (h.halved) only.push(`${h.halved}× halbes Tempo (voller Hub)`);
+    if (h.halved) only.push(t('tools.halved', { n: h.halved }));
   }
   const r = limitSpeed(out, maxSpeed);
   res.marks.push(...r.marks);
-  if (r.changed) only.push(`${r.changed} von ${out.length} Stößen etwas kürzer`);
+  if (r.changed) only.push(t('tools.shorter', { n: r.changed, of: out.length }));
   return r.changed ? r.actions : out;
 }
 
@@ -182,7 +183,7 @@ function setWarmup(on) {
   warmup = !!on;
   toolCache = {};
   toolsChanged();
-  log(warmup ? '🌱 Aufwärmen: Handy ganz unten und langsam, Satisfyer ganz leicht – nochmal tippen zum Beenden.' : '🌱 Aufwärmen beendet – das Script läuft wieder.');
+  log(warmup ? t('tools.warmUpHandyAt') : t('tools.warmUpEndedThe'));
 }
 
 // Hub um die Mitte skalieren (Sanft: kleiner)
@@ -210,26 +211,26 @@ export function processScript(actions, target = 'handy', preset = currentPreset(
 
   if (warm && handyTarget) {
     out = warmupActions(actions);
-    notes.push('Aufwärmen: unten, langsam');
+    notes.push(t('tools.warmUpBottomSlow'));
   } else if (st) {
     const max = handyMaxSpeedSafe();
     const range = st.hi - st.lo;
     // Satisfyer: Zittern glätten, wenn es viel davon gibt (die Handy behält feine Vibrationen)
     if (!handyTarget && (preset !== 'auto' || st.jitter / st.segs > 0.05)) {
       const r = removeJitter(out);
-      if (r.removed) { out = r.actions; notes.push(`${r.removed} Zitterpunkte entfernt`); }
+      if (r.removed) { out = r.actions; notes.push(t('tools.jitter', { n: r.removed })); }
     }
     if (range >= 5 && range < (preset === 'auto' ? 70 : 95)) {
       out = stretchRange(out, st.lo, st.hi);
-      notes.push(`Hub ${st.lo}–${st.hi} → 0–100 gestreckt`);
+      notes.push(t('tools.stretched', { lo: st.lo, hi: st.hi }));
     }
     if (preset === 'soft') {
       out = scaleAround(out, 0.6);
-      notes.push('Hub 20–80 %');
+      notes.push(t('tools.stroke2080'));
     }
     if (preset === 'intense') {
       const x = expandStrokes(out, max);
-      if (x.changed) { out = x.actions; notes.push(`${x.changed} Stöße auf vollen Hub verlängert`); }
+      if (x.changed) { out = x.actions; notes.push(t('tools.expanded', { n: x.changed })); }
       // nach test2: keine zusätzlichen Stöße mehr – Intensiv bleibt im Takt des Scripts, nur längere Stöße
     }
     if (handyTarget) {
@@ -238,8 +239,8 @@ export function processScript(actions, target = 'handy', preset = currentPreset(
       out = fitHandy(out, preset === 'soft' ? Math.min(240, max) : max, only, res);
     } else {
       even = preset === 'soft' ? 0.5 : 0;
-      if (preset === 'soft') only.push('schwächer, ruhiger');
-      if (preset === 'intense') only.push('stärker');
+      if (preset === 'soft') only.push(t('tools.weakerSmoother'));
+      if (preset === 'intense') only.push(t('tools.stronger'));
     }
   }
   toolCache[slot] = { src: actions, key, actions: out, notes, only, even, preset, marks: res.marks };
@@ -247,15 +248,14 @@ export function processScript(actions, target = 'handy', preset = currentPreset(
 }
 
 // Info je Gerät: was am Script geändert wird
-export const tr = (s) => (typeof I18N !== 'undefined' ? I18N.t(s) : s);
 function presetInfoParts() {
   if (!script) return { handy: '', vibe: '' };
   const text = (target) => {
     processScript(script.actions, target);
     const c = toolCache[target];
     // Teile einzeln übersetzen (englische Oberfläche) – der zusammengesetzte Satz steht in keiner Tabelle
-    const parts = [...c.notes, ...c.only].map(tr);
-    return parts.join(', ') || tr(c.preset === 'original' ? 'unverändert' : 'passt, nichts geändert');
+    const parts = [...c.notes, ...c.only];
+    return parts.join(', ') || (c.preset === 'original' ? t('tools.unchanged') : t('tools.fineNothingChanged'));
   };
   return { handy: text('handy'), vibe: text('vibe') };
 }
@@ -290,7 +290,7 @@ export function toolsChanged() {
   const cur = currentPreset();
   document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.classList.toggle('active', b.dataset.preset === cur));
   const info = presetInfoParts();
-  $('toolInfo').textContent = script ? `Aktuelles Video: ${tr(SCRIPT_PRESETS[cur])} – Handy: ${info.handy} · Satisfyer: ${info.vibe}` : '';
+  $('toolInfo').textContent = script ? t('tools.current', { name: SCRIPT_PRESETS[cur], handy: info.handy, vibe: info.vibe }) : '';
   $('sbInfo').textContent = script ? presetInfoText() : '';
   $('sbWarm').classList.toggle('on', warmup);
   $('sbWarm').setAttribute('aria-pressed', String(warmup));
@@ -308,7 +308,7 @@ function setScenePreset(p) {
     store.set('scenePresets', map);
   }
   toolsChanged();
-  log(`Script: ${tr(SCRIPT_PRESETS[p])}${k ? ' (für diese Szene gemerkt)' : ''}`);
+  log(k ? t('tools.presetScene', { name: SCRIPT_PRESETS[p] }) : t('tools.preset', { name: SCRIPT_PRESETS[p] }));
 }
 
 // 🧪 Vorschau in den Knöpfen: Mini-Heatmap, wie das Script mit diesem Preset aussieht
@@ -332,7 +332,7 @@ function showHandyMax() {
   $('handyMax').value = handyMaxSpeed();
   $('handyMax').disabled = auto;
   $('handyMaxVal').textContent = `${handyMaxSpeed()} %/s`;
-  $('handyModelInfo').textContent = handy.modelName ? `– erkannt: ${handy.modelName}` : '– Modell wird beim Verbinden erkannt';
+  $('handyModelInfo').textContent = handy.modelName ? t('tools.detected', { name: handy.modelName }) : t('tools.modelIsDetectedOn');
 }
 
 // ---------------------------------------------------------------------------
@@ -354,14 +354,14 @@ function scriptBottoms() {
 }
 
 function calibTap() {
-  if (!script) return log('Für das Einmessen muss ein Video mit Script laufen.', true);
-  if (video.paused) return log('Bitte das Video starten und dann im Takt tippen.', true);
+  if (!script) return log(t('tools.calibratingNeedsAVideo'), true);
+  if (video.paused) return log(t('tools.pleaseStartTheVideo'), true);
   const now = Date.now();
   if (!calib || now - calib.last > 8000) {
     calib = { diffs: [], last: now, bottoms: scriptBottoms() };
-    if (!calib.bottoms.length) { calib = null; return log('Im Script wurden keine Stöße gefunden.', true); }
+    if (!calib.bottoms.length) { calib = null; return log(t('tools.noStrokesFoundIn'), true); }
     // 1.19.11: Anleitung beim ersten Tipp
-    log(`🎯 Aufs VIDEO schauen (nicht auf die Handy): bei jedem Stoß genau dann tippen, wenn der tiefste Punkt erreicht ist – ${CALIB_TAPS}× im Rhythmus.`);
+    log(t('tools.calibStart', { n: CALIB_TAPS }));
   }
   calib.last = now;
   // Was du siehst, ist mediaTime – der aktuelle Offset spielt für die Messung keine Rolle
@@ -370,7 +370,7 @@ function calibTap() {
   for (const b of calib.bottoms) if (best === null || Math.abs(b - t) < Math.abs(best - t)) best = b;
   if (best !== null && Math.abs(best - t) < 700) calib.diffs.push(best - t);
   const n = calib.diffs.length;
-  $('calibBtn').textContent = `🎯 Weiter tippen … ${n}/${CALIB_TAPS}`;
+  $('calibBtn').textContent = t('tools.calibTap', { i: n, n: CALIB_TAPS });
   if (n < CALIB_TAPS) return;
   const sorted = [...calib.diffs].sort((x, y) => x - y);
   const median = sorted[Math.floor(sorted.length / 2)];
@@ -379,8 +379,8 @@ function calibTap() {
   $('offset').dispatchEvent(new Event('input'));
   setOffsetSource('calib'); // als „eingemessen“ merken (app.js)
   $('offset').dispatchEvent(new Event('change')); // speichert für diese Szene und synchronisiert neu
-  $('calibBtn').textContent = '🎯 Offset per Takt einmessen';
-  log(`🎯 Offset eingemessen: ${offset} ms (für diese Szene gespeichert).`);
+  $('calibBtn').textContent = t('tools.calibrateOffsetByTapping');
+  log(t('tools.calibDone', { ms: offset }));
   calib = null;
 }
 

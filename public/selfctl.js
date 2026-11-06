@@ -5,6 +5,7 @@ import { hasHandy, hasVibe, mediaTime, nowPlaying, script, videoPlaying } from '
 import { saveScriptToLibrary, scriptMeta, suspended } from './library.js';
 import { strokers } from './stroker.js';
 import { touchMode, touchPosActive, touchSync, touchToPositionActions, touchToTempoActions, tpos } from './touchpad.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // Selbst steuern – für Videos ohne Funscript.
@@ -44,7 +45,7 @@ export function selfUI() {
   // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
   $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
     || !(selfCtl.mode === 'self' || (modulesReady.has('app') && (hasHandy() || hasVibe())));
-  document.querySelector('.self-head > span').textContent = modulesReady.has('library') && suspended ? 'Script angehalten' : 'Kein Funscript';
+  document.querySelector('.self-head > span').textContent = modulesReady.has('library') && suspended ? t('selfctl.scriptPaused') : t('selfctl.noFunscript');
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
   $('selfSpeed').value = selfCtl.speed;
@@ -160,7 +161,7 @@ export function init() {
     selfTick();
   }));
   $('selfHandy').addEventListener('click', () => {
-    if (!selfCtl.handyOn && !handy.connected && !strokers().length) log('Handy ist nicht verbunden – Satisfyer läuft trotzdem.', true);
+    if (!selfCtl.handyOn && !handy.connected && !strokers().length) log(t('selfctl.handyNotConnectedSatisfyer'), true);
     selfCtl.handyOn = !selfCtl.handyOn;
     touchSync('self', selfCtl.handyOn ? selfCtl.speed : null);
     selfTick();
@@ -192,14 +193,14 @@ export function init() {
       selfRec = [];
       selfRecPos = selfRecPosMode();
       selfRecTimer = setInterval(() => { if (videoPlaying()) selfRec.push([Math.round(mediaTime() * 1000), selfRecValue()]); }, 100);
-      $('selfRec').textContent = '■ Mitschnitt beenden';
+      $('selfRec').textContent = t('selfctl.stopRecording');
       $('selfRec').classList.add('recording');
       $('selfRecSave').hidden = $('selfRecFile').hidden = $('selfRecSection').hidden = true;
-      $('selfRecInfo').textContent = 'läuft – steuere wie gewohnt';
+      $('selfRecInfo').textContent = t('selfctl.recordingControlAsUsual');
       return;
     }
     clearInterval(selfRecTimer);
-    $('selfRec').textContent = '⏺ Mitschnitt zum Video';
+    $('selfRec').textContent = t('selfctl.recordToVideo');
     $('selfRec').classList.remove('recording');
     // Spulen: nach Zeit sortieren; Lücken (Pause/Sprung) gelten als losgelassen
     const samples = selfRec.sort((a, b) => a[0] - b[0]);
@@ -209,14 +210,14 @@ export function init() {
       withGaps.push(samples[i]);
       if (samples[i + 1] && samples[i + 1][0] - samples[i][0] > 600) withGaps.push([samples[i][0] + 150, null]);
     }
-    if (!withGaps.some((x) => x[1])) { $('selfRecInfo').textContent = 'nichts aufgenommen – Video abspielen und steuern'; return; }
+    if (!withGaps.some((x) => x[1])) { $('selfRecInfo').textContent = t('selfctl.nothingRecordedPlayThe'); return; }
     const start = withGaps[0][0], end = withGaps[withGaps.length - 1][0];
     selfRecActions = selfRecPos ? touchToPositionActions(samples.filter((x) => x[1] !== null)) : touchToTempoActions(withGaps, end, start);
-    $('selfRecInfo').textContent = `${Math.round((end - start) / 1000)} s · ${selfRecActions.length} Punkte`;
+    $('selfRecInfo').textContent = t('selfctl.recInfo', { s: Math.round((end - start) / 1000), n: selfRecActions.length });
     $('selfRecSave').hidden = $('selfRecFile').hidden = false;
     // Gibt es schon ein eigenes Script: ganz ersetzen oder nur den aufgenommenen Abschnitt
     $('selfRecSection').hidden = !scriptMeta.hasOwn;
-    $('selfRecSave').textContent = scriptMeta.hasOwn ? '💾 Eigenes Script ganz ersetzen' : '💾 Als Script zu diesem Video speichern';
+    $('selfRecSave').textContent = scriptMeta.hasOwn ? t('selfctl.replaceOwnScriptCompletely') : t('selfctl.saveAsScriptFor');
   });
   $('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'all'));
   $('selfRecSection').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'section'));

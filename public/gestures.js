@@ -2,6 +2,7 @@
 import { modulesReady, video } from './state.js';
 import { $, store } from './handy.js';
 import { endHold, isFs, stage } from './fullscreen.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // Wischen im Vollbild (1.19.8): linke und rechte Bildhälfte hoch/runter.
@@ -64,7 +65,7 @@ function swipeMove(e) {
   if (a === 'handy' || a === 'both') {
     const v = clampN(Math.round((swipe.hub + d) / 5) * 5, Number($('slideMin').value) + 10, 100);
     swipeSet('slideMax', v);
-    msg = a === 'both' ? `〰 ${$('vibeScene').value} % · ↕ Hub ${v} %` : `↕ Hub ${v} %`;
+    msg = a === 'both' ? `〰 ${$('vibeScene').value} % · ${t('gestures.hub', { v })}` : t('gestures.hub', { v });
   }
   if (msg) swipeShow(msg);
   if (e.cancelable) e.preventDefault();

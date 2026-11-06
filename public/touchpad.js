@@ -6,6 +6,7 @@ import { hampOn, saveRecordingAsPattern, setSpeed, toggleHamp } from './control.
 import { setVibePaused } from './vibe.js';
 import { mapPos, moveAll, strokers } from './stroker.js';
 import { selfCtl, selfTick, selfUI } from './selfctl.js';
+import { lang, t } from './lang.js';
 
 // ===========================================================================
 // Touch-Steuerung – wie in der Satisfyer-App.
@@ -190,7 +191,7 @@ function setupTouchPad(pad) {
     if (!rec) {
       rec = { t0: performance.now(), samples: [] };
       recTimer = setInterval(() => rec.samples.push([Math.round(performance.now() - rec.t0), cur]), 50);
-      q('.tp-rec').textContent = '■ Aufnahme beenden';
+      q('.tp-rec').textContent = t('touchpad.stopRecording');
       q('.tp-rec').classList.add('recording');
       q('.tp-recout').hidden = true;
       return;
@@ -200,19 +201,19 @@ function setupTouchPad(pad) {
     const asPos = touchMode() === 'pos';
     lastActions = asPos ? touchToPositionActions(rec.samples) : touchToTempoActions(rec.samples, end);
     rec = null;
-    q('.tp-rec').textContent = '⏺ Aufnehmen';
+    q('.tp-rec').textContent = t('touchpad.record');
     q('.tp-rec').classList.remove('recording');
-    if (lastActions.length < 3) return log('Aufnahme zu kurz – Finger auflegen, während ⏺ läuft.', true);
-    q('.tp-recinfo').textContent = `Aufnahme ${Math.round(end / 1000)} s · ${lastActions.length} Punkte (${asPos ? 'Position' : 'Tempo'})`;
+    if (lastActions.length < 3) return log(t('touchpad.recordingTooShortPlace'), true);
+    q('.tp-recinfo').textContent = t('touchpad.recInfo', { s: Math.round(end / 1000), n: lastActions.length, mode: asPos ? 'Position' : 'Tempo' });
     // „Neben dem Video speichern“ nur bei Videos aus dem Ordner und wenn erlaubt
     q('.tp-save-lib').hidden = !(pad.dataset.touch === 'self' && nowKey() && store.get('saveScripts', true));
     q('.tp-recout').hidden = false;
   });
   q('.tp-save-pattern').addEventListener('click', () => {
     const len = lastActions[lastActions.length - 1].at || 1;
-    const name = `Touch-Aufnahme ${new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+    const name = t('touchpad.recName', { time: new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) });
     saveRecordingAsPattern(name, len, lastActions);
-    log(`🎮 Als Pattern „${name}“ gespeichert (🎮 Steuern → Patterns).`);
+    log(t('touchpad.savedPattern', { name }));
   });
   q('.tp-save-file').addEventListener('click', () => downloadFunscript(lastActions, 'touch-aufnahme'));
   q('.tp-save-lib').addEventListener('click', () => saveScriptToLibrary(lastActions));
@@ -233,7 +234,7 @@ function setupTouchPad(pad) {
 function showTouchMode() {
   document.querySelectorAll('.tp-mode button').forEach((b) => b.classList.toggle('active', b.dataset.tpm === touchMode()));
   document.querySelectorAll('.tp-hint').forEach((h) => {
-    h.textContent = touchMode() === 'pos' ? 'Finger auflegen – die Handy folgt dem Finger' : 'Finger auflegen – oben stark, unten schwach';
+    h.textContent = touchMode() === 'pos' ? t('touchpad.placeYourFingerThe') : t('touchpad.placeYourFingerUp');
   });
 }
 
@@ -253,7 +254,7 @@ export function init() {
     selfCtl.handyOn = false;
     selfUI();
     showTouchMode();
-    if (b.dataset.tpm === 'pos') log('🧪 Position: Die Handy folgt deinem Finger. Hub min/max gelten.');
+    if (b.dataset.tpm === 'pos') log(t('touchpad.positionTheHandyFollows'));
   }));
   showTouchMode();
 }

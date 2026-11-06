@@ -2,6 +2,7 @@
 import { video } from './state.js';
 import { $, log, store } from './handy.js';
 import { stage } from './fullscreen.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // Bildverbesserung in Echtzeit (WebGL, läuft auf der Grafik des Abspielgeräts)
@@ -18,7 +19,7 @@ const ENH_PRESETS = {
   sharp: { sharp: 65, contrast: 6, saturation: 10, brightness: 1, deband: true },
   max: { sharp: 95, contrast: 10, saturation: 16, brightness: 2, deband: true },
 };
-const ENH_LABEL = { auto: 'Auto', off: 'Aus', natural: 'Natürlich', sharp: 'Schärfer', max: 'Maximal', custom: 'Eigene' };
+const ENH_LABEL = { auto: 'Auto', off: t('enhance.off'), natural: t('enhance.natural'), sharp: t('enhance.sharper'), max: t('enhance.maximum'), custom: t('enhance.custom') };
 
 // „Auto“ (seit 1.19.3 natürlicher): nur dezent nachschärfen, je nach Vergrößerungsfaktor (Anzeigehöhe /
 // Videohöhe) höchstens 25 %. Kontrast, Farbe und Helligkeit bleiben wie im Original; Farbtreppen glätten bleibt.
@@ -191,7 +192,7 @@ function enhInit() {
   try {
     return enhSetup();
   } catch (e) {
-    console.warn('Bildverbesserung nicht verfügbar:', e);
+    console.warn('Picture enhancement not available:', e);
     return false;
   }
 }
@@ -254,7 +255,7 @@ function enhDraw() {
   } catch (e) {
     // z. B. Video von fremder Adresse ohne Freigabe – dann ohne Verbesserung
     video.dataset.noEnhance = '1';
-    log('Bildverbesserung für dieses Video nicht möglich.', true);
+    log(t('enhance.pictureEnhancementNotPossible'), true);
     return;
   }
 
@@ -335,7 +336,7 @@ function enhRebuild() {
   enh.rebuilds = (enh.rebuilds || 0) + 1;
   if (enh.rebuilds > 2) {
     video.dataset.noEnhance = '1'; // dieses Video ohne Verbesserung, Bild bleibt sichtbar
-    log('Bildverbesserung lieferte ein schwarzes Bild – für dieses Video aus.', true);
+    log(t('enhance.pictureEnhancementProducedA'), true);
     return;
   }
   // Neues Canvas = neuer WebGL-Kontext
@@ -376,7 +377,7 @@ function enhApply() {
   $('enh_deband').checked = values.deband;
   $('enh_compare').checked = s.compare;
   $('enhSliders').classList.toggle('dim', s.preset === 'off');
-  $('enhState').textContent = !enh.ok ? 'Nicht verfügbar (kein WebGL)' : ENH_LABEL[s.preset];
+  $('enhState').textContent = !enh.ok ? t('enhance.notAvailableNoWebgl') : ENH_LABEL[s.preset];
   enh.dirty = true;
 }
 

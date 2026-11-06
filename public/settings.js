@@ -70,13 +70,13 @@ async function installApp() {
     installPrompt = null;
     p.prompt();
     const r = await p.userChoice.catch(() => null);
-    if (r?.outcome === 'accepted') log('Funscript Player wird als App installiert.');
+    if (r?.outcome === 'accepted') log(t('settings.funscriptPlayerIsBeing'));
     return;
   }
   // Kein Angebot vom Browser: Weg von Hand zeigen
-  log(/iPhone|iPad|iPod/.test(navigator.userAgent) ? 'iPhone/iPad: in Safari auf „Teilen“ → „Zum Home-Bildschirm“.'
-    : !window.isSecureContext ? 'Installieren geht nur über HTTPS (Reverse Proxy davor).'
-      : 'Im Browser-Menü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.');
+  log(/iPhone|iPad|iPod/.test(navigator.userAgent) ? t('settings.iphoneIpadInSafari')
+    : !window.isSecureContext ? t('settings.installingOnlyWorksOver')
+      : t('settings.inTheBrowserMenu'));
 }
 
 function enterAppFs() {
@@ -86,11 +86,11 @@ function enterAppFs() {
 
 // --- Knöpfe in der Player-Leiste: ein-/ausblenden und Reihenfolge (−/+ bleibt vorn) ----------
 const BAR_BTNS = [
-  ['mute', '🔊 Ton an/aus', ['ovMute']],
+  ['mute', t('settings.soundOnOff'), ['ovMute']],
   ['finale', '🔥 Finale', ['ovFinale']],
-  ['vibe', 'Vib ❚❚ Geräte pausieren', ['ovVibe']],
-  ['fit', 'Einpassen / Füllen (im Vollbild am iPhone)', ['ovFit']],
-  ['pip', '⧉ Bild-in-Bild', ['ovPip']],
+  ['vibe', t('settings.vibPauseDevices'), ['ovVibe']],
+  ['fit', t('settings.fitFillFullscreenOn'), ['ovFit']],
+  ['pip', t('settings.pictureInPicture'), ['ovPip']],
 ];
 let barCfg; // neue Knöpfe hinten
 function applyBar() {
@@ -122,8 +122,8 @@ function renderBarOptions() {
       [barCfg.order[i], barCfg.order[j]] = [barCfg.order[j], barCfg.order[i]];
       saveBar();
     };
-    const up = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '↑', title: 'Weiter nach links' });
-    const down = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '↓', title: 'Weiter nach rechts' });
+    const up = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '↑', title: t('settings.moveLeft') });
+    const down = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: '↓', title: t('settings.moveRight') });
     up.addEventListener('click', () => move(-1));
     down.addEventListener('click', () => move(1));
     up.disabled = k === 'skip' || i === 0 || barCfg.order[i - 1] === 'skip';
@@ -361,7 +361,7 @@ export function init() {
     if (on) $('hsPass').focus();
     else if (hsHasPass) putSettings({ hsPassword: '' }, t('settings.vr.logPassRemoved'));
   }));
-  $('intifaceLan').addEventListener('change', () => putSettings({ intifaceLan: $('intifaceLan').checked }, $('intifaceLan').checked ? 'Intiface: nur Heimnetz-Adressen.' : 'Intiface: alle privaten Adressen.'));
+  $('intifaceLan').addEventListener('change', () => putSettings({ intifaceLan: $('intifaceLan').checked }, $('intifaceLan').checked ? t('settings.intifaceHomeNetworkAddresses') : t('settings.intifaceAllPrivateAddresses')));
   $('hsCopy').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText($('hsUrl').value);
@@ -390,10 +390,10 @@ export function init() {
       const a = Array.from({ length: 40 }, (_, i) => ({ at: i * 300, pos: i % 2 ? 80 : 20 }));
       for (const p of Object.keys(SCRIPT_PRESETS)) {
         const r = processScript(a, 'handy', p);
-        if (!Array.isArray(r) || !r.length || r.some((x) => !(x.pos >= 0 && x.pos <= 100))) fails.push('Intensität ' + p);
+        if (!Array.isArray(r) || !r.length || r.some((x) => !(x.pos >= 0 && x.pos <= 100))) fails.push(`${t('settings.intensity')} ` + p);
       }
       clearToolCache();
-    } catch (e) { fails.push('Intensität: ' + e.message); }
+    } catch (e) { fails.push(t('settings.intensityFail', { msg: e.message })); }
     for (const id of ['video', 'heatmap', 'devices', 'stopAll', 'fabStop', 'scriptBox']) if (!$(id)) fails.push('fehlt: #' + id);
     if (fails.length) fetch('/api/clientcheck', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fails, ua: navigator.userAgent }) }).catch(() => {});
   }, 5000);

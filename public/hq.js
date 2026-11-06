@@ -2,6 +2,7 @@
 import { video } from './state.js';
 import { $, log, store } from './handy.js';
 import { drawHeatmap, hq, mediaTime } from './app.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // HQ-Stream: der Server wandelt das Video live um (Intel Quick Sync / VAAPI):
@@ -30,13 +31,13 @@ const isVr = (info) => (info.width && info.height && info.width / info.height >=
 // Was soll für dieses Video passieren? -> { use: bool, height, reason }
 function hqDecision(info) {
   const target = hqState.height === 'auto' ? screenTarget() : Number(hqState.height);
-  if (hqState.preset === 'off') return { use: false, reason: 'aus' };
+  if (hqState.preset === 'off') return { use: false, reason: t('hq.off') };
   if (hqState.downgraded.has(hq.src)) return { use: false, reason: 'wegen Ruckeln abgeschaltet – Original' };
-  if (isVr(info)) return { use: false, reason: 'VR-Video – Original (kein Herunterrechnen)' };
+  if (isVr(info)) return { use: false, reason: t('hq.vrVideoOriginalNo') };
   if (info.height >= target * 0.9) {
     // Video ist schon so groß wie der Bildschirm: bei „Auto“ Original, sonst nur entrauschen/schärfen in Originalgröße
     if (hqState.preset === 'auto') return { use: false, reason: `${info.height}p ≥ Bildschirm (${target}p) – Original` };
-    return { use: true, height: Math.min(info.height, 2160), reason: `Originalgröße ${info.height}p, nur entrauschen/schärfen` };
+    return { use: true, height: Math.min(info.height, 2160), reason: t('hq.origSize', { h: info.height }) };
   }
   return { use: true, height: target, reason: `${info.height}p → ${target}p` };
 }
@@ -73,7 +74,7 @@ export function hqMaybeStart() {
 function hqShowInfo(info, d) {
   const via = HQ_ACCEL_LABEL[hqState.accel] || hqState.accel;
   $('hqInfo').textContent = d.use
-    ? `HQ aktiv: ${info.width}×${info.height} (${info.codec}) → ${d.height}p über ${via}`
+    ? t('hq.active', { w: info.width, h: info.height, codec: info.codec, to: d.height, via })
     : `Original: ${d.reason}`;
 }
 
@@ -114,7 +115,7 @@ function hqToOriginal() {
   }, { once: true });
 }
 
-const HQ_LABEL = { off: 'Aus', auto: 'Auto', clean: 'Sauber', strong: 'Stark' };
+const HQ_LABEL = { off: t('hq.off2'), auto: 'Auto', clean: t('hq.clean'), strong: t('hq.strong') };
 function hqShowSelection() {
   document.querySelectorAll('#hqPresets button').forEach((b) => b.classList.toggle('active', b.dataset.hq === hqState.preset));
   $('hqHeight').value = String(hqState.height);
@@ -159,11 +160,11 @@ export function init() {
     hqStalls = [];
     const lower = HQ_STEPS.find((h) => h < hq.height);
     if (lower && hq.height > 720) {
-      log(`Ruckeln erkannt – HQ von ${hq.height}p auf ${lower}p reduziert.`);
+      log(t('hq.stutter', { from: hq.height, to: lower }));
       hq.height = lower;
       hqRestart(mediaTime());
     } else {
-      log('Ruckeln erkannt – HQ für dieses Video aus, spiele das Original.');
+      log(t('hq.stutterDetectedHqOff'));
       hqState.downgraded.add(hq.src);
       hqToOriginal();
     }
@@ -181,15 +182,15 @@ export function init() {
   // Fehler im HQ-Stream -> automatisch zurück zum Original
   video.addEventListener('error', () => {
     if (!hq.active) return;
-    log('HQ-Stream fehlgeschlagen – spiele das Original ab.', true);
+    log(t('hq.hqStreamFailedPlaying'), true);
     hqToOriginal();
   });
   // Leistungstest: wie viel schneller als Echtzeit schafft der Server die Umwandlung?
   $('hqBench').addEventListener('click', async () => {
-    if (!hq.src) return log('Bitte zuerst ein Video aus der Bibliothek öffnen (nicht per Datei).', true);
+    if (!hq.src) return log(t('hq.pleaseOpenAVideo'), true);
     const btn = $('hqBench');
     btn.disabled = true;
-    btn.textContent = 'Teste 20 Sekunden …';
+    btn.textContent = t('hq.testing');
     try {
       const info = await hqProbe(hq.src);
       const d = hqDecision({ ...info, height: Math.min(info.height, 719) }); // Test immer mit Hochskalieren
@@ -198,14 +199,14 @@ export function init() {
       }));
       if (!res.ok) throw new Error(await res.text());
       const r = await res.json();
-      const verdict = r.speed >= 1.5 ? '✅ flüssig' : r.speed >= 1.05 ? '⚠️ knapp, kann bei Spitzen ruckeln' : '❌ zu langsam für Echtzeit – niedrigere Auflösung wählen';
+      const verdict = r.speed >= 1.5 ? t('hq.smooth') : r.speed >= 1.05 ? t('hq.tightMayStutterAt') : t('hq.tooSlowForReal');
       $('hqInfo').textContent = `${HQ_ACCEL_LABEL[r.accel] || r.accel}: ${r.speed.toFixed(1)}× Echtzeit (${Math.round(r.fps)} Bilder/s), `
         + `${r.source.width}×${r.source.height} → ${r.target.w}×${r.target.h} – ${verdict}`;
     } catch (e) {
       $('hqInfo').textContent = 'Test fehlgeschlagen: ' + (e.message || e);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Leistung testen';
+      btn.textContent = t('hq.testPerformance');
     }
   });
   // Start: Ist ffmpeg auf dem Server verfügbar?
@@ -217,7 +218,7 @@ export function init() {
       hqState.gpu = s.gpu?.state || ''; // 2.0: Intel-Status für ⚙️ → System
       $('hqBox').hidden = !s.available;
       $('hqInfo').textContent = s.available
-        ? `Umwandlung über ${HQ_ACCEL_LABEL[s.accel] || s.accel}. Auto-Ziel für dieses Gerät: ${screenTarget()}p.`
+        ? t('hq.via', { via: HQ_ACCEL_LABEL[s.accel] || s.accel, h: screenTarget() })
         : '';
     } catch { /* ohne HQ */ }
     hqState.checked = true;

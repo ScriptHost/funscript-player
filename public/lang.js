@@ -1,14 +1,11 @@
 // Sprache (2.0): Texte über feste Schlüssel. Englisch ist die Ausgangssprache (lang/en.js), Deutsch die
 // Übersetzung (lang/de.js). Fehlt ein deutscher Text, gilt der englische; fehlt auch der, steht der Schlüssel da.
 //
-//   t('menu.library')                 -> Text
+//   t('nav.library')                 -> Text
 //   t('lib.count', { n: 3 })          -> Platzhalter {n}; Wert als { one, other } = Einzahl/Mehrzahl nach n
 //   <span data-i18n="menu.library">   -> Text (nur reiner Text, keine Kind-Elemente)
 //   data-i18n-html="key"              -> innerHTML (nur für Texte aus lang/*.js mit <b>/<code>)
 //   data-i18n-title / -placeholder / -aria-label="key" -> Attribut
-//
-// Neben dieser Datei läuft bis zum Ende des Neubaus noch die alte Übersetzung (i18n.js: deutscher Text -> Englisch).
-// Elemente mit Schlüssel bekommen den richtigen Text direkt; die alte Übersetzung findet dafür nichts und lässt sie.
 import en from './lang/en.js';
 import de from './lang/de.js';
 

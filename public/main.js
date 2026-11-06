@@ -29,7 +29,6 @@ for (const [name, init] of Object.entries({ app, library, control, vibe, fullscr
 }
 nav();         // Bereiche-Leiste + Anzeige-Schalter
 player();      // Geräte-Dock am Video
-I18N.start();  // alte Übersetzung für alles ohne Schlüssel – fällt in Phase 8 weg
 if (/[?&]selbsttest\b/.test(location.search)) {
   document.body.append(Object.assign(document.createElement('script'), { type: 'module', src: 'selftest.js' }));
 }

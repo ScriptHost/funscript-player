@@ -1,4 +1,5 @@
 import { modulesReady } from './state.js';
+import { t } from './lang.js';
 modulesReady.add('handy');
 
 // ---------------------------------------------------------------------------
@@ -40,7 +41,7 @@ class Handy {
     try {
       res = await fetch((v3 ? HANDY_API_V3 : HANDY_API) + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
     } catch {
-      throw Object.assign(new Error('Handy-Cloud nicht erreichbar – Internet?'), { kind: 'net' });
+      throw Object.assign(new Error(t('handy.handyCloudUnreachableInternet')), { kind: 'net' });
     }
     // Antwortzeit gleitend mitteln – langsame Cloud = Status gelb (app.js)
     const ms = Date.now() - t0;
@@ -61,7 +62,7 @@ class Handy {
     this.hsspUrl = null;
     this.uploadCache.clear(); // v2 und v3 nutzen verschiedene Script-Ablagen
     const { connected } = await this.req('GET', '/connected');
-    if (!connected) throw Object.assign(new Error('Handy ist nicht online (WLAN-Modus, LED blau?)'), { kind: 'offline' });
+    if (!connected) throw Object.assign(new Error(t('handy.handyIsNotOnline')), { kind: 'offline' });
     await this.syncTime();
     this.connected = true;
     this.readInfo();
@@ -207,11 +208,11 @@ export function handyMaxSpeed() {
 export function handyErrText(e) {
   const kind = e?.kind || '';
   // Ohne Gerätenamen – das ↕ davor sagt schon, um welches Gerät es geht
-  if (kind === 'net') return 'Cloud nicht erreichbar';
+  if (kind === 'net') return t('handy.cloudUnreachable');
   if (kind === 'offline') return 'offline';
-  if (kind === 'auth') return 'Key / App-ID falsch';
-  if (kind === 'limit') return 'zu viele Anfragen';
-  return /key/i.test(e?.message || '') ? 'Key falsch?' : 'Fehler – antippen';
+  if (kind === 'auth') return t('handy.keyAppIdWrong');
+  if (kind === 'limit') return t('handy.tooManyRequests');
+  return /key/i.test(e?.message || '') ? t('handy.keyWrong') : t('handy.errorTap');
 }
 
 // Wer die Handy gerade benutzt. Die anderen Bereiche hören auf das Event und

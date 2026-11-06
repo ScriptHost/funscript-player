@@ -7,6 +7,7 @@ import { fin, finDetached } from './finale.js';
 import { presetVibeEven, presetVibeShape } from './tools.js';
 import { selfVibeLevel } from './selfctl.js';
 import { touchVibeLevel } from './touchpad.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // Vibratoren (Satisfyer u. a.)
@@ -109,18 +110,17 @@ const bleDevices = [];
 // Warum Bluetooth nicht geht – in Klartext
 export async function bluetoothProblem() {
   if (!window.isSecureContext) {
-    return 'Bluetooth ist gesperrt, weil die Seite nicht als sicher gilt. Nötig ist HTTPS mit gültigem Zertifikat '
-      + '(z. B. über deinen Reverse Proxy mit Let’s Encrypt). http:// oder ein selbstsigniertes Zertifikat reichen nicht.';
+    return t('vibe.insecure');
   }
   if (!navigator.bluetooth) {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
     return ios
-      ? 'Safari auf dem iPhone kann kein Bluetooth. Bitte die App „Bluefy“ als Browser nutzen – oder Intiface.'
-      : 'Dieser Browser kann kein Web Bluetooth (z. B. Firefox, Samsung Internet). Bitte Chrome oder Edge nutzen.';
+      ? t('vibe.safariOnIphoneCan')
+      : t('vibe.thisBrowserCanT');
   }
   try {
     if (navigator.bluetooth.getAvailability && !(await navigator.bluetooth.getAvailability())) {
-      return 'Bluetooth ist am Gerät ausgeschaltet oder Chrome fehlt die Berechtigung „Geräte in der Nähe“/Standort.';
+      return t('vibe.bluetoothIsOffOn');
     }
   } catch { /* nicht prüfbar */ }
   return '';
@@ -147,7 +147,7 @@ async function addBluetoothDevice(all = false) {
     const device = await navigator.bluetooth.requestDevice(all === true || $('vibeAll').checked
       ? { acceptAllDevices: true, optionalServices: [SF_SERVICE, 'battery_service'] }
       : { filters: bleFilters(), optionalServices: [SF_SERVICE, 'battery_service'] });
-    if (bleDevices.some((d) => d.device.id === device.id)) return log(`${device.name} ist schon verbunden.`);
+    if (bleDevices.some((d) => d.device.id === device.id)) return log(t('vibe.already', { name: device.name }));
     await attachBleDevice(device);
     // Namen merken: beim nächsten Mal findet die normale Suche das Gerät auch ohne „Alle Geräte“
     if (device.name) store.set('bleKnownNames', [...new Set([...store.get('bleKnownNames', []), device.name])]);
@@ -155,12 +155,11 @@ async function addBluetoothDevice(all = false) {
     if (e.name === 'NotFoundError') {
       // Nichts gewählt: neue/ungekoppelte Satisfyer melden oft noch keinen Namen -> alle Geräte anbieten
       $('vibeBleAll').hidden = false;
-      log('Kein Gerät gewählt. Tipp: Satisfyer einschalten, Satisfyer-App schließen (nur eine Verbindung möglich), '
-        + 'ggf. „Alle Bluetooth-Geräte anzeigen“ aktivieren.');
+      log(t('vibe.noneChosen'));
     } else if (e.name === 'NetworkError' || /GATT|service/i.test(e.message)) {
-      log(`Bluetooth: ${e.message}. Ist das Gerät noch mit der Satisfyer-App oder einem anderen Handy verbunden?`, true);
+      log(t('vibe.bleError', { msg: e.message }), true);
     } else if (e.name === 'SecurityError') {
-      log('Bluetooth wurde vom Browser blockiert – HTTPS mit gültigem Zertifikat nötig.', true);
+      log(t('vibe.bluetoothWasBlockedBy'), true);
     } else {
       log('Bluetooth: ' + e.message, true);
     }
@@ -172,7 +171,7 @@ async function addBluetoothDevice(all = false) {
 async function attachBleDevice(device, quiet = false) {
   {
     const dev = new SatisfyerBle(device);
-    if (!quiet) log(`Verbinde mit ${dev.name} …`);
+    if (!quiet) log(t('vibe.connectingTo', { name: dev.name }));
     await dev.connect();
     bleDevices.push(dev);
     // Bricht Bluetooth ab, bis zu 5× neu verbinden, bevor das Gerät entfernt wird.
@@ -195,14 +194,14 @@ async function attachBleDevice(device, quiet = false) {
         try {
           await dev.connect();
           dev.level = -1;
-          log(`${dev.name} wieder verbunden.`);
+          log(t('vibe.reconnected', { name: dev.name }));
           renderVibe();
           return;
         } catch { /* nächster Versuch */ }
       }
       const i = bleDevices.indexOf(dev);
       if (i >= 0) bleDevices.splice(i, 1);
-      log(`${dev.name} nicht erreichbar – der Player versucht es im Hintergrund weiter.`);
+      log(t('vibe.unreachable', { name: dev.name }));
       renderVibe();
       // Weiter still versuchen (z. B. Satisfyer kurz außer Reichweite oder aus) – ohne neu koppeln
       for (let n = 0; n < 40 && !dev.closed; n++) {
@@ -212,7 +211,7 @@ async function attachBleDevice(device, quiet = false) {
           await dev.connect();
           dev.level = -1;
           bleDevices.push(dev);
-          log(`${dev.name} wieder verbunden.`);
+          log(t('vibe.reconnected', { name: dev.name }));
           renderVibe();
           return;
         } catch { /* weiter warten */ }
@@ -225,7 +224,7 @@ async function attachBleDevice(device, quiet = false) {
       recover().finally(() => { dev.recovering = false; });
     };
     device.addEventListener('gattserverdisconnected', dev.lost);
-    if (!quiet) log(`${dev.name} verbunden.`);
+    if (!quiet) log(t('vibe.connectedName', { name: dev.name }));
   }
   renderVibe();
 }
@@ -286,7 +285,7 @@ class Buttplug {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(url);
       this.ws = ws;
-      const timer = setTimeout(() => { ws.close(); reject(new Error('Zeitüberschreitung – läuft der Server in Intiface?')); }, 8000);
+      const timer = setTimeout(() => { ws.close(); reject(new Error(t('vibe.timeoutIsTheServer'))); }, 8000);
       ws.onopen = async () => {
         clearTimeout(timer);
         try {
@@ -304,7 +303,7 @@ class Buttplug {
         clearInterval(this.pingTimer);
         this.devices.clear();
         this.scanning = false;
-        this.pending.forEach((p) => p.reject(new Error('Verbindung getrennt')));
+        this.pending.forEach((p) => p.reject(new Error(t('vibe.connectionClosed'))));
         this.pending.clear();
         if (this.ws === ws) this.ws = null;
         this.onchange();
@@ -318,7 +317,7 @@ class Buttplug {
   }
 
   send(type, fields) {
-    if (!this.connected) return Promise.reject(new Error('Nicht mit Intiface verbunden'));
+    if (!this.connected) return Promise.reject(new Error(t('vibe.notConnectedToIntiface')));
     const Id = this.id++;
     return new Promise((resolve, reject) => {
       this.pending.set(Id, { resolve, reject });
@@ -414,23 +413,23 @@ function setVibeStatus(state, text) {
 
 function renderVibe() {
   const devices = allVibes();
-  $('vibeConnect').textContent = vibe.connected ? 'Intiface trennen' : 'Mit Intiface verbinden';
+  $('vibeConnect').textContent = vibe.connected ? t('vibe.disconnectIntiface') : t('vibe.connectToIntiface');
   $('vibeScan').hidden = !vibe.connected;
-  $('vibeScan').textContent = vibe.scanning ? 'Suche läuft …' : 'In Intiface nach Geräten suchen';
+  $('vibeScan').textContent = vibe.scanning ? t('vibe.searching') : t('vibe.searchForDevicesIn');
   $('vibeScan').disabled = vibe.scanning;
   const bat = devices.map((d) => d.battery).filter((b) => Number.isFinite(b));
   // 1.19.9: Akku knapp – einmal je Gerät melden
   for (const d of devices) {
     if (Number.isFinite(d.battery) && d.battery < 15 && !d.batWarned) { d.batWarned = true; log(`${d.name}: Akku ${d.battery} % – bald laden.`, true); }
   }
-  setVibeStatus(devices.length ? 'on' : 'off', devices.length ? `${devices.length} Gerät(e)${bat.length ? ` · 🔋 ${Math.min(...bat)} %` : ''}` : 'getrennt');
+  setVibeStatus(devices.length ? 'on' : 'off', devices.length ? t('vibe.devices', { n: devices.length }) + (bat.length ? ` · 🔋 ${Math.min(...bat)} %` : '') : t('vibe.disconnected'));
 
   const ul = $('vibeDevices');
   ul.replaceChildren();
   if (!devices.length) {
     const li = document.createElement('li');
     li.className = 'empty';
-    li.textContent = 'Noch kein Gerät verbunden.';
+    li.textContent = t('vibe.noDeviceConnectedYet');
     ul.append(li);
   }
   for (const dev of devices) {
@@ -457,7 +456,7 @@ function renderVibe() {
     const gainOut = Object.assign(document.createElement('output'), { textContent: `${gain.value} %` });
     gain.addEventListener('input', () => { store.set('vibeGain.' + dev.name, Number(gain.value) / 100); gainOut.textContent = `${gain.value} %`; });
     const gainRow = Object.assign(document.createElement('label'), { className: 'dev-gain' });
-    gainRow.append('Stärke dieses Geräts ', gainOut, gain);
+    gainRow.append(`${t('vibe.strengthOfThisDevice')} `, gainOut, gain);
     li.append(gainRow);
 
     const row = document.createElement('div');
@@ -465,23 +464,23 @@ function renderVibe() {
     if (dev instanceof SatisfyerBle) {
       // Geräte mit zwei Motoren (z. B. Auflieger + Vibrator) brauchen 2 × 4 Bytes
       const motors = document.createElement('select');
-      motors.append(new Option('1 Motor', 1), new Option('2 Motoren', 2));
+      motors.append(new Option(t('vibe.1Motor'), 1), new Option(t('vibe.2Motors'), 2));
       motors.value = dev.motors;
-      motors.title = 'Anzahl Motoren';
+      motors.title = t('vibe.numberOfMotors');
       motors.addEventListener('change', () => { dev.motors = Number(motors.value); store.set('motors.' + dev.name, dev.motors); dev.level = -1; renderVibe(); });
       row.append(motors);
     }
     if (dev.motors === 2) {
       // Zweiter Motor: wie der erste oder nach dem Tempo des Scripts (der erste pulsiert im Rhythmus)
       const mode = document.createElement('select');
-      mode.append(new Option('Motor 2 wie Motor 1', 'same'), new Option('Motor 2 nach Tempo', 'split'));
+      mode.append(new Option(t('vibe.motor2LikeMotor'), 'same'), new Option(t('vibe.motor2ByTempo'), 'split'));
       mode.value = dev.motorMode;
-      mode.title = 'Was der zweite Motor macht';
+      mode.title = t('vibe.whatTheSecondMotor');
       mode.addEventListener('change', () => { dev.motorMode = mode.value; store.set('motorMode.' + dev.name, mode.value); dev.level = -1; });
       row.append(mode);
     }
     if (dev instanceof SatisfyerBle) {
-      const off = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: 'Trennen' });
+      const off = Object.assign(document.createElement('button'), { className: 'small secondary', textContent: t('vibe.disconnect') });
       off.addEventListener('click', () => {
         dev.closed = true;
         dev.setLevel(0).finally(() => dev.disconnect());
@@ -493,7 +492,7 @@ function renderVibe() {
     if (row.children.length) li.append(row);
     ul.append(li);
   }
-  $('vibeBle').textContent = bleDevices.length ? '＋ Weiteren Satisfyer verbinden' : '＋ Satisfyer per Bluetooth verbinden';
+  $('vibeBle').textContent = bleDevices.length ? t('vibe.connectAnotherSatisfyer') : t('vibe.connectSatisfyerViaBluetooth');
   showVibeSync();
 }
 const devGain = (dev) => store.get('vibeGain.' + dev.name, 1);
@@ -505,17 +504,17 @@ function updateVibeOutputs() {
   $('vibeFullVal').textContent = `${$('vibeFull').value} %/s`;
   $('vibeLeadVal').textContent = `${$('vibeLead').value} ms`;
   $('vibeLevelVal').textContent = `${$('vibeLevel').value} %`;
-  $('vibeSmoothVal').textContent = Number($('vibeSmooth').value) ? `${$('vibeSmooth').value} %` : 'aus';
+  $('vibeSmoothVal').textContent = Number($('vibeSmooth').value) ? `${$('vibeSmooth').value} %` : t('vibe.off');
   $('vibeLevelRow').hidden = $('vibeSource').value !== 'manual';
 }
 
 export let vibePaused = false;
 export function setVibePaused(paused) {
   vibePaused = paused;
-  $('vibePause').textContent = paused ? '▶ Fortsetzen' : '❚❚ Pausieren';
+  $('vibePause').textContent = paused ? t('vibe.resume') : t('vibe.pause');
   $('ovVibe').textContent = paused ? 'Vib ▶' : 'Vib ❚❚';
   $('ovVibe').classList.toggle('off', paused);
-  $('ovVibe').title = paused ? 'Geräte pausiert – antippen zum Fortsetzen' : 'Vibration pausieren';
+  $('ovVibe').title = paused ? t('vibe.pausedTitle') : t('vibe.pauseVibration');
   if (modulesReady.has('app')) resync(); // Handy hält mit an bzw. läuft wieder
 }
 
@@ -639,7 +638,7 @@ function showVibeSync() {
     if (!d.syncEl) continue;
     d.syncEl.textContent = Number.isFinite(d.rtt) ? ` · ⏱ ${Math.round(d.rtt)} ms${d.jitter > VIBE_JITTER_MS ? ` ±${Math.round(d.jitter)}` : ''}` : '';
     d.syncEl.classList.toggle('slow', vibeDevSlow(d));
-    d.syncEl.title = vibeDevSlow(d) ? 'Bluetooth schwankt – näher ans Gerät oder Hindernisse entfernen' : 'Bluetooth-Laufzeit – wird mit Vorlauf ausgeglichen, im Takt';
+    d.syncEl.title = vibeDevSlow(d) ? t('vibe.bluetoothFluctuatesMoveCloser') : t('vibe.bluetoothLatencyCompensatedBy');
   }
 }
 
@@ -658,13 +657,13 @@ export function init() {
   $('vibeConnect').addEventListener('click', async () => {
     if (vibe.connected) return vibe.disconnect();
     const addr = $('vibeAddr').value.trim();
-    if (!addr) return log('Bitte die IP-Adresse des Smartphones mit Intiface eintragen.', true);
+    if (!addr) return log(t('vibe.pleaseEnterTheIp'), true);
     store.set('vibeAddr', addr);
     $('vibeConnect').disabled = true;
-    setVibeStatus('busy', 'verbinde …');
+    setVibeStatus('busy', t('vibe.connecting'));
     try {
       const info = await vibe.connect(intifaceUrl(addr));
-      log(`Mit ${info.ServerName || 'Intiface'} verbunden.`);
+      log(t('vibe.connectedWith', { name: info.ServerName || 'Intiface' }));
       if (!vibe.devices.size) await vibe.scan();
     } catch (e) {
       log(e, true);
@@ -764,14 +763,14 @@ export function init() {
     const m = measuredLead();
     const rtt = bleDevices.map((d) => d.rtt).filter(Number.isFinite);
     $('vibeLat').textContent = !rtt.length ? ''
-      : vibeSlow() ? `⚠ Bluetooth schwankt (bis ${Math.round(Math.max(...rtt))} ms) – Vibration kann leicht daneben liegen. Näher ans Gerät gehen.`
-        : `✓ Im Takt – Bluetooth-Laufzeit ${Math.round(Math.max(...rtt))} ms, ${$('vibeLeadAuto').checked ? 'je Gerät automatisch ausgeglichen' : `Vorlauf ${vibeLeadMs()} ms`}`;
+      : vibeSlow() ? t('vibe.bleShaky', { ms: Math.round(Math.max(...rtt)) })
+        : ($('vibeLeadAuto').checked ? t('vibe.inSyncAuto', { ms: Math.round(Math.max(...rtt)) }) : t('vibe.inSyncLead', { ms: Math.round(Math.max(...rtt)), lead: vibeLeadMs() }));
     showVibeSync();
-    $('vibeLeadAutoInfo').textContent = m !== null ? `gemessen: ${m} ms` : 'misst, sobald ein Satisfyer per Bluetooth verbunden ist';
+    $('vibeLeadAutoInfo').textContent = m !== null ? `gemessen: ${m} ms` : t('vibe.measuresOnceASatisfyer');
     $('vibeLead').disabled = $('vibeLeadAuto').checked && m !== null;
     // Nur den Status-Text auffrischen (Akku), nicht die Geräteliste – sonst klappt eine offene Auswahl zu
     const devices = allVibes();
     const bat = devices.map((d) => d.battery).filter((b) => Number.isFinite(b));
-    if (devices.length) setVibeStatus('on', `${devices.length} Gerät(e)${bat.length ? ` · 🔋 ${Math.min(...bat)} %` : ''}`);
+    if (devices.length) setVibeStatus('on', t('vibe.devices', { n: devices.length }) + (bat.length ? ` · 🔋 ${Math.min(...bat)} %` : ''));
   }, 3000);
 }

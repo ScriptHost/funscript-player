@@ -6,6 +6,7 @@ import {
 import { allVibes, setVibeLevel, setVibePaused } from './vibe.js';
 import { selfHampLevel } from './selfctl.js';
 import { touchSync } from './touchpad.js';
+import { t } from './lang.js';
 
 // ===========================================================================
 // Reiter „Steuerung & Patterns“
@@ -22,7 +23,7 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 function presetPoints(name) {
-  if (name === 'Zufall') {
+  if (name === t('control.random')) {
     const n = 4 + Math.floor(Math.random() * 6);
     return { length: 2000, points: Array.from({ length: n }, (_, i) => ({ t: i / n, pos: Math.round(Math.random() * 100) })) };
   }
@@ -43,7 +44,7 @@ async function loadStore() {
   db.patterns = Array.isArray(db.patterns) ? db.patterns : [];
   db.sequences = Array.isArray(db.sequences) ? db.sequences : [];
   if (!db.patterns.length) {
-    db.patterns = ['Gleichmäßig', 'Sanft (Sinus)', 'Doppelstoß', 'Wellen'].map((name) => ({ id: uid(), name, ...presetPoints(name) }));
+    db.patterns = [t('control.even'), t('control.gentleSine'), t('control.doubleStroke'), t('control.waves')].map((name) => ({ id: uid(), name, ...presetPoints(name) }));
     saveStore();
   }
 }
@@ -65,7 +66,7 @@ function saveStore() {
       const res = await fetch('/api/store', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(db) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
-      log('Speichern fehlgeschlagen: ' + e.message, true);
+      log(t('control.saveFail', { msg: e.message }), true);
     }
   }, 400);
 }
@@ -115,7 +116,7 @@ export let active = null; // { kind, actions, duration, loop, start, cycle }
 // Handy und/oder Vibrator – mindestens eins muss verbunden sein
 function requireDevice() {
   if (handy.connected || allVibes().length) return true;
-  log('Bitte zuerst oben die Handy oder den Satisfyer verbinden.', true);
+  log(t('control.pleaseConnectTheHandy'), true);
   return false;
 }
 
@@ -123,12 +124,12 @@ async function startPlayback(kind, actions, duration, loop, cycle = 0) {
   if (!requireDevice() || !actions.length) return;
   claimHandy(kind);
   if (handy.connected) {
-    setStatus('busy', 'Script wird übertragen …');
+    setStatus('busy', t('control.uploadingScript'));
     try {
       await handy.prepare(toCsv(actions));
       if (handy.owner !== kind) return;
       await handy.play(0);
-      setStatus('on', kind === 'pattern' ? 'Pattern läuft' : 'Script läuft');
+      setStatus('on', kind === 'pattern' ? t('control.patternRunning') : t('control.scriptRunning'));
       log('');
     } catch (e) {
       setStatus('err', handyErrText(e));
@@ -147,7 +148,7 @@ async function stopPlayback() {
   updateButtons();
   if (wasMine) {
     try { await handy.stop(); } catch (e) { log(e, true); }
-    setStatus('on', 'verbunden');
+    setStatus('on', t('control.connected'));
   }
 }
 
@@ -168,9 +169,9 @@ function restartPatternIfPlaying() {
 
 function updateButtons() {
   const pat = active?.kind === 'pattern';
-  $('patternPlay').textContent = pat ? '■ Stopp' : '▶ Pattern abspielen';
+  $('patternPlay').textContent = pat ? t('control.stop') : t('control.playPattern');
   $('patternPlay').classList.toggle('running', pat);
-  $('hampToggle').textContent = hampOn ? '■ Stopp' : '▶ Start';
+  $('hampToggle').textContent = hampOn ? t('control.stop') : '▶ Start';
   $('hampToggle').classList.toggle('running', hampOn);
 }
 
@@ -188,13 +189,13 @@ export async function toggleHamp() {
       hampOn = false;
       if (handy.connected) {
         await handy.hampStop();
-        setStatus('on', 'verbunden');
+        setStatus('on', t('control.connected'));
       }
     } else {
       claimHandy('manual');
       if (handy.connected) {
         await handy.hampStart(Number($('speed').value));
-        setStatus('on', 'Direktsteuerung');
+        setStatus('on', t('control.directControl'));
       }
       hampOn = true;
       log('');
@@ -261,8 +262,8 @@ function updatePatternInfo() {
   const speed = maxSpeed(p, tempo);
   $('lengthVal').textContent = `${p.length} ms`;
   $('tempoVal').textContent = `${tempo} %`;
-  $('patternInfo').textContent = `${p.points.length} Punkte · Zyklus ${Math.round(c)} ms · ${(60000 / c).toFixed(1)} Zyklen/min · `
-    + `max. ${speed} %/s${speed > 450 ? ' – evtl. zu schnell für die Handy, sie fährt dann kürzere Hübe' : ''}`;
+  $('patternInfo').textContent = t('control.patternInfo', { n: p.points.length, ms: Math.round(c), per: (60000 / c).toFixed(1) })
+    + `max. ${speed} %/s${speed > 450 ? t('control.tooFast') : ''}`;
 }
 
 function patternChanged() {
@@ -356,7 +357,7 @@ function deletePoint(e) {
   const p = currentPattern();
   const pt = hitPoint(e);
   if (!pt) return;
-  if (p.points.length <= 2) return log('Ein Pattern braucht mindestens 2 Punkte.', true);
+  if (p.points.length <= 2) return log(t('control.minPoints'), true);
   p.points = p.points.filter((x) => x !== pt);
   patternChanged();
 }
@@ -406,7 +407,7 @@ function controlLoop() {
 
 // Alles stoppen: egal, wer gerade steuert (pausiert auch das Video)
 // Not-Aus: Video, Patterns, Direktsteuerung, Handy und Vibratoren sofort anhalten
-export async function emergencyStop(reason = 'Not-Aus') {
+export async function emergencyStop(reason = t('control.emergencyStop')) {
   claimHandy('none');
   if (!video.paused) video.pause();
   active = null;
@@ -422,7 +423,7 @@ export async function emergencyStop(reason = 'Not-Aus') {
       if (handy.mode === 0) await handy.hampStop();
       else if (handy.mode === 1) await handy.stop();
       // Modus 2 (Direkt-Position): jede Bewegung endet von selbst am Ziel
-      setStatus('on', 'verbunden');
+      setStatus('on', t('control.connected'));
     } catch (e) {
       log(e, true);
       return;
@@ -434,16 +435,16 @@ export async function emergencyStop(reason = 'Not-Aus') {
 // Start (main.js ruft die Module in fester Reihenfolge auf): alles, was beim Laden der Seite einmal läuft
 export function init() {
   PRESETS = {
-    'Gleichmäßig': { length: 1000, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 100 }] },
-    'Sanft (Sinus)': { length: 1600, points: sine(12) },
-    'Nur Spitze': { length: 500, points: [{ t: 0, pos: 55 }, { t: 0.5, pos: 100 }] },
-    'Nur Basis': { length: 500, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 45 }] },
-    'Doppelstoß': { length: 1400, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }, { t: 0.35, pos: 45 }, { t: 0.5, pos: 100 }] },
-    'Langsam rauf, schnell runter': { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.8, pos: 100 }] },
-    'Schnell rauf, langsam runter': { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }] },
-    'Wellen': { length: 3000, points: [{ t: 0, pos: 0 }, { t: 0.25, pos: 100 }, { t: 0.4, pos: 0 }, { t: 0.5, pos: 80 }, { t: 0.6, pos: 10 }, { t: 0.7, pos: 90 }, { t: 0.8, pos: 20 }, { t: 0.9, pos: 70 }] },
-    'Treppe': { length: 2400, points: [{ t: 0, pos: 0 }, { t: 0.1, pos: 25 }, { t: 0.2, pos: 25 }, { t: 0.3, pos: 50 }, { t: 0.4, pos: 50 }, { t: 0.5, pos: 75 }, { t: 0.6, pos: 75 }, { t: 0.7, pos: 100 }] },
-    'Zufall': null, // wird bei Auswahl erzeugt
+    [t('control.even')]: { length: 1000, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 100 }] },
+    [t('control.gentleSine')]: { length: 1600, points: sine(12) },
+    [t('control.tipOnly')]: { length: 500, points: [{ t: 0, pos: 55 }, { t: 0.5, pos: 100 }] },
+    [t('control.baseOnly')]: { length: 500, points: [{ t: 0, pos: 0 }, { t: 0.5, pos: 45 }] },
+    [t('control.doubleStroke')]: { length: 1400, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }, { t: 0.35, pos: 45 }, { t: 0.5, pos: 100 }] },
+    [t('control.slowUpFastDown')]: { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.8, pos: 100 }] },
+    [t('control.fastUpSlowDown')]: { length: 1500, points: [{ t: 0, pos: 0 }, { t: 0.2, pos: 100 }] },
+    [t('control.waves')]: { length: 3000, points: [{ t: 0, pos: 0 }, { t: 0.25, pos: 100 }, { t: 0.4, pos: 0 }, { t: 0.5, pos: 80 }, { t: 0.6, pos: 10 }, { t: 0.7, pos: 90 }, { t: 0.8, pos: 20 }, { t: 0.9, pos: 70 }] },
+    [t('control.stairs')]: { length: 2400, points: [{ t: 0, pos: 0 }, { t: 0.1, pos: 25 }, { t: 0.2, pos: 25 }, { t: 0.3, pos: 50 }, { t: 0.4, pos: 50 }, { t: 0.5, pos: 75 }, { t: 0.6, pos: 75 }, { t: 0.7, pos: 100 }] },
+    [t('control.random')]: null, // wird bei Auswahl erzeugt
   };
   // Andere Bereiche (Video, Direktsteuerung …) haben übernommen
   document.addEventListener('handy-owner', (e) => {
@@ -481,7 +482,7 @@ export function init() {
   $('patternTempo').addEventListener('input', updatePatternInfo);
   $('patternTempo').addEventListener('change', () => { store.set('tempo', Number($('patternTempo').value)); restartPatternIfPlaying(); });
   $('patternNew').addEventListener('click', () => {
-    const p = { id: uid(), name: 'Neues Pattern', ...presetPoints('Gleichmäßig') };
+    const p = { id: uid(), name: t('control.newPattern'), ...presetPoints(t('control.even')) };
     db.patterns.push(p);
     currentPatternId = p.id;
     fillPatternSelects();
@@ -499,9 +500,9 @@ export function init() {
     saveStore();
   });
   $('patternDel').addEventListener('click', () => {
-    if (db.patterns.length <= 1) return log('Das letzte Pattern kann nicht gelöscht werden.', true);
+    if (db.patterns.length <= 1) return log(t('control.theLastPatternCan'), true);
     const p = currentPattern();
-    if (!confirm(`Pattern „${p.name}“ löschen?`)) return;
+    if (!confirm(t('control.deleteConfirm', { name: p.name }))) return;
     db.patterns = db.patterns.filter((x) => x !== p);
     currentPatternId = db.patterns[0].id;
     fillPatternSelects();
