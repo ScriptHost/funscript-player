@@ -739,4 +739,6 @@ export default {
   'settings.img.gpu': "Upscaling on the server (Intel Quick Sync): {state}",
   'selfctl.limit': " (limit)",
   'settings.calm': "Calm colours – script grey instead of colourful, fewer neon accents",
+  'player.nextSearch': "Search the library …",
+  'library.searchKind': "Search {kind} …",
 };

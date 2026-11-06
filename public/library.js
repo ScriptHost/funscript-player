@@ -89,7 +89,7 @@ export function setBrowse(browse) {
   document.querySelectorAll('#browseTabs button').forEach((b) => b.classList.toggle('active', b.dataset.browse === browse));
   $('sceneGrid').hidden = browse !== 'scenes';
   $('facetGrid').hidden = browse === 'scenes';
-  $('search').placeholder = browse === 'scenes' ? t('library.searchScenesTitlesFiles') : `${KIND_LABEL[browse]} suchen …`;
+  $('search').placeholder = browse === 'scenes' ? t('library.searchScenesTitlesFiles') : t('library.searchKind', { kind: KIND_LABEL[browse] });
   refresh();
 }
 

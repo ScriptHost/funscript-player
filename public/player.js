@@ -48,14 +48,17 @@ function loop() {
 }
 
 // „Als Nächstes“ (PC, breit): die Kacheln nach der laufenden Szene, so wie sie in der Bibliothek stehen
-// (gleicher Filter, gleiche Sortierung). Antippen = wie die Kachel antippen.
+// (gleicher Filter, gleiche Sortierung). Antippen = wie die Kachel antippen, startet also sofort.
+// nach test6: Mit Suchbegriff (Feld oben, gleich der Suche der Bibliothek) alle Treffer statt der nächsten Szenen.
 function renderNext() {
   const box = $('plNext');
   const on = store.get('nextCol', true);
   const tiles = [...document.querySelectorAll('#sceneGrid > .tile:not([hidden])')];
   const i = tiles.findIndex((x) => x.dataset.src === nowKey());
-  const next = (i >= 0 ? tiles.slice(i + 1) : tiles).slice(0, 6);
-  box.hidden = !on || !next.length;
+  const q = $('search').value.trim();
+  const next = q ? tiles.slice(0, 40) : (i >= 0 ? [...tiles.slice(i + 1), ...tiles.slice(0, i)] : tiles).slice(0, 30);
+  box.hidden = !on;
+  $('plNextSearch').value = q;
   if (box.hidden) return;
   $('plNextList').replaceChildren(...next.map((tile) => {
     const img = tile.querySelector('.thumb img');
@@ -92,6 +95,11 @@ export function init() {
     queued = true;
     requestAnimationFrame(() => { queued = false; renderNext(); });
   }).observe($('sceneGrid'), { childList: true });
+  // Suche rechts = Suche der Bibliothek (lädt bei Stash alle Treffer vom Server); die Liste folgt dem Raster
+  $('plNextSearch').addEventListener('input', () => {
+    $('search').value = $('plNextSearch').value;
+    $('search').dispatchEvent(new Event('input'));
+  });
   $('nextOn').checked = store.get('nextCol', true);
   $('nextOn').addEventListener('change', () => { store.set('nextCol', $('nextOn').checked); renderNext(); });
   document.addEventListener('visibilitychange', loop);

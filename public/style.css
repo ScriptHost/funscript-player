@@ -1312,3 +1312,7 @@ body.calm {
   --glow-accent: none; --glow-strong: none; --glow-text: none; --glow-dot: none;
 }
 body.calm .int-seg button.active { color: #0b0b0d; }
+
+/* nach test6: „Als Nächstes“ mit Suche, Liste scrollt neben dem Video */
+.pl-next-search { width: 100%; margin: 0 0 var(--s2); }
+.pl-next-list { max-height: calc(100vh - 220px); overflow-y: auto; }
