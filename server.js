@@ -16,7 +16,7 @@ const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, inti
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashStatus } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
-const { GPU_TEXT, hqBench, hqProbe, hqStatus, hqStream } = require('./lib/hq');
+const { GPU_TEXT, hqBench, hqKillAll, hqProbe, hqStatus, hqStream } = require('./lib/hq');
 const { UPDATE_OFF, updateInfo } = require('./lib/update');
 const { runSelfcheck } = require('./lib/selfcheck');
 
@@ -354,6 +354,17 @@ server.on('upgrade', (req, socket, head) => {
 
 // Start-Übersicht in „docker logs“ (seit 1.19.7 englisch): was gefunden wurde, was erreichbar ist – und wann der Player bereit ist
 const logLine = (msg) => console.log(`[${new Date().toTimeString().slice(0, 8)}] ${logSafe(msg)}`);
+// 2.0 nach test7: Docker stoppt mit SIGTERM. Ohne Behandlung ignoriert Node als Prozess 1 das Signal und Docker
+// wartet 10 s bis zum harten Abbruch. So: ffmpeg beenden, Verbindungen schließen, sofort raus.
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.once(sig, () => {
+    logLine(`Stopping (${sig}) …`);
+    hqKillAll();
+    server.close(() => process.exit(0));
+    server.closeAllConnections?.();
+    setTimeout(() => process.exit(0), 1500).unref();
+  });
+}
 server.listen(PORT, HOST, async () => {
   logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
   if (LOGIN_EXAMPLE) logLine('⚠ AUTH_PASS is still the example password "change-me" – choose your own in .env. Until then the player only shows a help page.');
