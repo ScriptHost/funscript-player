@@ -302,7 +302,7 @@
           <h2 class="page-title" data-i18n="settings.title">Settings</h2>
           <div class="set-group">
             <button class="set-item" data-page="devices"><span class="ic">◎</span><span class="tx"><span data-i18n="settings.devices">Devices</span><small data-i18n="settings.devicesSub">Handy, Satisfyer, Intiface</small></span><span class="ch">›</span></button>
-            <button class="set-item" data-page="safety"><span class="ic">⏻</span><span class="tx"><span data-i18n="settings.safety">Emergency stop &amp; privacy</span><small data-i18n="settings.safetySub">Auto stop, STOP buttons, demo mode</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="safety"><span class="ic">⏻</span><span class="tx"><span data-i18n="settings.safety">Security &amp; privacy</span><small data-i18n="settings.safetySub">Stop, access, demo mode</small></span><span class="ch">›</span></button>
             <button class="set-item" data-page="script"><span class="ic">⚡</span><span class="tx"><span data-i18n="settings.script">Script</span><small data-i18n="settings.scriptSub">Intensity, finale, speed limit</small></span><span class="ch">›</span></button>
             <button class="set-item" data-page="library"><span class="ic">▦</span><span class="tx"><span data-i18n="settings.library">Library</span><small data-i18n="settings.librarySub">Start, Stash, folders, filters</small></span><span class="ch">›</span></button>
           </div>
@@ -401,7 +401,7 @@
         <!-- ---------- Notaus (nach test2 eigener Bereich) ---------- -->
         <div class="set-page" data-page="safety" hidden>
           <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.safety">Emergency stop &amp; privacy</h2>
+          <h2 class="page-title" data-i18n="settings.safety">Security &amp; privacy</h2>
           <div id="setSafety" class="card sec">
             <label class="ui-switch"><input id="pauseOnLoss" type="checkbox" checked><span></span><span data-i18n="settings.safety.pauseOnLoss">Pause the video when a device loses its connection mid-video</span></label>
             <label class="ui-switch"><input id="stopHidden" type="checkbox"><span></span><span data-i18n="settings.safety.stopHidden">Stop everything on screen lock / app switch</span></label>
@@ -419,6 +419,13 @@
               <input id="capSpeed" type="range" min="10" max="100" step="5" value="100">
             </label>
             <p class="hint-text" data-i18n="settings.safety.help">The Esc key, the red STOP button or “Stop all” in the device column stop everything immediately. The auto-stop applies to direct control, patterns, “control it yourself” and manual strength – a playing video with a script counts as “watching”. “Maximum” of the Satisfyer limits the vibration.</p>
+          </div>
+          <!-- nach test6: Zugang – Anmeldung (aus .env) und HereSphere auf einen Blick (settings.js showServerSettings) -->
+          <div id="setAccess" class="card sec">
+            <h3 class="sec-sub" data-i18n="settings.access.title">Access</h3>
+            <p id="accessLogin" class="hint-text"></p>
+            <p id="accessHs" class="hint-text"></p>
+            <a href="#" class="more-settings" data-settings="hsOn" data-i18n="settings.access.toVr">⚙️ HereSphere password and switches</a>
           </div>
           <!-- Privatsphäre: Demo-Modus (nav.js) -->
           <div id="setPrivacy" class="card sec">

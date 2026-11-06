@@ -369,7 +369,7 @@ export function positionAt(actions, ms) {
   return a.pos + ((b.pos - a.pos) * (ms - a.at)) / (b.at - a.at);
 }
 
-// Demo-Modus (/demo oder Schalter in ⚙️ → Notaus & Privatsphäre): virtuelle Handy – nichts geht an die Handy-Cloud,
+// Demo-Modus (/demo oder Schalter in ⚙️ → Sicherheit & Privatsphäre): virtuelle Handy – nichts geht an die Handy-Cloud,
 // die Anfragen werden nur beantwortet (wie im Selbsttest). Gilt ab dem Laden der Seite.
 export const demoMode = location.pathname === '/demo' || store.get('demo', false);
 if (demoMode) {

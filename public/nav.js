@@ -9,7 +9,7 @@ import { store } from './handy.js';
 import { closeDevices, goLibrary, openDevices, openPlayer, openSettings } from './app.js';
 
 // Demo-Modus: Videos, Vorschaubilder und Namen unkenntlich (style.css body.demo) und kein Ton – zum Vorführen.
-// An über die Adresse /demo (fest) oder den Schalter in ⚙️ → Notaus & Privatsphäre (pro Gerät).
+// An über die Adresse /demo (fest) oder den Schalter in ⚙️ → Sicherheit & Privatsphäre (pro Gerät).
 const DEMO_URL = location.pathname === '/demo';
 export const isDemo = () => document.body.classList.contains('demo');
 export function setDemo(on) {

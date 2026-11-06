@@ -990,11 +990,11 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 /* ---------- Schalter: <label class="ui-switch"><input type="checkbox"><span></span> Text</label> ---------- */
 .ui-switch { display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); margin: 0; color: var(--text); font-size: 15px; cursor: pointer; }
 .ui-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.ui-switch span:first-of-type {
+.ui-switch > span:first-of-type {
   flex: none; position: relative; width: 42px; height: 24px; border-radius: var(--pill);
   background: var(--surface2); border: 1px solid var(--line); transition: background var(--speed), border-color var(--speed);
 }
-.ui-switch span:first-of-type::after {
+.ui-switch > span:first-of-type::after {
   content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
   background: var(--muted); transition: transform var(--speed), background var(--speed);
 }

@@ -179,6 +179,12 @@ function showServerSettings(s) {
   $('hsLoginHint').textContent = t('settings.vr.loginHint');
   $('setSubVr').textContent = !s.heresphere ? t('settings.vr.subOff')
     : s.hsPassword ? t('settings.vr.subPass') : t('settings.vr.subOn');
+  // Zugang (⚙️ → Sicherheit & Privatsphäre): Anmeldung kommt aus der .env, HereSphere aus den Einstellungen
+  $('accessLogin').textContent = s.login ? t('settings.access.loginOn') : t('settings.access.loginOff');
+  $('accessLogin').classList.toggle('warn', !s.login);
+  $('accessHs').textContent = !s.heresphere ? t('settings.access.hsOff')
+    : s.hsPassword ? t('settings.access.hsPass') : t('settings.access.hsOpen');
+  $('accessHs').classList.toggle('warn', !!s.heresphere && !s.hsPassword && !s.login);
   $('intifaceLan').checked = !!s.intifaceLan;
   $('intifaceLan').disabled = !!s.intifaceLanLocked;
   $('intifaceLanHint').hidden = !s.intifaceLanLocked;
