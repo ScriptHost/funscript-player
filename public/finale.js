@@ -16,7 +16,7 @@ import { t } from './lang.js';
 // ===========================================================================
 
 // Standard seit 1.19.2: Script weiter, sanfter, halbes Tempo, Vibration 50 %, Hub 10–80 %, nach 240 s zurück zum Sync
-export const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 50, min: 10, max: 80, time: 240, half: true };
+export const fin = { active: false, timer: null, mode: 'soft', speed: 30, vibe: 35, min: 10, max: 80, time: 240, half: true };
 const FIN_KEYS = ['speed', 'vibe', 'min', 'max', 'time'];
 
 // Komplett gelöst? (dann darf der Video-Sync die Handy nicht zurückholen)
@@ -72,6 +72,12 @@ function finLoad() {
     }
     store.set('finFix1192', true);
   }
+  // Einmalig (2.0): Satisfyer im Finale ab Werk schwächer (50 → 35 %) – nur, wenn noch der alte Standard gespeichert ist
+  if (!store.get('finFix200', false)) {
+    const s = store.get('finale', null);
+    if (s && s.vibe === 50) { s.vibe = fin.vibe; store.set('finale', s); }
+    store.set('finFix200', true);
+  }
   Object.assign(fin, store.get('finale', {}));
   for (const k of FIN_KEYS) $('fin_' + k).value = fin[k];
   finOutputs();
@@ -80,7 +86,7 @@ function finLoad() {
 function finOutputs() {
   const soft = fin.mode === 'soft';
   $('fin_speedVal').textContent = `${fin.speed} %`;
-  $('fin_vibeVal').textContent = soft ? `${fin.vibe} % vom Script` : `${fin.vibe} %`;
+  $('fin_vibeVal').textContent = soft ? t('finale.vibeShare', { n: fin.vibe }) : `${fin.vibe} %`;
   $('fin_minVal').textContent = `${fin.min} %`;
   $('fin_maxVal').textContent = `${fin.max} %`;
   $('fin_timeVal').textContent = fin.time ? `${fin.time} s` : t('finale.never');

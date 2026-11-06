@@ -170,7 +170,8 @@ function expandStrokes(a, maxSpeed) {
 }
 
 // 2.0 Aufwärmen: die Handy unten, ruhig (nach test2: 0–35 %, ein Weg 1 s – vorher 0–20 %, 1,5 s) – eigener ruhiger Rhythmus über die ganze
-// Videolänge, damit Spulen und Sync wie gewohnt funktionieren. Der Satisfyer läuft nur ganz leicht (presetVibeShape).
+// Videolänge, damit Spulen und Sync wie gewohnt funktionieren. Der Satisfyer läuft unabhängig vom Script in einer
+// ruhigen Welle (warmupVibe, nach test6: etwas stärker als vorher).
 const WARMUP = { lo: 0, hi: 35, ms: 1000 };
 let warmup = false;
 function warmupActions(actions) {
@@ -178,6 +179,11 @@ function warmupActions(actions) {
   const out = [];
   for (let at = 0, i = 0; at <= end; at += WARMUP.ms, i++) out.push({ at, pos: i % 2 ? WARMUP.hi : WARMUP.lo });
   return out;
+}
+// Satisfyer beim Aufwärmen: eigene ruhige Welle (25–45 %, 4 s), unabhängig vom Script; null = kein Aufwärmen
+export function warmupVibe() {
+  if (!warmup) return null;
+  return 0.35 + 0.1 * Math.sin(performance.now() / 4000 * 2 * Math.PI);
 }
 function setWarmup(on) {
   warmup = !!on;
@@ -277,7 +283,6 @@ export function presetVibeEven() {
 }
 // Stärke des Satisfyers je Preset (raw 0–1 -> 0–1): Sanft schwächer und weicher, Intensiv kräftiger
 export function presetVibeShape(raw) {
-  if (warmup) return 0.2 * raw; // Aufwärmen: ganz leicht
   const p = script ? currentPreset() : 'auto';
   if (p === 'soft') return 0.7 * raw ** 1.3;
   if (p === 'intense') return Math.min(1, 1.25 * raw ** 0.75);
@@ -300,6 +305,8 @@ export function toolsChanged() {
   if (handy.owner === 'video') resync(); // geändertes Script sofort an die Handy
 }
 function setScenePreset(p) {
+  // nach test6: Wahl einer Intensität beendet das Aufwärmen
+  if (warmup) setWarmup(false);
   const k = offsetKey();
   if (!k) localPreset = p;
   else {

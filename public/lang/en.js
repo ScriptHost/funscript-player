@@ -50,7 +50,7 @@ export default {
   // Player
   'player.side': 'Script and devices',
   'player.warmup': 'Warm-up',
-  'player.warmupTitle': 'Warm-up: The Handy at the bottom and slow, Satisfyer very light – on/off',
+  'player.warmupTitle': 'Warm-up: The Handy at the bottom and slow, Satisfyer gently in its own rhythm – on/off (choosing an intensity ends it)',
   'player.intensityTitle': 'For this scene – default under ⚙️ → Script',
   'player.int.auto': 'Auto',
   'player.int.original': 'Original',
@@ -605,7 +605,7 @@ export default {
   'tools.automatic': "Automatic",
   'tools.gentle': "Gentle",
   'tools.intense': "Intense",
-  'tools.warmUpHandyAt': "🌱 Warm-up: Handy at the very bottom and slow, Satisfyer very light – tap again to stop.",
+  'tools.warmUpHandyAt': "🌱 Warm-up: Handy at the very bottom and slow, Satisfyer gently in its own rhythm – tap again or choose an intensity to stop.",
   'tools.warmUpEndedThe': "🌱 Warm-up ended – the script plays again.",
   'tools.warmUpBottomSlow': "warm-up: bottom, slow",
   'tools.stroke2080': "stroke 20–80 %",
@@ -727,4 +727,5 @@ export default {
   'tools.calibTap': "🎯 Keep tapping … {i}/{n}",
   'touchpad.savedPattern': "🎮 Saved as pattern “{name}” (🎮 Control → Patterns).",
   'tools.current': "Current video: {name} – Handy: {handy} · Satisfyer: {vibe}",
+  'finale.vibeShare': "{n} % of the script",
 };

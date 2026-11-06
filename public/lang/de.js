@@ -49,7 +49,7 @@ export default {
   // Player
   'player.side': 'Script und Geräte',
   'player.warmup': 'Aufwärmen',
-  'player.warmupTitle': 'Aufwärmen: Handy ganz unten und langsam, Satisfyer ganz leicht – an/aus',
+  'player.warmupTitle': 'Aufwärmen: Handy ganz unten und langsam, Satisfyer sanft im eigenen Rhythmus – an/aus (eine Intensität wählen beendet es)',
   'player.intensityTitle': 'Gilt für diese Szene – Standard unter ⚙️ → Script',
   'player.int.auto': 'Auto',
   'player.int.original': 'Original',
@@ -604,7 +604,7 @@ export default {
   'tools.automatic': "Automatisch",
   'tools.gentle': "Sanft",
   'tools.intense': "Intensiv",
-  'tools.warmUpHandyAt': "🌱 Aufwärmen: Handy ganz unten und langsam, Satisfyer ganz leicht – nochmal tippen zum Beenden.",
+  'tools.warmUpHandyAt': "🌱 Aufwärmen: Handy ganz unten und langsam, Satisfyer sanft im eigenen Rhythmus – nochmal tippen oder eine Intensität wählen zum Beenden.",
   'tools.warmUpEndedThe': "🌱 Aufwärmen beendet – das Script läuft wieder.",
   'tools.warmUpBottomSlow': "Aufwärmen: unten, langsam",
   'tools.stroke2080': "Hub 20–80 %",
@@ -726,4 +726,5 @@ export default {
   'tools.calibTap': "🎯 Weiter tippen … {i}/{n}",
   'touchpad.savedPattern': "🎮 Als Pattern „{name}“ gespeichert (🎮 Steuern → Patterns).",
   'tools.current': "Aktuelles Video: {name} – Handy: {handy} · Satisfyer: {vibe}",
+  'finale.vibeShare': "{n} % vom Script",
 };

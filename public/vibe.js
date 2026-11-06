@@ -4,7 +4,7 @@ import { $, demoMode, log, pillText, positionAt, store } from './handy.js';
 import { deviceLost, mirrorField, resync, videoScriptSource } from './app.js';
 import { controlScriptSource, hampLevel } from './control.js';
 import { fin, finDetached } from './finale.js';
-import { presetVibeEven, presetVibeShape } from './tools.js';
+import { presetVibeEven, presetVibeShape, warmupVibe } from './tools.js';
 import { selfVibeLevel } from './selfctl.js';
 import { touchVibeLevel } from './touchpad.js';
 import { t } from './lang.js';
@@ -586,6 +586,9 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
     raw = scriptIntensity(src.actions, src.ms + lead + (src.video ? Number($('offset').value) : 0), map);
     // Video-Script: Sanft schwächer, Intensiv stärker (⚙️ → Script / Auswahl am Video)
     if (src.video && raw && modulesReady.has('tools')) raw = presetVibeShape(raw);
+    // Aufwärmen: eigene Welle statt Script
+    const warm = src.video && modulesReady.has('tools') ? warmupVibe() : null;
+    if (warm !== null) raw = warm;
   }
   else if (modulesReady.has('control') && hampLevel() !== null) {
     // Direktsteuerung: im Rhythmus-Modus Stöße nachbilden (schneller bei höherer Geschwindigkeit)
