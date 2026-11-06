@@ -450,7 +450,16 @@ export function paintMountain(g, a, total, w, h, dpr = 1) {
     const bh = Math.max(dpr, Math.sqrt(Math.min(1, s / 500)) * (h - 2 * dpr)); // Wurzel: ruhige Stellen noch sichtbar
     g.fillStyle = heatColor(s);
     g.fillRect(c * cw, h - bh, cw + 0.5, bh);
+    // test12: feine helle Kante oben – die Form liest sich ruhiger, wie die Ränder der Karten
+    g.fillStyle = 'rgba(255, 255, 255, .22)';
+    g.fillRect(c * cw, h - bh, cw + 0.5, Math.min(bh, dpr));
   }
+  // test12: unten weich in den Hintergrund auslaufen (gleiche Farbe wie der Hintergrund, also nur das Gebirge betroffen)
+  const fade = g.createLinearGradient(0, 0, 0, h);
+  fade.addColorStop(0.45, 'rgba(19, 18, 24, 0)');
+  fade.addColorStop(1, 'rgba(19, 18, 24, .4)');
+  g.fillStyle = fade;
+  g.fillRect(0, 0, w, h);
 }
 // Stash-Marker als gelbe Striche oben (Heatmap und Player-Leiste)
 export function paintMarkers(g, total, w, h, dpr) {

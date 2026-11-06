@@ -444,3 +444,16 @@ test('test11: Stash-Adresse und API-Key in der Oberfläche', async () => {
     assert.strictEqual(back.status.configured, false);
   } finally { s.stop(); fake.close(); }
 });
+
+test('test12: /api/library meldet VR-Videos (für „Nur 2D“ bei Ordnern)', async () => {
+  const s = await startServer({}, (media) => {
+    for (const f of ['flach.mp4', 'szene_180_sbs.mp4', 'Clip VR 6K.mp4']) fs.writeFileSync(path.join(media, 'Filme', f), 'x');
+  });
+  try {
+    const lib = await (await fetch(s.base + '/api/library')).json();
+    const vr = Object.fromEntries(lib.map((it) => [it.video, it.vr]));
+    assert.strictEqual(vr['Filme/flach.mp4'], false);
+    assert.strictEqual(vr['Filme/szene_180_sbs.mp4'], true);
+    assert.strictEqual(vr['Filme/Clip VR 6K.mp4'], true);
+  } finally { s.stop(); }
+});

@@ -439,10 +439,13 @@ function renderFolder() {
   grid.replaceChildren();
   const root = lib.source.startsWith('folder:') ? lib.source.slice(7) : '';
   const q = $('search').value.trim().toLowerCase();
-  const items = lib.folder
-    .filter((it) => it.root === root && (!onlyScripts() || it.script) && (!q || it.video.toLowerCase().includes(q)))
+  // test12: „Nur 2D“ (⚙️ → Bibliothek) blendet auch Ordner-Videos mit VR-Kennung im Dateinamen aus
+  const only2d = store.get('only2d', false);
+  const inRoot = lib.folder.filter((it) => it.root === root && (!only2d || !it.vr));
+  const items = inRoot
+    .filter((it) => (!onlyScripts() || it.script) && (!q || it.video.toLowerCase().includes(q)))
     .sort((a, b) => b.mtime - a.mtime); // neueste zuerst
-  const total = lib.folder.filter((it) => it.root === root).length;
+  const total = inRoot.length;
   $('libInfo').textContent = total
     ? t('library.folderCount', { n: items.length, name: rootLabel(root) }) + (items.length < total ? t('library.hiddenNoScript', { n: total - items.length }) : '')
     : t('library.folderIsEmptyAdd');

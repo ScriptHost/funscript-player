@@ -16,7 +16,7 @@ const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, inti
   LOGIN_RESET, LOGIN_RESET_DONE, loginMissing, loginSource, loginUser, removeLogin, setupLogin, setStashConf, stashConf } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
 const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashCheck, stashCurrent, stashMonitor, stashReconfigure } = require('./lib/stash');
-const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
+const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash, isVrVideo } = require('./lib/heresphere');
 const { GPU_TEXT, hqBench, hqKillAll, hqProbe, hqStatus, hqStream } = require('./lib/hq');
 const { UPDATE_OFF, updateInfo } = require('./lib/update');
 const { runSelfcheck } = require('./lib/selfcheck');
@@ -246,7 +246,8 @@ const ROUTES = {
   '/api/clientcheck': { POST: clientReport },
   '/api/update': { GET: async (req, res) => json(res, await updateInfo()) },
   '/api/library': {
-    GET: async (req, res) => json(res, (await libraryItems()).sort((a, b) => a.video.localeCompare(b.video, 'de', { numeric: true }))),
+    GET: async (req, res) => json(res, (await libraryItems()).map((it) => ({ ...it, vr: isVrVideo(it.video) }))
+      .sort((a, b) => a.video.localeCompare(b.video, 'de', { numeric: true }))),
   },
   // test10: zwischengespeicherter Zustand (prüft im Hintergrund selbst neu); ?fresh=1 = „Verbindung testen“
   '/api/stash/status': { GET: async (req, res) => json(res, /[?&]fresh=1/.test(req.url) ? await stashCheck() : await stashCurrent()) },
