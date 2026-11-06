@@ -742,4 +742,6 @@ export default {
   'player.toControl': "🎮 Steuern",
   'player.closeVideo': "✕ Video schließen",
   'settings.pl.selfAlways': "Steuerung unterm Video auch ohne verbundenes Gerät (Videos ohne Script)",
+  'player.rec': "Aufnehmen",
+  'player.recTitle': "Script anhalten und selbst zum Video aufnehmen",
 };

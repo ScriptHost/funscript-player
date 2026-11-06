@@ -743,4 +743,6 @@ export default {
   'player.toControl': "🎮 Control",
   'player.closeVideo': "✕ Close video",
   'settings.pl.selfAlways': "Control under the video even without a connected device (videos without script)",
+  'player.rec': "Record",
+  'player.recTitle': "Pause the script and record yourself along the video",
 };

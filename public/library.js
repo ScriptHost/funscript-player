@@ -824,6 +824,12 @@ export function init() {
     loadSceneScript(scriptMeta.src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
   });
   // Script anhalten -> „Selbst steuern“ mit ⏺ Mitschnitt; ↩ spielt es wieder
+  // nach test8: ⏺ Aufnehmen direkt in der Script-Karte = Script anhalten, selbst steuern und Mitschnitt starten
+  $('sbRec').addEventListener('click', () => {
+    if (!script) return;
+    $('sbSelf').click();
+    setTimeout(() => $('selfRec').click(), 0);
+  });
   $('sbSelf').addEventListener('click', () => {
     if (!script) return;
     suspended = { name: script.name, actions: script.actions };
