@@ -731,7 +731,7 @@ export default {
   'settings.access.hsOff': "HereSphere: aus",
   'settings.access.hsPass': "🔒 HereSphere: an, mit eigenem Passwort",
   'settings.access.hsOpen': "HereSphere: an, ohne Passwort",
-  'settings.access.toVr': "⚙️ HereSphere-Passwort und Schalter",
+  'settings.access.toVr': "⚙️ HereSphere-Schalter und Adresse",
   'settings.lib.resume': "Weiterschauen – Stash-Szenen starten dort, wo du aufgehört hast",
   'settings.img.gpu': "Hochskalieren auf dem Server (Intel Quick Sync): {state}",
   'selfctl.limit': " (Grenze)",
@@ -743,4 +743,5 @@ export default {
   'settings.pl.selfAlways': "Steuerung unterm Video auch ohne verbundenes Gerät (Videos ohne Script)",
   'player.rec': "Aufnehmen",
   'player.recTitle': "Script anhalten und selbst zum Video aufnehmen",
+  'settings.vr.passMoved': "🔒 Passwort für HereSphere: ⚙️ → Sicherheit & Privatsphäre",
 };

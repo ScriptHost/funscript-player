@@ -433,7 +433,20 @@
             <h3 class="sec-sub" data-i18n="settings.access.title">Access</h3>
             <p id="accessLogin" class="hint-text"></p>
             <p id="accessHs" class="hint-text"></p>
-            <a href="#" class="more-settings" data-settings="hsOn" data-i18n="settings.access.toVr">⚙️ HereSphere password and switches</a>
+            <!-- nach test8: HereSphere-Passwort hier (vorher unter VR & HereSphere) -->
+            <div id="hsPassArea">
+              <!-- nach test2: Umschalter ohne/mit Passwort; „ohne“ löscht das Passwort und sperrt das Feld -->
+              <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small></label>
+              <div id="hsPassMode" class="seg">
+                <button data-pw="off" data-i18n="settings.vr.pwOff">Without password</button>
+                <button data-pw="on" data-i18n="settings.vr.pwOn">With password</button>
+              </div>
+              <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="new password">
+                <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button></span>
+              <p id="hsPassInfo" class="hint-text"></p>
+              <p id="hsLoginHint" class="hint-text warn" hidden></p>
+            </div>
+            <a href="#" class="more-settings" data-settings="hsOn" data-i18n="settings.access.toVr">⚙️ HereSphere switches and address</a>
           </div>
           <!-- Privatsphäre: Demo-Modus (nav.js) -->
           <div id="setPrivacy" class="card sec">
@@ -661,16 +674,7 @@
             <label class="ui-switch"><input id="hsRedirect" type="checkbox" checked><span></span><span data-i18n="settings.vr.redirect">Send HereSphere from the normal address straight to the VR library</span></label>
             <p class="hint-text" data-i18n="settings.vr.redirectHelp">Then the player’s normal address is enough in HereSphere. HereSphere is recognised by its identifier; only the start page is redirected.</p>
             <label class="ui-switch adv"><input id="hsVrOnly" type="checkbox" checked><span></span><span data-i18n="settings.vr.vrOnly">Show VR videos only (off = regular videos too, as a flat screen)</span></label>
-            <!-- nach test2: Umschalter ohne/mit Passwort; „ohne“ löscht das Passwort und sperrt das Feld -->
-            <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small></label>
-            <div id="hsPassMode" class="seg">
-              <button data-pw="off" data-i18n="settings.vr.pwOff">Without password</button>
-              <button data-pw="on" data-i18n="settings.vr.pwOn">With password</button>
-            </div>
-            <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="new password">
-              <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button></span>
-            <p id="hsPassInfo" class="hint-text"></p>
-            <p id="hsLoginHint" class="hint-text warn" hidden></p>
+            <p class="hint-text"><a href="#" data-settings="hsPass" data-i18n="settings.vr.passMoved">🔒 Password for HereSphere: ⚙️ → Security &amp; privacy</a></p>
             <p data-i18n="settings.vr.urlHelp">Open this address in HereSphere’s browser and bookmark it:</p>
             <div class="copyrow">
               <input id="hsUrl" type="text" readonly>

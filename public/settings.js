@@ -193,6 +193,7 @@ function showServerSettings(s) {
   $('accessHs').textContent = !s.heresphere ? t('settings.access.hsOff')
     : s.hsPassword ? t('settings.access.hsPass') : t('settings.access.hsOpen');
   $('accessHs').classList.toggle('warn', !!s.heresphere && !s.hsPassword && !s.login);
+  $('hsPassArea').hidden = !s.heresphere; // Passwort nur, wenn HereSphere an ist
   $('intifaceLan').checked = !!s.intifaceLan;
   $('intifaceLan').disabled = !!s.intifaceLanLocked;
   $('intifaceLanHint').hidden = !s.intifaceLanLocked;
