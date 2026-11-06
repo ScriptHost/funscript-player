@@ -1,5 +1,5 @@
 // Navigation 2.0: vier Bereiche (Bibliothek, Player, Geräte, Einstellungen) – am Smartphone als Daumen-Leiste
-// unten, am PC oben im Kopf (design.css). Dazu die Anzeige-Schalter „Leuchten aus“ und „Bewegung“ als Klassen
+// unten, am PC oben im Kopf (style.css). Dazu die Anzeige-Schalter „Leuchten aus“ und „Bewegung“ als Klassen
 // an <body>. Neues Modul ohne Arbeit beim Laden: main.js ruft init() auf.
 //
 // Bis die Bereiche neu gebaut sind (Phasen 4–7), führen die Knöpfe zu den alten Seiten: Geräte = das alte
@@ -8,7 +8,7 @@ import { modulesReady } from './state.js';
 import { store } from './handy.js';
 import { closeDevices, goLibrary, openDevices, openPlayer, openSettings } from './app.js';
 
-// Demo-Modus: Videos, Vorschaubilder und Namen unkenntlich (design.css body.demo) und kein Ton – zum Vorführen.
+// Demo-Modus: Videos, Vorschaubilder und Namen unkenntlich (style.css body.demo) und kein Ton – zum Vorführen.
 // An über die Adresse /demo (fest) oder den Schalter in ⚙️ → Notaus & Privatsphäre (pro Gerät).
 const DEMO_URL = location.pathname === '/demo';
 export const isDemo = () => document.body.classList.contains('demo');
