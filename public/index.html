@@ -330,8 +330,8 @@
         <div class="set-page" data-page="devices" hidden>
           <button class="set-back" data-i18n="settings.back">‹ Settings</button>
           <h2 class="page-title" data-i18n="settings.devices">Devices</h2>
-          <div id="setDevices" class="card sec">
-            <h3 class="sec-sub" data-i18n="settings.dev.handy">↕ The Handy</h3>
+          <details id="setDevices" class="card sec dev-fold">
+            <summary><h3 class="sec-sub" data-i18n="settings.dev.handy">↕ The Handy</h3></summary>
             <label>Connection Key
               <input id="key" type="password" autocomplete="off" spellcheck="false">
             </label>
@@ -355,9 +355,9 @@
             <label class="ui-switch adv"><input id="handyMaxAuto" type="checkbox" checked><span></span><span><span data-i18n="settings.dev.handyMaxAuto">Automatic by model</span> <small id="handyModelInfo" class="muted"></small></span></label>
             <p class="adv hint-text" data-i18n="settings.dev.handyMaxHelp">Anything faster is too much for the motor – the script intensity adapts such spots. The player detects the model when connecting. There are no measured values for Handy 2 / 2 Pro yet – if yours manages more, turn automatic off and raise it.</p>
             <p class="hint-text" data-i18n-html="settings.dev.touchHelp">Connect, offset and stroke are set while watching in the devices panel. Touch pad: <b>Tempo</b> = finger height is the stroke tempo, <b>Position 🧪</b> = the Handy follows your finger (beta).</p>
-          </div>
-          <div id="setVibe" class="card sec">
-            <h3 class="sec-sub" data-i18n="settings.vibe.title">〰 Satisfyer</h3>
+          </details>
+          <details id="setVibe" class="card sec dev-fold">
+            <summary><h3 class="sec-sub" data-i18n="settings.vibe.title">〰 Satisfyer</h3></summary>
             <p class="hint-text" data-i18n="settings.vibe.multi">Several Satisfyers at once: in the device column (tap the status at the top) simply “＋ Connect another Satisfyer”. Each gets its own strength and lead – so all stay in time together.</p>
             <label class="ui-switch adv"><input id="vibeAll" type="checkbox"><span></span><span data-i18n="settings.vibe.all">Show all Bluetooth devices when connecting</span></label>
             <label><span data-i18n="settings.vibe.source">Control</span>
@@ -403,7 +403,7 @@
               <label class="ui-switch"><input id="intifaceLan" type="checkbox"><span></span><span data-i18n="settings.vibe.lan">Allow only home network addresses (192.168.x / 10.x) – applies to all devices</span></label>
               <p id="intifaceLanHint" class="hint-text" hidden data-i18n="settings.vibe.lanLocked">Fixed via INTIFACE_LAN_ONLY in docker-compose.yml.</p>
             </details>
-          </div>
+          </details>
         </div>
 
         <!-- ---------- Notaus (nach test2 eigener Bereich) ---------- -->

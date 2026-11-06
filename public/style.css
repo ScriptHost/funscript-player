@@ -1330,3 +1330,11 @@ button.secondary { background: transparent; }
 @media (display-mode: standalone), (display-mode: fullscreen) {
   html, body { overscroll-behavior-y: none; }
 }
+
+/* nach test8: ⚙️ → Geräte – Handy und Satisfyer zugeklappt, antippen öffnet */
+details.dev-fold > summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; }
+details.dev-fold > summary::-webkit-details-marker { display: none; }
+details.dev-fold > summary h3 { margin: 0; padding: 0; border: 0; }
+details.dev-fold > summary::after { content: '›'; font-size: 22px; color: var(--muted); transition: transform .15s; }
+details.dev-fold[open] > summary::after { transform: rotate(90deg); }
+details.dev-fold[open] > summary { margin-bottom: var(--s3); }
