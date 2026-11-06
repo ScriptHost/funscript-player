@@ -2,7 +2,7 @@
 import { modulesReady, video } from './state.js';
 import { $, handy, store } from './handy.js';
 import {
-  base, duration, hq, mediaTime, paintMarkers, script, seekTo, stashSession, syncActive, videoPlaying,
+  HEAT_BG, base, duration, hq, mediaTime, paintMarkers, script, seekTo, stashSession, syncActive, videoPlaying,
 } from './app.js';
 import { active, emergencyStop, hampOn } from './control.js';
 import { allVibes, setVibePaused, vibeLevel, vibePaused } from './vibe.js';
@@ -139,20 +139,20 @@ function drawOvBar() {
   if (!w || !h) return;
   if (bar.width !== w || bar.height !== h) { bar.width = w; bar.height = h; }
   bctx.clearRect(0, 0, w, h);
-  bctx.fillStyle = 'rgba(255,255,255,.18)';
+  // nach test7: deckender Hintergrund – das Video scheint nicht mehr durch
+  bctx.fillStyle = script && syncActive() ? HEAT_BG : 'rgba(255,255,255,.18)';
   bctx.fillRect(0, 0, w, h);
   if (base.width && base.height && script && syncActive()) bctx.drawImage(base, 0, 0, w, h);
   const total = duration();
   if (total > 0) {
     const x = ((seekPreview ?? mediaTime()) * 1000 / total) * w;
-    // 2.0: Play-Verlauf als Neon-Linie unten; mit Script bleibt die Heatmap sichtbar, der Rest wird dunkler
+    // nach test7: mit Script nur das Gebirge – Gespieltes hell, Kommendes gedämpft, keine Verlaufslinie mehr;
+    // ohne Script der Neon-Fortschritt wie bisher
     const neon = bctx.createLinearGradient(0, 0, w, 0);
     neon.addColorStop(0, '#22d3ee'); neon.addColorStop(0.55, '#b46cff'); neon.addColorStop(1, '#ff4fa3');
     if (script && syncActive()) {
-      bctx.fillStyle = 'rgba(11,11,13,.28)';
+      bctx.fillStyle = 'rgba(11,11,13,.5)';
       bctx.fillRect(x, 0, w - x, h);
-      bctx.fillStyle = neon;
-      bctx.fillRect(0, h - 3 * dpr, x, 3 * dpr);
     } else {
       bctx.fillStyle = neon;
       bctx.fillRect(0, 0, x, h);

@@ -417,6 +417,32 @@ export function paintHeat(g, a, total, w, h) {
     g.fillRect((a[i - 1].at / total) * w, 0, Math.max(1, (dt / total) * w), h);
   }
 }
+// nach test7: Script als „Gebirge“ – je Bildspalte das Tempo (Weg pro Zeit), leicht geglättet; Höhe = Tempo,
+// Farbe nach Höhe (ruhig dunkel, heftig Violett/Pink). Liest sich auch klein besser als bunte Striche + Kurve.
+export const HEAT_BG = '#131218';
+export function paintMountain(g, a, total, w, h, dpr = 1) {
+  g.fillStyle = HEAT_BG;
+  g.fillRect(0, 0, w, h);
+  const cols = Math.max(1, Math.round(w / (2 * dpr)));
+  const move = new Float32Array(cols), time = new Float32Array(cols);
+  for (let i = 1; i < a.length; i++) {
+    const dt = a[i].at - a[i - 1].at;
+    if (dt <= 0) continue;
+    const c = Math.min(cols - 1, Math.floor((a[i - 1].at / total) * cols));
+    move[c] += Math.abs(a[i].pos - a[i - 1].pos);
+    time[c] += dt;
+  }
+  const speed = Array.from(move, (m, c) => (time[c] ? (m / time[c]) * 1000 : 0));
+  const cw = w / cols;
+  for (let c = 0; c < cols; c++) {
+    const at = (k) => speed[Math.max(0, Math.min(cols - 1, c + k))];
+    const s = (at(-2) + 2 * at(-1) + 3 * at(0) + 2 * at(1) + at(2)) / 9; // geglättet: ruhige Form statt Zacken
+    if (s <= 0) continue;
+    const bh = Math.max(dpr, Math.sqrt(Math.min(1, s / 500)) * (h - 2 * dpr)); // Wurzel: ruhige Stellen noch sichtbar
+    g.fillStyle = heatColor(s);
+    g.fillRect(c * cw, h - bh, cw + 0.5, bh);
+  }
+}
 // Stash-Marker als gelbe Striche oben (Heatmap und Player-Leiste)
 export function paintMarkers(g, total, w, h, dpr) {
   g.fillStyle = '#ffd54f';
@@ -437,16 +463,7 @@ export function drawHeatmap() {
     // 2.0: immer das Script selbst – auch während 🌱 Aufwärmen (sonst wäre alles einfarbig ruhig)
     const tgt = !hasHandy() && hasVibe() ? 'vibe' : 'handy';
     const a = modulesReady.has('tools') ? processScript(script.actions, tgt, undefined, true) : script.actions;
-    const x = (ms) => (ms / total) * w;
-    paintHeat(b, a, total, w, h);
-    b.strokeStyle = 'rgba(255,255,255,.22)'; // 2.0: dezent – die Farben sollen lesbar bleiben
-    b.lineWidth = dpr;
-    b.beginPath();
-    a.forEach((p, i) => {
-      const y = h - (p.pos / 100) * (h - 4 * dpr) - 2 * dpr;
-      i ? b.lineTo(x(p.at), y) : b.moveTo(x(p.at), y);
-    });
-    b.stroke();
+    paintMountain(b, a, total, w, h, dpr);
   }
   // Stash-Marker als gelbe Striche oben
   if (total > 0) {
@@ -468,6 +485,9 @@ function renderLoop() {
     const total = duration();
     if (total > 0) {
       const px = ((t * 1000) / total) * canvas.width;
+      // Kommendes gedämpft, Gespieltes hell
+      ctx.fillStyle = 'rgba(11,11,13,.5)';
+      ctx.fillRect(px, 0, canvas.width - px, canvas.height);
       ctx.fillStyle = '#fff';
       ctx.fillRect(px - 1, 0, 2 * (window.devicePixelRatio || 1), canvas.height);
     }
