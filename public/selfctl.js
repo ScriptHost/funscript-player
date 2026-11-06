@@ -2,7 +2,7 @@
 import { modulesReady, video } from './state.js';
 import { $, claimHandy, downloadFunscript, handy, log, store } from './handy.js';
 import { hasHandy, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
-import { saveScriptToLibrary, scriptMeta, suspended } from './library.js';
+import { askRecName, saveScriptToLibrary, scriptMeta, suspended } from './library.js';
 import { strokers } from './stroker.js';
 import { touchMode, touchPosActive, touchSync, touchToPositionActions, touchToTempoActions, tpos } from './touchpad.js';
 import { t } from './lang.js';
@@ -218,7 +218,7 @@ export function init() {
     $('selfRecSection').hidden = !scriptMeta.hasOwn;
     $('selfRecSave').textContent = scriptMeta.hasOwn ? t('selfctl.replaceOwnScriptCompletely') : t('selfctl.saveAsScriptFor');
   });
-  $('selfRecSave').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'all'));
+  $('selfRecSave').addEventListener('click', () => { const n = askRecName(); if (n !== null) saveScriptToLibrary(selfRecActions, 'all', n); });
   $('selfRecSection').addEventListener('click', () => saveScriptToLibrary(selfRecActions, 'section'));
   $('selfRecFile').addEventListener('click', () => downloadFunscript(selfRecActions, nowPlaying?.title || nowPlaying?.name || 'mitschnitt'));
 }

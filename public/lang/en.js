@@ -741,4 +741,5 @@ export default {
   'selfctl.limit': " (limit)",
   'player.nextSearch': "Search the library …",
   'library.searchKind': "Search {kind} …",
+  'library.recNamePrompt': "Name for the recording (empty = save as “own script” without a name):",
 };

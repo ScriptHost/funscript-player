@@ -740,4 +740,5 @@ export default {
   'selfctl.limit': " (Grenze)",
   'player.nextSearch': "Bibliothek durchsuchen …",
   'library.searchKind': "{kind} suchen …",
+  'library.recNamePrompt': "Name für die Aufnahme (leer = als „Eigenes Script“ ohne Namen):",
 };

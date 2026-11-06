@@ -1,7 +1,7 @@
 
 import { $, claimHandy, downloadFunscript, handy, handyMaxSpeed, log, store } from './handy.js';
 import { hasHandy, hasVibe, videoPlaying } from './app.js';
-import { nowKey, saveScriptToLibrary } from './library.js';
+import { askRecName, nowKey, saveScriptToLibrary } from './library.js';
 import { hampOn, saveRecordingAsPattern, setSpeed, toggleHamp } from './control.js';
 import { setVibePaused } from './vibe.js';
 import { mapPos, moveAll, strokers } from './stroker.js';
@@ -211,12 +211,13 @@ function setupTouchPad(pad) {
   });
   q('.tp-save-pattern').addEventListener('click', () => {
     const len = lastActions[lastActions.length - 1].at || 1;
-    const name = t('touchpad.recName', { time: new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) });
-    saveRecordingAsPattern(name, len, lastActions);
+    const name = askRecName();
+    if (name === null) return;
+    saveRecordingAsPattern(name || t('touchpad.recName', { time: new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }), len, lastActions);
     log(t('touchpad.savedPattern', { name }));
   });
-  q('.tp-save-file').addEventListener('click', () => downloadFunscript(lastActions, 'touch-aufnahme'));
-  q('.tp-save-lib').addEventListener('click', () => saveScriptToLibrary(lastActions));
+  q('.tp-save-file').addEventListener('click', () => { const n = askRecName(); if (n !== null) downloadFunscript(lastActions, n || 'touch-recording'); });
+  q('.tp-save-lib').addEventListener('click', () => { const n = askRecName(); if (n !== null) saveScriptToLibrary(lastActions, 'all', n); });
 
   // Regler/Schnellwahl geändert -> Fläche zeigt denselben Wert (nur Tempo; null = Handy steht)
   document.addEventListener('tp-value', (e) => {

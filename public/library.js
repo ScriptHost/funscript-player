@@ -602,7 +602,15 @@ function mergeSection(old, neu) {
 
 // Speichert ein Script dauerhaft zum laufenden Video (abschaltbar unter ⚙️ → Bibliothek).
 // mode 'section' = nur den aufgenommenen Abschnitt im eigenen Script ersetzen.
-export async function saveScriptToLibrary(actions, mode = 'all') {
+// nach test7: Name fragen, bevor eine Aufnahme gespeichert wird – Vorschlag „Aufnahme 14:32“.
+// Abbrechen = nicht speichern; Feld leer = wie bisher als „Eigenes Script“ ohne Namen.
+export function askRecName() {
+  const def = t('touchpad.recName', { time: new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) });
+  const n = prompt(t('library.recNamePrompt'), def);
+  return n === null ? null : n.trim().slice(0, 60);
+}
+// name: benanntes eigenes Script (wie über 📂) – sonst das eine „Eigene Script“ der Szene
+export async function saveScriptToLibrary(actions, mode = 'all', name = '') {
   const src = nowKey();
   if (mode === 'section' && scriptMeta.hasOwn) {
     try {
@@ -614,6 +622,21 @@ export async function saveScriptToLibrary(actions, mode = 'all') {
   if (!src || !store.get('saveScripts', true)) {
     downloadFunscript(funscript.actions, nowPlaying?.title || nowPlaying?.name || 'script');
     return log(src ? t('library.savingWithTheVideo') : t('library.localFileDownloadedAs'));
+  }
+  if (name && mode !== 'section') {
+    try {
+      const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, name, funscript }) });
+      if (!res.ok) throw new Error(await res.text());
+      const r = await res.json();
+      await refreshOwn();
+      const map = store.get('scriptChoice', {});
+      map[src] = 'own:' + r.name;
+      store.set('scriptChoice', map);
+      suspended = null;
+      log(r.replaced ? t('player.fileReplaced', { name: r.name }) : t('player.fileSaved', { name: r.name }));
+      loadSceneScript(src, scriptMeta.origName, scriptMeta.origUrl, scriptMeta.alts);
+    } catch (e) { log(t('library.saveFail', { msg: e.message }), true); }
+    return;
   }
   try {
     const res = await fetch('/api/userscript', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ src, funscript }) });
