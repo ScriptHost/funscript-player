@@ -203,6 +203,7 @@ function showStartCover() {
   const img = $('startCover').querySelector('img');
   const poster = video.getAttribute('poster');
   if (poster) img.src = poster; else img.removeAttribute('src');
+  $('startCover').classList.remove('ready');
   $('startCover').hidden = false;
 }
 function hideStartCover() {
@@ -309,9 +310,13 @@ async function preloadScript() {
 // Synchronisation Video <-> Handy (nur im Modus „Sync“)
 // ---------------------------------------------------------------------------
 let syncTimer;
+// nach test6: Beim schnellen Spulen drosselt die Handy-API (zu viele Anfragen). Solange gesprungen wird, erst
+// synchronisieren, wenn das Springen ~0,4 s ruht – dann eine Anfrage statt einer pro Sprung. Ein einzelner Sprung bleibt sofort.
+let lastSeek = 0;
+let skipping = false; // mehrere Sprünge kurz hintereinander
 export function resync() {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(doSync, 40);
+  syncTimer = setTimeout(doSync, skipping && Date.now() - lastSeek < 400 ? 400 : 40);
 }
 
 async function doSync() {
@@ -820,7 +825,10 @@ export function init() {
     if (e.detail !== 'video' && e.detail !== 'finale' && e.detail !== 'self' && !video.paused && syncActive()) video.pause();
   });
   ['playing', 'seeked'].forEach((ev) => video.addEventListener(ev, hideStartCover));
+  // nach test6: Video schon gepuffert, aber noch nicht gestartet – Ladekreis weg, Vorschaubild bleibt bis Play
+  video.addEventListener('canplay', () => $('startCover').classList.add('ready'));
   video.addEventListener('error', () => { $('startCover').hidden = true; });
+  video.addEventListener('seeking', () => { skipping = Date.now() - lastSeek < 1500; lastSeek = Date.now(); });
   ['playing', 'pause', 'seeking', 'seeked', 'waiting', 'ratechange', 'ended'].forEach((ev) => video.addEventListener(ev, resync));
   ctx = canvas.getContext('2d');
   canvas.addEventListener('click', (e) => {
