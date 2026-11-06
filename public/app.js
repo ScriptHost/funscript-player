@@ -482,7 +482,8 @@ export function drawHeatmap() {
 
 function renderLoop() {
   const t = mediaTime();
-  if (t !== lastDrawn && canvas.width && canvas.height && canvas.clientWidth) {
+  // nach test8: höchstens ~8× pro Sekunde neu zeichnen (vorher jedes Bild) – entlastet das Abspielen am Handy
+  if (t !== lastDrawn && Math.abs(t - lastDrawn) > 0.12 && canvas.width && canvas.height && canvas.clientWidth) {
     lastDrawn = t;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(base, 0, 0);
