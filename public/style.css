@@ -1304,3 +1304,11 @@ body.demo #homeBtn::after {
 
 /* nach test6: Script-Karte ohne Script – gleiche Knöpfe, ausgegraut */
 .script-box.no-script .sb-presets, #scriptBox button:disabled { opacity: .4; pointer-events: none; }
+
+/* nach test6: „Ruhige Farben“ (⚙️ → Bild & Anzeige) – weniger Farbe, kein Neon-Schein; Script-Verlauf grau (app.js HEAT_CALM) */
+body.calm {
+  --accent: #a39fb3; --accent-soft: rgba(163, 159, 179, .14);
+  --handy: #8fb3bb; --vibe: #c19aac;
+  --glow-accent: none; --glow-strong: none; --glow-text: none; --glow-dot: none;
+}
+body.calm .int-seg button.active { color: #0b0b0d; }

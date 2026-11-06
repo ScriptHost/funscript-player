@@ -7,6 +7,7 @@
 import { modulesReady } from './state.js';
 import { store } from './handy.js';
 import { closeDevices, goLibrary, openDevices, openPlayer, openSettings } from './app.js';
+import { toolsChanged } from './tools.js';
 
 // Demo-Modus: Videos, Vorschaubilder und Namen unkenntlich (style.css body.demo) und kein Ton – zum Vorführen.
 // An über die Adresse /demo (fest) oder den Schalter in ⚙️ → Sicherheit & Privatsphäre (pro Gerät).
@@ -49,12 +50,20 @@ function mark() {
 
 // Anzeige-Schalter: Leuchten ab Werk an, Bewegung ab Werk aus
 export function setGlow(on) { store.set('glow', on); document.body.classList.toggle('no-glow', !on); }
+export function setCalm(on) {
+  store.set('calm', on);
+  document.body.classList.toggle('calm', on);
+  toolsChanged(); // Heatmap und Intensitäts-Vorschau neu zeichnen
+}
 export function setMotion(on) { store.set('motion', on); document.body.classList.toggle('motion', on); }
 
 export function init() {
   modulesReady.add('nav');
   document.body.classList.toggle('no-glow', !store.get('glow', true));
   document.body.classList.toggle('motion', store.get('motion', false));
+  document.body.classList.toggle('calm', store.get('calm', false));
+  const calm = document.getElementById('calmOn');
+  if (calm) { calm.checked = store.get('calm', false); calm.addEventListener('change', () => setCalm(calm.checked)); }
   const glow = document.getElementById('glowOn'), motion = document.getElementById('motionOn');
   if (glow) { glow.checked = store.get('glow', true); glow.addEventListener('change', () => setGlow(glow.checked)); }
   if (motion) { motion.checked = store.get('motion', false); motion.addEventListener('change', () => setMotion(motion.checked)); }

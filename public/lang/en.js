@@ -738,4 +738,5 @@ export default {
   'settings.lib.resume': "Continue watching – Stash scenes start where you left off",
   'settings.img.gpu': "Upscaling on the server (Intel Quick Sync): {state}",
   'selfctl.limit': " (limit)",
+  'settings.calm': "Calm colours – script grey instead of colourful, fewer neon accents",
 };
