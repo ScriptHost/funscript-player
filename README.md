@@ -1,6 +1,6 @@
-<!-- Grafiken: docs/img/gh/ (erzeugt mit `node docs/img/gh/build.js`) -->
+<!-- Graphics: docs/img/gh (node docs/img/gh/build.js) · screenshots + GIF: docs/img/screens (demo mode, neutral test videos) -->
 <p align="center">
-  <a href="../../releases/latest"><img src="docs/img/gh/hero.svg" alt="Self-hosted · in the browser – Your video. Your devices. Perfectly in sync. A Funscript player that drives The Handy and the Satisfyer at the same time – from any script, right from your Stash library." width="100%"></a>
+  <a href="../../releases/latest"><img src="docs/img/gh/hero.svg" alt="Funscript Player – your video, your devices, perfectly in sync. A Funscript player for The Handy and Satisfyer – with your Stash library or plain video folders." width="100%"></a>
 </p>
 
 <p align="center">
@@ -9,90 +9,145 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><img alt="Version" src="https://img.shields.io/github/v/release/ScriptHost/funscript-player?style=flat-square&label=version&color=e0457b"></a>
-  <img alt="Docker" src="https://img.shields.io/badge/docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white">
+  <a href="../../releases/latest"><img alt="Version" src="https://img.shields.io/github/v/release/ScriptHost/funscript-player?style=flat-square&label=version&color=b46cff"></a>
+  <img alt="Docker amd64 + arm64" src="https://img.shields.io/badge/docker-amd64%20%7C%20arm64-2496ED?style=flat-square&logo=docker&logoColor=white">
   <img alt="Node.js" src="https://img.shields.io/badge/node.js-no%20dependencies-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white">
-  <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v3-1a1d23?style=flat-square">
-  <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-1a1d23?style=flat-square">
-  <img alt="Stash" src="https://img.shields.io/badge/Stash-integrated-1a1d23?style=flat-square">
-  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-1a1d23?style=flat-square"></a>
+  <img alt="The Handy" src="https://img.shields.io/badge/The%20Handy-API%20v2%20%2F%20v3-131316?style=flat-square">
+  <img alt="Satisfyer" src="https://img.shields.io/badge/Satisfyer-Bluetooth-131316?style=flat-square">
+  <img alt="Stash" src="https://img.shields.io/badge/Stash-0.32%2B-131316?style=flat-square">
+  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-131316?style=flat-square"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/ScriptHost/funscript-player"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/ScriptHost/funscript-player/badge?style=flat-square"></a>
-  <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/README-Deutsch-1a1d23?style=flat-square"></a>
 </p>
+
+**Funscript Player** plays your videos in the browser and drives **The Handy** and **Satisfyer** devices in sync with
+the Funscript – at the same time, from the same script. It runs on your own server in Docker, reads your
+**Stash** library or plain video folders, and works on phone, tablet, PC and in VR (HereSphere).
 
 <p align="center">
-  <img src="docs/img/gh/live.svg" alt="Animation: the video plays, The Handy strokes and the Satisfyer pulses – all from one Funscript" width="100%">
+  <img src="docs/img/screens/demo.gif" alt="The player in demo mode: video plays, The Handy and Satisfyer follow the script" width="260">&nbsp;
+  <img src="docs/img/screens/phone-library.png" alt="Library with script heatmaps" width="260">&nbsp;
+  <img src="docs/img/screens/phone-devices.png" alt="Devices: The Handy and Satisfyer" width="260">
 </p>
+<p align="center"><sub>Screenshots from the built-in demo mode (<code>/demo</code>): videos, previews and names are blurred.</sub></p>
 
-<p align="center">
-  <img src="docs/img/gh/highlights.svg" alt="One choice for every device · Satisfyer with any script · Natural picture through upscaling" width="100%">
-</p>
+## ✨ Features
 
-<p align="center">
-  <img src="docs/img/gh/h-look.svg" alt="See it – the player as it looks today" width="100%">
-  <img src="docs/img/player-1.19.7.svg" alt="Funscript Player 1.19.7 on a phone: player with script box and library" width="100%">
-</p>
+- **One script, every device** – pick the intensity once for Handy and Satisfyer: **Auto**, **Original**, **Soft**
+  or **Intense**, per scene, with a mini heatmap. Several scripts per video (`clip.soft.funscript` …) switchable while playing.
+- **Satisfyer with any script** – the stroke script becomes vibration live. No vibration script needed; several
+  Satisfyers at once, each with its own strength.
+- **Sync that stays in time** – Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2×.
+- **Library** – Stash scenes and folder videos with heatmap, intensity filter, 🔥 highlights, saved Stash filters,
+  2D-only mode, ratings and favourites back to Stash.
+- **Like an app** – install it on the home screen, swipe controls in fullscreen, picture-in-picture, mini player.
+- **Your own scripts** – control the devices by hand, ⏺ record along the video, replace just a section. Originals are
+  never overwritten.
+- **Natural picture** – small videos are upscaled on the server (Intel Quick Sync, otherwise CPU).
+- **VR** – HereSphere API for VR headsets.
+- **Emergency stop** – Esc and “Stop everything” always; optional STOP buttons, stop on screen lock, auto-stop.
 
-<p align="center">
-  <img src="docs/img/gh/h-for-whom.svg" alt="Who is it for? Whatever you own" width="100%">
-  <img src="docs/img/gh/for-whom.svg" alt="Just a Handy · Just a Satisfyer · A Stash library" width="100%">
-</p>
-
-<p align="center">
-  <img src="docs/img/gh/h-steps.svg" alt="In three steps – connect, pick, play" width="100%">
-  <img src="docs/img/gh/steps.svg" alt="1 Connect · 2 Pick a scene · 3 Play" width="100%">
-</p>
-
-## ✨ All features
-
-| | |
-|---|---|
-| 🎚 **One script, every device** | Pick the intensity once for Handy and Satisfyer: **Original** (untouched), **Automatic** (small strokes stretched, what the motor can't manage adapted – still exactly in time), **Gentle** or **Intense** – per scene right at the video, with a mini heatmap preview. |
-| 〰 **Satisfyer with any script** | The stroke script becomes vibration live – by rhythm, speed or position. No vibration script needed. Several Satisfyers at once, each with its own strength and lead; two motors can split into rhythm and tempo. |
-| ⏱️ **Sync that stays in time** | Handy cloud with clock sync; with an *Application ID* (API v3) even at 0.5×–2× playback. |
-| 👆 **Swipe in fullscreen** | Left/right half up/down – Handy stroke, Satisfyer strength, both devices or volume, configurable per half. |
-| 🔌 **Honest status** | “Connected” is checked for real (on return and every minute) and reconnects; if a device drops mid-video, the video pauses. Satisfyer battery in the device list. |
-| 📲 **Like an app** | Install it as an app with one tap, or put the whole app in fullscreen in the browser; leaving the app while the video plays opens picture-in-picture. |
-| ✋ **Your own scripts** | Control the devices yourself while watching (slider, quick picks, touch pad), record it as a script, replace just a section later. Originals are never overwritten. |
-| 📚 **Library** | Stash scenes and folder videos with heatmap, intensity filter, 🔥 highlights, saved Stash filters, 2D-only mode, mini player, picture-in-picture. |
-| ✨ **Natural picture** | Small videos are upscaled on the server (Intel Quick Sync / VAAPI) and lightly denoised; colours stay as in the original. More sharpness on request. |
-| 🥽 **VR** | HereSphere API for VR headsets – ratings and favourites go back to Stash. |
-| 🛑 **Emergency stop** | Esc and “Stop everything” in the devices window always; optional STOP buttons at the video, stop on screen lock and auto-stop after X minutes without input. |
-
-<p align="center"><img src="docs/img/gh/h-install.svg" alt="Installation – Docker in five minutes" width="100%"></p>
+<p align="center"><img src="docs/img/screens/desktop-player.png" alt="The player on a PC: video, script intensity, devices and the up-next list" width="100%"></p>
 
 ## 🚀 Quick start
 
+You need a server with **Docker** (Linux, NAS, Raspberry Pi, Mac with Apple silicon – images for amd64 and arm64).
 Grab `handy-player-linux-vX.Y.Z.zip` from the [latest release](../../releases/latest) (or clone this repo), then:
 
 ```bash
 unzip handy-player-linux-vX.Y.Z.zip && cd handy-player
-cp .env.example .env      # once: set STASH_URL, port and media folders if any
-nano .env
-docker compose pull && docker compose up -d
-docker logs Funscript-Player  # startup summary with self-check, ends with “✓ ready”
+cp .env.example .env
+nano .env                       # login, Stash address, video folder
+docker compose up -d
+docker logs Funscript-Player    # startup summary with self-check, ends with “✓ ready”
 ```
 
-- The player listens on `http://<server>:8080` (`PLAYER_PORT`). For **HTTPS** – needed for Bluetooth and “install as
-  app” – put any reverse proxy in front (Traefik, Caddy, nginx, Nginx Proxy Manager …), e.g.
-  `https://funscript-player.example.com` → port 8080 of the container.
-- **Update:** `docker compose pull && docker compose up -d` – the ready-made image comes from GitHub
-  (`ghcr.io/scripthost/funscript-player`). Build it yourself with `docker compose up -d --build`. Want to try what is
-  coming next? `PLAYER_VERSION=edge` in `.env` follows the latest tested state of `main` (no release, may change daily).
-- All server settings live in **`.env`**; `docker-compose.yml` only reads them. Updates never overwrite your `.env`.
-- **Stash:** best reached directly over a shared Docker network, e.g. `STASH_URL=http://Stash:9999` (container name) –
-  the player never hands Stash addresses to the browser, so no public DNS name is needed.
-- **Media folders** are commented out by default (Stash only). Every folder under `/media/<name>` becomes a source; a video
-  and its script share the same name (`Name.mp4` + `Name.funscript`).
-- **HQ stream:** works without any GPU (on the CPU). With Intel graphics it is much faster: enable the two `/dev/dri`
-  lines in `docker-compose.yml` and set `RENDER_GID` = GID of the host group `render` (`getent group render`).
-- The container runs as user `node` (1000), never as root; `PUID`/`PGID` change it. `PLAYER_MEM` (default 2g) caps
-  its memory – if the player runs out, only the player is hit, not Stash.
+Open `http://<server>:8080`.
 
-### Upgrading from 1.19.6 or older: container and volume were renamed
+- **Login** – required since 2.0. Either set `AUTH_USER` + `AUTH_PASS` in `.env`, or leave them empty: the player then
+  opens a **setup page** where you choose user name and password (change or remove it later in ⚙️ → Security &
+  privacy). `LOGIN=off` only if a reverse proxy with its own login protects the player. Forgotten? `LOGIN_RESET=1`,
+  restart, remove the line again.
+- **Stash** – `STASH_URL` is seen from inside the container: on a shared Docker network use the container name
+  (`http://Stash:9999`), not `localhost`. No Stash? `STASH=off`. Address and API key can also be changed in ⚙️ → Library.
+- **Video folders** – `MEDIA=/path/to/videos`: every subfolder becomes a source. A video and its script share the
+  name (`Name.mp4` + `Name.funscript`).
+- **HTTPS** – needed for Bluetooth (Satisfyer) and “install as app”: put any reverse proxy in front (Traefik, Caddy,
+  nginx, Nginx Proxy Manager …), e.g. `https://player.example.com` → port 8080. See [Security](#-security--proxy).
+- **Update** – `docker compose pull && docker compose up -d`. Your `.env` and the `funscript-data` volume stay.
+  Want to try what's next? `PLAYER_VERSION=edge` follows the latest tested state of `main`.
+- **Intel graphics** (optional, faster HQ stream) – enable the two `/dev/dri` lines in `docker-compose.yml` and set
+  `RENDER_GID` (`getent group render`). Without them the HQ stream runs on the CPU.
+
+Everything else is optional and commented out at the bottom of `.env.example`.
+
+## 📱 Using it
+
+1. Tap the status at the top (or **Devices**) → connect the Handy with its connection key and/or the Satisfyer via
+   Bluetooth (Chrome/Edge on Android or PC; on iPhone the *Bluefy* app).
+2. Pick a scene in the library and press play. Below the video you only see the controls of connected devices.
+3. If a script is off: shift the **offset** or tap along to calibrate it (saved per scene).
+
+Settings are grouped into pages: Devices, Security & privacy, Script, Library, Picture & display, VR & HereSphere,
+System. ⚙️ → System shows **“Update available”** when there is a newer release.
+
+## 🔒 Security & proxy
+
+- **Login is required.** Rule order: `.env` (`AUTH_USER`/`AUTH_PASS`) > login set up in ⚙️ > `LOGIN=off` > setup page.
+  Passwords set in the interface are stored as scrypt hashes; 10 wrong attempts per minute lock out guessing.
+- **Reverse proxy with its own login:** exclude **only `/heresphere`** (HereSphere can't do browser logins) – never
+  `/stash` or `/media`. `PLAYER_BIND=127.0.0.1` publishes the port only on the server itself, so nobody gets past
+  the proxy.
+- **HereSphere** is off by default. If you switch it on, give it its own password (⚙️ → VR & HereSphere) – without
+  one, the `/heresphere` exception in your proxy is an open door to your library. Its token in the URL never expires;
+  if it leaks, set a new password (that logs out all devices).
+- The server only accepts changes from its own page (origin check), can't be embedded in other sites and serves a
+  strict Content Security Policy.
+- The container runs as user `node` (never root), read-only, without Linux capabilities, with `no-new-privileges`
+  and a memory cap (`PLAYER_MEM`, default 2g). It only writes to its data volume.
+- Intiface relay: home-network addresses and port 12345 only (`INTIFACE_LAN_ONLY`, `INTIFACE_PORTS`).
+
+Found a vulnerability? See [SECURITY.md](SECURITY.md).
+
+## 🛡 Privacy
+
+- **The container needs no internet access.** It only talks to Stash and serves the player to your browser. The only
+  exception is the optional update check (GitHub, at most every 6 h) – `UPDATE_CHECK=off` switches it off.
+- **The Handy over Wi-Fi goes through the Handy cloud (handyfeeling.com).** Your browser – not the server – sends
+  your connection key and the **Funscript of the current video** there, because the Handy plays scripts from the
+  cloud. The script is uploaded as a CSV with the neutral name `script.csv`; videos and titles stay on your server.
+- The connection key is stored on your player server so all your devices know it.
+- **Satisfyer** connects via Bluetooth from the browser or through Intiface Central in your home network – no cloud.
+  The Handy can also run via Bluetooth through Intiface, then without the Handy cloud.
+
+## 📚 Stash 0.32+
+
+Stash 0.32 rejects requests from networks it considers public when Stash has no login – the player then shows
+**“HTTP 403”**. Some Docker networks count as public. Two ways out:
+
+- Allow the player's network in Stash's `config.yml`, e.g. `public_whitelist: ["172.18.0.0/16"]`, and restart Stash.
+  The player shows the exact line for your network in ⚙️ → Library and in `docker logs`.
+- Or set a user + password in Stash and put its API key into `STASH_API_KEY` (or ⚙️ → Library). The key never
+  leaves the player server.
+
+⚙️ → Library shows the connection status and has a **Test connection** button; the player retries every 30 s.
+
+## 🥽 VR (HereSphere)
+
+Switch it on in ⚙️ → VR & HereSphere, then open the player's normal address in HereSphere – it is redirected to
+`/heresphere` automatically. VR videos by default; categories for all scenes with scripts, saved Stash filters and
+folders. HereSphere drives the Handy itself (enter the connection key there). `HERESPHERE=off` switches it off for good.
+
+## 💾 Data
+
+Everything the player stores lives in the `funscript-data` volume – back it up and you have backed up everything:
+settings shared by all devices (`prefs.json`), patterns (`store.json`), server switches and login hashes
+(`settings.json`), your own scripts (`scripts/`, `userscripts.json`) and the Handy upload cache.
+
+<details>
+<summary>Upgrading from 1.19.6 or older (container and volume were renamed)</summary>
 
 Since 1.19.7 the container is called `Funscript-Player` and the volume `funscript-data` (before: `Handy-Player` and
-`<folder>_handy-data`). A new volume starts empty – copy your old data (key, settings, own scripts) over once:
+`<folder>_handy-data`). Copy your old data over once:
 
 ```bash
 docker volume ls | grep handy-data          # find the old name, e.g. handy-player_handy-data
@@ -101,115 +156,54 @@ docker volume create funscript-data
 docker run --rm -v handy-player_handy-data:/from -v funscript-data:/to alpine cp -a /from/. /to/
 docker compose pull && docker compose up -d
 ```
+</details>
 
-Once everything works, the old volume can go: `docker volume rm handy-player_handy-data`.
+<details>
+<summary>Upgrading from 1.19 to 2.0</summary>
 
-### What lives in the `funscript-data` volume?
-
-Everything the player stores – back up this volume and you have backed up everything. Delete it and the player really
-starts fresh (browsers forget the shared settings too).
-
-| File | Contents |
-|---|---|
-| `prefs.json` | Settings shared by all devices: connection key, Application ID, offsets and stroke per scene, script intensity, Satisfyer translation, emergency stop … |
-| `store.json` | Patterns (🎮 Control → Patterns) |
-| `settings.json` | Server switches from the UI: HereSphere on/off, VR only, HereSphere password (scrypt hash), Intiface LAN only |
-| `scripts/` + `userscripts.json` | Own scripts (touch recordings, recordings along the video) for Stash scenes and the index of all own scripts |
-| `handy-cache.json` | Scripts already uploaded to the Handy (faster start) |
-
-## Usage
-
-1. Tap the status at the top → connect the Handy (connection key, optional Application ID) and/or the Satisfyer
-   (Bluetooth right in Chrome/Edge, on iPhone the “Bluefy” app).
-2. Pick a scene in the library and press play. Below the video you only see the controls of connected devices.
-3. If a script is noticeably off: shift the **offset** or calibrate it by tapping the beat (🎯, saved per scene).
-
-Every settings section is collapsible; fine-tuning (Satisfyer translation, picture, finale, display …) appears with
-**⚙️ → Settings → Show advanced settings**. ⚙️ → System shows **“Update available”** when GitHub has a newer release.
-
-## Network & privacy
-
-- **The container needs no internet access.** It only talks to Stash (usually in your own network) and serves the
-  player to your browser. The only exception is the optional update check (asks GitHub at most every 6 h for the
-  newest release) – switch it off with `UPDATE_CHECK=off`.
-- **The Handy is controlled by your device, not by the server.** The browser on your phone/PC talks directly to the
-  Handy cloud (handyfeeling.com) – with your connection key and the script of the current video, because the Handy
-  plays scripts from there. The player server never sends anything to the Handy cloud.
-- The connection key is stored on the player server (data volume) so all your devices know it – it only goes out
-  from your browser to the Handy cloud.
-- **Satisfyer** connect via Bluetooth directly from the browser, or through Intiface Central in your home network –
-  no cloud involved. The Handy can also run via Bluetooth through Intiface, then without the Handy cloud.
-
-## Security
-
-- Login is required since 2.0: set `AUTH_USER`/`AUTH_PASS` (basic auth), or set user + password on the player's first
-  page / in ⚙️ → Security & privacy (also with `LOGIN=off`; removable there again) – or `LOGIN=off` on purpose, e.g. behind
-  a reverse proxy with its own login. Order: `.env` > set in ⚙️ > `LOGIN=off`. Forgotten? `LOGIN_RESET=1` + restart.
-- Stash address and API key can also be changed in ⚙️ → Library (overrides `STASH_URL`/`STASH_API_KEY`).
-- The server only accepts changes from its own page (origin check) and can’t be embedded in other sites.
-- Intiface forwarding: home-network addresses only by default (192.168.x / 10.x; fixed with `INTIFACE_LAN_ONLY=1`),
-  port 12345 only – allow more with `INTIFACE_PORTS` (comma-separated).
-- The container runs read-only, with `/tmp` as tmpfs, without Linux capabilities (`cap_drop: ALL`) and with
-  `no-new-privileges`; it only writes to its data volume.
-- A strict Content Security Policy only allows the player's own scripts.
-- HereSphere password: stored as a scrypt hash; a new password logs out all devices.
-
-## Development
-
-```bash
-MEDIA_DIR=./testmedia DATA_DIR=./data node server.js   # → http://localhost:8080
-node --test "test/*.test.js"                           # automated tests, no packages needed
-```
-
-At startup the container checks itself (data folder, stored files, every UI script and control, script intensity) –
-see `docker logs`. For development, `?selbsttest` runs typical flows with a simulated Handy. Technical details:
-[DEVELOPMENT.md](DEVELOPMENT.md). Release history: [CHANGELOG.md](CHANGELOG.md). Want to help? [CONTRIBUTING.md](CONTRIBUTING.md).
+- Take the new `docker-compose.yml` and compare your `.env` with the new `.env.example`. Video folders are now one
+  line: `MEDIA=/path` (its subfolders become sources) instead of `MEDIA_FILME`, `MEDIA_DOWNLOADS` … – or keep your own
+  extra volume lines.
+- Set a login (`AUTH_USER`/`AUTH_PASS`) or use the setup page on first start.
+- Behind a reverse proxy: remove the exceptions for `/stash` and `/media`, keep only `/heresphere`.
+- HereSphere users: reload the library in HereSphere once (addresses changed).
+</details>
 
 ## ❓ FAQ / Troubleshooting
 
-- **“Handy is not online”** – the Handy must be in Wi-Fi mode and connected to the internet (LED blue), and the
-  connection key must be right (⚙️ → Devices). Turn it on, then tap the status at the top → *Connect*.
-- **The Satisfyer doesn't show up** – Bluetooth in the browser needs **Chrome or Edge** (Android/PC; iPhone: the *Bluefy*
-  app) and **HTTPS** or `localhost`. Close the Satisfyer app first (only one connection at a time) and try *Show all
-  Bluetooth devices*.
-- **Devices are off the beat** – shift the offset or calibrate it by tapping the beat (🎯, saved per scene). With an
-  *Application ID* (Handy API v3) the Handy also stays in sync at 0.5×–2×. A yellow status means the Handy cloud answers
-  slowly.
-- **Stash not reachable** – `STASH_URL` is seen from inside the container: on a shared Docker network use the container
-  name (e.g. `http://Stash:9999`), not `localhost`. Check the line `Stash:` in `docker logs Funscript-Player`.
-  ⚙️ → Library shows the connection and has a **Test connection** button; the player retries every 30 s on its own.
-- **Stash 0.32+ answers `HTTP 403`** – Stash without its own login rejects networks it considers public (some Docker
-  networks count as public). Either allow the player's network in Stash's `config.yml`
-  (`public_whitelist: ["172.18.0.0/16"]` – the player shows the right line in ⚙️ → Library and in `docker logs`) and
-  restart Stash, or set a user + password in Stash and put its API key into `STASH_API_KEY`.
-- **HQ stream says “CPU” or “not available”** – with Intel graphics: enable `/dev/dri` in `docker-compose.yml` and set `RENDER_GID` to the GID of the host group
-  `render` (`getent group render`).
-- **HereSphere asks for the password again** – passwords from before 1.19.5 are no longer accepted; set it once more
-  under ⚙️ → VR.
-- **Update** – `docker compose pull && docker compose up -d`; your data stays in the `funscript-data` volume.
+- **“Handy is not online”** – the Handy must be in Wi-Fi mode and online (LED blue) and the connection key right.
+- **The Satisfyer doesn't show up** – Bluetooth in the browser needs **Chrome or Edge** (iPhone: *Bluefy*) and
+  **HTTPS** or `localhost`. Close the Satisfyer app first (only one connection at a time).
+- **Devices are off the beat** – shift the offset or tap along to calibrate. A yellow status means the Handy cloud
+  answers slowly.
+- **Stash not reachable** – check the line `Stash:` in `docker logs Funscript-Player` and ⚙️ → Library →
+  *Test connection*. `HTTP 403` → see [Stash 0.32+](#-stash-032).
+- **HQ stream says “CPU” or “not available”** – enable `/dev/dri` (Intel graphics only) and set `RENDER_GID`.
+- **Locked out** – `LOGIN_RESET=1` in `.env`, `docker compose up -d`, log in / set up again, remove the line.
 
-## Notes
+## 🛠 Development
 
-- **Privacy:** for Wi-Fi control only the Funscript is uploaded to the Handy’s script hosting (as CSV with the neutral
-  name `script.csv`). Videos and titles stay on your server.
-- **Formats:** whatever your browser plays – MP4 (H.264/H.265) and WebM everywhere, MKV depending on the browser;
-  Stash scenes in other formats are converted live.
+```bash
+MEDIA_DIR=./testmedia DATA_DIR=./data node server.js   # → http://localhost:8080
+node --test "test/*.test.js"                           # tests incl. a browser self-test, no packages needed
+```
 
-## Trademarks
+Technical details: [DEVELOPMENT.md](DEVELOPMENT.md) · Release history: [CHANGELOG.md](CHANGELOG.md) · Want to help?
+[CONTRIBUTING.md](CONTRIBUTING.md). The user interface is available in English and German.
+
+## Trademarks & how it is made
 
 “The Handy”, “Satisfyer”, “Stash”, “HereSphere” and “Intiface” are names of their respective owners. This is an
 independent hobby project – not affiliated with, endorsed or sponsored by any of them.
 
-## How it is made
-
-This is a hobby project, built with the help of **Claude** (Anthropic) – much of the code is AI-written. Every release
-is checked by automated tests, a browser self-test, ESLint and code scanning before it goes out.
+Built with the help of **Claude** (Anthropic) – much of the code is AI-written. Every release is checked by automated
+tests, a browser self-test, ESLint and code scanning before it goes out.
 
 ## License
 
 Copyright © 2026 Funscript Player contributors. Licensed under the **[GNU AGPL-3.0](LICENSE)**: use, self-host and
-change it freely; if you offer a modified version to others – also as a service over the network – you have to share its
-source code under the same license.
+change it freely; if you offer a modified version to others – also as a service over the network – you have to share
+its source code under the same license.
 
 ---
 
@@ -217,6 +211,5 @@ source code under the same license.
   <a href="../../releases"><b>Releases</b></a> ·
   <a href="CHANGELOG.md"><b>Changelog</b></a> ·
   <a href="DEVELOPMENT.md"><b>Developer docs</b></a> ·
-  <a href="../../issues/new/choose"><b>Report a bug / idea</b></a> ·
-  <a href="README.de.md"><b>🇩🇪 Deutsch</b></a>
+  <a href="../../issues/new/choose"><b>Report a bug / idea</b></a>
 </p>

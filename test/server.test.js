@@ -457,20 +457,3 @@ test('test12: /api/library meldet VR-Videos (für „Nur 2D“ bei Ordnern)', as
     assert.strictEqual(vr['Filme/Clip VR 6K.mp4'], true);
   } finally { s.stop(); }
 });
-
-test('test13: Cast-Token – Fernseher holt nur Videos ohne Anmeldung', async () => {
-  const s = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'geheim123' }, (media) => fs.writeFileSync(path.join(media, 'Filme', 'tv.mp4'), 'x'));
-  const auth = { Authorization: 'Basic ' + Buffer.from('u:geheim123').toString('base64') };
-  try {
-    assert.strictEqual((await fetch(s.base + '/api/cast/token')).status, 401, 'Token nur mit Anmeldung');
-    const { token, exp } = await (await fetch(s.base + '/api/cast/token', { headers: auth })).json();
-    assert.ok(exp * 1000 > Date.now() + 23 * 3600000);
-    assert.strictEqual((await fetch(s.base + '/media/Filme/tv.mp4')).status, 401);
-    assert.strictEqual((await fetch(s.base + '/media/Filme/tv.mp4?cast=' + token)).status, 200);
-    assert.strictEqual((await fetch(s.base + '/media/Filme/tv.mp4?cast=' + token.replace(/.$/, (c) => (c === '0' ? '1' : '0')))).status, 401, 'falsche Unterschrift');
-    assert.strictEqual((await fetch(s.base + '/media/Filme/tv.mp4?cast=1000000000.' + token.split('.')[1])).status, 401, 'abgelaufen');
-    for (const p of ['/api/version', '/api/settings', '/api/library', '/', '/index.html']) {
-      assert.strictEqual((await fetch(s.base + p + '?cast=' + token)).status, 401, p + ' bleibt hinter der Anmeldung');
-    }
-  } finally { s.stop(); }
-});

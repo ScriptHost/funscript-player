@@ -1,7 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 56" width="190" height="56" role="img" aria-label="Download ZIP" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
-<defs>
-  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
-  
-</defs>
-<rect x="1" y="1" width="188" height="54" rx="14" fill="#1a1d23" stroke="#2c313b" stroke-width="2"/><text x="95" y="35" text-anchor="middle" font-size="19" font-weight="600" fill="#e8eaed">Download ZIP</text>
+<defs><linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient></defs>
+<rect x=".75" y=".75" width="188.5" height="54.5" rx="14" fill="#131316" stroke="#26262c" stroke-width="1.5"/><text x="95" y="35" text-anchor="middle" font-size="19" font-weight="600" fill="#f2f2f5">Download ZIP</text>
 </svg>

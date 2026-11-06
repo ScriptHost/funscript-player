@@ -31,6 +31,9 @@
   --err: #ff5c6c;
   --neon-1: #22d3ee; --neon-2: #b46cff; --neon-3: #ff4fa3;
   --neon: linear-gradient(90deg, var(--neon-1), var(--neon-2) 55%, var(--neon-3));
+  /* beta1: Neon-Rand der Hauptknöpfe minimal gedämpft (Nutzer: leuchtet im Geräte-Fenster zu stark) */
+  --neon-soft: linear-gradient(90deg, color-mix(in srgb, var(--neon-1) 70%, var(--surface2)), color-mix(in srgb, var(--neon-2) 70%, var(--surface2)) 55%, color-mix(in srgb, var(--neon-3) 70%, var(--surface2)));
+  --range: #9b5fe0; /* beta1: Schieberegler etwas dunkler als --accent */
 
   /* nach test8: Leuchten deutlich schwächer (Nutzer: „zu aggressiv“) */
   --glow-accent: 0 0 6px rgba(180, 108, 255, .08);
@@ -146,7 +149,7 @@ input[type=password], input[type=search] {
   border-radius: 6px;
   font: inherit;
 }
-input[type=range] { width: 100%; accent-color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--range); }
 
 button, .btn {
   display: inline-block;
@@ -977,7 +980,7 @@ body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
 /* 2.0 nach test2: dunkle Fläche mit Neon-Rand statt vollem Verlauf (Nutzer: „zu krass“) */
 .ui-btn.primary {
   color: #fff; border: 1.5px solid transparent; box-shadow: var(--glow-accent);
-  background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--neon) border-box;
+  background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--neon-soft) border-box;
 }
 .ui-btn.ghost { background: transparent; }
 .ui-btn.stop { background: var(--stop); color: #fff; border: 0; font-weight: 700; letter-spacing: .04em; }
@@ -1143,9 +1146,6 @@ body.hud-off-devices .pl-dock { display: none; }
 /* ---------- Player-Leiste und eigenes Vollbild ---------- */
 .ov-top { background: linear-gradient(rgba(11, 11, 13, .8), transparent); }
 .ov-bottom { background: linear-gradient(transparent, rgba(11, 11, 13, .85) 45%); }
-/* test13: Cast-Knopf – Symbol wie üblich, verbunden = Akzentfarbe */
-.cast-btn svg { display: block; margin: auto; }
-.cast-btn.active { color: var(--accent, #b46cff); }
 #ovBar { border-radius: 6px; outline: 1px solid rgba(255, 255, 255, .08); outline-offset: -1px; } /* test12: feine Kontur wie die Karten */
 .drop:not(.fs) #ovBar { height: 18px; }
 .ov-row button {

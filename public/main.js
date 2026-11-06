@@ -19,12 +19,11 @@ import { init as touchpad } from './touchpad.js';
 import { init as settings } from './settings.js';
 import { init as nav } from './nav.js';
 import { init as player } from './player.js';
-import { init as cast } from './cast.js';
 
 // Sprache zuerst: feste Texte (auch in <template>) – danach setzen die Module ihre wechselnden Texte selbst
 applyLang();
 for (const tpl of document.querySelectorAll('template')) applyLang(tpl.content);
-for (const [name, init] of Object.entries({ cast, app, library, control, vibe, fullscreen, gestures, enhance, hq, finale, tools, stroker, selfctl, touchpad, settings })) {
+for (const [name, init] of Object.entries({ app, library, control, vibe, fullscreen, gestures, enhance, hq, finale, tools, stroker, selfctl, touchpad, settings })) {
   modulesReady.add(name);
   init();
 }

@@ -20,6 +20,12 @@ The big redesign. A beta: please report anything odd.
   choose user name and password. Or set `AUTH_USER` + `AUTH_PASS` in `.env`, or `LOGIN=off` if a reverse proxy with
   its own login protects it. The example password `change-me` does not count.
 - **HereSphere is off by default on new installs** (existing installs keep their setting) – switch it on in ⚙️ → VR & HereSphere.
+  HereSphere addresses changed: reload the library in HereSphere once.
+- **New, much shorter `docker-compose.yml` and `.env.example`:** required values on top, everything else optional.
+  Video folders are now one line, `MEDIA=/path` (every subfolder becomes a source), instead of `MEDIA_FILME` … –
+  take the new `docker-compose.yml` and compare your `.env`.
+- **Behind a reverse proxy with its own login:** only `/heresphere` needs an exception now – remove exceptions for
+  `/stash` and `/media`.
 - **Stash 0.32+ answers “HTTP 403”** when Stash has no login and the player's Docker network counts as public. The player
   shows the exact `public_whitelist` line for Stash's `config.yml` in ⚙️ → Library and in `docker logs`.
 
@@ -35,11 +41,11 @@ The big redesign. A beta: please report anything odd.
 **Player and devices**
 
 - Several scripts per video (`clip.soft.funscript` …) for folders and Stash, switchable while playing
-- Intensity presets Auto · Original · Gentle · Intense – Intense keeps the rhythm and only uses a longer stroke
+- Intensity presets Auto · Original · Soft · Intense – Intense keeps the rhythm and only uses a longer stroke
 - 🌱 Warm-up: slow, gentle movement/vibration – also while the video is paused
 - ⏺ Record your own script along the video, name your recordings; patterns and recordings as cards
 - “✕ Close video”; the player area becomes “Control” without a video
-- Picture-in-picture only via ⧉ (no more black mini window when leaving fullscreen)
+- Picture-in-picture only via ⧉ (no more black mini window when leaving fullscreen); leaving it returns to the full player
 - Device checks every time you come back to the app; no Handy warning while another device (e.g. Satisfyer) plays
 - Demo mode: blurred videos, previews and names, no sound, virtual Handy and Satisfyer
 
@@ -59,6 +65,7 @@ The big redesign. A beta: please report anything odd.
 - Brake against password guessing (10 attempts per minute), login password stored as scrypt hash
 - `PLAYER_BIND` to publish the port only locally (e.g. behind a proxy); `UPDATE_CHECK=off`
 - Intel graphics check in `docker logs` and ⚙️ → System; the container stops immediately on `docker stop`
+- The Docker image now also runs on ARM64 (Apple silicon, Raspberry Pi …) – the HQ stream uses the CPU there
 
 ## 1.19.11 – 04.11.2026
 

@@ -123,7 +123,7 @@
           <button id="closeVideoBtn" class="back" data-i18n="player.closeVideo">✕ Close video</button>
         </div>
         <div id="drop" class="drop" data-fit="cover">
-          <video id="video" x-webkit-airplay="allow" playsinline preload="metadata"></video>
+          <video id="video" disableremoteplayback playsinline preload="metadata"></video>
           <canvas id="enh" class="enh"></canvas>
           <div data-i18n-html="ui.dropVideoFunscriptHere" id="dropHint" class="hint">Drop video + .funscript here <small>or pick a scene in the library</small></div>
 
@@ -164,7 +164,6 @@
                 <button id="ovFinale" class="sync-only finale-btn" title="Finale: calmer – mode in settings (O)" data-i18n-title="ui.finaleCalmerModeIn">🔥</button>
                 <button id="ovVibe" class="sync-only" title="Pause vibration" data-i18n-title="ui.pauseVibration">Vib ❚❚</button>
                 <button data-i18n="ui.fit" id="ovFit" title="Fill / fit picture" data-i18n-title="ui.fillFitPicture">Fit</button>
-                <button id="ovCast" class="cast-btn" title="Stream to TV (Chromecast / AirPlay)" data-i18n-title="ui.castTitle" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 7V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M3 11a9 9 0 0 1 9 9M3 15a5 5 0 0 1 5 5"/><circle cx="3.5" cy="19.5" r="1.5" fill="currentColor"/></svg></button>
                 <button id="ovPip" title="Picture-in-picture – floats over other apps" data-i18n-title="ui.pictureInPictureFloats" hidden>⧉</button>
                 <button id="ovFs" title="Fullscreen (F)" data-i18n-title="ui.fullscreenF">⛶</button>
               </div>

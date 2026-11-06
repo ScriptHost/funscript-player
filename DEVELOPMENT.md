@@ -136,7 +136,7 @@ All responses are JSON except file streams. With `AUTH_USER`/`AUTH_PASS`, basic 
 
 ## Configuration
 
-With Docker all values live in `.env` (template `.env.example`); `docker-compose.yml` only reads them.
+With Docker all values live in `.env` (template `.env.example`, required values on top, the rest commented out); `docker-compose.yml` passes the whole file to the container (`env_file`) and only uses a few values itself (port, image version, `MEDIA`, user, memory).
 
 | Variable | Default | Meaning |
 |---|---|---|

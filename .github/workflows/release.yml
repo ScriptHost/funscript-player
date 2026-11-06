@@ -1,5 +1,6 @@
 # Release je Versions-Tag: ZIP (handy-player-linux-vX.Y.Z.zip) + Text aus CHANGELOG.md (englisch, Stand main)
-# + Docker-Image auf GitHub (ghcr.io/scripthost/funscript-player:X.Y.Z und :latest).
+# + Docker-Image auf GitHub (ghcr.io/scripthost/funscript-player:X.Y.Z und :latest, amd64 + arm64).
+#   Vorabversion (Tag mit „-“, z. B. v2.0.0-beta1): „Pre-release“, Image nur mit Versionsnummer, :latest bleibt.
 #   Neuer Tag            -> nur dieser.
 #   Manuell (Actions -> Release -> Run workflow):
 #     recreate = false   -> alle Tags ohne Release nachholen
@@ -72,10 +73,13 @@ jobs:
         run: |
           git fetch --force --tags -q   # Tag-Nachrichten vollständig (checkout macht den Tag sonst „leicht“)
           git show origin/main:CHANGELOG.md > changelog.en.md
-          newest=$(git tag --sort=v:refname | tail -1)
-          if [ "$GITHUB_REF_TYPE" = "tag" ]; then tags="$GITHUB_REF_NAME"; else tags=$(git tag --sort=v:refname); fi
+          # Vorabversionen (Tag mit „-“, z. B. v2.0.0-beta1): Release als „Pre-release“, nie „Latest“, Image ohne :latest.
+          # versionsort.suffix: v2.0.0-beta1 sortiert VOR v2.0.0
+          vsort() { git -c versionsort.suffix=- tag --sort=v:refname; }
+          newest=$(vsort | grep -v -- - | tail -1)
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then tags="$GITHUB_REF_NAME"; else tags=$(vsort); fi
           if [ "$GITHUB_REF_TYPE" = "tag" ] && git tag -l --format="%(contents)" "$GITHUB_REF_NAME" | grep -qF "[alle Releases neu]"; then
-            RECREATE=true; tags=$(git tag --sort=v:refname)
+            RECREATE=true; tags=$(vsort)
           fi
           # Fehler einer Version als Hinweis (öffentlich lesbar, auch ohne Anmeldung) melden und weitermachen
           fail=0
@@ -100,7 +104,12 @@ jobs:
             v="${t#v}"
             awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' changelog.en.md > notes.md
             [ -s notes.md ] || echo "Version $v" > notes.md
-            printf '\n---\nDocker: `docker compose pull && docker compose up -d` · Image `ghcr.io/scripthost/funscript-player:%s`\n' "$v" >> notes.md
+            pre=""
+            case "$v" in *-*)
+              pre="--prerelease"
+              printf '\n---\n**Pre-release** – `:latest` stays on the last stable version. To try it: `PLAYER_VERSION=%s` in `.env`, then `docker compose pull && docker compose up -d`. Back: `PLAYER_VERSION=latest`.\n' "$v" >> notes.md ;;
+            esac
+            printf '\n---\nDocker: `docker compose pull && docker compose up -d` · Image `ghcr.io/scripthost/funscript-player:%s` (amd64 + arm64)\n' "$v" >> notes.md
             zip="handy-player-linux-$t.zip"
             git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github' 2>err.txt || { err "$t ZIP"; continue; }
             # Prüfsumme zum Nachrechnen: sha256sum -c handy-player-linux-vX.Y.Z.zip.sha256
@@ -111,7 +120,7 @@ jobs:
             cosign sign-blob --yes --bundle "$sig" "$zip" >/dev/null 2>err.txt || { echo "::warning title=$t Signatur::$(tr '\n' ' ' < err.txt | cut -c1-300)"; sig=""; }
             printf '\nSHA-256 of the ZIP: `%s` – the image comes with an SBOM and a build provenance attestation.\n' "$(cut -d' ' -f1 "$zip.sha256")" >> notes.md
             if [ "$t" = "$newest" ]; then latest="--latest"; else latest="--latest=false"; fi
-            retry gh release create "$t" "$zip" "$zip.sha256" $sig --title "$v" --notes-file notes.md $latest || { err "$t anlegen"; continue; }
+            retry gh release create "$t" "$zip" "$zip.sha256" $sig --title "$v" --notes-file notes.md $latest $pre || { err "$t anlegen"; continue; }
             echo "$t: Release erstellt"
           done
           exit $fail
@@ -131,9 +140,13 @@ jobs:
         id: v
         run: |
           t="${GITHUB_REF_NAME}"
-          [ "$GITHUB_REF_TYPE" = "tag" ] || t=$(git tag --sort=v:refname | tail -1)
+          [ "$GITHUB_REF_TYPE" = "tag" ] || t=$(git -c versionsort.suffix=- tag --sort=v:refname | tail -1)
           git checkout -q "$t"
           echo "version=${t#v}" >> "$GITHUB_OUTPUT"
+          # Vorabversion (z. B. 2.0.0-beta1): nur die Versionsnummer, :latest bleibt auf der letzten stabilen
+          case "$t" in *-*) echo "latest=false" >> "$GITHUB_OUTPUT" ;; *) echo "latest=true" >> "$GITHUB_OUTPUT" ;; esac
+      # ARM64 (2.0): Apple silicon, Raspberry Pi … – gebaut über QEMU auf dem amd64-Runner
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
       # SBOM und Herkunftsnachweis gehen nur mit dem buildx-Container-Treiber (nicht mit dem Standard-„docker“-Treiber)
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
@@ -145,9 +158,10 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/amd64,linux/arm64
           # Software-Stückliste (SBOM) und Herkunftsnachweis (wo und woraus gebaut) hängen am Image
           sbom: true
           provenance: mode=max
           tags: |
             ghcr.io/scripthost/funscript-player:${{ steps.v.outputs.version }}
-            ghcr.io/scripthost/funscript-player:latest
+            ${{ steps.v.outputs.latest == 'true' && 'ghcr.io/scripthost/funscript-player:latest' || '' }}

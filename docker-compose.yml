@@ -1,8 +1,5 @@
-# Funscript Player – all values live in the .env file (template: .env.example, copy it once).
-# Update: docker compose pull && docker compose up -d   (ready-made image from GitHub)
-# Build it yourself instead: docker compose up -d --build
-# 1.19.7: container "Funscript-Player", volume "funscript-data" (before: Handy-Player / <folder>_handy-data –
-# moving your data over is a one-time copy, see README "Upgrading from 1.19.6 or older")
+# Funscript Player – your settings live in .env (copy .env.example once). This file rarely needs changes.
+# Update: docker compose pull && docker compose up -d   ·   build it yourself: docker compose up -d --build
 name: funscript-player
 services:
   funscript-player:
@@ -10,57 +7,30 @@ services:
     build: .
     container_name: Funscript-Player
     restart: unless-stopped
-    user: "${PUID:-1000}:${PGID:-1000}"          # never root
-    security_opt: [no-new-privileges:true]
-    # Hardened: read-only file system (writes only go to the volume and /tmp), no extra privileges
-    read_only: true
-    tmpfs: [/tmp]
-    cap_drop: [ALL]
-    # Memory limit: if the player runs full (e.g. several HQ conversions), only the player is affected – not Stash
-    mem_limit: ${PLAYER_MEM:-2g}
-
-    # Who can reach the player – switch PLAYER_BIND in .env:
-    #   0.0.0.0   = whole home network: http://<server>:<PLAYER_PORT> (default, simplest start)
-    #   127.0.0.1 = only this server – use it when a reverse proxy runs here (in the same Docker network the
-    #               proxy still reaches port 8080 directly); nobody else in the network gets in past the proxy
-    # For HTTPS (needed for Bluetooth and "install as app") put a reverse proxy in front,
-    # e.g. https://funscript-player.example.com -> port 8080.
+    env_file:
+      - path: .env
+        required: false
     ports:
       - "${PLAYER_BIND:-0.0.0.0}:${PLAYER_PORT:-8080}:8080"
+    volumes:
+      - funscript-data:/app/data                # everything the player saves – back up this volume
+      - ${MEDIA:-./media}:/media:ro             # video folders: every subfolder becomes a source
+      # Extra scripts next to Stash videos (clip.soft.funscript) – remove the "#" and set MEDIA_STASH in .env:
+      # - ${MEDIA_STASH}:/media/Stash:ro
 
-    # Intel graphics (Quick Sync) for a faster HQ stream – only if the host HAS Intel graphics: remove the "#" in front
-    # of both lines and set RENDER_GID in .env. Without them the player runs just the same; the HQ stream uses the CPU.
+    # Intel graphics (Quick Sync) for a faster HQ stream – only if the host HAS Intel graphics:
+    # remove the "#" in front of both lines and set RENDER_GID in .env (getent group render).
     # devices: [/dev/dri:/dev/dri]
     # group_add: ["${RENDER_GID:-992}"]
 
-    environment:
-      # Login is REQUIRED since 2.0: AUTH_USER + AUTH_PASS in .env, or set it up on the first page / in ⚙️ – or LOGIN=off
-      # if a proxy with its own login protects it. LOGIN_RESET=1 removes a login set in the interface (then remove it again).
-      AUTH_USER: ${AUTH_USER:-}
-      AUTH_PASS: ${AUTH_PASS:-}
-      LOGIN: ${LOGIN:-}
-      LOGIN_RESET: ${LOGIN_RESET:-}
-      STASH_URL: ${STASH_URL:-}
-      STASH_API_KEY: ${STASH_API_KEY:-}
-      STASH_INSECURE: ${STASH_INSECURE:-}
-      HQ_ACCEL: ${HQ_ACCEL:-}
-      HQ_MAX: ${HQ_MAX:-2}
-      HERESPHERE: ${HERESPHERE:-on}
-      INTIFACE_LAN_ONLY: ${INTIFACE_LAN_ONLY:-}
-      INTIFACE_PORTS: ${INTIFACE_PORTS:-}
-      LOG_LEVEL: ${LOG_LEVEL:-}
-      UPDATE_CHECK: ${UPDATE_CHECK:-}
-      TZ: ${TZ:-Europe/Berlin}
-
-    volumes:
-      - funscript-data:/app/data                # everything the player saves (see README)
-      # Video folders (optional, otherwise Stash only) – remove the "#", set the path in the .env:
-      # - ${MEDIA_FILME}:/media/Filme:ro
-      # - ${MEDIA_DOWNLOADS}:/media/Downloads:ro
-      # - ${MEDIA_VR}:/media/VR:ro
-      # Stash's video folder (optional): only needed for extra scripts next to Stash videos (clip.soft.funscript)
-      # - ${MEDIA_STASH}:/media/Stash:ro
+    # Hardening: never root, read-only, no Linux capabilities, memory cap (protects Stash and other containers)
+    user: "${PUID:-1000}:${PGID:-1000}"
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: ${PLAYER_MEM:-2g}
 
 volumes:
   funscript-data:
-    name: funscript-data                        # fixed name, independent of the folder name
+    name: funscript-data

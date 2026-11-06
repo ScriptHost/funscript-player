@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 96" width="960" height="96" role="img" aria-label="In three steps – Connect, pick, play" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
-<defs>
-  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
-  
-</defs>
-
-<text x="2" y="30" font-size="15" font-weight="700" letter-spacing="1.4" fill="#e0457b">IN THREE STEPS</text>
-<text x="0" y="76" font-size="36" font-weight="800" fill="#e8eaed">Connect, pick, play</text>
-</svg>

@@ -1,27 +1,27 @@
-name: 💡 Feature idea / Wunsch
-description: Suggest an improvement – Verbesserung vorschlagen
+name: 💡 Feature idea
+description: Suggest an improvement
 labels: [enhancement]
 body:
   - type: textarea
     id: what
     attributes:
-      label: What would you like? / Was wünschst du dir?
+      label: What would you like?
     validations:
       required: true
   - type: textarea
     id: why
     attributes:
-      label: Why – what problem does it solve? / Warum – welches Problem löst es?
+      label: Why – what problem does it solve?
   - type: dropdown
     id: where
     attributes:
-      label: Where in the player? / Wo im Player?
+      label: Where in the player?
       multiple: true
       options:
-        - Library / Bibliothek
+        - Library
         - Player
-        - Devices / Geräte (Handy, Satisfyer)
-        - Script intensity / Script-Intensität
-        - Settings / Einstellungen
+        - Devices (Handy, Satisfyer)
+        - Script intensity
+        - Settings
         - VR (HereSphere)
         - Docker / installation

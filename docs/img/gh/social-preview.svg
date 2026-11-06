@@ -1,23 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
-<!-- Vorschaubild für geteilte Links (GitHub → Settings → Social preview). PNG daraus: social-preview.png -->
-<defs>
-  <linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#ff5c93"/><stop offset="1" stop-color="#a07bff"/></linearGradient>
-  <linearGradient id="heat" x1="0" x2="1">
-    <stop offset="0" stop-color="#1e3c9f"/><stop offset=".18" stop-color="#1e90ff"/><stop offset=".35" stop-color="#28c864"/>
-    <stop offset=".52" stop-color="#f0d228"/><stop offset=".7" stop-color="#fa821e"/><stop offset=".85" stop-color="#e62832"/><stop offset="1" stop-color="#fa821e"/>
-  </linearGradient>
-</defs>
-<rect width="1280" height="640" fill="#111317"/>
-<!-- Logo -->
-<g transform="translate(560 70)">
-  <rect width="160" height="160" rx="30" fill="#1b1e24" stroke="#2c313a" stroke-width="2"/>
-  <circle cx="80" cy="80" r="47" fill="#e0457b"/>
-  <path d="M69 55 L108 80 L69 105 Z" fill="#fff"/>
-</g>
-<text x="640" y="318" text-anchor="middle" font-size="76" font-weight="800" fill="#e8eaed">Funscript <tspan fill="url(#grad)">Player</tspan></text>
-<text x="640" y="378" text-anchor="middle" font-size="30" fill="#9aa1ab">Your video. Your devices. Perfectly in sync.</text>
-<!-- Heatmap-Leiste wie im Player -->
-<rect x="240" y="420" width="800" height="16" rx="8" fill="url(#heat)" opacity=".9"/>
-<text x="640" y="500" text-anchor="middle" font-size="26" font-weight="600" fill="#e8eaed">↕ The Handy  ·  〰 Satisfyer  ·  Stash  ·  HereSphere VR</text>
-<text x="640" y="560" text-anchor="middle" font-size="22" fill="#9aa1ab">Self-hosted · Docker · open source (AGPL-3.0)</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="Funscript Player" font-family="Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+<defs><linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#b46cff"/><stop offset="1" stop-color="#ff4fa3"/></linearGradient></defs>
+
+<rect width="1280" height="640" fill="#0b0b0d"/>
+<text x="640" y="150" text-anchor="middle" font-size="22" font-weight="700" letter-spacing="3" fill="#8b8a96">FUNSCRIPT PLAYER</text>
+<text x="640" y="262" text-anchor="middle" font-size="76" font-weight="800" fill="#f2f2f5">Your video. Your devices.</text>
+<text x="640" y="350" text-anchor="middle" font-size="76" font-weight="800" fill="url(#neon)">Perfectly in sync.</text>
+<text x="640" y="420" text-anchor="middle" font-size="26" fill="#8b8a96">The Handy · Satisfyer · Stash · self-hosted in Docker</text>
+<polygon points="140,570 140.0,508.1 146.3,506.3 152.5,504.8 158.8,503.5 165.0,502.3 171.3,501.5 177.5,500.8 183.8,500.4 190.0,500.2 196.3,500.3 202.5,500.6 208.8,501.2 215.0,502.0 221.3,503.0 227.5,504.3 233.8,505.8 240.0,507.5 246.3,509.5 252.5,511.6 258.8,514.0 265.0,516.6 271.3,519.4 277.5,522.4 283.8,525.5 290.0,528.9 296.3,532.5 302.5,536.3 308.8,540.4 315.0,544.9 321.3,550.2 327.5,547.8 333.8,543.1 340.0,539.0 346.3,535.4 352.5,532.1 358.8,529.1 365.0,526.3 371.3,523.7 377.5,521.5 383.8,519.4 390.0,517.6 396.3,516.0 402.5,514.7 408.8,513.6 415.0,512.7 421.3,512.0 427.5,511.6 433.8,511.4 440.0,511.4 446.3,511.6 452.5,512.0 458.8,512.6 465.0,513.4 471.3,514.3 477.5,515.5 483.8,516.7 490.0,518.2 496.3,519.7 502.5,521.4 508.8,523.2 515.0,525.1 521.3,527.1 527.5,529.1 533.8,531.2 540.0,533.4 546.3,535.6 552.5,537.8 558.8,540.0 565.0,542.2 571.3,544.5 577.5,546.7 583.8,549.0 590.0,551.6 596.3,550.4 602.5,548.5 608.8,547.1 615.0,546.0 621.3,545.2 627.5,544.6 633.8,544.2 640.0,544.0 646.3,544.1 652.5,544.3 658.8,544.7 665.0,545.4 671.3,546.2 677.5,547.2 683.8,548.4 690.0,549.8 696.3,551.7 702.5,550.8 708.8,548.9 715.0,547.3 721.3,545.8 727.5,544.4 733.8,543.1 740.0,541.9 746.3,540.8 752.5,539.8 758.8,538.9 765.0,538.2 771.3,537.7 777.5,537.3 783.8,537.0 790.0,537.0 796.3,537.1 802.5,537.4 808.8,537.9 815.0,538.6 821.3,539.6 827.5,540.7 833.8,542.2 840.0,543.8 846.3,545.8 852.5,548.3 858.8,551.4 865.0,549.3 871.3,546.2 877.5,543.3 883.8,540.5 890.0,537.8 896.3,535.2 902.5,532.6 908.8,530.1 915.0,527.6 921.3,525.2 927.5,523.0 933.8,520.8 940.0,518.7 946.3,516.8 952.5,515.0 958.8,513.3 965.0,511.8 971.3,510.5 977.5,509.4 983.8,508.5 990.0,507.7 996.3,507.2 1002.5,506.8 1008.8,506.7 1015.0,506.8 1021.3,507.2 1027.5,507.7 1033.8,508.5 1040.0,509.6 1046.3,510.8 1052.5,512.3 1058.8,514.1 1065.0,516.0 1071.3,518.3 1077.5,520.7 1083.8,523.4 1090.0,526.3 1096.3,529.5 1102.5,532.9 1108.8,536.6 1115.0,540.7 1121.3,545.2 1127.5,550.9 1133.8,547.0 1140.0,542.1 1140,570" fill="url(#neon)" opacity=".85"/>
+
 </svg>

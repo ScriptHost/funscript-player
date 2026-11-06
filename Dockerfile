@@ -6,9 +6,12 @@ LABEL org.opencontainers.image.source="https://github.com/ScriptHost/funscript-p
 
 # ffmpeg + Intel media driver (iHD) for the HQ stream on Intel graphics (VAAPI / Quick Sync).
 # The "non-free" driver contains all encoder features of newer Intel GPUs (e.g. N100/N305).
+# ARM64 (e.g. Apple silicon, Raspberry Pi): there is no Intel driver – the HQ stream runs on the CPU there.
+ARG TARGETARCH
 RUN sed -i 's/^Components: main$/Components: main non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources \
  && apt-get update \
- && apt-get install -y --no-install-recommends ffmpeg intel-media-va-driver-non-free ca-certificates \
+ && if [ "$TARGETARCH" = "arm64" ]; then intel=""; else intel="intel-media-va-driver-non-free"; fi \
+ && apt-get install -y --no-install-recommends ffmpeg $intel ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
