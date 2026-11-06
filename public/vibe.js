@@ -231,7 +231,13 @@ async function attachBleDevice(device, quiet = false) {
 
 // 1.19.9: Health Check (app.js) – Android meldet eine abgerissene Verbindung im Hintergrund nicht immer
 export function checkVibes() {
-  for (const dev of bleDevices) if (dev.device?.gatt && !dev.device.gatt.connected && dev.lost) dev.lost();
+  for (const dev of bleDevices) {
+    if (!dev.device?.gatt || !dev.lost) continue;
+    if (!dev.device.gatt.connected) { dev.lost(); continue; }
+    // test10: „verbunden“ kann nach dem Hintergrund veraltet sein – die aktuelle Stärke noch einmal senden;
+    // schlägt das fehl, ist die Verbindung weg
+    Promise.resolve(dev.setLevel(dev.level || 0)).catch(() => { if (bleDevices.includes(dev)) dev.lost(); });
+  }
 }
 
 // Beim Start: schon einmal erlaubte Satisfyer wieder verbinden (Chrome kennt sie über getDevices)
@@ -587,7 +593,7 @@ function targetLevel(lead = vibeLeadMs(), map = $('vibeMap').value) {
     // Video-Script: Sanft schwächer, Intensiv stärker (⚙️ → Script / Auswahl am Video)
     if (src.video && raw && modulesReady.has('tools')) raw = presetVibeShape(raw);
     // Aufwärmen: eigene Welle statt Script
-    const warm = src.video && modulesReady.has('tools') ? warmupVibe() : null;
+    const warm = (src.video || src.warm) && modulesReady.has('tools') ? warmupVibe() : null;
     if (warm !== null) raw = warm;
   }
   else if (modulesReady.has('control') && hampLevel() !== null) {

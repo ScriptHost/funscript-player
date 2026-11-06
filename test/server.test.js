@@ -313,3 +313,52 @@ test('2.0: Demo-Modus /demo liefert die Seite (hinter der Anmeldung)', async () 
     assert.ok((await r.text()).includes('id="view-settings"'));
   } finally { s.stop(); }
 });
+
+test('test10: Player-Passwort ändern – nur mit .env-Anmeldung, .env-Änderung setzt zurück', async () => {
+  const b = (u, p) => ({ Authorization: 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64'), 'Content-Type': 'application/json' });
+  const s = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'envpass1' });
+  let saved;
+  try {
+    const set = (h, body, method = 'POST') => fetch(s.base + '/api/login/password', { method, headers: h, body: JSON.stringify(body) });
+    assert.strictEqual((await set(b('u', 'falsch'), { current: 'envpass1', next: 'neuespass' })).status, 401, 'nur angemeldet');
+    assert.strictEqual((await set(b('u', 'envpass1'), { current: 'falsch', next: 'neuespass' })).status, 403, 'aktuelles Passwort nötig');
+    assert.strictEqual((await set(b('u', 'envpass1'), { current: 'envpass1', next: 'kurz' })).status, 400, 'mindestens 8 Zeichen');
+    assert.strictEqual((await set(b('u', 'envpass1'), { current: 'envpass1', next: 'neuespass' })).status, 200);
+    assert.strictEqual((await fetch(s.base + '/api/version', { headers: b('u', 'envpass1') })).status, 401, 'altes .env-Passwort gilt nicht mehr');
+    assert.strictEqual((await fetch(s.base + '/api/version', { headers: b('u', 'neuespass') })).status, 200);
+    const st = await (await fetch(s.base + '/api/settings', { headers: b('u', 'neuespass') })).json();
+    assert.strictEqual(st.loginOwn, true);
+    saved = fs.readFileSync(path.join(s.data, 'settings.json'), 'utf8');
+    assert.ok(!saved.includes('neuespass'), 'nur Hash gespeichert');
+    // zurück auf die .env
+    assert.strictEqual((await set(b('u', 'neuespass'), { current: 'neuespass' }, 'DELETE')).status, 200);
+    assert.strictEqual((await fetch(s.base + '/api/version', { headers: b('u', 'envpass1') })).status, 200);
+    assert.strictEqual((await set(b('u', 'envpass1'), { current: 'envpass1', next: 'neuespass' })).status, 200);
+    saved = fs.readFileSync(path.join(s.data, 'settings.json'), 'utf8');
+  } finally { s.stop(); }
+  // Rettungsweg: AUTH_PASS in der .env geändert -> eigenes Passwort gilt nicht mehr
+  const s2 = await startServer({ LOGIN: '', AUTH_USER: 'u', AUTH_PASS: 'envpass2' }, (media) => fs.writeFileSync(path.join(media, '..', 'data', 'settings.json'), saved));
+  try {
+    assert.strictEqual((await fetch(s2.base + '/api/version', { headers: b('u', 'neuespass') })).status, 401);
+    assert.strictEqual((await fetch(s2.base + '/api/version', { headers: b('u', 'envpass2') })).status, 200);
+  } finally { s2.stop(); }
+  // LOGIN=off: nichts zu ändern
+  const s3 = await startServer({ LOGIN: 'off' });
+  try {
+    const r = await fetch(s3.base + '/api/login/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current: '', next: 'neuespass' }) });
+    assert.strictEqual(r.status, 400);
+  } finally { s3.stop(); }
+});
+
+test('test10: Stash antwortet 403 (ab 0.32) – Status mit Art und Netzen', async () => {
+  const http = require('http');
+  const fake = http.createServer((req, res) => { res.writeHead(403); res.end('forbidden'); });
+  await new Promise((r) => fake.listen(0, '127.0.0.1', r));
+  const s = await startServer({ STASH_URL: `http://127.0.0.1:${fake.address().port}` });
+  try {
+    const st = await (await fetch(s.base + '/api/stash/status?fresh=1')).json();
+    assert.strictEqual(st.ok, false);
+    assert.strictEqual(st.code, 'forbidden');
+    assert.ok(Array.isArray(st.networks));
+  } finally { s.stop(); fake.close(); }
+});

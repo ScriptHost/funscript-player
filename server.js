@@ -7,14 +7,14 @@ const https = require('https');
 const net = require('net');
 const fs = require('fs');
 const crypto = require('crypto');
-const { AUTH_IGNORED, STASH_IGNORED, PLACEHOLDERS, AUTH_PASS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
+const { AUTH_IGNORED, STASH_IGNORED, PLACEHOLDERS, AUTH_USER, LOGIN_EXAMPLE, LOGIN_MISSING, HOST, MEDIA_DIR, MIME, PORT, PUBLIC_DIR, STASH_URL, VERSION, VIDEO_EXT } = require('./lib/config');
 const path = require('path');
 const { loginBlocked, loginFailed } = require('./lib/guard');
 const { readBody, safeJoin, sendFile, logSafe } = require('./lib/util');
 const { libraryItems, libraryRescan, libraryScanMs } = require('./lib/library');
-const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, intifaceLanOnly, publicSettings, serverSettings, writeSettings } = require('./lib/settings');
+const { heresphereOn, hsAuthorized, hsRedirectOn, hsCheckPassword, hsToken, intifaceLanOnly, loginCheckHeader, loginOwnActive, publicSettings, serverSettings, setLoginPassword, writeSettings } = require('./lib/settings');
 const { deleteUserScript, handyCacheGet, handyCachePut, ownScriptFile, ownScripts, readPrefs, readStore, saveUserScript, scriptHeat, userScriptFile, writePrefs, writeStore } = require('./lib/data');
-const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashStatus } = require('./lib/stash');
+const { proxyStash, stashFilters, stashSavedFilters, stashScene, stashSceneAction, stashScenes, stashSetFavorite, stashSetRating, stashCheck, stashCurrent, stashMonitor } = require('./lib/stash');
 const { HS_HEADERS, heresphereIndex, heresphereMedia, heresphereStash } = require('./lib/heresphere');
 const { GPU_TEXT, hqBench, hqKillAll, hqProbe, hqStatus, hqStream } = require('./lib/hq');
 const { UPDATE_OFF, updateInfo } = require('./lib/update');
@@ -28,7 +28,8 @@ function authOk(req) {
   if (!m) return false;
   const [user, ...rest] = Buffer.from(m[1], 'base64').toString().split(':');
   const okUser = crypto.timingSafeEqual(sha(user), sha(AUTH_USER));
-  const okPass = crypto.timingSafeEqual(sha(rest.join(':')), sha(AUTH_PASS));
+  // test10: eigenes Passwort aus ⚙️ (lib/settings.js) – sonst AUTH_PASS aus der .env
+  const okPass = loginCheckHeader(m[1], rest.join(':'));
   return okUser && okPass;
 }
 
@@ -45,6 +46,14 @@ function checkAuth(req, res) {
   res.writeHead(401,{ 'WWW-Authenticate': 'Basic realm="Funscript Player", charset="UTF-8"' });
   res.end('Anmeldung erforderlich');
   return false;
+}
+
+async function loginPassRoute(req, res, reset) {
+  if (loginBlocked(req)) return json(res, { error: 'blocked' }, 'no-store', 429);
+  const body = JSON.parse(await readBody(req, 2000) || '{}');
+  const r = await setLoginPassword(body.current, reset ? null : body.next);
+  if (r.msg === 'wrongCurrent') loginFailed(req);
+  json(res, r.status === 200 ? { ok: true, own: loginOwnActive() } : { error: r.msg }, 'no-store', r.status);
 }
 
 // Optional direkt HTTPS: entweder TLS_PFX (+ TLS_PFX_PASS) oder TLS_CERT + TLS_KEY (PEM).
@@ -144,6 +153,11 @@ const ROUTES = {
   // Welche Videos ein eigenes Script haben (für ✋ in der Bibliothek und die Script-Wahl)
   '/api/userscripts': { GET: async (req, res) => json(res, await ownScripts()) },
   '/api/heat': { GET: async (req, res, url) => json(res, await scriptHeat(url.searchParams.get('src')), 'max-age=3600') },
+  // test10: Player-Passwort ändern (nur mit .env-Anmeldung); DELETE = wieder das Passwort aus der .env
+  '/api/login/password': {
+    POST: async (req, res) => loginPassRoute(req, res, false),
+    DELETE: async (req, res) => loginPassRoute(req, res, true),
+  },
   '/api/settings': {
     GET: async (req, res) => json(res, publicSettings()),
     PUT: async (req, res) => { await writeSettings(req); json(res, publicSettings()); },
@@ -157,7 +171,8 @@ const ROUTES = {
   '/api/library': {
     GET: async (req, res) => json(res, (await libraryItems()).sort((a, b) => a.video.localeCompare(b.video, 'de', { numeric: true }))),
   },
-  '/api/stash/status': { GET: async (req, res) => json(res, await stashStatus()) },
+  // test10: zwischengespeicherter Zustand (prüft im Hintergrund selbst neu); ?fresh=1 = „Verbindung testen“
+  '/api/stash/status': { GET: async (req, res) => json(res, /[?&]fresh=1/.test(req.url) ? await stashCheck() : await stashCurrent()) },
   '/api/stash/saved-filters': { GET: async (req, res) => { needStash(); json(res, (await stashSavedFilters()).map(({ id, name }) => ({ id, name }))); } },
   '/api/stash/filters': { GET: async (req, res) => { needStash(); json(res, await stashFilters()); } },
   '/api/stash/scenes': { GET: async (req, res, url) => { needStash(); json(res, await stashScenes(url.searchParams)); } },
@@ -365,6 +380,12 @@ for (const sig of ['SIGTERM', 'SIGINT']) {
     setTimeout(() => process.exit(0), 1500).unref();
   });
 }
+// Stash ab 0.32 lehnt fremde Netze ohne Stash-Anmeldung mit 403 ab – erklären, was zu tun ist
+function logStash403(st) {
+  logLine('  Stash 0.32+ rejects requests from networks it considers public when Stash has no login. Either:');
+  logLine(`  a) in Stash's config.yml: public_whitelist: [${(st.networks || []).map((n) => '"' + n + '"').join(', ') || '"<docker network>/16"'}] – then restart Stash, or`);
+  logLine('  b) set a user + password in Stash (Settings → Security) and put its API key into STASH_API_KEY.');
+}
 server.listen(PORT, HOST, async () => {
   logLine(`Funscript Player ${VERSION} – listening on ${tls ? 'https' : 'http'}://${HOST}:${PORT}`);
   if (LOGIN_EXAMPLE) logLine('⚠ AUTH_PASS is still the example password "change-me" – choose your own in .env. Until then the player only shows a help page.');
@@ -374,7 +395,7 @@ server.listen(PORT, HOST, async () => {
   if (STASH_IGNORED) logLine('Note: STASH=off – STASH_URL/STASH_API_KEY in .env are ignored.');
   if (PLACEHOLDERS.length) logLine(`Note: placeholder <…> in .env counts as empty: ${PLACEHOLDERS.join(', ')}`);
   logLine(`Library: reading ${MEDIA_DIR} …`);
-  const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashStatus() : null, hqStatus()]);
+  const [lib, stash, hqs] = await Promise.allSettled([libraryRescan(), STASH_URL ? stashCheck() : null, hqStatus()]);
   if (lib.status === 'fulfilled') {
     const roots = new Set(lib.value.map((it) => it.root || '(main folder)'));
     logLine(`Library: ${lib.value.length} videos, ${lib.value.filter((it) => it.script).length} with Funscript, ${roots.size} folders – scanned in ${libraryScanMs()} ms`);
@@ -382,6 +403,14 @@ server.listen(PORT, HOST, async () => {
   if (!STASH_URL) logLine('Stash: not configured');
   else if (stash.value?.ok) logLine(`Stash: connected (${STASH_URL}, version ${stash.value.version || '?'})`);
   else logLine(`Stash: NOT reachable (${STASH_URL}) – ${stash.value?.error || stash.reason?.message || 'unknown'}`);
+  if (stash.value?.code === 'forbidden') logStash403(stash.value);
+  if (STASH_URL) {
+    if (!stash.value?.ok) logLine('Stash: trying again every 30 s …');
+    stashMonitor((now) => {
+      if (now.ok) logLine(`Stash: reachable again (version ${now.version || '?'})`);
+      else { logLine(`Stash: no longer reachable – ${now.error}`); if (now.code === 'forbidden') logStash403(now); }
+    });
+  }
   logLine(`HQ stream: ${hqs.value?.available ? (hqs.value.accel === 'vaapi' ? 'Intel graphics (VAAPI)' : 'CPU') : 'not available (no ffmpeg)'}`);
   const gpu = hqs.value?.gpu;
   if (gpu) logLine(`Graphics: ${GPU_TEXT[gpu.state]}${gpu.error ? ' – ' + gpu.error : ''}`);

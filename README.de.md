@@ -176,6 +176,11 @@ Technische Details: [DEVELOPMENT.md](DEVELOPMENT.md) (englisch). Änderungen: [C
   *Application ID* (Handy-API v3) bleibt die Handy auch bei 0,5×–2× im Takt. Gelber Status = Handy-Cloud antwortet langsam.
 - **Stash nicht erreichbar** – `STASH_URL` gilt aus Sicht des Containers: im gemeinsamen Docker-Netz den Containernamen
   nehmen (z. B. `http://Stash:9999`), nicht `localhost`. Zeile `Stash:` in `docker logs Funscript-Player` prüfen.
+  ⚙️ → Bibliothek zeigt die Verbindung und hat den Knopf **Verbindung testen**; der Player versucht es alle 30 s von selbst.
+- **Stash ab 0.32 meldet `HTTP 403`** – Stash ohne eigene Anmeldung lehnt Netze ab, die es für öffentlich hält (manche
+  Docker-Netze zählen dazu). Entweder das Netz des Players in der `config.yml` von Stash erlauben
+  (`public_whitelist: ["172.18.0.0/16"]` – die passende Zeile zeigt der Player unter ⚙️ → Bibliothek und in
+  `docker logs`) und Stash neu starten, oder in Stash Benutzer + Passwort setzen und dessen API-Key in `STASH_API_KEY` eintragen.
 - **HQ-Stream zeigt „CPU“ oder „nicht verfügbar“** – mit Intel-Grafik `/dev/dri` in der `docker-compose.yml` einschalten und `RENDER_GID` auf die GID der Host-Gruppe
   `render` setzen (`getent group render`).
 - **HereSphere fragt erneut nach dem Passwort** – Passwörter von vor 1.19.5 gelten nicht mehr; unter ⚙️ → VR einmal neu

@@ -21,7 +21,7 @@
     <!-- 2.0: vier Bereiche – Smartphone als Daumen-Leiste unten, PC hier oben (style.css, nav.js) -->
     <nav id="appNav" class="ui-nav" aria-label="Areas" data-i18n-aria-label="nav.label">
       <button data-area="library"><b aria-hidden="true">▦</b><span data-i18n="nav.library">Library</span></button>
-      <button data-area="player"><b aria-hidden="true">▶︎</b><span data-i18n="nav.player">Player</span></button>
+      <button data-area="player"><b id="navPlayerIc" aria-hidden="true">▶︎</b><span id="navPlayerTx">Player</span></button>
       <button data-area="devices"><b aria-hidden="true">◎</b><span data-i18n="nav.devices">Devices</span></button>
       <button data-area="settings"><b aria-hidden="true">⚙︎</b><span data-i18n="nav.settings">Settings</span></button>
     </nav>
@@ -120,7 +120,6 @@
         <div class="pl-top">
           <button data-i18n="ui.library" id="backToLib" class="back">← Library</button>
           <span class="grow"></span>
-          <button id="toControl" class="back" data-i18n="player.toControl">🎮 Control</button>
           <button id="closeVideoBtn" class="back" data-i18n="player.closeVideo">✕ Close video</button>
         </div>
         <div id="drop" class="drop" data-fit="cover">
@@ -244,7 +243,7 @@
           <!-- Script dieser Szene: Auswahl, Intensität, Aufwärmen, eigenes Script, Offset -->
           <div id="scriptBox" class="ui-card script-box sync-only" hidden>
             <div class="ui-label sb-head"><span id="sbName" class="sb-name"></span>
-              <button id="sbWarm" class="ui-chip sb-warm" type="button" aria-pressed="false" title="Warm-up: The Handy at the bottom and slow, Satisfyer very light – on/off" data-i18n-title="player.warmupTitle">🌱 <span data-i18n="player.warmup">Warm-up</span></button></div>
+              <button id="sbWarm" class="ui-chip sb-warm" type="button" aria-pressed="false" title="Warm-up: The Handy at the bottom and slow, Satisfyer very light – on/off" data-i18n-title="player.warmupTitle">🌱 <span id="sbWarmTx" data-i18n="player.warmup">Warm-up</span></button></div>
             <div id="sbChoice" class="ui-seg sb-choice" hidden></div>
             <div class="sb-presets">
               <div class="ui-seg int-seg" data-preset-scene title="For this scene – default under ⚙️ → Script" data-i18n-title="player.intensityTitle"><button data-preset="auto"><span data-i18n="player.int.auto">Auto</span><canvas></canvas></button><button data-preset="original"><span data-i18n="player.int.original">Original</span><canvas></canvas></button><button data-preset="soft"><span data-i18n="player.int.soft">Soft</span><canvas></canvas></button><button data-preset="intense"><span data-i18n="player.int.intense">Intense</span><canvas></canvas></button></div>
@@ -312,7 +311,7 @@
             <button class="set-item" data-page="devices"><span class="ic">◎</span><span class="tx"><span data-i18n="settings.devices">Devices</span><small data-i18n="settings.devicesSub">Handy, Satisfyer, Intiface</small></span><span class="ch">›</span></button>
             <button class="set-item" data-page="safety"><span class="ic"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span class="tx"><span data-i18n="settings.safety">Security &amp; privacy</span><small data-i18n="settings.safetySub">Stop, access, demo mode</small></span><span class="ch">›</span></button>
             <button class="set-item" data-page="script"><span class="ic">⚡</span><span class="tx"><span data-i18n="settings.script">Script</span><small data-i18n="settings.scriptSub">Intensity, finale, speed limit</small></span><span class="ch">›</span></button>
-            <button class="set-item" data-page="library"><span class="ic">▦</span><span class="tx"><span data-i18n="settings.library">Library</span><small data-i18n="settings.librarySub">Start, Stash, folders, filters</small></span><span class="ch">›</span></button>
+            <button class="set-item" data-page="library"><span class="ic">▦</span><span class="tx"><span data-i18n="settings.library">Library</span><small data-i18n="settings.librarySub">Start, Stash, folders, filters</small><small id="setSubStash" class="set-status"></small></span><span class="ch">›</span></button>
           </div>
           <div class="set-group">
             <button class="set-item" data-page="image"><span class="ic">◐</span><span class="tx"><span data-i18n="settings.image">Picture &amp; display</span><small data-i18n="settings.imageSub">Enhancement, HQ stream, player, look</small></span><span class="ch">›</span></button>
@@ -328,8 +327,7 @@
 
         <!-- ---------- Geräte ---------- -->
         <div class="set-page" data-page="devices" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.devices">Devices</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.devices">Devices</h2></div>
           <details id="setDevices" class="card sec dev-fold">
             <summary><h3 class="sec-sub" data-i18n="settings.dev.handy">↕ The Handy</h3></summary>
             <label>Connection Key
@@ -408,8 +406,7 @@
 
         <!-- ---------- Notaus (nach test2 eigener Bereich) ---------- -->
         <div class="set-page" data-page="safety" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.safety">Security &amp; privacy</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.safety">Security &amp; privacy</h2></div>
           <div id="setSafety" class="card sec">
             <label class="ui-switch"><input id="pauseOnLoss" type="checkbox" checked><span></span><span data-i18n="settings.safety.pauseOnLoss">Pause the video when a device loses its connection mid-video</span></label>
             <label class="ui-switch"><input id="stopHidden" type="checkbox"><span></span><span data-i18n="settings.safety.stopHidden">Stop everything on screen lock / app switch</span></label>
@@ -432,21 +429,24 @@
           <div id="setAccess" class="card sec">
             <h3 class="sec-sub" data-i18n="settings.access.title">Access</h3>
             <p id="accessLogin" class="hint-text"></p>
-            <p id="accessHs" class="hint-text"></p>
-            <!-- nach test8: HereSphere-Passwort hier (vorher unter VR & HereSphere) -->
-            <div id="hsPassArea">
-              <!-- nach test2: Umschalter ohne/mit Passwort; „ohne“ löscht das Passwort und sperrt das Feld -->
-              <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small></label>
-              <div id="hsPassMode" class="seg">
-                <button data-pw="off" data-i18n="settings.vr.pwOff">Without password</button>
-                <button data-pw="on" data-i18n="settings.vr.pwOn">With password</button>
+            <!-- test10: Player-Passwort ändern – nur mit Anmeldung aus der .env (AUTH_USER/AUTH_PASS) -->
+            <details id="loginPassArea" class="more-info" hidden>
+              <summary data-i18n="settings.access.pwChange">🔑 Change player password</summary>
+              <label><span data-i18n="settings.access.pwCurrent">Current password</span>
+                <input id="loginCur" type="password" autocomplete="current-password"></label>
+              <label><span data-i18n="settings.access.pwNew">New password (at least 8 characters)</span>
+                <input id="loginNew" type="password" autocomplete="new-password"></label>
+              <label><span data-i18n="settings.access.pwRepeat">Repeat new password</span>
+                <input id="loginNew2" type="password" autocomplete="new-password"></label>
+              <div class="pw-actions">
+                <button id="loginSave" class="small secondary" data-i18n="settings.vr.save">Save</button>
+                <button id="loginReset" class="small ghost" data-i18n="settings.access.pwReset" hidden>Use the .env password again</button>
               </div>
-              <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="new password">
-                <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button></span>
-              <p id="hsPassInfo" class="hint-text"></p>
-              <p id="hsLoginHint" class="hint-text warn" hidden></p>
-            </div>
-            <a href="#" class="more-settings" data-settings="hsOn" data-i18n="settings.access.toVr">⚙️ HereSphere switches and address</a>
+              <p id="loginPwInfo" class="hint-text"></p>
+              <p class="hint-text" data-i18n-html="settings.access.pwHelp">The user name stays as in the <code>.env</code>. Forgotten? Change <code>AUTH_PASS</code> in the <code>.env</code> and run <code>docker compose up -d</code> – then the .env password applies again.</p>
+            </details>
+            <p id="accessHs" class="hint-text"></p>
+            <a href="#" class="more-settings" data-settings="hsPassArea" data-i18n="settings.access.toVr">⚙️ HereSphere: switches, address and password</a>
           </div>
           <!-- Privatsphäre: Demo-Modus (nav.js) -->
           <div id="setPrivacy" class="card sec">
@@ -459,8 +459,7 @@
 
         <!-- ---------- Script ---------- -->
         <div class="set-page" data-page="script" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.script">Script</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.script">Script</h2></div>
           <div id="setScript" class="card sec">
             <h3 class="sec-sub" data-i18n="settings.scr.title">🎚 Script intensity</h3>
             <h4 data-i18n="settings.scr.default">Default for all scenes</h4>
@@ -517,8 +516,20 @@
 
         <!-- ---------- Bibliothek ---------- -->
         <div class="set-page" data-page="library" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.library">Library</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.library">Library</h2></div>
+          <!-- test10: Stash-Verbindung auf einen Blick (settings.js renderStash) -->
+          <div id="setStash" class="card sec" hidden>
+            <h3 class="sec-sub">Stash</h3>
+            <p id="stashLine" class="stash-line"></p>
+            <div id="stashHelp403" class="stash-help" hidden>
+              <p class="hint-text" data-i18n-html="settings.stash.help403">Since version 0.32 Stash rejects the player when Stash itself has <b>no login</b> and the player’s network doesn’t count as “local” (e.g. a Docker network). Two ways:</p>
+              <p class="hint-text" data-i18n-html="settings.stash.wayA"><b>a)</b> Add this to Stash’s <code>config.yml</code>, then restart Stash:</p>
+              <pre id="stashSnippet" class="snippet"></pre>
+              <p class="hint-text" data-i18n-html="settings.stash.wayB"><b>b)</b> Set a user and password in Stash (Settings → Security), create an API key there and put it into <code>STASH_API_KEY=</code> in the player’s <code>.env</code>. Then <code>docker compose up -d</code>.</p>
+            </div>
+            <p id="stashHelpOther" class="hint-text" hidden></p>
+            <button id="stashTest" class="small secondary" data-i18n="settings.stash.test">Test connection</button>
+          </div>
           <div id="setLibrary" class="card sec">
             <label><span data-i18n="settings.lib.start">Show at start</span>
               <select id="setStartSource"></select>
@@ -549,8 +560,7 @@
 
         <!-- ---------- Bild & Anzeige ---------- -->
         <div class="set-page" data-page="image" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.image">Picture &amp; display</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.image">Picture &amp; display</h2></div>
           <div id="imageSettings" class="card sec">
             <h3 class="sec-sub" data-i18n="settings.img.title">✨ Picture &amp; quality</h3>
             <div id="qualityMode" class="seg big-seg">
@@ -665,8 +675,7 @@
 
         <!-- ---------- VR & HereSphere ---------- -->
         <div class="set-page" data-page="vr" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.vr">VR &amp; HereSphere</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.vr">VR &amp; HereSphere</h2></div>
           <div id="setVR" class="card sec">
             <label class="ui-switch"><input id="hsOn" type="checkbox" checked><span></span><span data-i18n="settings.vr.on">HereSphere interface active</span></label>
             <p id="hsOffHint" class="hint-text" hidden></p>
@@ -674,7 +683,19 @@
             <label class="ui-switch"><input id="hsRedirect" type="checkbox" checked><span></span><span data-i18n="settings.vr.redirect">Send HereSphere from the normal address straight to the VR library</span></label>
             <p class="hint-text" data-i18n="settings.vr.redirectHelp">Then the player’s normal address is enough in HereSphere. HereSphere is recognised by its identifier; only the start page is redirected.</p>
             <label class="ui-switch adv"><input id="hsVrOnly" type="checkbox" checked><span></span><span data-i18n="settings.vr.vrOnly">Show VR videos only (off = regular videos too, as a flat screen)</span></label>
-            <p class="hint-text"><a href="#" data-settings="hsPass" data-i18n="settings.vr.passMoved">🔒 Password for HereSphere: ⚙️ → Security &amp; privacy</a></p>
+            <!-- test10: HereSphere-Passwort wieder hier (test9: unter Sicherheit & Privatsphäre) -->
+            <div id="hsPassArea">
+              <!-- nach test2: Umschalter ohne/mit Passwort; „ohne“ löscht das Passwort und sperrt das Feld -->
+              <label><span data-i18n="settings.vr.pass">Password for HereSphere</span> <small class="muted" data-i18n="settings.vr.passOpt">(optional – HereSphere then asks once for user and password, the user name doesn’t matter)</small></label>
+              <div id="hsPassMode" class="seg">
+                <button data-pw="off" data-i18n="settings.vr.pwOff">Without password</button>
+                <button data-pw="on" data-i18n="settings.vr.pwOn">With password</button>
+              </div>
+              <span class="copyrow"><input id="hsPass" type="password" autocomplete="new-password" data-i18n-placeholder="settings.vr.passPh" placeholder="new password">
+                <button id="hsPassSave" class="small secondary" data-i18n="settings.vr.save">Save</button></span>
+              <p id="hsPassInfo" class="hint-text"></p>
+              <p id="hsLoginHint" class="hint-text warn" hidden></p>
+            </div>
             <p data-i18n="settings.vr.urlHelp">Open this address in HereSphere’s browser and bookmark it:</p>
             <div class="copyrow">
               <input id="hsUrl" type="text" readonly>
@@ -696,8 +717,7 @@
 
         <!-- ---------- System ---------- -->
         <div class="set-page" data-page="system" hidden>
-          <button class="set-back" data-i18n="settings.back">‹ Settings</button>
-          <h2 class="page-title" data-i18n="settings.system">System</h2>
+          <div class="set-head"><button class="set-back" aria-label="Back to settings" data-i18n-aria-label="settings.backAria" title="Back to settings" data-i18n-title="settings.backAria">‹</button><h2 class="page-title" data-i18n="settings.system">System</h2></div>
           <div id="setSystem" class="card sec">
             <div id="updateBox" class="update-box" hidden>
               <b data-i18n="settings.sys.update">⬆ Update available</b> <span id="updateText"></span>
@@ -869,7 +889,6 @@
           <a href="#" class="more-settings conn" data-settings="setDevices" data-i18n="devices.moreVibe">⚙️ Translation, smoothness, Intiface … in the settings</a>
         </div>
 
-        <button data-mode="control" class="ui-btn wide dev-control">🎮 <span data-i18n="menu.control">Control</span> <small data-i18n="menu.controlHint">Direct, patterns, touch area</small></button>
         <div class="dev-stop-row">
           <button id="stopAll" class="ui-btn stop wide">■ <span data-i18n="devices.stopAll">Stop everything</span></button>
         </div>

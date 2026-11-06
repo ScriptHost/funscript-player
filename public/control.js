@@ -421,7 +421,22 @@ function deletePoint(e) {
 export function controlScriptSource() {
   if (!active) return null;
   const elapsed = performance.now() - active.start;
-  return { actions: active.actions, ms: active.loop ? elapsed % active.duration : elapsed };
+  return { actions: active.actions, ms: active.loop ? elapsed % active.duration : elapsed, warm: active.kind === 'warmup' };
+}
+
+// test10: 🌱 Aufwärmen bei angehaltenem Video – eigener ruhiger Takt wie beim Video-Aufwärmen (Handy unten
+// 0–35 %, 1 s je Weg, 10 min), der Satisfyer in seiner eigenen Welle (vibe.js). handover = das Video startet
+// und übernimmt die Handy selbst (kein Stopp dazwischen, sonst überholt der Stopp das neue Script).
+export function warmIdle(on, handover = false) {
+  if (on) {
+    if (active?.kind === 'warmup' || hampOn || active || !(handy.connected || allVibes().length)) return;
+    const actions = [];
+    for (let i = 0; i <= 600; i++) actions.push({ at: i * 1000, pos: i % 2 ? 35 : 0 });
+    startPlayback('warmup', actions, 600000, true);
+  } else if (active?.kind === 'warmup') {
+    if (!handover && handy.owner === 'warmup') stopPlayback();
+    else { active = null; updateButtons(); }
+  }
 }
 
 export function hampLevel() {
@@ -462,6 +477,7 @@ function controlLoop() {
 // Not-Aus: Video, Patterns, Direktsteuerung, Handy und Vibratoren sofort anhalten
 export async function emergencyStop(reason = t('control.emergencyStop')) {
   claimHandy('none');
+  document.dispatchEvent(new Event('hp:estop')); // test10: beendet u. a. das Aufwärmen
   if (!video.paused) video.pause();
   active = null;
   hampOn = false;

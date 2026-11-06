@@ -72,8 +72,12 @@ function showView(view) {
 // Einstellungen: eigene Seite, ändert den Modus nicht. Video, Handy und Satisfyer laufen weiter;
 // zurück geht es über die „Läuft gerade“-Leiste unten oder die Modus-Knöpfe.
 // 2.0: Startliste mit 6 Bereichen, jeder Bereich eine eigene Seite (page = null → Liste)
+// test10: am PC (breit) Liste links, Seite rechts – ohne Auswahl die erste Seite
+const setWide = () => matchMedia('(min-width: 1000px)').matches;
 export function showSetPage(page) {
+  if (!page && setWide()) page = 'devices';
   $('setHome').hidden = !!page;
+  document.querySelectorAll('#view-settings .set-item').forEach((b) => b.toggleAttribute('aria-current', b.dataset.page === page));
   document.querySelectorAll('#view-settings .set-page').forEach((p) => { p.hidden = p.dataset.page !== page; });
   document.body.dataset.setPage = page || '';
   window.dispatchEvent(new Event('hp:setpage'));
@@ -102,7 +106,7 @@ function renderImgPop() {
   document.querySelectorAll('#imgPop [data-preset]').forEach((b) => b.classList.toggle('active', b.dataset.preset === enh.settings.preset));
 }
 
-function setMode(mode) {
+export function setMode(mode) {
   appMode = mode;
   store.set('mode', mode);
   document.body.dataset.mode = mode;
@@ -393,7 +397,8 @@ export const base = document.createElement('canvas');
 
 // 2.0 „Graphit + Neon“: ruhig = dunkles Blau, dann Cyan → Violett → Pink
 // nach test2 gedämpft (weniger Neon): gleiche Farbfolge, weniger Sättigung/Helligkeit
-const HEAT = [[0, [36, 50, 64]], [90, [32, 112, 134]], [200, [44, 152, 172]], [320, [96, 82, 172]], [440, [136, 72, 166]], [560, [178, 62, 118]]];
+// test10: klare Farben nach Tempo wie in Stash (Entwurf C) – ruhige und heftige Stellen auf einen Blick
+const HEAT = [[0, [30, 144, 255]], [150, [0, 200, 120]], [250, [240, 220, 0]], [350, [255, 140, 0]], [450, [230, 30, 40]], [560, [170, 40, 200]]];
 export function heatColor(speed) {
   for (let i = 1; i < HEAT.length; i++) {
     if (speed <= HEAT[i][0]) {
@@ -544,7 +549,8 @@ async function connectHandy(auto = false) {
     if (auto && e.kind !== 'auth' && autoRetries < AUTO_RETRY_S.length) {
       setTimeout(() => { if (!handy.connected && $('key').value.trim()) connectHandy(true); }, AUTO_RETRY_S[autoRetries++] * 1000);
     } else if (auto) {
-      log(t('app.handyNotReachableSwitch'));
+      // test10: läuft schon ein anderes Gerät (z. B. Satisfyer), ist die Meldung unnötig
+      if (!hasVibe()) log(t('app.handyNotReachableSwitch'));
     } else {
       log(t('app.connectFailed', { msg: e.message || e }), true);
     }
@@ -763,7 +769,8 @@ export function init() {
     if (!item) return;
     // ‹ Einstellungen = wie die Zurück-Geste (Verlaufseintrag der Seite entfernen)
     if (!item.dataset.page && /^#settings\/\w+$/.test(location.hash)) return history.back();
-    if (item.dataset.page) history.pushState(null, '', '#settings/' + item.dataset.page);
+    // test10: von Seite zu Seite (PC) ersetzen statt stapeln – Zurück führt dann aus den Einstellungen
+    if (item.dataset.page) history[/^#settings\/\w+$/.test(location.hash) ? 'replaceState' : 'pushState'](null, '', '#settings/' + item.dataset.page);
     showSetPage(item.dataset.page || null);
     window.scrollTo(0, 0);
   });
@@ -798,7 +805,6 @@ export function init() {
   });
   $('backToLib').addEventListener('click', backToLibrary);
   $('closeVideoBtn').addEventListener('click', closeVideo);
-  $('toControl').addEventListener('click', () => setMode('control'));
   document.querySelectorAll('button[data-mode]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.mode !== 'control') store.set('lastWatchMode', b.dataset.mode);
   }));
@@ -930,16 +936,21 @@ export function init() {
   $('ovPip').hidden = !document.pictureInPictureEnabled;
   $('ovPip').addEventListener('click', () => {
     if (document.pictureInPictureElement) return document.exitPictureInPicture().catch(() => {});
+    video.disablePictureInPicture = false; // test10: nur für ⧉ kurz freigeben
     video.requestPictureInPicture().then(() => {
-    }).catch((e) => log(t('app.pipError', { msg: e.message }), true));
+    }).catch((e) => { video.disablePictureInPicture = true; log(t('app.pipError', { msg: e.message }), true); });
   });
   // nach test8: kein automatisches Bild-in-Bild mehr beim Verlassen der App – aus dem eigenen Vollbild macht Android
   // daraus ein schwarzes Fenster (die ganze Bühne statt des Videos), und Chrome erlaubt den Wechsel nur nach einem Tipp.
   // Bild-in-Bild gibt es zuverlässig über ⧉.
   video.autoPictureInPicture = false;
+  // test10: Chrome (Android) öffnet beim Minimieren aus dem Vollbild selbst ein kleines Fenster – aus dem eigenen
+  // Vollbild bleibt es schwarz. Darum Bild-in-Bild grundsätzlich gesperrt; ⧉ gibt es nur für den eigenen Aufruf frei.
+  video.disablePictureInPicture = true;
   video.addEventListener('enterpictureinpicture', () => { pipWasPlaying = !video.paused; updateNowBar(); });
   video.addEventListener('pause', () => { if (document.pictureInPictureElement && document.visibilityState === 'hidden') pipWasPlaying = false; });
   video.addEventListener('leavepictureinpicture', () => {
+    video.disablePictureInPicture = true;
     const resume = pipWasPlaying;
     setTimeout(() => { if (resume && video.paused && video.currentSrc) video.play().catch(() => {}); updateNowBar(); }, 300);
   });
@@ -1031,7 +1042,9 @@ export function init() {
   });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { hiddenAt = Date.now(); return; }
-    if (hiddenAt && Date.now() - hiddenAt > 20000) checkDevices();
+    // test10: bei jedem Zurückkommen prüfen (Nutzer: raus- und reintabben merkte das Trennen nicht) –
+    // gleich und nach 3 s noch einmal, weil Bluetooth das Trennen oft erst verzögert meldet
+    if (hiddenAt && Date.now() - hiddenAt > 1000) { checkDevices(); setTimeout(checkDevices, 3000); }
     hiddenAt = 0;
   });
   setInterval(() => { if (!document.hidden) checkDevices(); }, 60000);

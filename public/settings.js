@@ -3,7 +3,7 @@ import { modulesReady } from './state.js';
 import { lang, setLang, t } from './lang.js';
 import { $, freshInstall, log, store } from './handy.js';
 import { openDevices, openSettings } from './app.js';
-import { folderRoots, lib, librarySources, renderSavedFilters, setBrowse, setSource } from './library.js';
+import { folderRoots, lib, librarySources, renderSavedFilters, setBrowse, setSource, stashErrorText, stashRecheck } from './library.js';
 import { bluetoothProblem } from './vibe.js';
 import { enh, enhSetPreset } from './enhance.js';
 import { HQ_ACCEL_LABEL, hqApply, hqState } from './hq.js';
@@ -188,7 +188,9 @@ function showServerSettings(s) {
   $('setSubVr').textContent = !s.heresphere ? t('settings.vr.subOff')
     : s.hsPassword ? t('settings.vr.subPass') : t('settings.vr.subOn');
   // Zugang (⚙️ → Sicherheit & Privatsphäre): Anmeldung kommt aus der .env, HereSphere aus den Einstellungen
-  $('accessLogin').textContent = s.login ? t('settings.access.loginOn') : t('settings.access.loginOff');
+  $('accessLogin').textContent = !s.login ? t('settings.access.loginOff') : s.loginOwn ? t('settings.access.loginOwn') : t('settings.access.loginOn');
+  $('loginPassArea').hidden = !(s.login && s.loginChangeable);
+  $('loginReset').hidden = !s.loginOwn;
   $('accessLogin').classList.toggle('warn', !s.login);
   $('accessHs').textContent = !s.heresphere ? t('settings.access.hsOff')
     : s.hsPassword ? t('settings.access.hsPass') : t('settings.access.hsOpen');
@@ -208,11 +210,58 @@ async function putSettings(patch, msg) {
 }
 // nach test2: Umschalter ohne/mit Passwort. „Ohne“ löscht ein gesetztes Passwort sofort und sperrt das Feld;
 // „Mit“ gibt das Feld frei – gilt erst, wenn ein Passwort gespeichert ist.
+// test10: Player-Passwort ändern / zurück auf die .env. Danach fragt der Browser einmal neu nach dem Passwort.
+async function loginPass(reset) {
+  const info = $('loginPwInfo');
+  const next = $('loginNew').value;
+  info.classList.remove('warn');
+  if (!reset && next !== $('loginNew2').value) { info.textContent = t('settings.access.pwMismatch'); info.classList.add('warn'); return; }
+  try {
+    const res = await fetch('/api/login/password', {
+      method: reset ? 'DELETE' : 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current: $('loginCur').value, next }),
+    });
+    const r = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = { wrongCurrent: 'settings.access.pwWrong', tooShort: 'settings.access.pwShort', example: 'settings.access.pwExample', blocked: 'settings.access.pwBlocked' }[r.error];
+      info.textContent = err === 'settings.access.pwWrong' ? t('settings.access.pwWrong') : err === 'settings.access.pwShort' ? t('settings.access.pwShort')
+        : err === 'settings.access.pwExample' ? t('settings.access.pwExample') : err === 'settings.access.pwBlocked' ? t('settings.access.pwBlocked') : (r.error || res.status);
+      info.classList.add('warn');
+      return;
+    }
+    for (const id of ['loginCur', 'loginNew', 'loginNew2']) $(id).value = '';
+    info.textContent = reset ? t('settings.access.pwResetDone') : t('settings.access.pwSaved');
+    setTimeout(() => location.reload(), 2500);
+  } catch (e) { info.textContent = e.message; info.classList.add('warn'); }
+}
+
 function renderPassMode(on) {
   document.querySelectorAll('#hsPassMode button').forEach((b) => b.classList.toggle('active', (b.dataset.pw === 'on') === on));
   $('hsPass').disabled = !on;
   $('hsPassSave').disabled = !on;
   if (!on) $('hsPass').value = '';
+}
+
+// test10: Stash-Verbindung in ⚙️ → Bibliothek und kurz in der Übersicht
+function renderStash() {
+  const st = lib.stashStatus || {};
+  $('setStash').hidden = !st.configured;
+  $('setSubStash').textContent = !st.configured ? '' : st.ok ? t('settings.stash.subOk') : t('settings.stash.subErr');
+  $('setSubStash').classList.toggle('warn', !!st.configured && !st.ok);
+  if (!st.configured) return;
+  const line = $('stashLine');
+  line.textContent = st.ok
+    ? t('settings.stash.ok', { version: st.version || '?' }) + (st.scenes != null ? ' · ' + t('settings.stash.scenes', { n: st.scenes.toLocaleString(lang) }) : '')
+    : '⚠ ' + (st.code === 'forbidden' ? t('settings.stash.err403') : stashErrorText(st));
+  line.classList.toggle('warn', !st.ok);
+  $('stashHelp403').hidden = st.code !== 'forbidden';
+  if (st.code === 'forbidden') {
+    const nets = st.networks?.length ? st.networks : ['172.17.0.0/16'];
+    $('stashSnippet').textContent = 'public_whitelist:\n' + nets.map((n) => `  - "${n}"`).join('\n');
+  }
+  const other = { auth: 'settings.stash.helpAuth', unreachable: 'settings.stash.helpUnreachable' }[st.code];
+  $('stashHelpOther').hidden = st.ok || !other;
+  if (other) $('stashHelpOther').textContent = other === 'settings.stash.helpAuth' ? t('settings.stash.helpAuth') : t('settings.stash.helpUnreachable');
 }
 
 function renderLibrarySettings() {
@@ -307,7 +356,7 @@ export function init() {
   // --- Erklärtexte hinter ⓘ (1.19.3) – aufeinanderfolgende landen unter einem ⓘ ---------------------
   // (2.0: Bereiche sind eigene Seiten statt Aufklapper – settings.js / showSetPage in app.js)
   document.querySelectorAll('#view-settings p.hint-text:not([id]), #view-settings ul.preset-help').forEach((p) => {
-    if (p.closest('details.more-info, .hud-options, .set-quick')) return;
+    if (p.closest('details.more-info, .hud-options, .set-quick, .stash-help')) return; // test10: Stash-Hilfe immer offen
     const prev = p.previousElementSibling;
     const adv = p.classList.contains('adv');
     if (prev?.matches('details.more-info') && prev.classList.contains('adv') === adv) { prev.append(p); p.classList.remove('adv'); return; }
@@ -367,6 +416,8 @@ export function init() {
   $('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? t('settings.vr.logOn') : t('settings.vr.logOff')));
   $('hsRedirect').addEventListener('change', () => putSettings({ hsRedirect: $('hsRedirect').checked }, $('hsRedirect').checked ? t('settings.vr.logRedirectOn') : t('settings.vr.logRedirectOff')));
   $('hsVrOnly').addEventListener('change', () => putSettings({ hsVrOnly: $('hsVrOnly').checked }, $('hsVrOnly').checked ? t('settings.vr.logVrOnly') : t('settings.vr.logAll')));
+  $('loginSave').addEventListener('click', () => loginPass(false));
+  $('loginReset').addEventListener('click', () => loginPass(true));
   $('hsPassSave').addEventListener('click', () => {
     const pw = $('hsPass').value;
     if (!pw) return log(t('settings.vr.passEmpty'), true);
@@ -423,10 +474,20 @@ export function init() {
     location.reload();
   });
   // Infos frisch laden, sobald eine Einstellungs-Seite geöffnet wird (Ereignis aus app.js showSetPage)
+  window.addEventListener('hp:stash', renderStash);
+  $('stashTest').addEventListener('click', async () => {
+    const b = $('stashTest');
+    b.disabled = true;
+    b.textContent = t('settings.stash.testing');
+    await stashRecheck(true);
+    b.disabled = false;
+    b.textContent = t('settings.stash.test');
+    renderStash();
+  });
   window.addEventListener('hp:setpage', () => {
     const page = document.body.dataset.setPage;
     if (page === 'system') renderSysInfo();
-    else if (page === 'library') { renderLibrarySettings(); renderSavedFilterOptions(); }
+    else if (page === 'library') { renderLibrarySettings(); renderSavedFilterOptions(); renderStash(); }
     else if (!page) updateAdvHint();
   });
 }

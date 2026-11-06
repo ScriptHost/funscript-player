@@ -171,8 +171,10 @@ async function fetchScenes(reset) {
     data.scenes.forEach((s) => $('sceneGrid').append(sceneCard(s)));
   } catch (e) {
     if (token === lib.token) {
-      lib.error = e.message || String(e);
-      log(lib.error, true);
+      // test10: bekannter Stash-Fehler (z. B. 403) -> derselbe übersetzte Text wie in ⚙️, nicht doppelt melden
+      const known = lib.stashStatus && !lib.stashStatus.ok ? stashErrorText(lib.stashStatus) : '';
+      if (!known || known !== lib.error) log(known || e.message || String(e), true);
+      lib.error = known || e.message || String(e);
     }
   } finally {
     if (token === lib.token) {
@@ -288,6 +290,26 @@ function sceneCard(s) {
 // ---------------------------------------------------------------------------
 // Gespeicherte Filter aus Stash (z. B. „2D“, „VR Script“) als Leiste
 // ---------------------------------------------------------------------------
+// test10: Fehlertext nach Art (Stash ab 0.32 antwortet ohne eigene Anmeldung mit 403)
+export const stashErrorText = (st) => ({ forbidden: t('library.stashForbidden'), auth: t('library.stashAuth'), unreachable: t('library.stashUnreachable') }[st?.code]) || st?.error || '';
+// test10: Stash-Zustand neu holen (fresh = wirklich neu prüfen, „Verbindung testen“). Wird Stash erreichbar,
+// lädt die Bibliothek Filter und Szenen nach – ohne Neuladen der Seite.
+export async function stashRecheck(fresh = false) {
+  let st;
+  try { st = await (await fetch('/api/stash/status' + (fresh ? '?fresh=1' : ''))).json(); } catch { return lib.stashStatus; }
+  const was = !!lib.stashStatus?.ok;
+  lib.stashStatus = st;
+  if (st.ok && !was) {
+    lib.error = '';
+    await loadSavedFilters();
+    renderSavedFilters();
+    if (lib.source === 'stash') refresh();
+    log(t('library.stashBack'));
+  }
+  window.dispatchEvent(new Event('hp:stash'));
+  return st;
+}
+
 async function loadSavedFilters() {
   try {
     const res = await fetch('/api/stash/saved-filters');
@@ -552,8 +574,10 @@ function sceneAlts(src, alts) {
 // Script-Bereich im Geräte-Kasten
 export function renderScriptBox() {
   // nach test8: nur mit Script (auch nicht bei „Selbst steuern“ mit angehaltenem Script) – „📂 Script-Datei“ steht darunter
-  const show = !!nowKey() && !!script;
+  // test10: auch bei angehaltenem Script (✋ Selbst steuern / ⏺ Aufnehmen) – dann nur Name + „↩ Zurück zum Script“
+  const show = !!nowKey() && (!!script || !!suspended);
   $('scriptBox').hidden = !show;
+  $('scriptBox').classList.toggle('suspended', !!suspended);
   $('selfResume').hidden = $('sbResume').hidden = !suspended;
   if (!show) return;
   const date = scriptMeta.ownAt ? new Date(scriptMeta.ownAt).toLocaleDateString(lang) : '';
@@ -947,8 +971,10 @@ export function init() {
     lib.stashStatus = status;
     if (status.configured) {
       if (!status.ok) {
-        log(status.error, true);
-        lib.error = status.error;
+        lib.error = stashErrorText(status);
+        log(lib.error, true);
+        // test10: von selbst neu versuchen, bis Stash da ist
+        const retry = setInterval(async () => { if ((await stashRecheck()).ok) clearInterval(retry); }, 30000);
       }
       // Zuletzt gewählter gespeicherter Filter (wie „Als Voreinstellung“ in Stash)
       lib.saved = store.get('savedFilter', '');
@@ -962,6 +988,7 @@ export function init() {
       setSource(store.get('libSource', ''));
     }
     document.dispatchEvent(new Event('library-ready'));
+    window.dispatchEvent(new Event('hp:stash'));
 
     // Direktlink: …/?stash=123 öffnet die Szene sofort
     const id = new URLSearchParams(location.search).get('stash');

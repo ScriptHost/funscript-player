@@ -2,9 +2,10 @@
 import { modulesReady, video } from './state.js';
 import { $, handy, handyMaxSpeed, log, store } from './handy.js';
 import {
-  drawHeatmap, hasHandy, hasVibe, mediaTime, offsetKey, paintHeat, resync, script, setOffsetSource, toolActions,
+  drawHeatmap, hasHandy, hasVibe, mediaTime, offsetKey, paintHeat, resync, script, setOffsetSource, syncActive, toolActions,
 } from './app.js';
 import { renderScriptBox } from './library.js';
+import { warmIdle } from './control.js';
 import { t } from './lang.js';
 
 // ===========================================================================
@@ -189,7 +190,13 @@ function setWarmup(on) {
   warmup = !!on;
   toolCache = {};
   toolsChanged();
+  updateWarmIdle();
   log(warmup ? t('tools.warmUpHandyAt') : t('tools.warmUpEndedThe'));
+}
+// test10: Video angehalten → Aufwärmen läuft trotzdem (eigener Takt in control.js); spielt das Video, übernimmt es
+function updateWarmIdle(handover = false) {
+  const want = warmup && syncActive() && !!script && video.paused && !!video.getAttribute('src');
+  warmIdle(want, handover);
 }
 
 // Hub um die Mitte skalieren (Sanft: kleiner)
@@ -298,6 +305,7 @@ export function toolsChanged() {
   $('toolInfo').textContent = script ? t('tools.current', { name: SCRIPT_PRESETS[cur], handy: info.handy, vibe: info.vibe }) : '';
   $('sbInfo').textContent = script ? presetInfoText() : '';
   $('sbWarm').classList.toggle('on', warmup);
+  $('sbWarmTx').textContent = warmup ? t('player.warmupOn') : t('player.warmup');
   $('sbWarm').setAttribute('aria-pressed', String(warmup));
   if (modulesReady.has('library')) renderScriptBox();
   drawPresetPreviews();
@@ -417,6 +425,10 @@ export function init() {
   document.querySelectorAll('[data-preset-scene] button').forEach((b) => b.addEventListener('click', () => setScenePreset(b.dataset.preset)));
   video.addEventListener('emptied', () => { localPreset = null; });
   $('sbWarm').addEventListener('click', () => setWarmup(!warmup));
+  video.addEventListener('playing', () => updateWarmIdle(true));
+  video.addEventListener('pause', () => setTimeout(() => updateWarmIdle(), 400));
+  video.addEventListener('emptied', () => { if (warmup) setWarmup(false); });
+  document.addEventListener('hp:estop', () => { if (warmup) setWarmup(false); });
   $('tooFast').value = tools.tooFast;
   $('tooFast').addEventListener('change', () => { tools.tooFast = $('tooFast').value; toolsChanged(); });
   $('handyMaxAuto').addEventListener('change', () => {

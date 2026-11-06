@@ -175,6 +175,11 @@ see `docker logs`. For development, `?selbsttest` runs typical flows with a simu
   slowly.
 - **Stash not reachable** – `STASH_URL` is seen from inside the container: on a shared Docker network use the container
   name (e.g. `http://Stash:9999`), not `localhost`. Check the line `Stash:` in `docker logs Funscript-Player`.
+  ⚙️ → Library shows the connection and has a **Test connection** button; the player retries every 30 s on its own.
+- **Stash 0.32+ answers `HTTP 403`** – Stash without its own login rejects networks it considers public (some Docker
+  networks count as public). Either allow the player's network in Stash's `config.yml`
+  (`public_whitelist: ["172.18.0.0/16"]` – the player shows the right line in ⚙️ → Library and in `docker logs`) and
+  restart Stash, or set a user + password in Stash and put its API key into `STASH_API_KEY`.
 - **HQ stream says “CPU” or “not available”** – with Intel graphics: enable `/dev/dri` in `docker-compose.yml` and set `RENDER_GID` to the GID of the host group
   `render` (`getent group render`).
 - **HereSphere asks for the password again** – passwords from before 1.19.5 are no longer accepted; set it once more
