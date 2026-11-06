@@ -567,8 +567,10 @@ export function renderScriptBox() {
     $('sbChoice').replaceChildren(...opts.map((o) => { const b = el('button', { type: 'button' }, o.label); b.dataset.choice = o.id; return b; }));
   }
   document.querySelectorAll('#sbChoice button').forEach((b) => b.classList.toggle('active', b.dataset.choice === scriptMeta.choice));
-  document.querySelector('.sb-presets').hidden = !script;
-  $('sbSelf').hidden = $('sbHot').hidden = !script;
+  // nach test6: Karte sieht mit und ohne Script gleich aus – ohne Script ist das Script-Abhängige ausgegraut
+  $('scriptBox').classList.toggle('no-script', !script);
+  for (const id of ['sbWarm', 'sbSelf', 'sbHot', 'finaleBtn']) $(id).disabled = !script;
+  document.querySelectorAll('#scriptBox [data-preset-scene] button').forEach((b) => { b.disabled = !script; });
   $('sbDelete').hidden = !(scriptMeta.choice === 'own' || scriptMeta.choice.startsWith('own:')) || !!suspended;
 }
 function resumeScript() {

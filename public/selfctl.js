@@ -1,7 +1,7 @@
 
 import { modulesReady, video } from './state.js';
 import { $, claimHandy, downloadFunscript, handy, log, store } from './handy.js';
-import { hasHandy, hasVibe, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
+import { hasHandy, mediaTime, nowPlaying, script, videoPlaying } from './app.js';
 import { saveScriptToLibrary, scriptMeta, suspended } from './library.js';
 import { strokers } from './stroker.js';
 import { touchMode, touchPosActive, touchSync, touchToPositionActions, touchToTempoActions, tpos } from './touchpad.js';
@@ -41,10 +41,9 @@ export function selfRunning() {
 }
 
 export function selfUI() {
-  // Nur mit verbundenem Gerät – oder wenn „Selbst steuern“ gewählt ist (dann mit Hinweis zum Verbinden).
-  // Welche Regler erscheinen, regelt CSS nach den verbundenen Geräten (has-handy / has-vibe).
-  $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player'
-    || !(selfCtl.mode === 'self' || (modulesReady.has('app') && (hasHandy() || hasVibe())));
+  // nach test6: bei Videos ohne Funscript immer da (mit Umschalter „Keine Steuerung / Selbst steuern“), auch ohne
+  // verbundenes Gerät – vorher verschwand der ganze Bereich. Welche Regler erscheinen, regelt CSS (has-handy / has-vibe).
+  $('selfRow').hidden = !selfVideoLoaded() || !!script || document.body.dataset.view !== 'player';
   document.querySelector('.self-head > span').textContent = modulesReady.has('library') && suspended ? t('selfctl.scriptPaused') : t('selfctl.noFunscript');
   document.querySelectorAll('#selfSeg button').forEach((b) => b.classList.toggle('active', b.dataset.self === selfCtl.mode));
   $('selfCtl').hidden = selfCtl.mode !== 'self';
@@ -53,7 +52,7 @@ export function selfUI() {
   $('selfHi').value = selfCtl.hi;
   $('selfLoVal').textContent = `${selfCtl.lo} %`;
   $('selfHiVal').textContent = `${selfCtl.hi} %`;
-  $('selfSpeedVal').textContent = `${selfSpeed()} %${selfSpeed() < selfCtl.speed ? ' (Grenze)' : ''}`;
+  $('selfSpeedVal').textContent = `${selfSpeed()} %${selfSpeed() < selfCtl.speed ? t('selfctl.limit') : ''}`;
   $('selfVibe').value = selfCtl.vibe;
   $('selfVibeVal').textContent = `${selfCtl.vibe} %`;
   $('selfHandy').textContent = selfCtl.handyOn ? '■ Handy' : '▶ Handy';

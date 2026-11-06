@@ -1301,3 +1301,6 @@ body.demo #homeBtn::after {
 
 /* nach test6: Video bereit (gepuffert) – kein Ladekreis mehr über dem Vorschaubild */
 .start-cover.ready .spin { display: none; }
+
+/* nach test6: Script-Karte ohne Script – gleiche Knöpfe, ausgegraut */
+.script-box.no-script .sb-presets, #scriptBox button:disabled { opacity: .4; pointer-events: none; }

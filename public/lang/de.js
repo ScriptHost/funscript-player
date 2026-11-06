@@ -73,7 +73,7 @@ export default {
   'player.own': '✋ Eigenes Script',
   'player.ownFrom': '✋ Eigenes Script vom {date}',
   'player.points': { one: '{n} Punkt', other: '{n} Punkte' },
-  'player.noScript': 'Kein Script',
+  'player.noScript': 'Kein Funscript – 📂 Script-Datei laden oder unten selbst steuern',
   'player.ownShort': '✋ Eigenes',
   'player.loadFile': 'Script-Datei',
   'player.loadFileTitle': 'Weitere .funscript zu dieser Szene laden und unter einem Namen behalten',
@@ -736,4 +736,5 @@ export default {
   'settings.access.toVr': "⚙️ HereSphere-Passwort und Schalter",
   'settings.lib.resume': "Weiterschauen – Stash-Szenen starten dort, wo du aufgehört hast",
   'settings.img.gpu': "Hochskalieren auf dem Server (Intel Quick Sync): {state}",
+  'selfctl.limit': " (Grenze)",
 };
