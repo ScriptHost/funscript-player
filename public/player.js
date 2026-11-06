@@ -85,6 +85,13 @@ export function init() {
   window.addEventListener('hp:view', () => { if (document.body.dataset.view === 'player') renderNext(); });
   $('video').addEventListener('loadstart', () => setTimeout(renderNext, 0));
   $('plNextClose').addEventListener('click', () => { store.set('nextCol', false); $('nextOn').checked = false; renderNext(); });
+  // nach test6: Liste folgt der Bibliothek (lädt sie nach dem Start nach, erschien „Als Nächstes“ erst nach Aus/An)
+  let queued = false;
+  new MutationObserver(() => {
+    if (queued || document.body.dataset.view !== 'player') return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; renderNext(); });
+  }).observe($('sceneGrid'), { childList: true });
   $('nextOn').checked = store.get('nextCol', true);
   $('nextOn').addEventListener('change', () => { store.set('nextCol', $('nextOn').checked); renderNext(); });
   document.addEventListener('visibilitychange', loop);

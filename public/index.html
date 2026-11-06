@@ -502,6 +502,7 @@
             <label><span data-i18n="settings.lib.start">Show at start</span>
               <select id="setStartSource"></select>
             </label>
+            <label class="ui-switch"><input id="resumeOn" type="checkbox" checked><span></span><span data-i18n="settings.lib.resume">Continue watching – Stash scenes start where you left off</span></label>
             <label class="ui-switch"><input id="only2d" type="checkbox"><span></span><span data-i18n="settings.lib.only2d">Show 2D videos only</span></label>
             <p class="hint-text" data-i18n="settings.lib.only2dHelp">The library then only shows scenes with the Stash tag “2D”. Applies to this device only – e.g. on for the phone, off for the VR headset.</p>
             <label class="ui-switch adv"><input id="setHoverPreview" type="checkbox" checked><span></span><span data-i18n="settings.lib.hover">Preview video on mouse hover</span></label>
@@ -565,6 +566,7 @@
             <label class="ui-switch"><input id="enh_compare" type="checkbox"><span></span><span data-i18n="settings.img.compare">Before/after comparison (left original)</span></label>
             <p class="hint-text" data-i18n="settings.img.gpuHelp">Runs on this device’s GPU: bicubic upscaling + AMD CAS sharpening. Setting is per device.</p>
 
+            <p id="imgGpu" class="hint-text"></p>
             <div id="hqBox" class="hq" hidden>
               <h4 data-i18n="settings.img.hqTitle">HQ stream from the server (Intel Quick Sync)</h4>
               <p class="hint-text" data-i18n="settings.img.hqHelp">The server denoises and upscales in hardware before streaming – “Auto” only subtly, “Clean”/“Strong” with more sharpness. Seeking restarts the conversion (≈ 1 s).</p>

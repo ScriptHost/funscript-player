@@ -758,6 +758,7 @@ async function loadSprites(session) {
 
 // --- Weiterschauen + Play-Count an Stash -------------------------------------
 function resumeIfWanted(session) {
+  if (!store.get('resume', true)) return; // nach test6: abschaltbar (⚙️ → Bibliothek)
   const apply = () => {
     const dur = duration() / 1000;
     if (session.resume > 10 && (!dur || session.resume < dur - 30) && mediaTime() < 1) {

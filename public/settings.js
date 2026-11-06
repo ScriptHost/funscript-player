@@ -163,6 +163,11 @@ function renderSavedFilterOptions() {
 
 // Gilt auf dem Server für alle Geräte (HERESPHERE=off / INTIFACE_LAN_ONLY in Docker sperren fest)
 let hsHasPass = false;
+// Weiterschauen (pro Gerät)
+function initResume() {
+  $('resumeOn').checked = store.get('resume', true);
+  $('resumeOn').addEventListener('change', () => store.set('resume', $('resumeOn').checked));
+}
 function showServerSettings(s) {
   $('hsOn').checked = s.heresphere;
   $('hsOn').disabled = !!s.heresphereLocked;
@@ -262,6 +267,8 @@ function gpuText() {
 // Untertitel in der Startliste: Version · Intel-Grafik
 let appVer = '';
 function renderSystemSub() {
+  // nach test6: Hochskalieren über Intel Quick Sync – auch unter ⚙️ → Bild & Anzeige sichtbar
+  $('imgGpu').textContent = !hqState.checked ? '' : t('settings.img.gpu', { state: hqState.available ? gpuText() : t('settings.sys.hqNone') });
   const gpu = !hqState.checked || !hqState.available ? '' : hqState.gpu === 'ok' ? t('settings.sys.subGpuOk') : t('settings.sys.subGpuOff');
   $('setSubSystem').textContent = [appVer && 'v' + appVer, gpu].filter(Boolean).join(' · ') || t('settings.sys.sub');
 }
@@ -351,6 +358,7 @@ export function init() {
   applyBrowseTabs();
   // --- Server-Einstellungen: HereSphere, Intiface --------------------------------------------
   $('hsUrl').value = `${location.origin}/heresphere`;
+  initResume();
   fetch('/api/settings').then((r) => r.json()).then(showServerSettings).catch(() => {});
   $('hsOn').addEventListener('change', () => putSettings({ heresphere: $('hsOn').checked }, $('hsOn').checked ? t('settings.vr.logOn') : t('settings.vr.logOff')));
   $('hsRedirect').addEventListener('change', () => putSettings({ hsRedirect: $('hsRedirect').checked }, $('hsRedirect').checked ? t('settings.vr.logRedirectOn') : t('settings.vr.logRedirectOff')));

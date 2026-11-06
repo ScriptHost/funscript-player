@@ -735,4 +735,6 @@ export default {
   'settings.access.hsPass': "🔒 HereSphere: on, with its own password",
   'settings.access.hsOpen': "HereSphere: on, without password",
   'settings.access.toVr': "⚙️ HereSphere password and switches",
+  'settings.lib.resume': "Continue watching – Stash scenes start where you left off",
+  'settings.img.gpu': "Upscaling on the server (Intel Quick Sync): {state}",
 };
