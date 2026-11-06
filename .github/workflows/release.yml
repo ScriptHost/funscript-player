@@ -1,4 +1,4 @@
-# Release je Versions-Tag: ZIP (handy-player-linux-vX.Y.Z.zip) + Text aus CHANGELOG.md (englisch, Stand main)
+# Release je Versions-Tag: ZIP (funscript-player-vX.Y.Z.zip, bis 1.x handy-player-linux-…) + Text aus CHANGELOG.md (englisch, Stand main)
 # + Docker-Image auf GitHub (ghcr.io/scripthost/funscript-player:X.Y.Z und :latest, amd64 + arm64).
 #   Vorabversion (Tag mit „-“, z. B. v2.0.0-beta1): „Pre-release“, Image nur mit Versionsnummer, :latest bleibt.
 #   Neuer Tag            -> nur dieser.
@@ -102,17 +102,27 @@ jobs:
               retry gh release delete "$t" --yes || { err "$t löschen"; continue; }
             fi
             v="${t#v}"
-            awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' changelog.en.md > notes.md
-            [ -s notes.md ] || echo "Version $v" > notes.md
-            pre=""
+            # ZIP-Name: ab 2.0 funscript-player-vX.Y.Z.zip (Ordner funscript-player), 1.x behält den alten Namen
+            case "$t" in
+              v1.*) zip="handy-player-linux-$t.zip"; dir="handy-player" ;;
+              *) zip="funscript-player-$t.zip"; dir="funscript-player" ;;
+            esac
+            # Oben fester Block „Install / update“, darunter der Text aus CHANGELOG.md
+            pre=""; upd='`docker compose pull && docker compose up -d`'
             case "$v" in *-*)
               pre="--prerelease"
-              printf '\n---\n**Pre-release** – `:latest` stays on the last stable version. To try it: `PLAYER_VERSION=%s` in `.env`, then `docker compose pull && docker compose up -d`. Back: `PLAYER_VERSION=latest`.\n' "$v" >> notes.md ;;
+              upd="set \`PLAYER_VERSION=$v\` in \`.env\`, then \`docker compose pull && docker compose up -d\` (back to stable: \`PLAYER_VERSION=latest\`)" ;;
             esac
-            printf '\n---\nDocker: `docker compose pull && docker compose up -d` · Image `ghcr.io/scripthost/funscript-player:%s` (amd64 + arm64)\n' "$v" >> notes.md
-            zip="handy-player-linux-$t.zip"
-            git archive --format=zip --prefix=handy-player/ -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github' 2>err.txt || { err "$t ZIP"; continue; }
-            # Prüfsumme zum Nachrechnen: sha256sum -c handy-player-linux-vX.Y.Z.zip.sha256
+            {
+              [ -n "$pre" ] && printf '> **Pre-release** – `:latest` stays on the last stable version.\n\n'
+              printf '**Install:** download `%s` below → `unzip %s && cd %s` → `cp .env.example .env` → edit `.env` → `docker compose up -d` ([README](https://github.com/ScriptHost/funscript-player#-quick-start))  \n' "$zip" "$zip" "$dir"
+              printf '**Update:** %s – your `.env` and data stay.\n\n---\n\n' "$upd"
+              awk -v v="$v" 'index($0, "## " v " ") == 1 || $0 == "## " v { f = 1; next } /^## / && f { exit } f' changelog.en.md > body.md
+              if [ -s body.md ]; then cat body.md; else echo "Version $v"; fi
+              printf '\n---\nDocker image `ghcr.io/scripthost/funscript-player:%s` (amd64 + arm64)\n' "$v"
+            } > notes.md
+            git archive --format=zip --prefix="$dir/" -o "$zip" "$t" -- . ':!.gitignore' ':!windows' ':!.github' 2>err.txt || { err "$t ZIP"; continue; }
+            # Prüfsumme zum Nachrechnen: sha256sum -c funscript-player-vX.Y.Z.zip.sha256
             sha256sum "$zip" > "$zip.sha256"
             # Signatur (Sigstore, an diesen Workflow gebunden): cosign verify-blob --bundle <zip>.sigstore.json …
             # Klappt die Signatur nicht, kommt das Release trotzdem (mit Warnung) – nie ein fehlendes Release deswegen

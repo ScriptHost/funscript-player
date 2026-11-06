@@ -3,3 +3,6 @@ contact_links:
   - name: 📖 README & FAQ
     url: https://github.com/ScriptHost/funscript-player#-faq--troubleshooting
     about: Installation, settings and frequently asked questions
+  - name: 💬 Questions & ideas
+    url: https://github.com/ScriptHost/funscript-player/discussions
+    about: Ask questions, share setups and ideas
