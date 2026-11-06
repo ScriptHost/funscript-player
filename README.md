@@ -243,12 +243,12 @@ docker compose pull && docker compose up -d
   set `RENDER_GID` (`getent group render`).
 - **Locked out** – `LOGIN_RESET=1` in `.env`, `docker compose up -d`, log in / set up again, remove the line.
 
-Questions or ideas? [Discussions](../../discussions) · Found a bug? [Issues](../../issues/new/choose)
+Found a bug or have an idea? [Open an issue](../../issues/new/choose)
 
 ## 🗺 Coming next
 
 - 📺 **Stream to your TV** (Chromecast / AirPlay) while the devices stay in sync – in testing
-- Your idea? Post it in [Discussions](../../discussions)
+- Your idea? [Suggest it](../../issues/new/choose)
 
 ## 🛠 Development
 
@@ -279,6 +279,5 @@ its source code under the same license.
 <p align="center">
   <a href="../../releases"><b>Releases</b></a> ·
   <a href="CHANGELOG.md"><b>Changelog</b></a> ·
-  <a href="../../discussions"><b>Discussions</b></a> ·
-  <a href="../../issues/new/choose"><b>Report a bug</b></a>
+  <a href="../../issues/new/choose"><b>Report a bug / idea</b></a>
 </p>
