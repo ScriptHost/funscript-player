@@ -940,7 +940,9 @@ export function init() {
       return;
     }
     if (!$('autoPip').checked || !videoPlaying()) return;
-    if (!document.pictureInPictureElement && document.fullscreenElement === video) {
+    // nach test6: seit dem eigenen Vollbild (1.19.11) ist die Bühne bzw. die ganze App im Vollbild, nicht das Video –
+    // darum „enthält das Video“ statt „ist das Video“ (sonst wurde der Player im Hintergrund schwarz)
+    if (!document.pictureInPictureElement && document.fullscreenElement?.contains(video)) {
       autoPipAt = Date.now();
       video.requestPictureInPicture().catch(() => { autoPipAt = 0; });
     }
